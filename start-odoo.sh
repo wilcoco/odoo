@@ -1,166 +1,111 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-log() { echo "[start-odoo] $*"; }
-die() { echo "[start-odoo][ERROR] $*" >&2; exit 1; }
+log(){ echo "[start-odoo] $*"; }
+die(){ echo "[start-odoo][ERROR] $*" >&2; exit 1; }
 
-echo "ADMIN_DATABASE_URL present? $([ -n "${ADMIN_DATABASE_URL:-}" ] && echo yes || echo no)"
-echo "DATABASE_URL present? $([ -n "${DATABASE_URL:-}" ] && echo yes || echo no)"
-
-
-# ---------------- ODOO BIN / ADDONS PATH AUTO-DETECT ----------------
-# odoo-bin 위치 자동 탐지
-if [ -x ./odoo-bin ]; then
-  ODOO_BIN=./odoo-bin
-elif [ -x ./odoo/odoo-bin ]; then
-  ODOO_BIN=./odoo/odoo-bin
-else
-  die "odoo-bin not found at ./odoo-bin or ./odoo/odoo-bin"
-fi
+# ---------- odoo-bin / addons 자동 탐지 ----------
+if [ -x ./odoo-bin ]; then ODOO_BIN=./odoo-bin
+elif [ -x ./odoo/odoo-bin ]; then ODOO_BIN=./odoo/odoo-bin
+else die "odoo-bin not found at ./odoo-bin or ./odoo/odoo-bin"; fi
 log "Using ODOO_BIN: $ODOO_BIN"
 
-# 기본 애드온 경로 자동 탐지
-BASE_ADDONS=""
-if [ -d ./addons ]; then
-  BASE_ADDONS=./addons
-elif [ -d ./odoo/addons ]; then
-  BASE_ADDONS=./odoo/addons
-fi
-
-# 커스텀 애드온 경로: ./addons_custom 존재하면 자동 추가, ENV로도 추가 가능(EXTRA_ADDONS="path1,path2")
-EXTRA_ADDONS="${EXTRA_ADDONS:-}"
-if [ -d ./addons_custom ]; then
-  EXTRA_ADDONS="${EXTRA_ADDONS:+$EXTRA_ADDONS,}./addons_custom"
-fi
-
-ADDONS_PATH="$BASE_ADDONS"
-if [ -n "$EXTRA_ADDONS" ]; then
-  ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}$EXTRA_ADDONS"
-fi
-[ -n "$ADDONS_PATH" ] || log "WARN: addons path could not be auto-detected; Odoo defaults will be used"
+ADDONS_PATH=""
+[ -d ./addons ] && ADDONS_PATH=./addons
+[ -d ./odoo/addons ] && ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}./odoo/addons"
+[ -d ./addons_custom ] && ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}./addons_custom"
 [ -n "$ADDONS_PATH" ] && log "Using ADDONS_PATH: $ADDONS_PATH"
 
-# 데이터 디렉터리 (볼륨 마운트 시 /data 권장)
-ODOO_DATA_DIR="${ODOO_DATA_DIR:-/data}"
-
-# ---------------- ADMIN vs RUNTIME ----------------
-# ADMIN_DATABASE_URL 없으면 DATABASE_URL 사용
+# ---------- DB URL 준비 (반드시 하나는 있어야 함) ----------
 ADMIN_DATABASE_URL="${ADMIN_DATABASE_URL:-${DATABASE_URL:-}}"
-[ -n "$ADMIN_DATABASE_URL" ] || die "ADMIN_DATABASE_URL 또는 DATABASE_URL이 필요합니다."
+[ -n "${ADMIN_DATABASE_URL:-}" ] || die "ADMIN_DATABASE_URL 또는 DATABASE_URL이 필요합니다."
 
-# URL 파싱(안전)
-read AHOST APORT AUSER APASS ADB <<PYOUT
-$(python3 - <<'PY'
-import os, urllib.parse
-u = urllib.parse.urlparse(os.environ["ADMIN_DATABASE_URL"])
-print(u.hostname or "")
-print(u.port or 5432)
-print(u.username or "")
-print(u.password or "")
-print((u.path or "").lstrip("/").split("?")[0] or "postgres")
-PY
-)
-PYOUT
+# 내부/외부 판단(SSL)
+if echo "$ADMIN_DATABASE_URL" | grep -q "postgres\.railway\.internal"; then
+  ASSL=disable
+else
+  ASSL=require
+fi
 
-[ -n "$AHOST" ] || die "ADMIN_DATABASE_URL parse failed (host empty)"
-
-# 런타임 자격증명(기본값)
-DB_HOST="${DB_HOST:-$AHOST}"
-DB_PORT="${DB_PORT:-$APORT}"
+# 런타임(DB 접속 정보)
 DB_NAME="${DB_NAME:-odoo}"
 DB_USER="${DB_USER:-odoo_user}"
-# 비번 폴백: ODOO_DB_PASSWORD > DB_PASSWORD > 기본
-ODOO_DB_PASSWORD="${ODOO_DB_PASSWORD:-${DB_PASSWORD:-}}"
-DB_PASS="${DB_PASS:-${ODOO_DB_PASSWORD:-odoo_pass}}"
+ODOO_DB_PASSWORD="${ODOO_DB_PASSWORD:-${DB_PASSWORD:-odoo_pass}}"
+DB_PASS="${DB_PASS:-$ODOO_DB_PASSWORD}"
 
-# SSL 모드 결정
-if [[ "$AHOST" == *.railway.internal ]]; then ASSL=disable; else ASSL=require; fi
-if [[ "$DB_HOST" == *.railway.internal ]]; then PGSSLMODE=disable; else PGSSLMODE=require; fi
-export PGSSLMODE
+# 호스트/포트만 안전하게 뽑기(호스트는 필요, 포트 없으면 5432 기본)
+read DB_HOST DB_PORT <<<"$(python3 - <<'PY'
+import os, urllib.parse
+u = urllib.parse.urlparse(os.environ.get("ADMIN_DATABASE_URL",""))
+print(u.hostname or "postgres.railway.internal")
+print(u.port or 5432)
+PY
+)"
+export PGSSLMODE=$([ "$ASSL" = "disable" ] && echo disable || echo require)
 
-log "ADMIN   -> user=$AUSER host=$AHOST port=$APORT db=$ADB ssl=$ASSL"
+log "ADMIN URL detected (ssl=$ASSL)"
 log "RUNTIME -> user=$DB_USER host=$DB_HOST port=$DB_PORT db=$DB_NAME ssl=$PGSSLMODE"
 
-# ---------------- WAIT FOR POSTGRES (ADMIN) ----------------
-log "Waiting for PostgreSQL (admin)..."
+# ---------- Postgres 준비 대기 (URL로 직접 테스트) ----------
+log "Waiting for PostgreSQL (admin url)..."
 for i in {1..30}; do
-  if PGPASSWORD="$APASS" pg_isready -h "$AHOST" -p "$APORT" -U "$AUSER" -d "$ADB" >/dev/null 2>&1; then
+  if psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -At -c "select 1" >/dev/null 2>&1; then
     break
   fi
-  log "  retry $i/30"
-  sleep 2
+  log "  retry $i/30"; sleep 2
 done
-PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -v ON_ERROR_STOP=1 -c "select 1;" >/dev/null || die "ADMIN 접속 실패"
 
-# ---------------- BOOTSTRAP (ROLE/DB/EXTENSIONS) ----------------
-log "Bootstrap: ensure role/database/extensions"
+# 마지막 한 번은 에러 출력 보면서 확인
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "select 1;" >/dev/null \
+  || die "ADMIN 접속 실패 (URL로 연결 불가)"
 
-# 1) 사용자 생성 (이미 있으면 skip)
-HAS_ROLE=$(PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -At -c \
-  "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" || true)
-if [ "$HAS_ROLE" != "1" ]; then
-  # 비밀번호에 ' 가 있을 수 있으므로 이스케이프
-  ESC_PASS=$(printf "%s" "$DB_PASS" | sed "s/'/''/g")
-  PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -v ON_ERROR_STOP=1 -c \
-    "CREATE USER ${DB_USER} WITH LOGIN PASSWORD '${ESC_PASS}';" || die "CREATE USER 실패"
-  log "  created role ${DB_USER}"
-fi
+# ---------- BOOTSTRAP: 유저/DB/확장 ----------
+log "Bootstrap: role/database/extensions"
 
-# 2) 데이터베이스 생성 (이미 있으면 skip)
-HAS_DB=$(PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -At -c \
-  "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" || true)
-if [ "$HAS_DB" != "1" ]; then
-  PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -v ON_ERROR_STOP=1 -c \
-    "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};" || die "CREATE DATABASE 실패"
-  log "  created database ${DB_NAME}"
-fi
+# 1) 사용자 생성
+ESC_PASS=$(printf "%s" "$DB_PASS" | sed "s/'/''/g")
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -At -c "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1 \
+  || psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE USER ${DB_USER} WITH LOGIN PASSWORD '${ESC_PASS}';"
 
-# 3) 확장 설치
-PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$DB_NAME sslmode=$ASSL" -v ON_ERROR_STOP=1 -c \
-  "CREATE EXTENSION IF NOT EXISTS unaccent;" || die "CREATE EXTENSION unaccent 실패"
-PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$DB_NAME sslmode=$ASSL" -v ON_ERROR_STOP=1 -c \
-  "CREATE EXTENSION IF NOT EXISTS pg_trgm;" || die "CREATE EXTENSION pg_trgm 실패"
+# 2) DB 생성
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -At -c "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1 \
+  || psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
 
-# 권한 보강
-PGPASSWORD="$APASS" psql "host=$AHOST port=$APORT user=$AUSER dbname=$ADB sslmode=$ASSL" -v ON_ERROR_STOP=1 -c \
-  "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
+# 3) 확장 (해당 DB로 접속)
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "\connect ${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS unaccent;" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
-# ---------------- SWITCH TO RUNTIME ----------------
-export PGHOST="$DB_HOST"
-export PGPORT="$DB_PORT"
-export PGUSER="$DB_USER"
-export PGPASSWORD="$DB_PASS"
-export PGDATABASE="$DB_NAME"
+# 권한 보강(무해)
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
 
+# ---------- 런타임 접속 확인(odoo_user) ----------
+export PGHOST="$DB_HOST" PGPORT="$DB_PORT" PGUSER="$DB_USER" PGPASSWORD="$DB_PASS" PGDATABASE="$DB_NAME"
 log "Testing runtime connection (odoo_user -> $DB_NAME)"
-PGPASSWORD="$PGPASSWORD" psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE sslmode=$PGSSLMODE" -v ON_ERROR_STOP=1 -c \
-  "select current_user,current_database();" >/dev/null || die "RUNTIME 접속 실패"
+psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE sslmode=$PGSSLMODE" -v ON_ERROR_STOP=1 -c "select current_user,current_database();" >/dev/null \
+  || die "RUNTIME 접속 실패(odoo_user)"
 
-# ---------------- INITIALIZE BASE SCHEMA (FIRST RUN) ----------------
-INIT_CHECK=$(PGPASSWORD="$PGPASSWORD" psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE sslmode=$PGSSLMODE" -At -c \
+# ---------- 최초 스키마 초기화 ----------
+INIT_CHECK=$(psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE sslmode=$PGSSLMODE" -At -c \
   "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" || true)
 if [ "$INIT_CHECK" != "1" ]; then
   log "Initializing Odoo base schema..."
-  "$ODOO_BIN" \
-    ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
+  "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
     -i base \
     --database="$PGDATABASE" \
     --db_host="$PGHOST" --db_port="$PGPORT" \
     --db_user="$PGUSER" --db_password="$PGPASSWORD" \
     --db_sslmode="$PGSSLMODE" \
-    --without-demo=all \
-    --stop-after-init
-  log "Base schema initialized."
-else
-  log "Odoo base schema already present. Skipping initialization."
+    --without-demo=all --stop-after-init
 fi
 
-# ---------------- START ODOO ----------------
+# ---------- Odoo 기동 ----------
 HTTP_PORT="${PORT:-8069}"
 log "Starting Odoo on port $HTTP_PORT ..."
-exec "$ODOO_BIN" \
-  ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
+exec "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
   --database="$PGDATABASE" \
   --db_host="$PGHOST" --db_port="$PGPORT" \
   --db_user="$PGUSER" --db_password="$PGPASSWORD" \
-  --db_sslmode="$PGSSLMODE"_
+  --db_sslmode="$PGSSLMODE" \
+  --db-filter="^${PGDATABASE}$" \
+  --http-port="$HTTP_PORT" \
+  --proxy-mode \
+  --without-demo=all
