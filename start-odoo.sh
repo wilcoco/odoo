@@ -4,6 +4,10 @@ set -euo pipefail
 log() { echo "[start-odoo] $*"; }
 die() { echo "[start-odoo][ERROR] $*" >&2; exit 1; }
 
+echo "ADMIN_DATABASE_URL present? $([ -n "${ADMIN_DATABASE_URL:-}" ] && echo yes || echo no)"
+echo "DATABASE_URL present? $([ -n "${DATABASE_URL:-}" ] && echo yes || echo no)"
+
+
 # ---------------- ODOO BIN / ADDONS PATH AUTO-DETECT ----------------
 # odoo-bin 위치 자동 탐지
 if [ -x ./odoo-bin ]; then
