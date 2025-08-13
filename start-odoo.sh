@@ -2,6 +2,8 @@
 set -e
 
 echo "--- Starting Odoo bootstrap ---"
+echo "ADMIN_DATABASE_URL present? $([ -n "$ADMIN_DATABASE_URL" ] && echo yes || echo no)"
+echo "DATABASE_URL present? $([ -n "$DATABASE_URL" ] && echo yes || echo no)"
 
 # ===== ADMIN vs RUNTIME =====
 export ADMIN_DATABASE_URL="${ADMIN_DATABASE_URL:-$DATABASE_URL}"
