@@ -1,0 +1,55 @@
+<!-- addons_custom/mrp_bom_scan_guard/views/mrp_bom_scan_guard_views.xml -->
+<odoo>
+  <!-- Wizard Form -->
+  <record id="view_mrp_bom_scan_guard_wizard" model="ir.ui.view">
+    <field name="name">mrp.bom.scan.guard.wizard.form</field>
+    <field name="model">mrp.bom.scan.guard.wizard</field>
+    <field name="arch" type="xml">
+      <form string="BOM Scan Guard" create="false" edit="true">
+        <group>
+          <group>
+            <field name="workorder_id" readonly="1"/>
+            <field name="production_id" readonly="1"/>
+            <field name="operation_id" readonly="1"/>
+          </group>
+          <group>
+            <!-- 'odoo-qrcode' 모듈이 있으면 widget="barcode_scanner"가 카메라 스캔 UI로 동작 -->
+            <field name="scan_value" placeholder="Scan here..."
+                   context="{'noscanner': False}" widget="barcode_scanner"/>
+            <field name="matched_product_id" readonly="1"/>
+          </group>
+        </group>
+
+        <group>
+          <field name="result_state" readonly="1" class="oe_inline"/>
+          <field name="message" readonly="1" nolabel="1"/>
+        </group>
+
+        <group string="Expected Components (this operation)">
+          <field name="allowed_product_ids" widget="many2many_tags" readonly="1"/>
+        </group>
+
+        <footer>
+          <button name="action_reset" string="Reset" class="btn-secondary" type="object"/>
+          <button string="Close" class="btn-primary" special="cancel" type="object"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <!-- Standalone action (메뉴에서 열어보고 싶을 때) -->
+  <record id="action_mrp_bom_scan_guard" model="ir.actions.act_window">
+    <field name="name">BOM Scan Guard</field>
+    <field name="res_model">mrp.bom.scan.guard.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    <field name="context">{}</field>
+  </record>
+
+  <!-- (선택) 메뉴 추가: Manufacturing > Operations -->
+  <menuitem id="menu_mrp_bom_scan_guard"
+            name="BOM Scan Guard"
+            parent="mrp.menu_mrp_operations"
+            action="action_mrp_bom_scan_guard"
+            sequence="99"/>
+</odoo>

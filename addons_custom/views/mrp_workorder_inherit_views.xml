@@ -1,0 +1,34 @@
+<!-- addons_custom/mrp_bom_scan_guard/views/mrp_workorder_inherit_views.xml -->
+<odoo>
+  <record id="view_mrp_workorder_form_scan_guard" model="ir.ui.view">
+    <field name="name">mrp.workorder.form.scan.guard</field>
+    <field name="model">mrp.workorder</field>
+    <field name="inherit_id" ref="mrp.mrp_workorder_view_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="inside">
+        <button name="action_open_bom_scan_guard"
+                string="Scan Component"
+                type="object"
+                class="oe_highlight"/>
+      </xpath>
+    </field>
+  </record>
+<!-- 태블릿 워크오더 폼에도 Scan 버튼 추가 -->
+<record id="view_mrp_workorder_tablet_scan_guard" model="ir.ui.view">
+  <field name="name">mrp.workorder.tablet.scan.guard</field>
+  <field name="model">mrp.workorder</field>
+  <!-- ※ 외부 ID는 설치된 버전에 따라 다를 수 있음. 아래 ref가 다르면 실제 ID로 교체 -->
+  <field name="inherit_id" ref="mrp_workorder.mrp_workorder_view_form_tablet"/>
+  <field name="arch" type="xml">
+    <xpath expr="//header" position="inside">
+      <button name="action_open_bom_scan_guard"
+              string="Scan Component"
+              type="object"
+              class="oe_highlight"/>
+    </xpath>
+  </field>
+</record>
+
+
+
+</odoo>
