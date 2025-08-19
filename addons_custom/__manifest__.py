@@ -1,5 +1,5 @@
 {
-    'name': "Webcam Qrcode Scanner",
+    'name': "Barcode Scanner Widget",
     'version': '18.0.0.1',
     'depends': ['web'],
     'author': "DevSanx",
