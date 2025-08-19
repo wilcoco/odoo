@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_mrp_workorder_form_scan_guard" model="ir.ui.view">
+    <field name="name">mrp.workorder.form.scan.guard</field>
+    <field name="model">mrp.workorder</field>
+    <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="inside">
+        <button name="action_open_bom_scan_guard"
+                string="Scan Component"
+                type="object"
+                class="oe_highlight"/>
+      </xpath>
+    </field>
+  </record>
+</odoo>
