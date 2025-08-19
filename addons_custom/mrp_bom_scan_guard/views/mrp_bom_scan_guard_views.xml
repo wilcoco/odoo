@@ -49,7 +49,7 @@
   <!-- (Optional) Menu: Manufacturing > Operations -->
   <menuitem id="menu_mrp_bom_scan_guard"
             name="BOM Scan Guard"
-            parent="mrp.menu_mrp_operations"
+            parent="mrp.menu_mrp_manufacturing"
             action="action_mrp_bom_scan_guard"
             sequence="99"/>
 </odoo>
