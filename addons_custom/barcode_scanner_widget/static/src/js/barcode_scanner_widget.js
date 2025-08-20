@@ -141,7 +141,7 @@ odoo.define('barcode_scanner_widget.custom_webcam_scanner', function (require) {
                         click: function () {
                             let device = $('.o_camera_selector').children("option:selected").val();
                             let type = $('input[name="scan_code_type"]:checked').val();
-                            let reader = $('.o_barcode_type_selector option:selected').val();
+                            let reader = $('.o_barcode_type_selector option:selected').val() || 'code_128_reader';
                             self.device_uid = device;
                             self.code_type = type;
                             self.barcode_reader = reader;

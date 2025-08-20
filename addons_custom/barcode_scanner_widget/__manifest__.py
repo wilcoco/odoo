@@ -1,6 +1,6 @@
 {
     'name': "Barcode Scanner Widget",
-    'version': '18.0.0.3',
+    'version': '18.0.0.4',
     'depends': ['web'],
     'author': "DevSanx",
     'license': 'LGPL-3',
@@ -17,10 +17,8 @@
             # Camera libraries (consolidated here)
             "barcode_scanner_widget/static/src/lib/html5-qrcode.min.js",
             "barcode_scanner_widget/static/src/lib/quagga.min.js",
-            # OWL field widget
+            # OWL field widget + QWeb template (Odoo 17/18: include xml in backend bundle)
             "barcode_scanner_widget/static/src/js/barcode_scanner_field.js",
-        ],
-        'web.assets_qweb': [
             "barcode_scanner_widget/static/src/xml/webcam_qrcode_scan_template.xml",
         ],
     },
