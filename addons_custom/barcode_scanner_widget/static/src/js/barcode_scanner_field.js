@@ -107,6 +107,11 @@ export class BarcodeScannerField extends CharField {
         }
     }
 
+    onInput(ev) {
+        const val = ev.target?.value ?? "";
+        this.props.update?.(val);
+    }
+
     stopScanning() {
         if (this._qr) {
             this._qr
@@ -139,3 +144,4 @@ registry.category("fields").add("barcode_scanner", {
     displayName: "Barcode Scanner",
     supportedTypes: ["char"],
 });
+

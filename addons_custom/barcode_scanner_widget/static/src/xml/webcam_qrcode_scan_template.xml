@@ -31,7 +31,12 @@
     <!-- OWL Field template -->
     <t t-name="barcode_scanner_widget.BarcodeScannerField" owl="1">
         <div class="o_qrcode_scanner_widget">
-            <t t-component="CharField" t-props="props"/>
+            <input type="text"
+                   class="o_input"
+                   t-att-value="props.value || ''"
+                   t-att-placeholder="props.placeholder"
+                   t-att-readonly="props.readonly ? true : undefined"
+                   t-on-input="onInput"/>
             <button type="button" class="btn btn-secondary qr_scan_button" title="Scan" aria-label="Scan" t-on-click="openScan">
                 <i class="fa fa-qrcode"/>
             </button>
@@ -40,3 +45,4 @@
     </t>
 
 </templates>
+

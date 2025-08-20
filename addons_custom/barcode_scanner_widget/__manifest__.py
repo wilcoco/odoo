@@ -1,6 +1,6 @@
 {
     'name': "Barcode Scanner Widget",
-    'version': '18.0.0.4',
+    'version': '18.0.0.5',
     'depends': ['web'],
     'author': "DevSanx",
     'license': 'LGPL-3',
