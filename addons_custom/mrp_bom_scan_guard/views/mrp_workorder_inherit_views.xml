@@ -6,13 +6,14 @@
     <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
     <field name="arch" type="xml">
       <xpath expr="//header" position="inside">
-        <button name="action_open_bom_scan_guard"
+        <button name="mrp_bom_scan_guard.action_mrp_bom_scan_guard"
                 string="Scan Component"
-                type="object"
+                type="action"
+                context="{'default_workorder_id': active_id}"
                 class="oe_highlight"/>
       </xpath>
       <xpath expr="//div[@name='button_box']" position="inside">
-        <button name="action_open_bom_scan_guard" type="object" class="oe_stat_button" icon="fa-qrcode">
+        <button name="mrp_bom_scan_guard.action_mrp_bom_scan_guard" type="action" class="oe_stat_button" icon="fa-qrcode" context="{'default_workorder_id': active_id}">
           <div class="o_field_widget o_stat_info">
             <span class="o_stat_text">Scan Component</span>
           </div>
