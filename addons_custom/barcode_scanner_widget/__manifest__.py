@@ -1,6 +1,6 @@
 {
     'name': "Barcode Scanner Widget",
-    'version': '18.0.0.2',
+    'version': '18.0.0.3',
     'depends': ['web'],
     'author': "DevSanx",
     'license': 'LGPL-3',
@@ -14,9 +14,9 @@
     'assets': {
         'web.assets_backend': [
             "barcode_scanner_widget/static/src/css/webcam_qrcode_scan_styles.css",
-            # Optional camera libraries can be added under this module's static/src/lib/ if needed:
-            # "barcode_scanner_widget/static/src/lib/html5-qrcode.min.js",
-            # "barcode_scanner_widget/static/src/lib/quagga.min.js",
+            # Camera libraries (consolidated here)
+            "barcode_scanner_widget/static/src/lib/html5-qrcode.min.js",
+            "barcode_scanner_widget/static/src/lib/quagga.min.js",
             "barcode_scanner_widget/static/src/js/barcode_scanner_widget.js",
         ],
         'web.assets_qweb': [

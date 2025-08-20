@@ -1,6 +1,6 @@
 {
-    'name': "Barcode Scanner Widget",
-    'version': '18.0.0.2',
+    'name': "Custom Assets (legacy)",
+    'version': '18.0.0.3',
     'depends': ['web'],
     'author': "DevSanx",
     'license': 'LGPL-3',
@@ -9,20 +9,13 @@
     'description': """
         Scan Barcodes and Qrcodes using device camera
     """,
-    'application': True,
+    'application': False,
     'data': [
     ],
+    # Legacy module: no assets bundled (migrated to barcode_scanner_widget)
     'assets': {
-        'web.assets_backend': [
-            "addons_custom/static/src/css/webcam_qrcode_scan_styles.css",
-            # Camera libraries
-            "addons_custom/static/src/lib/html5-qrcode.min.js",
-            "addons_custom/static/src/lib/quagga.min.js",
-            "addons_custom/static/src/js/barcode_scanner_widget.js",
-        ],
-        'web.assets_qweb': [
-            "addons_custom/static/src/xml/webcam_qrcode_scan_template.xml",
-        ],
+        'web.assets_backend': [],
+        'web.assets_qweb': [],
     },
     'installable': True,
 }
