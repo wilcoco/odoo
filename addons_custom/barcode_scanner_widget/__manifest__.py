@@ -17,7 +17,8 @@
             # Camera libraries (consolidated here)
             "barcode_scanner_widget/static/src/lib/html5-qrcode.min.js",
             "barcode_scanner_widget/static/src/lib/quagga.min.js",
-            "barcode_scanner_widget/static/src/js/barcode_scanner_widget.js",
+            # OWL field widget
+            "barcode_scanner_widget/static/src/js/barcode_scanner_field.js",
         ],
         'web.assets_qweb': [
             "barcode_scanner_widget/static/src/xml/webcam_qrcode_scan_template.xml",

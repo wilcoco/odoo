@@ -28,4 +28,15 @@
         </div>
     </div>
 
+    <!-- OWL Field template -->
+    <t t-name="barcode_scanner_widget.BarcodeScannerField" owl="1">
+        <div class="o_qrcode_scanner_widget">
+            <t t-component="CharField" t-props="props"/>
+            <button type="button" class="btn btn-secondary qr_scan_button" title="Scan" aria-label="Scan" t-on-click="openScan">
+                <i class="fa fa-qrcode"/>
+            </button>
+            <div t-ref="webcam" id="webcam_viewport" class="o_live_scan_result"></div>
+        </div>
+    </t>
+
 </templates>
