@@ -21,7 +21,6 @@ ADDONS_PATH=""
 [ -d ./addons ] && ADDONS_PATH=./addons
 [ -d ./odoo/addons ] && ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}./odoo/addons"
 [ -d ./addons_custom ] && ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}./addons_custom"
-[ -f ./addons_custom/__manifest__.py ] && ADDONS_PATH="${ADDONS_PATH:+$ADDONS_PATH,}."
 [ -n "$ADDONS_PATH" ] && log "Using ADDONS_PATH: $ADDONS_PATH"
 
 ODOO_DATA_DIR="${ODOO_DATA_DIR:-/data}"
