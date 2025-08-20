@@ -70,11 +70,11 @@ class MrpBomScanGuardWizard(models.TransientModel):
     def _qty_done_of_move(self, move):
         """Best-effort read of consumed qty on a raw move."""
         qty = 0.0
-        # stock.move.quantity_done exists; move_line_ids.qty_done also used
-        if hasattr(move, "quantity_done") and move.quantity_done:
-            qty = move.quantity_done
+        # Odoo 18+ uses `quantity` on stock.move and stock.move.line
+        if hasattr(move, "quantity") and move.quantity:
+            qty = move.quantity
         elif move.move_line_ids:
-            qty = sum(move.move_line_ids.mapped("qty_done"))
+            qty = sum(move.move_line_ids.mapped("quantity"))
         return qty
 
     # ----- main logic -----
