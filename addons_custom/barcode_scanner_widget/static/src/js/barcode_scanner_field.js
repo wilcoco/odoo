@@ -133,4 +133,9 @@ export class BarcodeScannerField extends CharField {
 BarcodeScannerField.template = "barcode_scanner_widget.BarcodeScannerField";
 BarcodeScannerField.components = { CharField };
 
-registry.category("fields").add("barcode_scanner", BarcodeScannerField);
+// Register as a field descriptor (OWL fields registry expects an object with 'component')
+registry.category("fields").add("barcode_scanner", {
+    component: BarcodeScannerField,
+    displayName: "Barcode Scanner",
+    supportedTypes: ["char"],
+});
