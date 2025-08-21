@@ -10,11 +10,11 @@
         <field name="production_id"/>
         <field name="operation_id"/>
         <field name="matched_product_id"/>
-        <filter string="Mismatch Only" name="mismatch" domain="[['mismatch', '=', True]]"/>
-        <filter string="OK" name="result_ok" domain="[['result_state', '=', 'ok']]"/>
-        <filter string="Wrong Operation" name="result_wrong_operation" domain="[['result_state', '=', 'wrong_operation']]"/>
-        <filter string="Not in BOM" name="result_not_in_bom" domain="[['result_state', '=', 'not_in_bom']]"/>
-        <filter string="Not Found" name="result_not_found" domain="[['result_state', '=', 'not_found']]"/>
+        <filter string="Mismatch Only" name="mismatch" domain="[('mismatch', '=', True)]"/>
+        <filter string="OK" name="result_ok" domain="[('result_state', '=', 'ok')]"/>
+        <filter string="Wrong Operation" name="result_wrong_operation" domain="[('result_state', '=', 'wrong_operation')]"/>
+        <filter string="Not in BOM" name="result_not_in_bom" domain="[('result_state', '=', 'not_in_bom')]"/>
+        <filter string="Not Found" name="result_not_found" domain="[('result_state', '=', 'not_found')]"/>
         <group expand="0" string="Group By">
           <filter string="Work Order" context="{'group_by': 'workorder_id'}"/>
           <filter string="MO" context="{'group_by': 'production_id'}"/>
