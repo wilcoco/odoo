@@ -75,6 +75,16 @@ export class BarcodeScannerField extends CharField {
         return null;
     }
 
+    async _waitForViewportSize(el, attempts = 10, interval = 80) {
+        for (let i = 0; i < attempts; i++) {
+            const w = el.clientWidth || el.offsetWidth || 0;
+            const h = el.clientHeight || el.offsetHeight || 0;
+            if (w > 0 && h > 0) return { w, h };
+            await new Promise((r) => setTimeout(r, interval));
+        }
+        return { w: el.clientWidth || 0, h: el.clientHeight || 0 };
+    }
+
     async openScan() {
         try {
             await this.ensureCameraLibs();
@@ -84,27 +94,37 @@ export class BarcodeScannerField extends CharField {
             }
             const deviceId = await this._getDefaultCameraId();
             if (!deviceId) {
-                this.notification.add(_t("Camera Not Found"), { type: "danger" });
+                // Fallback to facingMode if deviceId cannot be resolved
+                this.state.deviceId = null;
+                await this.startScanning();
                 return;
             }
             this.state.deviceId = deviceId;
-            this.startScanning();
+            await this.startScanning();
         } catch (e) {
             this.notification.add(`${_t("Camera Not Found")}: ${e?.message || e}`, { type: "danger" });
         }
     }
 
-    startScanning() {
+    async startScanning() {
         const el = this.webcamRef.el;
         if (!el) return;
         this.state.scanning = true;
 
         if (this.state.codeType === "qr" && typeof Html5Qrcode !== "undefined") {
+            // Wait until viewport has a measurable size to avoid qrbox>width errors
+            const { w, h } = await this._waitForViewportSize(el);
+            const minSide = Math.min(w || 0, h || 0);
+            const config = { fps: 10 };
+            if (minSide >= 100) {
+                const box = Math.max(50, Math.floor(minSide * 0.8));
+                config.qrbox = box;
+            }
             this._qr = new Html5Qrcode(el.id);
             this._qr
                 .start(
-                    this.state.deviceId,
-                    { fps: 10, qrbox: 170 },
+                    this.state.deviceId || { facingMode: "environment" },
+                    config,
                     (msg) => {
                         this.props.update?.(msg);
                         this.notification.add(`${_t("QR Code detected")}: ${msg}`, { type: "success" });
@@ -127,8 +147,9 @@ export class BarcodeScannerField extends CharField {
                         constraints: {
                             width: 300,
                             height: 250,
-                            facingMode: "environment",
-                            deviceId: this.state.deviceId,
+                            ...(this.state.deviceId
+                                ? { deviceId: this.state.deviceId }
+                                : { facingMode: "environment" }),
                         },
                     },
                     decoder: { readers: [reader] },
