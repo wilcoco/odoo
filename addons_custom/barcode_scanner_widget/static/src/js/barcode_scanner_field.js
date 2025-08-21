@@ -13,11 +13,20 @@ export class BarcodeScannerField extends CharField {
         this.state = useState({
             scanning: false,
             deviceId: null,
-            codeType: "qr", // "qr" or "barcode"
+            codeType: "barcode", // default to barcode for MRP use-case; can switch to "qr"
             barcodeReader: "code_128_reader",
         });
         this.webcamRef = useRef("webcam");
         onWillUnmount(() => this.stopScanning());
+    }
+
+    _syncScanModeFromDom() {
+        try {
+            const checked = document.querySelector("input[name='scan_code_type']:checked");
+            if (checked) {
+                this.state.codeType = checked.value === "1" ? "barcode" : "qr";
+            }
+        } catch (_) {}
     }
 
     // Ensure camera libraries are available; dynamically load if missing
@@ -102,6 +111,7 @@ export class BarcodeScannerField extends CharField {
     async openScan() {
         try {
             await this.ensureCameraLibs();
+            this._syncScanModeFromDom();
             if (typeof Html5Qrcode === "undefined" && typeof Quagga === "undefined") {
                 this.notification.add(_t("Camera libraries missing"), { type: "danger" });
                 return;
@@ -150,8 +160,31 @@ export class BarcodeScannerField extends CharField {
                     this.notification.add(`${_t("Unable to start scanning")}: ${err}`, { type: "danger" });
                     this.stopScanning();
                 });
+            // Fallback: if no QR decode within timeout, switch to barcode mode automatically
+            this._qrFallbackTimer = setTimeout(async () => {
+                if (!this._qr || !this.state.scanning) return;
+                try {
+                    await this._qr.stop();
+                } catch {}
+                this._qr = null;
+                this.notification.add(_t("No QR detected, switching to Barcode mode"), { type: "warning" });
+                this.state.codeType = "barcode";
+                this.startScanning();
+            }, 3000);
         } else if (typeof Quagga !== "undefined") {
-            const reader = this.state.barcodeReader || "code_128_reader";
+            const defaultReaders = [
+                "code_128_reader",
+                "ean_reader",
+                "ean_8_reader",
+                "code_39_reader",
+                "upc_reader",
+                "upc_e_reader",
+            ];
+            const readers = Array.isArray(this.state.barcodeReader)
+                ? this.state.barcodeReader.concat(defaultReaders)
+                : [this.state.barcodeReader || "code_128_reader", ...defaultReaders];
+            // de-dup
+            const uniqReaders = Array.from(new Set(readers));
             Quagga.init(
                 {
                     inputStream: {
@@ -159,14 +192,19 @@ export class BarcodeScannerField extends CharField {
                         type: "LiveStream",
                         target: el,
                         constraints: {
-                            width: 300,
-                            height: 250,
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            aspectRatio: { ideal: 1.7777777778 },
                             ...(this.state.deviceId
                                 ? { deviceId: this.state.deviceId }
                                 : { facingMode: "environment" }),
                         },
                     },
-                    decoder: { readers: [reader] },
+                    decoder: { readers: uniqReaders },
+                    locator: { patchSize: "medium", halfSample: true },
+                    locate: true,
+                    numOfWorkers: 0,
+                    frequency: 10,
                 },
                 (err) => {
                     if (err) {
@@ -211,6 +249,10 @@ export class BarcodeScannerField extends CharField {
                     this._qr = null;
                     this.state.scanning = false;
                 });
+        }
+        if (this._qrFallbackTimer) {
+            clearTimeout(this._qrFallbackTimer);
+            this._qrFallbackTimer = null;
         }
         if (this._quagga) {
             try {
