@@ -11,7 +11,7 @@
         <div class="container-fluid my-2">
             <div>
                 <label for="camera_id">Select A Camera</label>
-                <select class="custom-select custom-select-lg mb-3 o_camera_selector" name="camera_id">
+                <select class="custom-select custom-select-lg mb-3 o_camera_selector" id="camera_id" name="camera_id">
                     <t t-foreach="devices" t-as="dev">
                         <option t-att-value="dev.id">
                             <t t-raw="dev.label or dev.kind" />
@@ -20,10 +20,10 @@
                 </select>
             </div>
             <div>
-                <label>Barcode</label>
-                <input type="radio" name='scan_code_type' value='1' />
-                <label>QR Code</label>
-                <input type="radio" name='scan_code_type' value='0' checked="checked" />
+                <input type="radio" id="scan_code_type_barcode" name='scan_code_type' value='1' />
+                <label for="scan_code_type_barcode">Barcode</label>
+                <input type="radio" id="scan_code_type_qr" name='scan_code_type' value='0' checked="checked" />
+                <label for="scan_code_type_qr">QR Code</label>
             </div>
         </div>
     </div>
