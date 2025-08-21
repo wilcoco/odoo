@@ -20,14 +20,69 @@ export class BarcodeScannerField extends CharField {
         onWillUnmount(() => this.stopScanning());
     }
 
+    // Ensure camera libraries are available; dynamically load if missing
+    async ensureCameraLibs() {
+        const loaders = [];
+        if (typeof Html5Qrcode === "undefined") {
+            loaders.push(this._loadScriptOnce("/barcode_scanner_widget/static/src/lib/html5-qrcode.min.js"));
+        }
+        if (typeof Quagga === "undefined") {
+            loaders.push(this._loadScriptOnce("/barcode_scanner_widget/static/src/lib/quagga.min.js"));
+        }
+        if (loaders.length) {
+            try {
+                await Promise.all(loaders);
+            } catch (e) {
+                // If loading fails, keep default check handling below
+                console.warn("Failed to dynamically load camera libs", e);
+            }
+        }
+    }
+
+    _loadScriptOnce(src) {
+        return new Promise((resolve, reject) => {
+            const existing = Array.from(document.getElementsByTagName("script")).find((s) => s.src && s.src.includes(src));
+            if (existing) {
+                if (existing.dataset.loaded === "ok") return resolve();
+                existing.addEventListener("load", () => resolve());
+                existing.addEventListener("error", () => reject(new Error("Failed to load " + src)));
+                return;
+            }
+            const script = document.createElement("script");
+            script.src = src;
+            script.async = true;
+            script.onload = () => {
+                script.dataset.loaded = "ok";
+                resolve();
+            };
+            script.onerror = () => reject(new Error("Failed to load " + src));
+            document.head.appendChild(script);
+        });
+    }
+
+    async _getDefaultCameraId() {
+        try {
+            if (typeof Html5Qrcode !== "undefined" && Html5Qrcode.getCameras) {
+                const devices = await Html5Qrcode.getCameras();
+                return devices?.[0]?.id || null;
+            }
+        } catch (_) {}
+        if (navigator.mediaDevices?.enumerateDevices) {
+            const list = await navigator.mediaDevices.enumerateDevices();
+            const cams = list.filter((d) => d.kind === "videoinput");
+            return cams?.[0]?.deviceId || null;
+        }
+        return null;
+    }
+
     async openScan() {
         try {
+            await this.ensureCameraLibs();
             if (typeof Html5Qrcode === "undefined" && typeof Quagga === "undefined") {
                 this.notification.add(_t("Camera libraries missing"), { type: "danger" });
                 return;
             }
-            const devices = await Html5Qrcode.getCameras();
-            const deviceId = devices?.[0]?.id || null;
+            const deviceId = await this._getDefaultCameraId();
             if (!deviceId) {
                 this.notification.add(_t("Camera Not Found"), { type: "danger" });
                 return;
@@ -76,7 +131,7 @@ export class BarcodeScannerField extends CharField {
                             deviceId: this.state.deviceId,
                         },
                     },
-                    decoder: { readers: [{ format: reader, config: {} }] },
+                    decoder: { readers: [reader] },
                 },
                 (err) => {
                     if (err) {
