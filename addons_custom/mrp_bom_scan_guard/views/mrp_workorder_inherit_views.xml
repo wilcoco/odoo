@@ -18,7 +18,13 @@
             <span class="o_stat_text">Scan Component</span>
           </div>
         </button>
+        <button name="action_open_scan_guard_logs" type="object" class="oe_stat_button" icon="fa-exclamation-triangle" groups="mrp.group_mrp_user">
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_text">Scan Guard Logs</span>
+          </div>
+        </button>
       </xpath>
     </field>
   </record>
 </odoo>
+

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Search View -->
+  <record id="view_mrp_bom_scan_guard_log_search" model="ir.ui.view">
+    <field name="name">mrp.bom.scan.guard.log.search</field>
+    <field name="model">mrp.bom.scan.guard.log</field>
+    <field name="arch" type="xml">
+      <search string="Scan Guard Logs">
+        <field name="workorder_id"/>
+        <field name="production_id"/>
+        <field name="operation_id"/>
+        <field name="matched_product_id"/>
+        <filter string="Mismatch Only" name="mismatch" domain="[['mismatch', '=', True]]"/>
+        <filter string="OK" name="result_ok" domain="[['result_state', '=', 'ok']]"/>
+        <filter string="Wrong Operation" name="result_wrong_operation" domain="[['result_state', '=', 'wrong_operation']]"/>
+        <filter string="Not in BOM" name="result_not_in_bom" domain="[['result_state', '=', 'not_in_bom']]"/>
+        <filter string="Not Found" name="result_not_found" domain="[['result_state', '=', 'not_found']]"/>
+        <group expand="0" string="Group By">
+          <filter string="Work Order" context="{'group_by': 'workorder_id'}"/>
+          <filter string="MO" context="{'group_by': 'production_id'}"/>
+          <filter string="Result" context="{'group_by': 'result_state'}"/>
+          <filter string="User" context="{'group_by': 'user_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <!-- Tree View -->
+  <record id="view_mrp_bom_scan_guard_log_tree" model="ir.ui.view">
+    <field name="name">mrp.bom.scan.guard.log.tree</field>
+    <field name="model">mrp.bom.scan.guard.log</field>
+    <field name="arch" type="xml">
+      <tree string="Scan Guard Logs" create="0" delete="0" editable="bottom">
+        <field name="create_date"/>
+        <field name="workorder_id"/>
+        <field name="production_id"/>
+        <field name="operation_id"/>
+        <field name="scan_value"/>
+        <field name="matched_product_id"/>
+        <field name="result_state"/>
+        <field name="mismatch"/>
+        <field name="user_id"/>
+      </tree>
+    </field>
+  </record>
+
+  <!-- Form View -->
+  <record id="view_mrp_bom_scan_guard_log_form" model="ir.ui.view">
+    <field name="name">mrp.bom.scan.guard.log.form</field>
+    <field name="model">mrp.bom.scan.guard.log</field>
+    <field name="arch" type="xml">
+      <form string="Scan Guard Log" create="0" edit="0" delete="0">
+        <sheet>
+          <group>
+            <group>
+              <field name="create_date" readonly="1"/>
+              <field name="user_id" readonly="1"/>
+              <field name="company_id" readonly="1"/>
+            </group>
+            <group>
+              <field name="workorder_id" readonly="1"/>
+              <field name="production_id" readonly="1"/>
+              <field name="operation_id" readonly="1"/>
+            </group>
+          </group>
+          <group>
+            <group>
+              <field name="scan_value" readonly="1"/>
+              <field name="matched_product_id" readonly="1"/>
+              <field name="result_state" readonly="1"/>
+              <field name="mismatch" readonly="1"/>
+            </group>
+            <group>
+              <field name="message" readonly="1" nolabel="1"/>
+            </group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <!-- Action -->
+  <record id="action_mrp_bom_scan_guard_logs" model="ir.actions.act_window">
+    <field name="name">Scan Guard Logs</field>
+    <field name="res_model">mrp.bom.scan.guard.log</field>
+    <field name="view_mode">tree,form</field>
+    <field name="context">{"search_default_mismatch": 1}</field>
+  </record>
+
+  <!-- Menu under Manufacturing -->
+  <menuitem id="menu_mrp_bom_scan_guard_logs"
+            name="Scan Guard Logs"
+            parent="mrp.menu_mrp_manufacturing"
+            action="action_mrp_bom_scan_guard_logs"
+            sequence="100"/>
+</odoo>

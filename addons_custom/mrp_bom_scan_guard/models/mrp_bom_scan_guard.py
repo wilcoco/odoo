@@ -80,6 +80,44 @@ class MrpBomScanGuardWizard(models.TransientModel):
             qty = sum(move.move_line_ids.mapped("quantity"))
         return qty
 
+    # ----- logging + notification -----
+
+    def _log_and_notify(self):
+        """Create a persistent log and send a bus notification on mismatch.
+
+        Note: uses sudo() for creation to avoid UI ACL constraints; read access
+        for users will be granted via ir.model.access.
+        """
+        self.ensure_one()
+        if not self.scan_value:
+            return
+        try:
+            Log = self.env["mrp.bom.scan.guard.log"].sudo()
+            log = Log.create({
+                "workorder_id": self.workorder_id.id,
+                "scan_value": self.scan_value,
+                "matched_product_id": self.matched_product_id.id if self.matched_product_id else False,
+                "result_state": self.result_state or "not_found",
+                "message": self.message or False,
+            })
+
+            # Only notify on mismatch types
+            if self.result_state in ("wrong_operation", "not_in_bom", "not_found"):
+                payload = {
+                    "log_id": log.id,
+                    "workorder_id": self.workorder_id.id,
+                    "workorder_name": self.workorder_id.display_name,
+                    "production_id": self.production_id.id if self.production_id else False,
+                    "production_name": self.production_id.display_name if self.production_id else False,
+                    "result_state": self.result_state,
+                    "message": self.message,
+                    "scan_value": self.scan_value,
+                }
+                # send to a generic channel that frontend subscribes to
+                self.env["bus.bus"]._sendone("mrp_bom_scan_guard", "scan_guard_notification", payload)
+        except Exception:
+            _logger.exception("Failed to create log/notify: wiz_id=%s", self.id)
+
     # ----- main logic -----
 
     @api.onchange("scan_value")
@@ -99,6 +137,7 @@ class MrpBomScanGuardWizard(models.TransientModel):
                 if not product:
                     wiz.result_state = "not_found"
                     wiz.message = _("<p><b>Not found</b>: No product with barcode/default_code <code>%s</code>.</p>") % code
+                    wiz._log_and_notify()
                     continue
 
                 expected_moves = wiz._expected_moves_for_operation()
@@ -114,6 +153,7 @@ class MrpBomScanGuardWizard(models.TransientModel):
                     else:
                         wiz.result_state = "not_in_bom"
                         wiz.message = _("<p><b>Not in BOM</b>: <code>%s</code> is not expected in this MO.</p>") % (product.display_name,)
+                    wiz._log_and_notify()
                     continue
 
                 # quantity check
@@ -129,6 +169,8 @@ class MrpBomScanGuardWizard(models.TransientModel):
                     wiz.message = _("<p><b>OK</b>: <code>%s</code> matches BOM for this operation. Consumed: %.2f / Planned: %.2f</p>") % (
                         product.display_name, done, planned
                     )
+                # Always log; notify only for mismatches handled in helper
+                wiz._log_and_notify()
             except Exception:
                 _logger.exception("onchange scan_value failed: wiz_id=%s value=%s", wiz.id, wiz.scan_value)
                 wiz.matched_product_id = False
@@ -136,6 +178,7 @@ class MrpBomScanGuardWizard(models.TransientModel):
                 wiz.message = _(
                     "<p><b>Error</b>: An unexpected error occurred while processing <code>%s</code>. Please retry or contact administrator.</p>"
                 ) % (wiz.scan_value or "")
+                wiz._log_and_notify()
 
     def action_reset(self):
         self.write({"scan_value": False, "matched_product_id": False, "result_state": False, "message": False})
@@ -155,4 +198,16 @@ class MrpWorkorder(models.Model):
             "context": {
                 "default_workorder_id": self.id,
             },
+        }
+
+    def action_open_scan_guard_logs(self):
+        self.ensure_one()
+        return {
+            "name": _("Scan Guard Logs"),
+            "type": "ir.actions.act_window",
+            "res_model": "mrp.bom.scan.guard.log",
+            "view_mode": "tree,form",
+            "target": "current",
+            "domain": [("workorder_id", "=", self.id)],
+            "context": {"search_default_mismatch": 0},
         }
