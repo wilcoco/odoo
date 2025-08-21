@@ -33,10 +33,10 @@
         <div class="o_qrcode_scanner_widget">
             <input type="text"
                    class="o_input"
-                   t-att-value="props.value || ''"
                    t-att-placeholder="props.placeholder"
                    t-att-readonly="props.readonly ? true : undefined"
-                   t-on-input="onInput"/>
+                   t-ref="input"
+                   t-on-blur="onBlur"/>
             <button type="button" class="btn btn-secondary qr_scan_button" title="Scan" aria-label="Scan" t-on-click="openScan">
                 <i class="fa fa-qrcode"/>
             </button>

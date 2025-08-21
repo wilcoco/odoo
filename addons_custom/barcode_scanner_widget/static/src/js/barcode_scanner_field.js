@@ -149,8 +149,8 @@ export class BarcodeScannerField extends CharField {
                 .start(
                     this.state.deviceId || { facingMode: "environment" },
                     config,
-                    (msg) => {
-                        this.props.update?.(msg);
+                    async (msg) => {
+                        await this.props.record.update({ [this.props.name]: msg });
                         this.notification.add(`${_t("QR Code detected")}: ${msg}`, { type: "success" });
                         this.stopScanning();
                     },
@@ -225,8 +225,10 @@ export class BarcodeScannerField extends CharField {
                 } catch {}
                 this._quagga = false;
                 this.state.scanning = false;
-                this.props.update?.(code);
-                this.notification.add(`${_t("Barcode detected")}: ${code}`, { type: "success" });
+                (async () => {
+                    await this.props.record.update({ [this.props.name]: code });
+                    this.notification.add(`${_t("Barcode detected")}: ${code}`, { type: "success" });
+                })();
             };
             Quagga.onDetected(this._onDetected);
         } else {
@@ -235,10 +237,6 @@ export class BarcodeScannerField extends CharField {
         }
     }
 
-    onInput(ev) {
-        const val = ev.target?.value ?? "";
-        this.props.update?.(val);
-    }
 
     stopScanning() {
         if (this._qr) {
