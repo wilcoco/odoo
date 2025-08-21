@@ -61,16 +61,30 @@ export class BarcodeScannerField extends CharField {
     }
 
     async _getDefaultCameraId() {
+        const pickBack = (cams) => {
+            if (!cams || !cams.length) return null;
+            // Prefer labels indicating back/rear/environment
+            const byLabel = cams.find((c) => {
+                const l = (c.label || "").toLowerCase();
+                return l.includes("back") || l.includes("rear") || l.includes("environment");
+            });
+            if (byLabel) return byLabel.id || byLabel.deviceId || null;
+            // Mobile browsers often list the rear camera last
+            const last = cams[cams.length - 1];
+            return last?.id || last?.deviceId || null;
+        };
         try {
             if (typeof Html5Qrcode !== "undefined" && Html5Qrcode.getCameras) {
                 const devices = await Html5Qrcode.getCameras();
-                return devices?.[0]?.id || null;
+                const id = pickBack(devices);
+                if (id) return id;
             }
         } catch (_) {}
         if (navigator.mediaDevices?.enumerateDevices) {
             const list = await navigator.mediaDevices.enumerateDevices();
             const cams = list.filter((d) => d.kind === "videoinput");
-            return cams?.[0]?.deviceId || null;
+            const id = pickBack(cams);
+            if (id) return id;
         }
         return null;
     }
