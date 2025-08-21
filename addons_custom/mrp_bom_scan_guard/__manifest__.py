@@ -1,7 +1,7 @@
 {
     "name": "MRP BOM Scan Guard",
     "summary": "Scan component barcode on Work Order and verify it matches the MO BOM (cross-check)",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Manufacturing",
     "license": "LGPL-3",
     "depends": ["mrp", "stock", "web", "barcode_scanner_widget"],

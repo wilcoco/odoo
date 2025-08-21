@@ -1,6 +1,9 @@
 # addons_custom/mrp_bom_scan_guard/models/mrp_bom_scan_guard.py
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class MrpBomScanGuardWizard(models.TransientModel):
     _name = "mrp.bom.scan.guard.wizard"
@@ -82,47 +85,57 @@ class MrpBomScanGuardWizard(models.TransientModel):
     @api.onchange("scan_value")
     def _onchange_scan_value(self):
         for wiz in self:
-            if not wiz.scan_value:
-                wiz.matched_product_id = False
-                wiz.result_state = False
-                wiz.message = False
-                continue
+            try:
+                if not wiz.scan_value:
+                    wiz.matched_product_id = False
+                    wiz.result_state = False
+                    wiz.message = False
+                    continue
 
-            code = (wiz.scan_value or "").strip()
-            product = wiz._find_product_by_scan_value(code)
-            wiz.matched_product_id = product or False
+                code = (wiz.scan_value or "").strip()
+                product = wiz._find_product_by_scan_value(code)
+                wiz.matched_product_id = product or False
 
-            if not product:
-                wiz.result_state = "not_found"
-                wiz.message = _("<p><b>Not found</b>: No product with barcode/default_code <code>%s</code>.</p>") % code
-                continue
+                if not product:
+                    wiz.result_state = "not_found"
+                    wiz.message = _("<p><b>Not found</b>: No product with barcode/default_code <code>%s</code>.</p>") % code
+                    continue
 
-            expected_moves = wiz._expected_moves_for_operation()
-            move = expected_moves.filtered(lambda m: m.product_id.id == product.id)[:1]
-            if not move:
-                # Check if it's in MO BOM (but different operation)
-                in_mo = wiz.production_id.move_raw_ids.filtered(lambda m: m.product_id.id == product.id)
-                if in_mo:
-                    wiz.result_state = "wrong_operation"
-                    wiz.message = _("<p><b>Wrong operation</b>: <code>%s</code> is in MO BOM, but not for this operation.</p>") % (product.display_name,)
+                expected_moves = wiz._expected_moves_for_operation()
+                move = expected_moves.filtered(lambda m: m.product_id.id == product.id)[:1]
+                if not move:
+                    # Check if it's in MO BOM (but different operation)
+                    in_mo = (
+                        wiz.production_id.move_raw_ids if wiz.production_id else wiz.env["stock.move"]
+                    ).filtered(lambda m: m.product_id.id == product.id)
+                    if in_mo:
+                        wiz.result_state = "wrong_operation"
+                        wiz.message = _("<p><b>Wrong operation</b>: <code>%s</code> is in MO BOM, but not for this operation.</p>") % (product.display_name,)
+                    else:
+                        wiz.result_state = "not_in_bom"
+                        wiz.message = _("<p><b>Not in BOM</b>: <code>%s</code> is not expected in this MO.</p>") % (product.display_name,)
+                    continue
+
+                # quantity check
+                planned = move.product_uom_qty
+                done = wiz._qty_done_of_move(move)
+                if done >= planned:
+                    wiz.result_state = "over_consumed"
+                    wiz.message = _("<p><b>Over-consumed</b>: <code>%s</code> already reached planned qty (%.2f/%.2f).</p>") % (
+                        product.display_name, done, planned
+                    )
                 else:
-                    wiz.result_state = "not_in_bom"
-                    wiz.message = _("<p><b>Not in BOM</b>: <code>%s</code> is not expected in this MO.</p>") % (product.display_name,)
-                continue
-
-            # quantity check
-            planned = move.product_uom_qty
-            done = wiz._qty_done_of_move(move)
-            if done >= planned:
-                wiz.result_state = "over_consumed"
-                wiz.message = _("<p><b>Over-consumed</b>: <code>%s</code> already reached planned qty (%.2f/%.2f).</p>") % (
-                    product.display_name, done, planned
-                )
-            else:
-                wiz.result_state = "ok"
-                wiz.message = _("<p><b>OK</b>: <code>%s</code> matches BOM for this operation. Consumed: %.2f / Planned: %.2f</p>") % (
-                    product.display_name, done, planned
-                )
+                    wiz.result_state = "ok"
+                    wiz.message = _("<p><b>OK</b>: <code>%s</code> matches BOM for this operation. Consumed: %.2f / Planned: %.2f</p>") % (
+                        product.display_name, done, planned
+                    )
+            except Exception:
+                _logger.exception("onchange scan_value failed: wiz_id=%s value=%s", wiz.id, wiz.scan_value)
+                wiz.matched_product_id = False
+                wiz.result_state = "not_found"
+                wiz.message = _(
+                    "<p><b>Error</b>: An unexpected error occurred while processing <code>%s</code>. Please retry or contact administrator.</p>"
+                ) % (wiz.scan_value or "")
 
     def action_reset(self):
         self.write({"scan_value": False, "matched_product_id": False, "result_state": False, "message": False})
