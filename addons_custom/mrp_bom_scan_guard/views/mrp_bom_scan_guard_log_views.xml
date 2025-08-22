@@ -16,10 +16,10 @@
         <filter string="Not in BOM" name="result_not_in_bom" domain="[('result_state', '=', 'not_in_bom')]"/>
         <filter string="Not Found" name="result_not_found" domain="[('result_state', '=', 'not_found')]"/>
         <group expand="0" string="Group By">
-          <filter string="Work Order" context="{'group_by': 'workorder_id'}"/>
-          <filter string="MO" context="{'group_by': 'production_id'}"/>
-          <filter string="Result" context="{'group_by': 'result_state'}"/>
-          <filter string="User" context="{'group_by': 'user_id'}"/>
+          <filter string="Work Order" name="group_by_workorder_id" domain="[]" context="{'group_by': 'workorder_id'}"/>
+          <filter string="MO" name="group_by_production_id" domain="[]" context="{'group_by': 'production_id'}"/>
+          <filter string="Result" name="group_by_result_state" domain="[]" context="{'group_by': 'result_state'}"/>
+          <filter string="User" name="group_by_user_id" domain="[]" context="{'group_by': 'user_id'}"/>
         </group>
       </search>
     </field>
