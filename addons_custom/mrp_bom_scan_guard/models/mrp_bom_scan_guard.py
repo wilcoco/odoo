@@ -206,7 +206,7 @@ class MrpWorkorder(models.Model):
             "name": _("Scan Guard Logs"),
             "type": "ir.actions.act_window",
             "res_model": "mrp.bom.scan.guard.log",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "target": "current",
             "domain": [("workorder_id", "=", self.id)],
             "context": {"search_default_mismatch": 0},
