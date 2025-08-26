@@ -2,16 +2,16 @@
 <odoo>
   <data>
 
-    <!-- Lines tree view -->
+    <!-- Lines list view -->
     <record id="view_mrp_auto_order_wizard_line_tree" model="ir.ui.view">
       <field name="name">mrp.auto.order.wizard.line.tree</field>
       <field name="model">mrp.auto.order.wizard.line</field>
       <field name="arch" type="xml">
-        <tree string="Order Lines" editable="bottom">
+        <list string="Order Lines" editable="bottom">
           <field name="product_id"/>
           <field name="product_qty"/>
           <field name="origin"/>
-        </tree>
+        </list>
       </field>
     </record>
 
@@ -33,11 +33,11 @@
           </group>
           <separator string="Order Lines"/>
           <field name="line_ids" context="{'default_product_qty': 1.0}">
-            <tree string="Order Lines" editable="bottom">
+            <list string="Order Lines" editable="bottom">
               <field name="product_id"/>
               <field name="product_qty"/>
               <field name="origin"/>
-            </tree>
+            </list>
           </field>
           <footer>
             <button name="action_process_orders" type="object" string="Create &amp; Process" class="btn-primary"/>
