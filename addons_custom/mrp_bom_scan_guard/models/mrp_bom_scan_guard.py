@@ -41,6 +41,10 @@ class MrpBomScanGuardWizard(models.TransientModel):
         compute="_compute_allowed_products", store=False
     )
 
+    # Backend debounce markers to suppress rapid duplicate scans
+    last_scan_value = fields.Char(readonly=True)
+    last_scan_time = fields.Datetime(readonly=True)
+
     @api.depends("workorder_id")
     def _compute_allowed_products(self):
         for wiz in self:
@@ -124,13 +128,32 @@ class MrpBomScanGuardWizard(models.TransientModel):
     def _onchange_scan_value(self):
         for wiz in self:
             try:
-                if not wiz.scan_value:
+                code = (wiz.scan_value or "").strip()
+                if not code:
                     wiz.matched_product_id = False
                     wiz.result_state = False
                     wiz.message = False
+                    wiz.last_scan_value = False
+                    wiz.last_scan_time = False
                     continue
 
-                code = (wiz.scan_value or "").strip()
+                # Duplicate-scan guard within short window
+                now = fields.Datetime.now()
+                if wiz.last_scan_value and wiz.last_scan_time and wiz.last_scan_value == code:
+                    try:
+                        now_dt = fields.Datetime.to_datetime(now) if isinstance(now, str) else now
+                        last_dt = fields.Datetime.to_datetime(wiz.last_scan_time) if isinstance(wiz.last_scan_time, str) else wiz.last_scan_time
+                        delta = (now_dt - last_dt).total_seconds()
+                    except Exception:
+                        delta = 9999
+                    if delta < 2.0:
+                        _logger.info("Duplicate scan suppressed within %.3fs: %s (wiz %s)", delta, code, wiz.id)
+                        continue
+
+                # Remember last successful scan attempt markers
+                wiz.last_scan_value = code
+                wiz.last_scan_time = now
+
                 product = wiz._find_product_by_scan_value(code)
                 wiz.matched_product_id = product or False
 
@@ -181,7 +204,14 @@ class MrpBomScanGuardWizard(models.TransientModel):
                 wiz._log_and_notify()
 
     def action_reset(self):
-        self.write({"scan_value": False, "matched_product_id": False, "result_state": False, "message": False})
+        self.write({
+            "scan_value": False,
+            "matched_product_id": False,
+            "result_state": False,
+            "message": False,
+            "last_scan_value": False,
+            "last_scan_time": False,
+        })
         return {"type": "ir.actions.do_nothing"}
 
 class MrpWorkorder(models.Model):

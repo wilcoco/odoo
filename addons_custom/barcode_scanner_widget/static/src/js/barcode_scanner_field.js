@@ -18,6 +18,8 @@ export class BarcodeScannerField extends CharField {
         });
         this.webcamRef = useRef("webcam");
         onWillUnmount(() => this.stopScanning());
+        // Guard to ensure we only handle the first decode event per session
+        this._decodeLock = false;
     }
 
     _syncScanModeFromDom() {
@@ -112,6 +114,8 @@ export class BarcodeScannerField extends CharField {
         try {
             await this.ensureCameraLibs();
             this._syncScanModeFromDom();
+            // reset lock for a new scanning session
+            this._decodeLock = false;
             if (typeof Html5Qrcode === "undefined" && typeof Quagga === "undefined") {
                 this.notification.add(_t("Camera libraries missing"), { type: "danger" });
                 return;
@@ -150,6 +154,9 @@ export class BarcodeScannerField extends CharField {
                     this.state.deviceId || { facingMode: "environment" },
                     config,
                     async (msg) => {
+                        // Handle only once
+                        if (this._decodeLock) return;
+                        this._decodeLock = true;
                         await this.props.record.update({ [this.props.name]: msg });
                         this.notification.add(`${_t("QR Code detected")}: ${msg}`, { type: "success" });
                         this.stopScanning();
@@ -220,6 +227,12 @@ export class BarcodeScannerField extends CharField {
             this._onDetected = (result) => {
                 const code = result?.codeResult?.code;
                 if (!code) return;
+                // Handle only once
+                if (this._decodeLock) return;
+                this._decodeLock = true;
+                try {
+                    Quagga.offDetected(this._onDetected);
+                } catch {}
                 try {
                     Quagga.stop();
                 } catch {}
