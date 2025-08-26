@@ -42,7 +42,18 @@ export const scanGuardNotificationService = {
                 }
             }];
 
-            const msg = payload?.message || _t("Mismatch detected while scanning components.");
+            // Strip HTML from server-provided message to avoid exposing tags in the popup
+            const toText = (html) => {
+                try {
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = html;
+                    return (tmp.textContent || tmp.innerText || "").trim();
+                } catch (_) {
+                    return html;
+                }
+            };
+            const rawMsg = payload?.message || _t("Mismatch detected while scanning components.");
+            const msg = typeof rawMsg === "string" ? toText(rawMsg) : _t("Mismatch detected while scanning components.");
             notification.add(msg, { sticky, title, type, buttons });
         });
         bus_service.start();
