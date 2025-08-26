@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- Lines tree view -->
+    <record id="view_mrp_auto_order_wizard_line_tree" model="ir.ui.view">
+      <field name="name">mrp.auto.order.wizard.line.tree</field>
+      <field name="model">mrp.auto.order.wizard.line</field>
+      <field name="arch" type="xml">
+        <tree string="Order Lines" editable="bottom">
+          <field name="product_id"/>
+          <field name="product_qty"/>
+          <field name="origin"/>
+        </tree>
+      </field>
+    </record>
+
+    <!-- Wizard form view -->
+    <record id="view_mrp_auto_order_wizard_form" model="ir.ui.view">
+      <field name="name">mrp.auto.order.wizard.form</field>
+      <field name="model">mrp.auto.order.wizard</field>
+      <field name="arch" type="xml">
+        <form string="Auto-create Manufacturing Orders" create="false" edit="false">
+          <group>
+            <group>
+              <field name="company_id"/>
+              <field name="picking_type_id" domain="[('code', '=', 'mrp_operation')]"/>
+            </group>
+            <group>
+              <field name="plan_now"/>
+              <field name="origin_prefix" placeholder="e.g. EXT"/>
+            </group>
+          </group>
+          <separator string="Order Lines"/>
+          <field name="line_ids" context="{'default_product_qty': 1.0}">
+            <tree string="Order Lines" editable="bottom">
+              <field name="product_id"/>
+              <field name="product_qty"/>
+              <field name="origin"/>
+            </tree>
+          </field>
+          <footer>
+            <button name="action_process_orders" type="object" string="Create & Process" class="btn-primary"/>
+            <button string="Cancel" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_mrp_auto_order_wizard" model="ir.actions.act_window">
+      <field name="name">Auto-create MOs</field>
+      <field name="res_model">mrp.auto.order.wizard</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+      <field name="context">{}</field>
+    </record>
+
+    <!-- Menu under Manufacturing > Operations -->
+    <menuitem id="menu_mrp_auto_order_wizard"
+              name="주문 리스트로 MO 자동생성"
+              parent="mrp.menu_mrp_manufacturing"
+              action="action_mrp_auto_order_wizard"
+              sequence="30"
+              groups="mrp.group_mrp_user"/>
+
+  </data>
+</odoo>
