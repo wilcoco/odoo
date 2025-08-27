@@ -1,5 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_mrp_auto_order_wizard,mrp.auto.order.wizard,model_mrp_auto_order_wizard,mrp.group_mrp_user,1,1,1,1
 access_mrp_auto_order_wizard_line,mrp.auto.order.wizard.line,model_mrp_auto_order_wizard_line,mrp.group_mrp_user,1,1,1,1
-access_mrp_auto_order_batch,mrp.auto.order.batch,model_mrp_auto_order_batch,mrp.group_mrp_user,1,1,1,1
-access_mrp_auto_order_batch_line,mrp.auto.order.batch.line,model_mrp_auto_order_batch_line,mrp.group_mrp_user,1,1,1,1
