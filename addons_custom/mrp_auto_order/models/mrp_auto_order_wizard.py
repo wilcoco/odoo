@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval
 
 
 class MrpAutoOrderWizard(models.TransientModel):
@@ -99,7 +100,14 @@ class MrpAutoOrderWizard(models.TransientModel):
         action = self.env["ir.actions.actions"]._for_xml_id("mrp.mrp_production_action")
         action['domain'] = [('id', 'in', created_mos.ids)]
         # Pass a note via context for optional display
-        action_ctx = dict(action.get('context', {}) or {})
+        # Context on actions can be a string expression; evaluate safely
+        raw_ctx = action.get('context') or {}
+        if isinstance(raw_ctx, str):
+            try:
+                raw_ctx = safe_eval(raw_ctx)
+            except Exception:
+                raw_ctx = {}
+        action_ctx = dict(raw_ctx)
         if errors:
             action_ctx['mrp_auto_order_wizard_errors'] = errors
         action['context'] = action_ctx
