@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.tools.safe_eval import safe_eval
 
 
 class MrpAutoOrderBatch(models.Model):
@@ -32,6 +33,17 @@ class MrpAutoOrderBatch(models.Model):
         mo_ids = self.line_ids.mapped('mo_id').ids
         action = self.env["ir.actions.actions"]._for_xml_id("mrp.mrp_production_action")
         action['domain'] = [('id', 'in', mo_ids)] if mo_ids else [('id', '=', 0)]
+        # Merge context with batch company to avoid multi-company filtering issues
+        raw_ctx = action.get('context') or {}
+        if isinstance(raw_ctx, str):
+            try:
+                raw_ctx = safe_eval(raw_ctx)
+            except Exception:
+                raw_ctx = {}
+        action_ctx = dict(raw_ctx)
+        action_ctx['default_company_id'] = self.company_id.id
+        action_ctx['allowed_company_ids'] = [self.company_id.id]
+        action['context'] = action_ctx
         return action
 
 

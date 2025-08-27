@@ -42,8 +42,16 @@ class MrpAutoOrderWizard(models.TransientModel):
         created_mos = self.env['mrp.production']
         existing_mos = self.env['mrp.production']
         ctx = dict(self._context or {})
-        if self.picking_type_id:
-            ctx['default_picking_type_id'] = self.picking_type_id.id
+        # Determine manufacturing picking type: use selected or fallback to an active manufacturing type for the company
+        picking_type = self.picking_type_id
+        if not picking_type:
+            picking_type = self.env['stock.picking.type'].search([
+                ('code', '=', 'mrp_operation'),
+                ('active', '=', True),
+                ('company_id', 'in', [self.company_id.id, False]),
+            ], order='company_id desc, id asc', limit=1)
+        if picking_type:
+            ctx['default_picking_type_id'] = picking_type.id
         # Make sure precompute (e.g., bom_id) and searches run in the selected company
         ctx['allowed_company_ids'] = [self.company_id.id]
 
@@ -81,8 +89,8 @@ class MrpAutoOrderWizard(models.TransientModel):
             }
             if origin_val:
                 mo_vals['origin'] = origin_val
-            if self.picking_type_id:
-                mo_vals['picking_type_id'] = self.picking_type_id.id
+            if picking_type:
+                mo_vals['picking_type_id'] = picking_type.id
 
             # Create batch line in draft
             batch_line = self.env['mrp.auto.order.batch.line'].with_context(ctx).create({
@@ -176,6 +184,7 @@ class MrpAutoOrderWizard(models.TransientModel):
                 raw_ctx = {}
         action_ctx = dict(raw_ctx)
         action_ctx['default_company_id'] = self.company_id.id
+        action_ctx['allowed_company_ids'] = [self.company_id.id]
         action_ctx['mrp_auto_order_batch_id'] = batch.id
         if errors:
             action_ctx['mrp_auto_order_wizard_errors'] = errors
