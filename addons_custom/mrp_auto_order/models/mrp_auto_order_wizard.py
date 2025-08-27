@@ -75,6 +75,16 @@ class MrpAutoOrderWizard(models.TransientModel):
                 mo_vals['picking_type_id'] = self.picking_type_id.id
 
             mo = self.env['mrp.production'].with_context(ctx).create(mo_vals)
+            # Explicitly link BoM to ensure work orders are generated even if computes were skipped
+            if mo.bom_id:
+                try:
+                    mo._link_bom(mo.bom_id)
+                except Exception as e:
+                    # Non-fatal: keep MO, report in errors but continue
+                    errors.append(_('Failed to link BoM for "%(product)s": %(error)s') % {
+                        'product': line.product_id.display_name,
+                        'error': str(e),
+                    })
             try:
                 # Guard: ensure a BoM was found; otherwise keep MO in draft and report
                 if not mo.bom_id:

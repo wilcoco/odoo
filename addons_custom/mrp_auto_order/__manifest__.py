@@ -1,6 +1,6 @@
 {
     'name': 'MRP Auto Order',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'summary': 'Create and auto-confirm Manufacturing Orders from an order list',
     'category': 'Manufacturing',
     'depends': ['mrp'],
