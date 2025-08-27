@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- Batch tree view -->
+    <record id="view_mrp_auto_order_batch_tree" model="ir.ui.view">
+      <field name="name">mrp.auto.order.batch.tree</field>
+      <field name="model">mrp.auto.order.batch</field>
+      <field name="arch" type="xml">
+        <tree string="MO Auto Batches" create="false" edit="false">
+          <field name="name"/>
+          <field name="company_id"/>
+          <field name="picking_type_id"/>
+          <field name="plan_now"/>
+          <field name="origin_prefix"/>
+          <field name="created_mo_count"/>
+          <field name="create_date"/>
+        </tree>
+      </field>
+    </record>
+
+    <!-- Batch form view -->
+    <record id="view_mrp_auto_order_batch_form" model="ir.ui.view">
+      <field name="name">mrp.auto.order.batch.form</field>
+      <field name="model">mrp.auto.order.batch</field>
+      <field name="arch" type="xml">
+        <form string="MO Auto Batch" create="false" edit="false">
+          <header>
+            <button name="action_view_created_mos" type="object" string="View MOs" class="btn-primary"/>
+          </header>
+          <sheet>
+            <h1>
+              <field name="name" readonly="1"/>
+            </h1>
+            <group>
+              <group>
+                <field name="company_id"/>
+                <field name="picking_type_id"/>
+              </group>
+              <group>
+                <field name="plan_now"/>
+                <field name="origin_prefix"/>
+              </group>
+            </group>
+            <notebook>
+              <page string="Lines">
+                <field name="line_ids">
+                  <tree editable="bottom">
+                    <field name="product_id"/>
+                    <field name="product_qty"/>
+                    <field name="origin"/>
+                    <field name="status"/>
+                    <field name="message"/>
+                    <field name="mo_id"/>
+                  </tree>
+                </field>
+              </page>
+            </notebook>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <!-- Batch action -->
+    <record id="action_mrp_auto_order_batches" model="ir.actions.act_window">
+      <field name="name">MO Auto Batches</field>
+      <field name="res_model">mrp.auto.order.batch</field>
+      <field name="view_mode">tree,form</field>
+      <field name="context">{}</field>
+    </record>
+
+    <!-- Menu under Manufacturing > Operations -->
+    <menuitem id="menu_mrp_auto_order_batches"
+              name="MO Auto Batches"
+              parent="mrp.menu_mrp_manufacturing"
+              action="action_mrp_auto_order_batches"
+              sequence="31"
+              groups="mrp.group_mrp_user"/>
+
+  </data>
+</odoo>
