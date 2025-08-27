@@ -40,11 +40,21 @@ class MrpAutoOrderWizard(models.TransientModel):
             raise UserError(_('Please add at least one order line.'))
 
         created_mos = self.env['mrp.production']
+        existing_mos = self.env['mrp.production']
         ctx = dict(self._context or {})
         if self.picking_type_id:
             ctx['default_picking_type_id'] = self.picking_type_id.id
         # Make sure precompute (e.g., bom_id) and searches run in the selected company
         ctx['allowed_company_ids'] = [self.company_id.id]
+
+        # Create a persistent batch record to log created/existing MOs
+        batch_vals = {
+            'company_id': self.company_id.id,
+            'picking_type_id': self.picking_type_id.id if self.picking_type_id else False,
+            'plan_now': self.plan_now,
+            'origin_prefix': self.origin_prefix,
+        }
+        batch = self.env['mrp.auto.order.batch'].with_context(ctx).create(batch_vals)
 
         errors = []
         for line in self.line_ids:
@@ -74,6 +84,32 @@ class MrpAutoOrderWizard(models.TransientModel):
             if self.picking_type_id:
                 mo_vals['picking_type_id'] = self.picking_type_id.id
 
+            # Create batch line in draft
+            batch_line = self.env['mrp.auto.order.batch.line'].with_context(ctx).create({
+                'batch_id': batch.id,
+                'product_id': line.product_id.id,
+                'product_qty': line.product_qty,
+                'origin': origin_val,
+            })
+
+            # Try to find an existing MO matching this line (by origin and product)
+            domain = [
+                ('company_id', '=', self.company_id.id),
+                ('product_id', '=', line.product_id.id),
+                ('origin', '=', origin_val),
+                ('state', '!=', 'cancel'),
+            ]
+            existing_mo = self.env['mrp.production'].with_context(ctx).search(domain, limit=1, order='id desc')
+            if existing_mo:
+                batch_line.write({
+                    'status': 'existing',
+                    'mo_id': existing_mo.id,
+                    'message': _('Existing MO matched by origin and product.'),
+                })
+                existing_mos |= existing_mo
+                continue
+
+            # No existing MO found: create a new one
             mo = self.env['mrp.production'].with_context(ctx).create(mo_vals)
             # Explicitly link BoM to ensure work orders are generated even if computes were skipped
             if mo.bom_id:
@@ -81,34 +117,55 @@ class MrpAutoOrderWizard(models.TransientModel):
                     mo._link_bom(mo.bom_id)
                 except Exception as e:
                     # Non-fatal: keep MO, report in errors but continue
-                    errors.append(_('Failed to link BoM for "%(product)s": %(error)s') % {
+                    msg = _('Failed to link BoM for "%(product)s": %(error)s') % {
                         'product': line.product_id.display_name,
                         'error': str(e),
-                    })
+                    }
+                    errors.append(msg)
+                    batch_line.message = msg
             try:
                 # Guard: ensure a BoM was found; otherwise keep MO in draft and report
                 if not mo.bom_id:
-                    errors.append(_('No Bill of Materials found for "%s". MO kept as Draft (Origin: %s).') % (
-                        line.product_id.display_name, origin_val or '-'))
+                    msg = _('No Bill of Materials found for "%s". MO kept as Draft (Origin: %s).') % (
+                        line.product_id.display_name, origin_val or '-')
+                    errors.append(msg)
+                    batch_line.write({
+                        'status': 'created',
+                        'mo_id': mo.id,
+                        'message': msg,
+                    })
                     created_mos |= mo
                     continue
                 if self.plan_now:
                     mo.action_plan_with_components_availability()
                 else:
                     mo.action_confirm()
+                batch_line.write({
+                    'status': 'created',
+                    'mo_id': mo.id,
+                    'message': _('MO created successfully.'),
+                })
             except Exception as e:
                 # keep MO but log error
-                errors.append(_('Failed to confirm/plan MO for "%(product)s": %(error)s') % {
+                msg = _('Failed to confirm/plan MO for "%(product)s": %(error)s') % {
                     'product': line.product_id.display_name,
                     'error': str(e),
+                }
+                errors.append(msg)
+                batch_line.write({
+                    'status': 'error',
+                    'mo_id': mo.id,
+                    'message': msg,
                 })
             created_mos |= mo
 
-        if not created_mos:
-            raise UserError(_('No Manufacturing Orders were created.\n\nErrors:\n- %s') % ('\n- '.join(errors) if errors else _('No lines processed')))
+        if not (created_mos or existing_mos):
+            raise UserError(_('No Manufacturing Orders were created or matched.\n\nErrors:\n- %s') % ('\n- '.join(errors) if errors else _('No lines processed')))
 
         action = self.env["ir.actions.actions"]._for_xml_id("mrp.mrp_production_action")
-        action['domain'] = [('id', 'in', created_mos.ids)]
+        # Show both newly created and existing MO in the result list
+        mo_show = (created_mos | existing_mos)
+        action['domain'] = [('id', 'in', mo_show.ids)]
         # Pass a note via context for optional display
         # Context on actions can be a string expression; evaluate safely
         raw_ctx = action.get('context') or {}
@@ -118,6 +175,8 @@ class MrpAutoOrderWizard(models.TransientModel):
             except Exception:
                 raw_ctx = {}
         action_ctx = dict(raw_ctx)
+        action_ctx['default_company_id'] = self.company_id.id
+        action_ctx['mrp_auto_order_batch_id'] = batch.id
         if errors:
             action_ctx['mrp_auto_order_wizard_errors'] = errors
         action['context'] = action_ctx
