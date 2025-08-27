@@ -8,7 +8,7 @@
       <field name="code">model.cron_process_pending_batches()</field>
       <field name="interval_number">5</field>
       <field name="interval_type">minutes</field>
-      <!-- Odoo 18+: 'numbercall' 필드는 제거되었습니다. 반복 수행은 진행/트리거 메커니즘으로 관리됩니다. -->
+      <field name="numbercall">-1</field>
       <field name="active">True</field>
       <field name="user_id" ref="base.user_root"/>
       <field name="priority">5</field>
