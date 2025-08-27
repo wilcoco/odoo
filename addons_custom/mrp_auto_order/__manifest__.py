@@ -8,6 +8,7 @@
         'security/ir.model.access.csv',
         'views/mrp_auto_order_views.xml',
         'views/mrp_auto_order_batch_views.xml',
+        'data/ir_cron.xml',
     ],
     'license': 'LGPL-3',
     'author': 'DevSanx',

@@ -26,6 +26,7 @@
       <field name="arch" type="xml">
         <form string="MO Auto Batch" create="false" edit="false">
           <header>
+            <button name="action_process_batch" type="object" string="Process Batch" class="btn-primary"/>
             <button name="action_view_created_mos" type="object" string="View MOs" class="btn-primary"/>
           </header>
           <sheet>
