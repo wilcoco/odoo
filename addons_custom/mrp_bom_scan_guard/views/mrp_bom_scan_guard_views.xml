@@ -14,8 +14,7 @@
           </group>
           <group>
             <!-- If the scanner widget is loaded, show camera UI; otherwise behaves as a normal input for hardware scanners -->
-            <field name="scan_value" placeholder="Scan here..."
-                   context="{'noscanner': False}" widget="barcode_scanner"/>
+            <field name="scan_value" placeholder="Scan here..."/>
             <field name="matched_product_id" readonly="1"/>
           </group>
         </group>
