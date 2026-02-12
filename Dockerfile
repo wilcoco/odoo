@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . /app
 
-# pip 업그레이드 + 빌드 도구 설치 (rjsmin/cbor2 빌드에 필요)
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel cython
+# pip 업그레이드 + 빌드 도구 (setuptools<71 keeps pkg_resources for cbor2)
+RUN pip install --no-cache-dir --upgrade pip "setuptools<71" wheel cython
 
 # Odoo 파이썬 의존성 (--no-build-isolation: 시스템 setuptools/cython 사용)
 RUN pip install --no-cache-dir --no-build-isolation -r requirements.txt
