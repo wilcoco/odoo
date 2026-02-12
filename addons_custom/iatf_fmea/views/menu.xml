@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_fmea_root"
+              name="FMEA"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="45"/>
+    <menuitem id="menu_iatf_fmea"
+              name="FMEA Documents"
+              parent="menu_iatf_fmea_root"
+              action="action_iatf_fmea"
+              sequence="10"/>
+    <menuitem id="menu_iatf_fmea_lines"
+              name="All Failure Modes"
+              parent="menu_iatf_fmea_root"
+              action="action_iatf_fmea_line"
+              sequence="20"/>
+</odoo>

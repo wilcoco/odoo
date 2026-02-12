@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Phase 1: Plan & Define -->
+        <record id="tmpl_phase_1" model="iatf.apqp.phase.template">
+            <field name="phase_number">1</field>
+            <field name="name">Plan &amp; Define Program</field>
+            <field name="description">Voice of Customer, Business Plan, Product/Process Benchmark, Reliability/Quality Goals, Preliminary BOM/Flow Chart, Product Assurance Plan, Management Support</field>
+        </record>
+        <record id="tmpl_del_1_1" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">10</field><field name="name">Design Goals</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_1_2" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">20</field><field name="name">Reliability &amp; Quality Goals</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_1_3" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">30</field><field name="name">Preliminary Bill of Materials</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_1_4" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">40</field><field name="name">Preliminary Process Flow Chart</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_1_5" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">50</field><field name="name">Product Assurance Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_1_6" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_1"/>
+            <field name="sequence">60</field><field name="name">Management Support / Sign-off</field><field name="is_required" eval="True"/>
+        </record>
+
+        <!-- Phase 2: Product Design & Development -->
+        <record id="tmpl_phase_2" model="iatf.apqp.phase.template">
+            <field name="phase_number">2</field>
+            <field name="name">Product Design &amp; Development</field>
+            <field name="description">DFMEA, Design for Manufacturability, Design Verification/Reviews, Prototype Build/Control Plan, Engineering Drawings, Specifications, Material Specifications</field>
+        </record>
+        <record id="tmpl_del_2_1" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">10</field><field name="name">DFMEA</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_2" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">20</field><field name="name">Design for Manufacturability &amp; Assembly</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_3" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">30</field><field name="name">Design Verification</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_4" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">40</field><field name="name">Design Reviews</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_5" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">50</field><field name="name">Prototype Build &amp; Control Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_6" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">60</field><field name="name">Engineering Drawings &amp; Specifications</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_2_7" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_2"/>
+            <field name="sequence">70</field><field name="name">New Equipment / Tooling Requirements</field><field name="is_required" eval="False"/>
+        </record>
+
+        <!-- Phase 3: Process Design & Development -->
+        <record id="tmpl_phase_3" model="iatf.apqp.phase.template">
+            <field name="phase_number">3</field>
+            <field name="name">Process Design &amp; Development</field>
+            <field name="description">Process Flow Chart, Floor Plan Layout, PFMEA, Pre-Launch Control Plan, Process Instructions, MSA Plan, Preliminary Process Capability Plan, Packaging Standards</field>
+        </record>
+        <record id="tmpl_del_3_1" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">10</field><field name="name">Process Flow Chart</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_2" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">20</field><field name="name">Floor Plan Layout</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_3" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">30</field><field name="name">PFMEA</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_4" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">40</field><field name="name">Pre-Launch Control Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_5" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">50</field><field name="name">Process Instructions</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_6" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">60</field><field name="name">MSA Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_7" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">70</field><field name="name">Preliminary Process Capability Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_3_8" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_3"/>
+            <field name="sequence">80</field><field name="name">Packaging Standards &amp; Specifications</field><field name="is_required" eval="True"/>
+        </record>
+
+        <!-- Phase 4: Product & Process Validation -->
+        <record id="tmpl_phase_4" model="iatf.apqp.phase.template">
+            <field name="phase_number">4</field>
+            <field name="name">Product &amp; Process Validation</field>
+            <field name="description">Production Trial Run, MSA Evaluation, Preliminary Process Capability Study, PPAP, Production Control Plan, Quality Planning Sign-off</field>
+        </record>
+        <record id="tmpl_del_4_1" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">10</field><field name="name">Production Trial Run</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_4_2" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">20</field><field name="name">MSA Evaluation</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_4_3" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">30</field><field name="name">Preliminary Process Capability Study</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_4_4" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">40</field><field name="name">PPAP Submission</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_4_5" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">50</field><field name="name">Production Control Plan</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_4_6" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_4"/>
+            <field name="sequence">60</field><field name="name">Quality Planning Sign-off</field><field name="is_required" eval="True"/>
+        </record>
+
+        <!-- Phase 5: Production -->
+        <record id="tmpl_phase_5" model="iatf.apqp.phase.template">
+            <field name="phase_number">5</field>
+            <field name="name">Feedback, Assessment &amp; Corrective Action</field>
+            <field name="description">Reduced Variation, Improved Customer Satisfaction, Improved Delivery/Service, Lessons Learned, Best Practices</field>
+        </record>
+        <record id="tmpl_del_5_1" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_5"/>
+            <field name="sequence">10</field><field name="name">Reduced Variation Study</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_5_2" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_5"/>
+            <field name="sequence">20</field><field name="name">Customer Satisfaction Assessment</field><field name="is_required" eval="True"/>
+        </record>
+        <record id="tmpl_del_5_3" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_5"/>
+            <field name="sequence">30</field><field name="name">Delivery &amp; Service Improvement</field><field name="is_required" eval="False"/>
+        </record>
+        <record id="tmpl_del_5_4" model="iatf.apqp.deliverable.template">
+            <field name="phase_template_id" ref="tmpl_phase_5"/>
+            <field name="sequence">40</field><field name="name">Lessons Learned &amp; Best Practices</field><field name="is_required" eval="True"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Traceability Record Search -->
+    <record id="view_iatf_traceability_record_search" model="ir.ui.view">
+        <field name="name">iatf.traceability.record.search</field>
+        <field name="model">iatf.traceability.record</field>
+        <field name="arch" type="xml">
+            <search string="Traceability Records">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="production_id"/>
+                <field name="operator_id"/>
+                <separator/>
+                <filter name="fail" string="Failed" domain="[('inspection_result','=','fail')]"/>
+                <filter name="today" string="Today"
+                        domain="[('record_date','&gt;=', (context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_lot" string="Lot/Serial" context="{'group_by': 'lot_id'}"/>
+                    <filter name="group_workcenter" string="Work Center" context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_result" string="Inspection Result" context="{'group_by': 'inspection_result'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Traceability Record Tree -->
+    <record id="view_iatf_traceability_record_tree" model="ir.ui.view">
+        <field name="name">iatf.traceability.record.tree</field>
+        <field name="model">iatf.traceability.record</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="inspection_result == 'fail'">
+                <field name="name"/>
+                <field name="record_date"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="process_step"/>
+                <field name="workcenter_id" optional="show"/>
+                <field name="production_id" optional="show"/>
+                <field name="operator_id" widget="many2one_avatar_user"/>
+                <field name="quantity"/>
+                <field name="inspection_result" widget="badge"
+                       decoration-success="inspection_result == 'pass'"
+                       decoration-danger="inspection_result == 'fail'"
+                       decoration-warning="inspection_result == 'conditional'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Traceability Record Form -->
+    <record id="view_iatf_traceability_record_form" model="ir.ui.view">
+        <field name="name">iatf.traceability.record.form</field>
+        <field name="model">iatf.traceability.record</field>
+        <field name="arch" type="xml">
+            <form string="Traceability Record">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Product / Lot">
+                            <field name="product_id"/>
+                            <field name="lot_id" context="{'default_product_id': product_id}"/>
+                            <field name="quantity"/>
+                        </group>
+                        <group string="Process">
+                            <field name="record_date"/>
+                            <field name="process_step"/>
+                            <field name="workcenter_id"/>
+                            <field name="workorder_id"/>
+                            <field name="production_id"/>
+                            <field name="operator_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Quality">
+                            <field name="inspection_result"/>
+                            <field name="nonconformity_id"/>
+                        </group>
+                        <group string="Input Materials">
+                            <field name="input_lot_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Process Parameters" name="parameters">
+                            <field name="parameter_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="nominal_value"/>
+                                    <field name="tolerance_lower"/>
+                                    <field name="tolerance_upper"/>
+                                    <field name="actual_value"/>
+                                    <field name="unit"/>
+                                    <field name="in_spec" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes / Attachments" name="notes">
+                            <field name="notes"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Traceability Record Action -->
+    <record id="action_iatf_traceability_record" model="ir.actions.act_window">
+        <field name="name">Traceability Records</field>
+        <field name="res_model">iatf.traceability.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_traceability_record_search"/>
+    </record>
+</odoo>

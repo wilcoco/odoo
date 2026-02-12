@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_complaint_search" model="ir.ui.view">
+        <field name="name">iatf.customer.complaint.search</field>
+        <field name="model">iatf.customer.complaint</field>
+        <field name="arch" type="xml">
+            <search string="Customer Complaints">
+                <field name="name"/><field name="title"/><field name="customer_id"/><field name="product_id"/>
+                <filter name="open" string="Open" domain="[('state','!=','closed')]"/>
+                <filter name="critical" string="Critical" domain="[('severity_level','=','critical')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'complaint_type'}"/>
+                    <filter name="group_severity" string="Severity" context="{'group_by': 'severity_level'}"/>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'customer_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_complaint_tree" model="ir.ui.view">
+        <field name="name">iatf.customer.complaint.tree</field>
+        <field name="model">iatf.customer.complaint</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity_level == 'critical'">
+                <field name="name"/><field name="title"/><field name="complaint_type" widget="badge"/>
+                <field name="severity_level" widget="badge" decoration-danger="severity_level == 'critical'" decoration-warning="severity_level == 'major'"/>
+                <field name="customer_id"/><field name="product_id" optional="show"/>
+                <field name="received_date"/><field name="response_due_date"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="cost_total" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-info="state in ('containment','analysis','corrective')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_complaint_form" model="ir.ui.view">
+        <field name="name">iatf.customer.complaint.form</field>
+        <field name="model">iatf.customer.complaint</field>
+        <field name="arch" type="xml">
+            <form string="Customer Complaint">
+                <header>
+                    <button name="action_containment" string="Containment" type="object" class="oe_highlight" invisible="state != 'new'"/>
+                    <button name="action_analysis" string="Root Cause Analysis" type="object" class="oe_highlight" invisible="state != 'containment'"/>
+                    <button name="action_corrective" string="Corrective Action" type="object" class="oe_highlight" invisible="state != 'analysis'"/>
+                    <button name="action_verification" string="Verify" type="object" class="oe_highlight" invisible="state != 'corrective'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'verification'"/>
+                    <button name="action_create_nc" string="Create NC/8D" type="object" class="btn-secondary" invisible="nonconformity_id != False or state == 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,containment,analysis,corrective,verification,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Complaint Info">
+                            <field name="complaint_type"/><field name="severity_level"/>
+                            <field name="customer_id"/><field name="customer_ref"/>
+                            <field name="received_date"/><field name="response_due_date"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="Product / Lot">
+                            <field name="product_id"/><field name="part_number"/>
+                            <field name="lot_id"/><field name="quantity_affected"/>
+                            <field name="quantity_returned"/><field name="failure_mode"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem" name="problem">
+                            <field name="problem_description"/>
+                            <field name="customer_impact"/>
+                        </page>
+                        <page string="Containment" name="containment">
+                            <field name="containment_action"/>
+                            <field name="containment_date"/>
+                        </page>
+                        <page string="Root Cause &amp; Corrective Action" name="rca">
+                            <field name="root_cause"/>
+                            <field name="corrective_action"/>
+                            <field name="preventive_action"/>
+                        </page>
+                        <page string="Verification" name="verification">
+                            <field name="verification_result"/>
+                            <field name="nonconformity_id"/>
+                        </page>
+                        <page string="Costs" name="costs">
+                            <group>
+                                <group>
+                                    <field name="cost_sorting"/><field name="cost_rework"/>
+                                    <field name="cost_scrap"/>
+                                </group>
+                                <group>
+                                    <field name="cost_freight"/><field name="cost_warranty"/>
+                                    <field name="cost_total"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Attachments" name="attach">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_customer_complaint" model="ir.actions.act_window">
+        <field name="name">Customer Complaints</field>
+        <field name="res_model">iatf.customer.complaint</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_complaint_search"/>
+    </record>
+</odoo>

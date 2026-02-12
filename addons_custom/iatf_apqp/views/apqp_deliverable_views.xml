@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_apqp_deliverable_search" model="ir.ui.view">
+        <field name="name">iatf.apqp.deliverable.search</field>
+        <field name="model">iatf.apqp.deliverable</field>
+        <field name="arch" type="xml">
+            <search string="Deliverables">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="responsible_id"/>
+                <filter name="required" string="Required" domain="[('is_required','=',True)]"/>
+                <filter name="open" string="Open" domain="[('state','in',('todo','in_progress'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_phase" string="Phase" context="{'group_by': 'phase_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_apqp_deliverable_tree" model="ir.ui.view">
+        <field name="name">iatf.apqp.deliverable.tree</field>
+        <field name="model">iatf.apqp.deliverable</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="project_id"/>
+                <field name="phase_id"/>
+                <field name="name"/>
+                <field name="is_required"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'in_progress'"
+                       decoration-muted="state == 'na'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_iatf_apqp_deliverable" model="ir.actions.act_window">
+        <field name="name">All Deliverables</field>
+        <field name="res_model">iatf.apqp.deliverable</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_apqp_deliverable_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+</odoo>

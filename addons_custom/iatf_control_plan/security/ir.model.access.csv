@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_control_plan_user,iatf.control.plan.user,model_iatf_control_plan,group_cp_user,1,1,1,0
+access_iatf_control_plan_manager,iatf.control.plan.manager,model_iatf_control_plan,group_cp_manager,1,1,1,1
+access_iatf_control_plan_line_user,iatf.control.plan.line.user,model_iatf_control_plan_line,group_cp_user,1,1,1,0
+access_iatf_control_plan_line_manager,iatf.control.plan.line.manager,model_iatf_control_plan_line,group_cp_manager,1,1,1,1

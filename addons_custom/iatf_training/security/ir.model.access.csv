@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_training_record_user,iatf.training.record.user,model_iatf_training_record,group_training_user,1,1,1,0
+access_iatf_training_record_manager,iatf.training.record.manager,model_iatf_training_record,group_training_manager,1,1,1,1
+access_iatf_competence_matrix_user,iatf.competence.matrix.user,model_iatf_competence_matrix,group_training_user,1,1,1,0
+access_iatf_competence_matrix_manager,iatf.competence.matrix.manager,model_iatf_competence_matrix,group_training_manager,1,1,1,1

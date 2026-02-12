@@ -1,0 +1,210 @@
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+import math
+
+
+class IatfMsaStudy(models.Model):
+    _name = "iatf.msa.study"
+    _description = "MSA Study — Gage R&R (IATF 16949 §7.1.5.1.1)"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = "create_date desc"
+
+    name = fields.Char(
+        string="MSA Number", required=True, copy=False, readonly=True,
+        default=lambda self: _("New"),
+    )
+    title = fields.Char(string="Title", required=True, tracking=True)
+    study_type = fields.Selection(
+        [
+            ("grr_crossed", "Gage R&R (Crossed)"),
+            ("grr_nested", "Gage R&R (Nested)"),
+            ("bias", "Bias Study"),
+            ("linearity", "Linearity Study"),
+            ("stability", "Stability Study"),
+        ],
+        string="Study Type", required=True, default="grr_crossed", tracking=True,
+    )
+
+    # ── Gage info ──
+    gage_name = fields.Char(string="Gage / Instrument Name", required=True)
+    gage_id_number = fields.Char(string="Gage ID #")
+    gage_resolution = fields.Float(string="Gage Resolution", digits=(16, 6))
+
+    # ── Characteristic ──
+    characteristic_name = fields.Char(string="Characteristic")
+    unit = fields.Char(string="Unit")
+    usl = fields.Float(string="USL")
+    lsl = fields.Float(string="LSL")
+    tolerance = fields.Float(string="Tolerance", compute="_compute_tolerance", store=True)
+
+    # ── Study design ──
+    num_operators = fields.Integer(string="# Operators", default=3)
+    num_parts = fields.Integer(string="# Parts", default=10)
+    num_trials = fields.Integer(string="# Trials", default=3)
+
+    # ── Measurements ──
+    measurement_ids = fields.One2many("iatf.msa.measurement", "study_id", string="Measurements")
+    measurement_count = fields.Integer(compute="_compute_measurement_count")
+
+    # ── Results ──
+    repeatability = fields.Float(string="Repeatability (EV)", digits=(16, 6), readonly=True)
+    reproducibility = fields.Float(string="Reproducibility (AV)", digits=(16, 6), readonly=True)
+    grr = fields.Float(string="GRR (R&R)", digits=(16, 6), readonly=True)
+    part_variation = fields.Float(string="Part Variation (PV)", digits=(16, 6), readonly=True)
+    total_variation = fields.Float(string="Total Variation (TV)", digits=(16, 6), readonly=True)
+
+    pct_ev = fields.Float(string="%EV", digits=(16, 2), readonly=True)
+    pct_av = fields.Float(string="%AV", digits=(16, 2), readonly=True)
+    pct_grr = fields.Float(string="%GRR", digits=(16, 2), readonly=True)
+    pct_pv = fields.Float(string="%PV", digits=(16, 2), readonly=True)
+    ndc = fields.Float(string="ndc (# Distinct Categories)", digits=(16, 1), readonly=True)
+
+    grr_status = fields.Selection(
+        [
+            ("acceptable", "Acceptable (%GRR < 10%)"),
+            ("marginal", "Marginal (10% ≤ %GRR ≤ 30%)"),
+            ("unacceptable", "Unacceptable (%GRR > 30%)"),
+            ("not_calculated", "Not Calculated"),
+        ],
+        string="GRR Status", default="not_calculated", readonly=True,
+    )
+
+    responsible_id = fields.Many2one("res.users", string="Responsible",
+                                      default=lambda self: self.env.user, tracking=True)
+    state = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("collecting", "Collecting Data"),
+            ("analyzed", "Analyzed"),
+            ("closed", "Closed"),
+        ],
+        string="Status", default="draft", tracking=True,
+    )
+    notes = fields.Text(string="Notes / Conclusions")
+    company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+
+    # AIAG MSA K1 constants (by number of trials)
+    K1_TABLE = {2: 0.8862, 3: 0.5908}
+    # K2 constants (by number of operators)
+    K2_TABLE = {2: 0.7071, 3: 0.5231}
+    # K3 constants (by number of parts)
+    K3_TABLE = {5: 0.4030, 10: 0.3146}
+
+    @api.depends("usl", "lsl")
+    def _compute_tolerance(self):
+        for rec in self:
+            rec.tolerance = rec.usl - rec.lsl if (rec.usl and rec.lsl) else 0.0
+
+    @api.depends("measurement_ids")
+    def _compute_measurement_count(self):
+        for rec in self:
+            rec.measurement_count = len(rec.measurement_ids)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", _("New")) == _("New"):
+                vals["name"] = self.env["ir.sequence"].next_by_code("iatf.msa.study") or _("New")
+        return super().create(vals_list)
+
+    def action_start_collecting(self):
+        self.write({"state": "collecting"})
+
+    def action_calculate(self):
+        for study in self:
+            study._calculate_grr()
+        self.write({"state": "analyzed"})
+
+    def action_close(self):
+        self.write({"state": "closed"})
+
+    def action_reset_draft(self):
+        self.write({"state": "draft"})
+
+    def _calculate_grr(self):
+        self.ensure_one()
+        measurements = self.measurement_ids
+        if not measurements:
+            raise UserError(_("No measurements to analyze."))
+
+        n_ops = self.num_operators or 3
+        n_parts = self.num_parts or 10
+        n_trials = self.num_trials or 3
+
+        # Group by operator
+        operators = list(set(measurements.mapped("operator_id.id")))
+        parts = list(set(measurements.mapped("part_number")))
+
+        if len(operators) < 2 or len(parts) < 2:
+            raise UserError(_("Need at least 2 operators and 2 parts for GRR study."))
+
+        # Calculate ranges per operator per part
+        op_ranges = {}
+        op_means = {}
+        part_means = {}
+
+        for op in operators:
+            op_ranges[op] = []
+            op_vals = []
+            for part in parts:
+                m = measurements.filtered(
+                    lambda r: r.operator_id.id == op and r.part_number == part
+                )
+                vals = m.mapped("measured_value")
+                if vals:
+                    op_ranges[op].append(max(vals) - min(vals))
+                    op_vals.extend(vals)
+            op_means[op] = sum(op_vals) / len(op_vals) if op_vals else 0.0
+
+        for part in parts:
+            m = measurements.filtered(lambda r: r.part_number == part)
+            vals = m.mapped("measured_value")
+            part_means[part] = sum(vals) / len(vals) if vals else 0.0
+
+        # Average range per operator, then overall R-bar
+        r_bar_per_op = {op: (sum(rng) / len(rng) if rng else 0.0) for op, rng in op_ranges.items()}
+        r_bar = sum(r_bar_per_op.values()) / len(r_bar_per_op) if r_bar_per_op else 0.0
+
+        # Range of operator means
+        x_diff = max(op_means.values()) - min(op_means.values()) if op_means else 0.0
+
+        # Range of part means
+        rp = max(part_means.values()) - min(part_means.values()) if part_means else 0.0
+
+        k1 = self.K1_TABLE.get(n_trials, 0.5908)
+        k2 = self.K2_TABLE.get(n_ops, 0.5231)
+        k3 = self.K3_TABLE.get(n_parts, 0.3146)
+
+        ev = r_bar * k1  # Repeatability
+        av_sq = (x_diff * k2) ** 2 - (ev ** 2 / (n_parts * n_trials))
+        av = math.sqrt(max(av_sq, 0.0))  # Reproducibility
+        grr_val = math.sqrt(ev ** 2 + av ** 2)
+        pv = rp * k3  # Part Variation
+        tv = math.sqrt(grr_val ** 2 + pv ** 2)
+
+        pct_ev_val = (ev / tv * 100.0) if tv else 0.0
+        pct_av_val = (av / tv * 100.0) if tv else 0.0
+        pct_grr_val = (grr_val / tv * 100.0) if tv else 0.0
+        pct_pv_val = (pv / tv * 100.0) if tv else 0.0
+        ndc_val = 1.41 * (pv / grr_val) if grr_val else 0.0
+
+        if pct_grr_val < 10:
+            status = "acceptable"
+        elif pct_grr_val <= 30:
+            status = "marginal"
+        else:
+            status = "unacceptable"
+
+        self.write({
+            "repeatability": ev,
+            "reproducibility": av,
+            "grr": grr_val,
+            "part_variation": pv,
+            "total_variation": tv,
+            "pct_ev": pct_ev_val,
+            "pct_av": pct_av_val,
+            "pct_grr": pct_grr_val,
+            "pct_pv": pct_pv_val,
+            "ndc": ndc_val,
+            "grr_status": status,
+        })

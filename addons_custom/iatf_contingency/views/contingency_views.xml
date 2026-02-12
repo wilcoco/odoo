@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_contingency_search" model="ir.ui.view">
+        <field name="name">iatf.contingency.plan.search</field>
+        <field name="model">iatf.contingency.plan</field>
+        <field name="arch" type="xml">
+            <search string="Contingency Plans">
+                <field name="name"/><field name="title"/><field name="responsible_id"/>
+                <filter name="active_plans" string="Active" domain="[('state','=','active')]"/>
+                <filter name="activated" string="Activated" domain="[('state','=','activated')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'plan_type'}"/>
+                    <filter name="group_severity" string="Impact" context="{'group_by': 'impact_severity'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_contingency_tree" model="ir.ui.view">
+        <field name="name">iatf.contingency.plan.tree</field>
+        <field name="model">iatf.contingency.plan</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'activated'" decoration-muted="state == 'obsolete'">
+                <field name="name"/><field name="title"/><field name="plan_type" widget="badge"/>
+                <field name="impact_severity" widget="badge" decoration-danger="impact_severity in ('high','critical')" decoration-warning="impact_severity == 'medium'"/>
+                <field name="affected_process"/><field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="last_test_date"/><field name="next_test_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-danger="state == 'activated'" decoration-info="state == 'review'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_contingency_form" model="ir.ui.view">
+        <field name="name">iatf.contingency.plan.form</field>
+        <field name="model">iatf.contingency.plan</field>
+        <field name="arch" type="xml">
+            <form string="Contingency Plan">
+                <header>
+                    <button name="action_activate" string="Activate Plan" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_trigger" string="Trigger (Event Occurred)" type="object" class="btn-danger" invisible="state != 'active'"/>
+                    <button name="action_deactivate" string="Stand Down" type="object" class="oe_highlight" invisible="state != 'activated'"/>
+                    <button name="action_review" string="Review" type="object" invisible="state not in ('active',)"/>
+                    <button name="action_activate" string="Reactivate" type="object" class="oe_highlight" invisible="state != 'review'"/>
+                    <button name="action_obsolete" string="Obsolete" type="object" invisible="state in ('obsolete','draft')"/>
+                    <button name="action_reset_draft" string="Reset" type="object" invisible="state == 'draft'" groups="iatf_contingency.group_contingency_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Plan Info">
+                            <field name="plan_type"/><field name="impact_severity"/>
+                            <field name="affected_process"/><field name="estimated_downtime"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="Validation">
+                            <field name="test_frequency"/><field name="last_test_date"/>
+                            <field name="next_test_date"/>
+                            <field name="team_member_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group><field name="affected_product_ids" widget="many2many_tags"/></group>
+                    <notebook>
+                        <page string="Risk Description" name="risk"><field name="risk_description"/></page>
+                        <page string="Prevention &amp; Response" name="response">
+                            <field name="prevention_measures"/>
+                            <field name="response_actions"/>
+                            <field name="recovery_actions"/>
+                            <field name="communication_plan"/>
+                            <field name="alternate_source"/>
+                        </page>
+                        <page string="Test Results" name="test"><field name="test_result"/></page>
+                        <page string="Documents" name="docs">
+                            <field name="document_ids" widget="many2many_tags"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_contingency" model="ir.actions.act_window">
+        <field name="name">Contingency Plans</field>
+        <field name="res_model">iatf.contingency.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_contingency_search"/>
+    </record>
+</odoo>

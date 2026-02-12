@@ -1,0 +1,21 @@
+{
+    "name": "IATF APQP",
+    "summary": "IATF 16949 §8.3 — Advanced Product Quality Planning with 5-phase gate management",
+    "version": "18.0.1.0.0",
+    "category": "Quality",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["base", "mail", "project", "iatf_document_control"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "data/phase_template.xml",
+        "views/apqp_project_views.xml",
+        "views/apqp_phase_views.xml",
+        "views/apqp_deliverable_views.xml",
+        "views/menu.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

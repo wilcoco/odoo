@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_dashboard_form" model="ir.ui.view">
+        <field name="name">iatf.dashboard.form</field>
+        <field name="model">iatf.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="IATF Quality Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>IATF 16949 Quality Dashboard</h1>
+                    </div>
+
+                    <!-- Row 1: Critical Alerts -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Open NC / 8D</h5>
+                                    <h2><field name="nc_open" class="text-white"/></h2>
+                                    <small>Overdue: <field name="nc_overdue" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_nc_open" type="object" class="btn btn-sm btn-light mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-warning">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Customer Complaints</h5>
+                                    <h2><field name="complaint_open"/></h2>
+                                    <small>Critical: <field name="complaint_critical"/></small>
+                                    <br/>
+                                    <button name="action_open_complaints" type="object" class="btn btn-sm btn-dark mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">FMEA High Risk</h5>
+                                    <h2><field name="fmea_high_risk" class="text-white"/></h2>
+                                    <small>Open Actions: <field name="fmea_open_actions" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_fmea_high" type="object" class="btn btn-sm btn-light mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">PPAP Open</h5>
+                                    <h2><field name="ppap_open" class="text-white"/></h2>
+                                    <small>Rejected: <field name="ppap_rejected" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_ppap_open" type="object" class="btn btn-sm btn-light mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Core Tools -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">SPC Not Capable</h5>
+                                    <h2 class="text-danger"><field name="spc_not_capable"/></h2>
+                                    <small>OOC Studies: <field name="spc_ooc"/></small>
+                                    <br/>
+                                    <button name="action_open_spc_not_capable" type="object" class="btn btn-sm btn-outline-danger mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">MSA Unacceptable</h5>
+                                    <h2 class="text-danger"><field name="msa_unacceptable"/></h2>
+                                    <br/>
+                                    <button name="action_open_msa_unacceptable" type="object" class="btn btn-sm btn-outline-danger mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Calibration Overdue</h5>
+                                    <h2 class="text-warning"><field name="cal_overdue"/></h2>
+                                    <br/>
+                                    <button name="action_open_cal_overdue" type="object" class="btn btn-sm btn-outline-warning mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Competence Gaps</h5>
+                                    <h2 class="text-warning"><field name="training_gaps"/></h2>
+                                    <br/>
+                                    <button name="action_open_training_gaps" type="object" class="btn btn-sm btn-outline-warning mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Support -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Audit Findings Open</h5>
+                                    <h2><field name="audit_open_findings"/></h2>
+                                    <small>Planned Audits: <field name="audit_planned"/></small>
+                                    <br/>
+                                    <button name="action_open_audit_findings" type="object" class="btn btn-sm btn-outline-primary mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Open SCARs</h5>
+                                    <h2><field name="scar_open"/></h2>
+                                    <small>Supplier Grade D: <field name="supplier_grade_d"/></small>
+                                    <br/>
+                                    <button name="action_open_scar_open" type="object" class="btn btn-sm btn-outline-primary mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Risks Critical/High</h5>
+                                    <h2 class="text-danger"><field name="risk_critical"/></h2>
+                                    <small>High: <field name="risk_high"/></small>
+                                    <br/>
+                                    <button name="action_open_risk_critical" type="object" class="btn btn-sm btn-outline-danger mt-2">View</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">APQP Active Projects</h5>
+                                    <h2 class="text-success"><field name="apqp_active"/></h2>
+                                    <small>Documents: <field name="doc_total"/> (Pending: <field name="doc_pending_approval"/>)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: YTD Summary -->
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card border-secondary">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">NC Total (YTD)</h5>
+                                    <h2><field name="nc_total_ytd"/></h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card border-secondary">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Complaint Cost (YTD)</h5>
+                                    <h2><field name="complaint_cost_ytd" widget="monetary"/></h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_dashboard" model="ir.actions.act_window">
+        <field name="name">IATF Quality Dashboard</field>
+        <field name="res_model">iatf.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+</odoo>

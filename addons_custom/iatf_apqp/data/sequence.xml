@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_iatf_apqp_project" model="ir.sequence">
+            <field name="name">IATF APQP Project</field>
+            <field name="code">iatf.apqp.project</field>
+            <field name="prefix">APQP-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

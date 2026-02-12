@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_audit_search" model="ir.ui.view">
+        <field name="name">iatf.audit.search</field>
+        <field name="model">iatf.audit</field>
+        <field name="arch" type="xml">
+            <search string="Audits">
+                <field name="name"/><field name="title"/><field name="lead_auditor_id"/>
+                <filter name="planned" string="Planned" domain="[('state','=','planned')]"/>
+                <filter name="open" string="Open" domain="[('state','not in',('closed','cancelled'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'audit_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_audit_tree" model="ir.ui.view">
+        <field name="name">iatf.audit.tree</field>
+        <field name="model">iatf.audit</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="title"/><field name="audit_type" widget="badge"/>
+                <field name="planned_date"/><field name="lead_auditor_id" widget="many2one_avatar_user"/>
+                <field name="nc_major_count" decoration-danger="nc_major_count > 0"/>
+                <field name="nc_minor_count" decoration-warning="nc_minor_count > 0"/>
+                <field name="observation_count"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-info="state == 'in_progress'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_audit_form" model="ir.ui.view">
+        <field name="name">iatf.audit.form</field>
+        <field name="model">iatf.audit</field>
+        <field name="arch" type="xml">
+            <form string="Internal Audit">
+                <header>
+                    <button name="action_start" string="Start Audit" type="object" class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_issue_report" string="Issue Report" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_follow_up" string="Follow-up" type="object" invisible="state != 'report'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state not in ('report','follow_up')"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed','cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="planned,in_progress,report,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Audit Info">
+                            <field name="audit_type"/><field name="planned_date"/><field name="actual_date"/>
+                            <field name="department_id"/><field name="process_name"/><field name="standard_reference"/>
+                        </group>
+                        <group string="Auditors">
+                            <field name="lead_auditor_id"/><field name="auditor_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group invisible="audit_type != 'process'">
+                        <group string="VDA 6.3 Score">
+                            <field name="vda_score"/><field name="vda_grade"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Findings" name="findings">
+                            <field name="finding_ids">
+                                <list editable="bottom">
+                                    <field name="finding_type" widget="badge"
+                                           decoration-danger="finding_type == 'major'" decoration-warning="finding_type == 'minor'"
+                                           decoration-success="finding_type == 'positive'"/>
+                                    <field name="clause_reference"/><field name="description" widget="html"/>
+                                    <field name="responsible_id"/><field name="due_date"/>
+                                    <field name="nonconformity_id" optional="show"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'closed'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Report" name="report"><field name="audit_report"/></page>
+                        <page string="Documents" name="docs">
+                            <field name="document_ids" widget="many2many_tags"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_audit" model="ir.actions.act_window">
+        <field name="name">Internal Audits</field>
+        <field name="res_model">iatf.audit</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_audit_search"/>
+    </record>
+</odoo>

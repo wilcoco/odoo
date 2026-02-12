@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_equipment_search" model="ir.ui.view">
+        <field name="name">iatf.measurement.equipment.search</field>
+        <field name="model">iatf.measurement.equipment</field>
+        <field name="arch" type="xml">
+            <search string="Equipment">
+                <field name="name"/><field name="equipment_id_number"/><field name="serial_number"/>
+                <filter name="overdue" string="Overdue" domain="[('is_overdue','=',True)]"/>
+                <filter name="active_eq" string="Active" domain="[('state','=','active')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'equipment_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_dept" string="Department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_equipment_tree" model="ir.ui.view">
+        <field name="name">iatf.measurement.equipment.tree</field>
+        <field name="model">iatf.measurement.equipment</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_overdue == True" decoration-muted="state == 'retired'">
+                <field name="equipment_id_number"/><field name="name"/><field name="equipment_type"/>
+                <field name="manufacturer" optional="show"/><field name="serial_number" optional="show"/>
+                <field name="location"/><field name="custodian_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="last_calibration_date"/><field name="next_calibration_date"/>
+                <field name="is_overdue"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-warning="state == 'calibrating'" decoration-danger="state == 'quarantine'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_equipment_form" model="ir.ui.view">
+        <field name="name">iatf.measurement.equipment.form</field>
+        <field name="model">iatf.measurement.equipment</field>
+        <field name="arch" type="xml">
+            <form string="Measurement Equipment">
+                <header>
+                    <button name="action_send_to_calibration" string="Send to Calibration" type="object" invisible="state != 'active'"/>
+                    <button name="action_activate" string="Activate" type="object" class="oe_highlight" invisible="state in ('active','retired')"/>
+                    <button name="action_quarantine" string="Quarantine" type="object" invisible="state in ('quarantine','retired')"/>
+                    <button name="action_retire" string="Retire" type="object" invisible="state == 'retired'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-history" type="action" name="%(iatf_calibration.action_iatf_calibration_record)d">
+                            <field name="calibration_count" widget="statinfo" string="Calibrations"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="equipment_id_number"/></h1><h2><field name="name"/></h2></div>
+                    <group>
+                        <group string="Equipment Details">
+                            <field name="equipment_type"/><field name="manufacturer"/><field name="model_number"/><field name="serial_number"/>
+                        </group>
+                        <group string="Specification">
+                            <field name="range_min"/><field name="range_max"/><field name="resolution"/><field name="accuracy"/><field name="unit"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Location">
+                            <field name="location"/><field name="custodian_id"/><field name="department_id"/>
+                        </group>
+                        <group string="Calibration Schedule">
+                            <field name="calibration_frequency_days"/><field name="last_calibration_date"/>
+                            <field name="next_calibration_date"/><field name="calibration_provider"/><field name="is_overdue"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Calibration History" name="history">
+                            <field name="calibration_record_ids">
+                                <list>
+                                    <field name="name"/><field name="calibration_date"/><field name="calibration_type"/>
+                                    <field name="provider"/><field name="certificate_number"/>
+                                    <field name="result" widget="badge" decoration-success="result in ('pass','adjusted')" decoration-danger="result == 'fail'"/>
+                                    <field name="performed_by"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes / Certificates" name="notes">
+                            <field name="notes"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_equipment" model="ir.actions.act_window">
+        <field name="name">Measurement Equipment</field>
+        <field name="res_model">iatf.measurement.equipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_equipment_search"/>
+    </record>
+</odoo>

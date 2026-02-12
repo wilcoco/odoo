@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- CA Search -->
+    <record id="view_iatf_corrective_action_search" model="ir.ui.view">
+        <field name="name">iatf.corrective.action.search</field>
+        <field name="model">iatf.corrective.action</field>
+        <field name="arch" type="xml">
+            <search string="Corrective Actions">
+                <field name="name"/>
+                <field name="nonconformity_id"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter name="overdue" string="Overdue" domain="[('is_overdue','=',True)]"/>
+                <filter name="open" string="Open" domain="[('state','not in',('verified','closed'))]"/>
+                <filter name="my_actions" string="My Actions" domain="[('responsible_id','=',uid)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'ca_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_responsible" string="Responsible" context="{'group_by': 'responsible_id'}"/>
+                    <filter name="group_effective" string="Effectiveness" context="{'group_by': 'effective'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- CA Tree -->
+    <record id="view_iatf_corrective_action_tree" model="ir.ui.view">
+        <field name="name">iatf.corrective.action.tree</field>
+        <field name="model">iatf.corrective.action</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_overdue == True"
+                  decoration-muted="state == 'closed'">
+                <field name="name"/>
+                <field name="nonconformity_id"/>
+                <field name="ca_type"/>
+                <field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="due_date" decoration-danger="is_overdue == True"/>
+                <field name="completion_date"/>
+                <field name="effective" widget="badge"
+                       decoration-success="effective == 'yes'"
+                       decoration-danger="effective == 'no'"
+                       decoration-warning="effective == 'partial'"
+                       optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('verified','closed')"
+                       decoration-info="state == 'in_progress'"
+                       decoration-warning="state == 'open'"/>
+                <field name="is_overdue" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- CA Form -->
+    <record id="view_iatf_corrective_action_form" model="ir.ui.view">
+        <field name="name">iatf.corrective.action.form</field>
+        <field name="model">iatf.corrective.action</field>
+        <field name="arch" type="xml">
+            <form string="Corrective Action">
+                <header>
+                    <button name="action_start" string="Start"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'open'"/>
+                    <button name="action_implement" string="Mark Implemented"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_verify" string="Verify"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'implemented'"
+                            groups="iatf_nonconformity.group_nc_manager"/>
+                    <button name="action_close" string="Close"
+                            type="object"
+                            invisible="state != 'verified'"/>
+                    <button name="action_reopen" string="Re-open"
+                            type="object"
+                            invisible="state not in ('verified','closed')"
+                            groups="iatf_nonconformity.group_nc_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,in_progress,implemented,verified"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Action">
+                            <field name="nonconformity_id"/>
+                            <field name="ca_type"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="Timeline">
+                            <field name="due_date"/>
+                            <field name="completion_date"/>
+                            <field name="is_overdue"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Verification" name="verification">
+                            <group>
+                                <group>
+                                    <field name="verification_method"/>
+                                    <field name="effective"/>
+                                </group>
+                                <group>
+                                    <field name="verified_by"/>
+                                    <field name="verification_date"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="verification_result" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Evidence" name="evidence">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- CA Action -->
+    <record id="action_iatf_corrective_action" model="ir.actions.act_window">
+        <field name="name">Corrective Actions</field>
+        <field name="res_model">iatf.corrective.action</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_corrective_action_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+</odoo>

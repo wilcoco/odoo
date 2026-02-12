@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_fmea_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 9px;">
+                        <h3 class="text-center mb-2">
+                            <t t-if="o.fmea_type == 'dfmea'">DFMEA</t>
+                            <t t-else="">PFMEA</t>
+                            — Failure Mode &amp; Effects Analysis
+                        </h3>
+
+                        <!-- Header -->
+                        <table class="table table-bordered table-sm mb-2">
+                            <tr>
+                                <td class="fw-bold">FMEA #</td><td><t t-esc="o.name"/></td>
+                                <td class="fw-bold">Title</td><td><t t-esc="o.title"/></td>
+                                <td class="fw-bold">Rev</td><td><t t-esc="o.revision"/></td>
+                                <td class="fw-bold">Date</td><td><t t-esc="o.revision_date" t-options='{"widget": "date"}'/></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Product</td><td><t t-esc="o.product_id.display_name or '-'"/></td>
+                                <td class="fw-bold">Part #</td><td><t t-esc="o.part_number or '-'"/></td>
+                                <td class="fw-bold">Process</td><td><t t-esc="o.process_name or '-'"/></td>
+                                <td class="fw-bold">Owner</td><td><t t-esc="o.responsible_id.name or '-'"/></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Customer</td><td><t t-esc="o.customer_id.name or '-'"/></td>
+                                <td class="fw-bold">Model/Year</td><td><t t-esc="o.model_year or '-'"/></td>
+                                <td class="fw-bold">Team</td><td colspan="3"><t t-esc="', '.join(o.team_member_ids.mapped('name')) or '-'"/></td>
+                            </tr>
+                        </table>
+
+                        <!-- Worksheet -->
+                        <table class="table table-bordered table-sm" style="font-size: 8px;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Process Step</th>
+                                    <th>Failure Mode</th>
+                                    <th>Effect(s)</th>
+                                    <th>S</th>
+                                    <th>Cause(s)</th>
+                                    <th>Prevention Controls</th>
+                                    <th>O</th>
+                                    <th>Detection Controls</th>
+                                    <th>D</th>
+                                    <th>RPN</th>
+                                    <th>AP</th>
+                                    <th>SC</th>
+                                    <th>Recommended Action</th>
+                                    <th>Responsible</th>
+                                    <th>Status</th>
+                                    <th>S*</th><th>O*</th><th>D*</th><th>RPN*</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="l">
+                                    <tr t-attf-class="#{'table-danger' if l.action_priority == 'high' else 'table-warning' if l.action_priority == 'medium' else ''}">
+                                        <td><t t-esc="l.process_step or ''"/></td>
+                                        <td><t t-esc="l.failure_mode"/></td>
+                                        <td><t t-esc="l.failure_effect or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.severity"/></td>
+                                        <td><t t-esc="l.failure_cause or ''"/></td>
+                                        <td><t t-esc="l.current_prevention or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.occurrence"/></td>
+                                        <td><t t-esc="l.current_detection or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.detection"/></td>
+                                        <td class="text-center fw-bold"><t t-esc="l.rpn"/></td>
+                                        <td class="text-center"><t t-esc="(l.action_priority or '')[0:1].upper()"/></td>
+                                        <td class="text-center"><t t-esc="dict(l._fields['special_characteristic'].selection).get(l.special_characteristic, '')[0:2]"/></td>
+                                        <td><t t-esc="l.recommended_action or ''"/></td>
+                                        <td><t t-esc="l.action_responsible_id.name or ''"/></td>
+                                        <td><t t-esc="dict(l._fields['action_status'].selection).get(l.action_status, '')"/></td>
+                                        <td class="text-center"><t t-esc="l.severity_after or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.occurrence_after or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.detection_after or ''"/></td>
+                                        <td class="text-center"><t t-esc="l.rpn_after or ''"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-3" style="font-size: 9px;">
+                            <div class="col-4">
+                                <strong>Max RPN:</strong> <t t-esc="o.max_rpn"/>
+                            </div>
+                            <div class="col-4">
+                                <strong>High Risk Items:</strong> <t t-esc="o.high_risk_count"/>
+                            </div>
+                            <div class="col-4">
+                                <strong>Open Actions:</strong> <t t-esc="o.open_action_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

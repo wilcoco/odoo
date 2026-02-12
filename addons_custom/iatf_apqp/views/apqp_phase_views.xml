@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_apqp_phase_form" model="ir.ui.view">
+        <field name="name">iatf.apqp.phase.form</field>
+        <field name="model">iatf.apqp.phase</field>
+        <field name="arch" type="xml">
+            <form string="APQP Phase">
+                <header>
+                    <button name="action_start" string="Start" type="object" class="oe_highlight"
+                            invisible="state != 'not_started'"/>
+                    <button name="action_complete" string="Complete Phase" type="object" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_reset" string="Reset" type="object"
+                            invisible="state == 'not_started'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Phase Info">
+                            <field name="project_id"/>
+                            <field name="phase_number"/>
+                            <field name="name"/>
+                        </group>
+                        <group string="Timeline">
+                            <field name="date_planned_start"/>
+                            <field name="date_planned_end"/>
+                            <field name="date_actual_start"/>
+                            <field name="date_actual_end"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Gate Review">
+                            <field name="gate_reviewer_id"/>
+                            <field name="gate_review_date"/>
+                            <field name="gate_result"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="progress" widget="progressbar"/>
+                            <field name="deliverable_done_count"/>
+                            <field name="deliverable_count"/>
+                        </group>
+                    </group>
+                    <field name="gate_notes"/>
+                    <field name="description"/>
+                    <notebook>
+                        <page string="Deliverables" name="deliverables">
+                            <field name="deliverable_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="is_required"/>
+                                    <field name="responsible_id"/>
+                                    <field name="due_date"/>
+                                    <field name="completion_date"/>
+                                    <field name="document_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state == 'in_progress'"
+                                           decoration-muted="state == 'na'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

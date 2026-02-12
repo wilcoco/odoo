@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_fmea" model="ir.actions.report">
+        <field name="name">FMEA Worksheet</field>
+        <field name="model">iatf.fmea</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">iatf_dashboard.report_fmea_template</field>
+        <field name="report_file">iatf_dashboard.report_fmea_template</field>
+        <field name="print_report_name">'FMEA_%s' % object.name</field>
+        <field name="binding_model_id" ref="iatf_fmea.model_iatf_fmea"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="iatf_dashboard.paperformat_iatf_landscape"/>
+    </record>
+</odoo>

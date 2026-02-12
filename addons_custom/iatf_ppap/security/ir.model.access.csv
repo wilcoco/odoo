@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_ppap_submission_user,iatf.ppap.submission.user,model_iatf_ppap_submission,group_ppap_user,1,1,1,0
+access_iatf_ppap_submission_manager,iatf.ppap.submission.manager,model_iatf_ppap_submission,group_ppap_manager,1,1,1,1
+access_iatf_ppap_element_user,iatf.ppap.element.user,model_iatf_ppap_element,group_ppap_user,1,1,1,0
+access_iatf_ppap_element_manager,iatf.ppap.element.manager,model_iatf_ppap_element,group_ppap_manager,1,1,1,1

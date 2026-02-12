@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_spc_root"
+              name="SPC"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="48"/>
+    <menuitem id="menu_iatf_spc_studies"
+              name="SPC Studies"
+              parent="menu_iatf_spc_root"
+              action="action_iatf_spc_study"
+              sequence="10"/>
+</odoo>

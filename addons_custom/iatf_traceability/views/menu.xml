@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Traceability sub-menu under IATF Quality -->
+    <menuitem id="menu_iatf_traceability_root"
+              name="Traceability"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="30"/>
+
+    <menuitem id="menu_iatf_traceability_records"
+              name="Traceability Records"
+              parent="menu_iatf_traceability_root"
+              action="action_iatf_traceability_record"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_recall_simulations"
+              name="Recall Simulations"
+              parent="menu_iatf_traceability_root"
+              action="action_iatf_recall_simulation"
+              sequence="20"/>
+</odoo>

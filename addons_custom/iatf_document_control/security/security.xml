@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_iatf" model="ir.module.category">
+        <field name="name">IATF Quality</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <!-- User: can read/create documents -->
+    <record id="group_document_user" model="res.groups">
+        <field name="name">Document User</field>
+        <field name="category_id" ref="module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Manager: can approve/obsolete, manage categories -->
+    <record id="group_document_manager" model="res.groups">
+        <field name="name">Document Manager</field>
+        <field name="category_id" ref="module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('group_document_user'))]"/>
+    </record>
+</odoo>

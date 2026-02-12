@@ -1,0 +1,19 @@
+{
+    "name": "IATF Nonconformity & 8D",
+    "summary": "IATF 16949 §10.2 — Nonconformity management, corrective actions, and 8D problem-solving",
+    "version": "18.0.1.0.0",
+    "category": "Quality",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["base", "mail", "web", "iatf_document_control"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/nonconformity_views.xml",
+        "views/corrective_action_views.xml",
+        "views/menu.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

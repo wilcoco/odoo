@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_measurement_equipment_user,iatf.measurement.equipment.user,model_iatf_measurement_equipment,group_calibration_user,1,1,1,0
+access_iatf_measurement_equipment_manager,iatf.measurement.equipment.manager,model_iatf_measurement_equipment,group_calibration_manager,1,1,1,1
+access_iatf_calibration_record_user,iatf.calibration.record.user,model_iatf_calibration_record,group_calibration_user,1,1,1,0
+access_iatf_calibration_record_manager,iatf.calibration.record.manager,model_iatf_calibration_record,group_calibration_manager,1,1,1,1

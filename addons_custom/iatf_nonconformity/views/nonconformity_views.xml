@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- NC Search -->
+    <record id="view_iatf_nonconformity_search" model="ir.ui.view">
+        <field name="name">iatf.nonconformity.search</field>
+        <field name="model">iatf.nonconformity</field>
+        <field name="arch" type="xml">
+            <search string="Nonconformities">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <separator/>
+                <filter name="my_ncs" string="My NCs" domain="[('team_leader_id','=',uid)]"/>
+                <filter name="open" string="Open" domain="[('state','not in',('closed','cancelled'))]"/>
+                <filter name="critical" string="Critical" domain="[('severity','=','critical')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="NC Type" context="{'group_by': 'nc_type'}"/>
+                    <filter name="group_severity" string="Severity" context="{'group_by': 'severity'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_disposition" string="Disposition" context="{'group_by': 'disposition'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- NC Tree -->
+    <record id="view_iatf_nonconformity_tree" model="ir.ui.view">
+        <field name="name">iatf.nonconformity.tree</field>
+        <field name="model">iatf.nonconformity</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'major'"
+                  decoration-muted="state in ('closed','cancelled')">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="nc_type"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'major'"/>
+                <field name="detection_date"/>
+                <field name="product_id" optional="show"/>
+                <field name="team_leader_id" widget="many2one_avatar_user"/>
+                <field name="disposition" optional="show"/>
+                <field name="corrective_action_count" string="CAs"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'closed'"
+                       decoration-info="state in ('analysis','corrective')"
+                       decoration-warning="state == 'containment'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- NC Form (8D structure) -->
+    <record id="view_iatf_nonconformity_form" model="ir.ui.view">
+        <field name="name">iatf.nonconformity.form</field>
+        <field name="model">iatf.nonconformity</field>
+        <field name="arch" type="xml">
+            <form string="Nonconformity / 8D Report">
+                <header>
+                    <button name="action_start_containment" string="D3: Containment"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start_analysis" string="D4: Root Cause"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'containment'"/>
+                    <button name="action_start_corrective" string="D5/D6: Corrective Action"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'analysis'"/>
+                    <button name="action_start_verification" string="D7: Verification"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'corrective'"/>
+                    <button name="action_close" string="D8: Close"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'verification'"
+                            groups="iatf_nonconformity.group_nc_manager"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object"
+                            invisible="state in ('closed','cancelled')"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state not in ('cancelled',)"
+                            groups="iatf_nonconformity.group_nc_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,containment,analysis,corrective,verification,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_corrective_actions" type="object"
+                                class="oe_stat_button" icon="fa-wrench">
+                            <field name="corrective_action_count" widget="statinfo"
+                                   string="Corrective Actions"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="NC Title"/></h2>
+                    </div>
+
+                    <group>
+                        <group string="Classification">
+                            <field name="nc_type"/>
+                            <field name="severity"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="disposition"/>
+                        </group>
+                        <group string="Detection">
+                            <field name="detection_date"/>
+                            <field name="detection_location"/>
+                            <field name="detected_by"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Reference">
+                            <field name="product_id"/>
+                            <field name="lot_id"/>
+                            <field name="production_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group string="Quantity">
+                            <field name="quantity_affected"/>
+                            <field name="quantity_rejected"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- D1: Team -->
+                        <page string="D1: Team" name="d1_team">
+                            <group>
+                                <field name="team_leader_id"/>
+                                <field name="team_member_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+
+                        <!-- D2: Problem Description -->
+                        <page string="D2: Problem" name="d2_problem">
+                            <field name="problem_description"/>
+                        </page>
+
+                        <!-- D3: Containment -->
+                        <page string="D3: Containment" name="d3_containment">
+                            <group>
+                                <group>
+                                    <field name="containment_responsible_id"/>
+                                    <field name="containment_date"/>
+                                    <field name="containment_verified"/>
+                                </group>
+                            </group>
+                            <field name="containment_action"/>
+                        </page>
+
+                        <!-- D4: Root Cause -->
+                        <page string="D4: Root Cause" name="d4_root_cause">
+                            <group>
+                                <field name="root_cause_method"/>
+                            </group>
+                            <field name="root_cause"/>
+                        </page>
+
+                        <!-- D5/D6: Corrective Actions -->
+                        <page string="D5/D6: Corrective Actions" name="d5d6_ca">
+                            <field name="corrective_action_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="ca_type"/>
+                                    <field name="description" widget="html"/>
+                                    <field name="responsible_id"/>
+                                    <field name="due_date"
+                                           decoration-danger="is_overdue == True"/>
+                                    <field name="effective"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'verified'"
+                                           decoration-info="state == 'in_progress'"
+                                           decoration-warning="state == 'open'"/>
+                                    <field name="is_overdue" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- D7: Preventive Action -->
+                        <page string="D7: Prevention" name="d7_prevention">
+                            <field name="preventive_action"/>
+                        </page>
+
+                        <!-- D8: Closure -->
+                        <page string="D8: Closure" name="d8_closure">
+                            <field name="closure_notes"/>
+                        </page>
+
+                        <!-- Cost -->
+                        <page string="Cost" name="cost">
+                            <group>
+                                <group>
+                                    <field name="cost_internal"/>
+                                    <field name="cost_external"/>
+                                    <field name="cost_total"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Related Documents & Evidence -->
+                        <page string="Documents / Evidence" name="docs">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- NC Action -->
+    <record id="action_iatf_nonconformity" model="ir.actions.act_window">
+        <field name="name">Nonconformities</field>
+        <field name="res_model">iatf.nonconformity</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_nonconformity_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+</odoo>

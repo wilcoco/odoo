@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_risk_register_user,iatf.risk.register.user,model_iatf_risk_register,group_risk_user,1,1,1,0
+access_iatf_risk_register_manager,iatf.risk.register.manager,model_iatf_risk_register,group_risk_manager,1,1,1,1

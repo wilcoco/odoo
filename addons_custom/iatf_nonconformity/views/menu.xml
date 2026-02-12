@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Nonconformity sub-menu under IATF Quality -->
+    <menuitem id="menu_iatf_nonconformity_root"
+              name="Nonconformity / 8D"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="20"/>
+
+    <menuitem id="menu_iatf_nonconformities"
+              name="Nonconformities"
+              parent="menu_iatf_nonconformity_root"
+              action="action_iatf_nonconformity"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_corrective_actions"
+              name="Corrective Actions"
+              parent="menu_iatf_nonconformity_root"
+              action="action_iatf_corrective_action"
+              sequence="20"/>
+</odoo>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_supplier_root" name="Supplier Quality" parent="iatf_document_control.menu_iatf_root" sequence="55"/>
+    <menuitem id="menu_iatf_supplier_eval" name="Evaluations" parent="menu_iatf_supplier_root" action="action_iatf_supplier_evaluation" sequence="10"/>
+    <menuitem id="menu_iatf_scar" name="SCARs" parent="menu_iatf_supplier_root" action="action_iatf_scar" sequence="20"/>
+</odoo>

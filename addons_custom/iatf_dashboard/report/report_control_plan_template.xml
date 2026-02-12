@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_control_plan_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 9px;">
+                        <h3 class="text-center mb-2">Control Plan</h3>
+
+                        <table class="table table-bordered table-sm mb-2">
+                            <tr>
+                                <td class="fw-bold">CP #</td><td><t t-esc="o.name"/></td>
+                                <td class="fw-bold">Title</td><td><t t-esc="o.title"/></td>
+                                <td class="fw-bold">Type</td>
+                                <td><t t-esc="dict(o._fields['cp_type'].selection).get(o.cp_type, '')"/></td>
+                                <td class="fw-bold">Rev</td><td><t t-esc="o.revision"/></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Product</td><td><t t-esc="o.product_id.display_name or '-'"/></td>
+                                <td class="fw-bold">Part #</td><td><t t-esc="o.part_number or '-'"/></td>
+                                <td class="fw-bold">Customer</td><td><t t-esc="o.customer_id.name or '-'"/></td>
+                                <td class="fw-bold">Owner</td><td><t t-esc="o.responsible_id.name or '-'"/></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">FMEA Ref</td><td><t t-esc="o.fmea_id.name or '-'"/></td>
+                                <td class="fw-bold">Date</td><td><t t-esc="o.revision_date" t-options='{"widget": "date"}'/></td>
+                                <td class="fw-bold">Status</td>
+                                <td colspan="3"><t t-esc="dict(o._fields['state'].selection).get(o.state, '')"/></td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-bordered table-sm" style="font-size: 8px;">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Step #</th>
+                                    <th>Process Name</th>
+                                    <th>Machine/Tool</th>
+                                    <th>Char #</th>
+                                    <th>Characteristic</th>
+                                    <th>Type</th>
+                                    <th>SC</th>
+                                    <th>Specification/Tolerance</th>
+                                    <th>Eval Method</th>
+                                    <th>Sample Size</th>
+                                    <th>Frequency</th>
+                                    <th>Control Method</th>
+                                    <th>Reaction Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="l">
+                                    <tr>
+                                        <td><t t-esc="l.process_step_number or ''"/></td>
+                                        <td><t t-esc="l.process_name or ''"/></td>
+                                        <td><t t-esc="l.machine_device or ''"/></td>
+                                        <td><t t-esc="l.characteristic_number or ''"/></td>
+                                        <td><t t-esc="l.characteristic_name"/></td>
+                                        <td><t t-esc="dict(l._fields['characteristic_type'].selection).get(l.characteristic_type, '')"/></td>
+                                        <td class="text-center">
+                                            <t t-if="l.special_characteristic == 'cc'"><span class="badge bg-danger">CC</span></t>
+                                            <t t-elif="l.special_characteristic == 'sc'"><span class="badge bg-warning">SC</span></t>
+                                            <t t-elif="l.special_characteristic == 'hi'"><span class="badge bg-info">HI</span></t>
+                                        </td>
+                                        <td><t t-esc="l.specification or ''"/></td>
+                                        <td><t t-esc="l.evaluation_method or ''"/></td>
+                                        <td><t t-esc="l.sample_size or ''"/></td>
+                                        <td><t t-esc="l.sample_frequency or ''"/></td>
+                                        <td><t t-esc="l.control_method or ''"/></td>
+                                        <td><t t-esc="l.reaction_plan or ''"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

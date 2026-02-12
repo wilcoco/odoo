@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_audit_user,iatf.audit.user,model_iatf_audit,group_audit_user,1,1,1,0
+access_iatf_audit_manager,iatf.audit.manager,model_iatf_audit,group_audit_manager,1,1,1,1
+access_iatf_audit_finding_user,iatf.audit.finding.user,model_iatf_audit_finding,group_audit_user,1,1,1,0
+access_iatf_audit_finding_manager,iatf.audit.finding.manager,model_iatf_audit_finding,group_audit_manager,1,1,1,1

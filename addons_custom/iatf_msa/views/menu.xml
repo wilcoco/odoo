@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_msa_root"
+              name="MSA"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="49"/>
+    <menuitem id="menu_iatf_msa_studies"
+              name="MSA Studies"
+              parent="menu_iatf_msa_root"
+              action="action_iatf_msa_study"
+              sequence="10"/>
+</odoo>

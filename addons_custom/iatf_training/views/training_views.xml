@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_training_record_search" model="ir.ui.view">
+        <field name="name">iatf.training.record.search</field>
+        <field name="model">iatf.training.record</field>
+        <field name="arch" type="xml">
+            <search string="Training Records">
+                <field name="name"/><field name="title"/><field name="trainer_id"/>
+                <filter name="planned" string="Planned" domain="[('state','=','planned')]"/>
+                <filter name="not_verified" string="Not Verified" domain="[('effectiveness_verified','=',False),('state','=','completed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'training_type'}"/>
+                    <filter name="group_dept" string="Department" context="{'group_by': 'department_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_training_record_tree" model="ir.ui.view">
+        <field name="name">iatf.training.record.tree</field>
+        <field name="model">iatf.training.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="title"/><field name="training_type" widget="badge"/>
+                <field name="training_date"/><field name="duration_hours"/>
+                <field name="participant_count" string="Participants"/>
+                <field name="department_id" optional="show"/>
+                <field name="effectiveness_verified"/>
+                <field name="state" widget="badge" decoration-success="state == 'verified'" decoration-info="state == 'completed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_training_record_form" model="ir.ui.view">
+        <field name="name">iatf.training.record.form</field>
+        <field name="model">iatf.training.record</field>
+        <field name="arch" type="xml">
+            <form string="Training Record">
+                <header>
+                    <button name="action_complete" string="Complete" type="object" class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_verify_effectiveness" string="Verify Effectiveness" type="object" class="oe_highlight" invisible="state != 'completed'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('verified','cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="planned,completed,verified"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Training Info">
+                            <field name="training_type"/><field name="training_date"/>
+                            <field name="duration_hours"/><field name="department_id"/>
+                            <field name="iatf_clause"/><field name="process_name"/>
+                        </group>
+                        <group string="Trainer">
+                            <field name="trainer_id"/><field name="trainer_external"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Evaluation">
+                            <field name="evaluation_method"/><field name="pass_criteria"/>
+                            <field name="effectiveness_verified"/><field name="effectiveness_notes"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Participants" name="participants">
+                            <field name="employee_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Topics / Content" name="topics"><field name="topics"/></page>
+                        <page string="Documents" name="docs">
+                            <field name="document_ids" widget="many2many_tags"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_training_record" model="ir.actions.act_window">
+        <field name="name">Training Records</field>
+        <field name="res_model">iatf.training.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_training_record_search"/>
+    </record>
+</odoo>

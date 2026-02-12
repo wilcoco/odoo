@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_iatf_spc_study" model="ir.sequence">
+            <field name="name">IATF SPC Study</field>
+            <field name="code">iatf.spc.study</field>
+            <field name="prefix">SPC-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

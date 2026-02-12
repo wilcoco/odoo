@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_apqp_project_search" model="ir.ui.view">
+        <field name="name">iatf.apqp.project.search</field>
+        <field name="model">iatf.apqp.project</field>
+        <field name="arch" type="xml">
+            <search string="APQP Projects">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="customer_id"/>
+                <field name="project_leader_id"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="my_projects" string="My Projects" domain="[('project_leader_id','=',uid)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_phase" string="Current Phase" context="{'group_by': 'current_phase'}"/>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'customer_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_apqp_project_tree" model="ir.ui.view">
+        <field name="name">iatf.apqp.project.tree</field>
+        <field name="model">iatf.apqp.project</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('completed','cancelled')">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="customer_id"/>
+                <field name="part_number"/>
+                <field name="project_leader_id" widget="many2one_avatar_user"/>
+                <field name="current_phase" widget="badge"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="date_target_sop"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'completed'"
+                       decoration-info="state == 'active'"
+                       decoration-warning="state == 'on_hold'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_apqp_project_form" model="ir.ui.view">
+        <field name="name">iatf.apqp.project.form</field>
+        <field name="model">iatf.apqp.project</field>
+        <field name="arch" type="xml">
+            <form string="APQP Project">
+                <header>
+                    <button name="action_activate" string="Activate" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_create_phases_from_template" string="Create Phases from Template"
+                            type="object" invisible="state != 'draft'" class="btn-secondary"/>
+                    <button name="action_hold" string="On Hold" type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_activate" string="Resume" type="object" class="oe_highlight"
+                            invisible="state != 'on_hold'"/>
+                    <button name="action_complete" string="Complete" type="object" class="oe_highlight"
+                            invisible="state != 'active'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('completed','cancelled')"/>
+                    <button name="action_reset_draft" string="Reset" type="object"
+                            invisible="state != 'cancelled'"
+                            groups="iatf_apqp.group_apqp_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="APQP Project Title"/></h2>
+                    </div>
+                    <group>
+                        <group string="Product / Customer">
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="customer_id"/>
+                        </group>
+                        <group string="Team">
+                            <field name="project_leader_id"/>
+                            <field name="team_member_ids" widget="many2many_tags"/>
+                            <field name="odoo_project_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Timeline">
+                            <field name="date_start"/>
+                            <field name="date_target_sop"/>
+                            <field name="date_actual_sop"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="current_phase"/>
+                            <field name="progress" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Phases" name="phases">
+                            <field name="phase_ids">
+                                <list>
+                                    <field name="phase_number"/>
+                                    <field name="name"/>
+                                    <field name="date_planned_start"/>
+                                    <field name="date_planned_end"/>
+                                    <field name="deliverable_done_count"/>
+                                    <field name="deliverable_count"/>
+                                    <field name="progress" widget="progressbar"/>
+                                    <field name="gate_result" widget="badge"
+                                           decoration-success="gate_result == 'go'"
+                                           decoration-warning="gate_result == 'conditional'"
+                                           decoration-danger="gate_result == 'no_go'"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'completed'"
+                                           decoration-info="state == 'in_progress'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Documents" name="documents">
+                            <field name="document_ids" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_apqp_project" model="ir.actions.act_window">
+        <field name="name">APQP Projects</field>
+        <field name="res_model">iatf.apqp.project</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_apqp_project_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>

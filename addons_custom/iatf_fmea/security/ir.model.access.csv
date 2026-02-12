@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_fmea_user,iatf.fmea.user,model_iatf_fmea,group_fmea_user,1,1,1,0
+access_iatf_fmea_manager,iatf.fmea.manager,model_iatf_fmea,group_fmea_manager,1,1,1,1
+access_iatf_fmea_line_user,iatf.fmea.line.user,model_iatf_fmea_line,group_fmea_user,1,1,1,0
+access_iatf_fmea_line_manager,iatf.fmea.line.manager,model_iatf_fmea_line,group_fmea_manager,1,1,1,1

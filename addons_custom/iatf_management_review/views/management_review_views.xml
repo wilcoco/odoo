@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_mgmt_review_search" model="ir.ui.view">
+        <field name="name">iatf.management.review.search</field>
+        <field name="model">iatf.management.review</field>
+        <field name="arch" type="xml">
+            <search string="Management Reviews">
+                <field name="name"/><field name="title"/><field name="chairperson_id"/>
+                <filter name="open" string="Open" domain="[('state','!=','closed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_mgmt_review_tree" model="ir.ui.view">
+        <field name="name">iatf.management.review.tree</field>
+        <field name="model">iatf.management.review</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="title"/><field name="meeting_date"/>
+                <field name="review_period"/><field name="chairperson_id" widget="many2one_avatar_user"/>
+                <field name="action_count" string="Actions"/><field name="open_action_count" string="Open"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-info="state == 'in_progress'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_mgmt_review_form" model="ir.ui.view">
+        <field name="name">iatf.management.review.form</field>
+        <field name="model">iatf.management.review</field>
+        <field name="arch" type="xml">
+            <form string="Management Review">
+                <header>
+                    <button name="action_start" string="Start Meeting" type="object" class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_issue_minutes" string="Issue Minutes" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'minutes_issued'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="planned,in_progress,minutes_issued,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Meeting Info">
+                            <field name="meeting_date"/><field name="review_period"/>
+                            <field name="chairperson_id"/>
+                        </group>
+                        <group string="Attendees">
+                            <field name="attendee_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Inputs (§9.3.2)" name="inputs">
+                            <h3>Standard Inputs</h3>
+                            <field name="input_audit_results" placeholder="Audit results..."/>
+                            <field name="input_customer_feedback" placeholder="Customer feedback &amp; satisfaction..."/>
+                            <field name="input_process_performance" placeholder="Process performance..."/>
+                            <field name="input_nc_corrective" placeholder="NC &amp; corrective actions status..."/>
+                            <field name="input_previous_actions" placeholder="Previous review actions..."/>
+                            <field name="input_changes" placeholder="Internal/external changes..."/>
+                            <field name="input_improvement_opportunities" placeholder="Improvement opportunities..."/>
+                            <field name="input_resource_needs" placeholder="Resource adequacy..."/>
+                        </page>
+                        <page string="IATF Supplemental Inputs (§9.3.2.1)" name="iatf_inputs">
+                            <field name="input_cost_poor_quality" placeholder="COPQ..."/>
+                            <field name="input_process_effectiveness" placeholder="Process effectiveness..."/>
+                            <field name="input_product_conformity" placeholder="Product conformity..."/>
+                            <field name="input_warranty" placeholder="Warranty &amp; field returns..."/>
+                            <field name="input_customer_scorecards" placeholder="Customer scorecards..."/>
+                            <field name="input_field_failures" placeholder="Potential field failures (FMEA)..."/>
+                            <field name="input_risk_assessment" placeholder="Risk assessment..."/>
+                        </page>
+                        <page string="Outputs (§9.3.3)" name="outputs">
+                            <field name="output_improvement" placeholder="Improvement decisions..."/>
+                            <field name="output_resource" placeholder="Resource needs / changes..."/>
+                            <field name="output_qms_changes" placeholder="QMS changes required..."/>
+                            <field name="output_quality_objectives" placeholder="Quality objectives update..."/>
+                            <field name="output_other" placeholder="Other decisions..."/>
+                        </page>
+                        <page string="Action Items" name="actions">
+                            <field name="action_item_ids">
+                                <list editable="bottom">
+                                    <field name="description"/><field name="responsible_id"/>
+                                    <field name="due_date"/><field name="completion_date"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'"/>
+                                    <field name="notes" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documents" name="docs">
+                            <field name="document_ids" widget="many2many_tags"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_management_review" model="ir.actions.act_window">
+        <field name="name">Management Reviews</field>
+        <field name="res_model">iatf.management.review</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_mgmt_review_search"/>
+    </record>
+</odoo>

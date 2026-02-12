@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_ppap_root"
+              name="PPAP"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="47"/>
+    <menuitem id="menu_iatf_ppap"
+              name="PPAP Submissions"
+              parent="menu_iatf_ppap_root"
+              action="action_iatf_ppap"
+              sequence="10"/>
+</odoo>

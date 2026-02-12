@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_apqp_root"
+              name="APQP"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="40"/>
+    <menuitem id="menu_iatf_apqp_projects"
+              name="APQP Projects"
+              parent="menu_iatf_apqp_root"
+              action="action_iatf_apqp_project"
+              sequence="10"/>
+    <menuitem id="menu_iatf_apqp_deliverables"
+              name="All Deliverables"
+              parent="menu_iatf_apqp_root"
+              action="action_iatf_apqp_deliverable"
+              sequence="20"/>
+</odoo>

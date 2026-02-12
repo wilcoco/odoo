@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_supplier_evaluation_user,iatf.supplier.evaluation.user,model_iatf_supplier_evaluation,group_supplier_quality_user,1,1,1,0
+access_iatf_supplier_evaluation_manager,iatf.supplier.evaluation.manager,model_iatf_supplier_evaluation,group_supplier_quality_manager,1,1,1,1
+access_iatf_scar_user,iatf.scar.user,model_iatf_scar,group_supplier_quality_user,1,1,1,0
+access_iatf_scar_manager,iatf.scar.manager,model_iatf_scar,group_supplier_quality_manager,1,1,1,1

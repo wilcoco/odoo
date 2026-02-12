@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_fmea_line_search" model="ir.ui.view">
+        <field name="name">iatf.fmea.line.search</field>
+        <field name="model">iatf.fmea.line</field>
+        <field name="arch" type="xml">
+            <search string="FMEA Lines">
+                <field name="failure_mode"/>
+                <field name="fmea_id"/>
+                <field name="action_responsible_id"/>
+                <separator/>
+                <filter name="high_risk" string="High Priority" domain="[('action_priority','=','high')]"/>
+                <filter name="open_actions" string="Open Actions" domain="[('action_status','in',('open','in_progress'))]"/>
+                <filter name="special_char" string="Special Characteristics" domain="[('special_characteristic','!=','none')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_fmea" string="FMEA" context="{'group_by': 'fmea_id'}"/>
+                    <filter name="group_priority" string="Action Priority" context="{'group_by': 'action_priority'}"/>
+                    <filter name="group_status" string="Action Status" context="{'group_by': 'action_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_fmea_line_tree" model="ir.ui.view">
+        <field name="name">iatf.fmea.line.tree</field>
+        <field name="model">iatf.fmea.line</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="action_priority == 'high'" decoration-warning="action_priority == 'medium'">
+                <field name="fmea_id"/>
+                <field name="process_step"/>
+                <field name="failure_mode"/>
+                <field name="severity"/>
+                <field name="occurrence"/>
+                <field name="detection"/>
+                <field name="rpn" decoration-danger="rpn >= 200"/>
+                <field name="action_priority" widget="badge"
+                       decoration-danger="action_priority == 'high'"
+                       decoration-warning="action_priority == 'medium'"/>
+                <field name="action_responsible_id" widget="many2one_avatar_user"/>
+                <field name="action_status" widget="badge"
+                       decoration-success="action_status == 'verified'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_iatf_fmea_line" model="ir.actions.act_window">
+        <field name="name">All Failure Modes</field>
+        <field name="res_model">iatf.fmea.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_fmea_line_search"/>
+        <field name="context">{'search_default_open_actions': 1}</field>
+    </record>
+</odoo>

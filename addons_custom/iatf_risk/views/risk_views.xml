@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_risk_search" model="ir.ui.view">
+        <field name="name">iatf.risk.register.search</field>
+        <field name="model">iatf.risk.register</field>
+        <field name="arch" type="xml">
+            <search string="Risk Register">
+                <field name="name"/><field name="title"/><field name="responsible_id"/>
+                <filter name="risks" string="Risks" domain="[('entry_type','=','risk')]"/>
+                <filter name="opportunities" string="Opportunities" domain="[('entry_type','=','opportunity')]"/>
+                <filter name="high_critical" string="High/Critical" domain="[('risk_level','in',('high','critical'))]"/>
+                <filter name="open" string="Open" domain="[('state','!=','closed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'entry_type'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                    <filter name="group_level" string="Risk Level" context="{'group_by': 'risk_level'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_risk_tree" model="ir.ui.view">
+        <field name="name">iatf.risk.register.tree</field>
+        <field name="model">iatf.risk.register</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="risk_level == 'critical'" decoration-warning="risk_level == 'high'">
+                <field name="name"/><field name="title"/>
+                <field name="entry_type" widget="badge" decoration-danger="entry_type == 'risk'" decoration-success="entry_type == 'opportunity'"/>
+                <field name="category"/><field name="likelihood"/><field name="impact"/>
+                <field name="risk_score"/>
+                <field name="risk_level" widget="badge" decoration-danger="risk_level == 'critical'" decoration-warning="risk_level == 'high'" decoration-info="risk_level == 'medium'"/>
+                <field name="treatment_strategy"/><field name="responsible_id" widget="many2one_avatar_user"/>
+                <field name="residual_score" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-info="state in ('treating','monitored')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_risk_form" model="ir.ui.view">
+        <field name="name">iatf.risk.register.form</field>
+        <field name="model">iatf.risk.register</field>
+        <field name="arch" type="xml">
+            <form string="Risk / Opportunity">
+                <header>
+                    <button name="action_assess" string="Assess" type="object" class="oe_highlight" invisible="state != 'identified'"/>
+                    <button name="action_treat" string="Start Treatment" type="object" class="oe_highlight" invisible="state != 'assessed'"/>
+                    <button name="action_monitor" string="Monitor" type="object" class="oe_highlight" invisible="state != 'treating'"/>
+                    <button name="action_close" string="Close" type="object" invisible="state not in ('monitored','treating')"/>
+                    <button name="action_reopen" string="Reopen" type="object" invisible="state != 'closed'" groups="iatf_risk.group_risk_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="identified,assessed,treating,monitored,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
+                    <group>
+                        <group string="Classification">
+                            <field name="entry_type"/><field name="category"/>
+                            <field name="source"/><field name="affected_process"/>
+                            <field name="interested_parties"/><field name="responsible_id"/>
+                        </group>
+                        <group string="Inherent Risk Assessment">
+                            <field name="likelihood"/><field name="impact"/>
+                            <field name="risk_score"/>
+                            <field name="risk_level" widget="badge" decoration-danger="risk_level == 'critical'" decoration-warning="risk_level == 'high'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description"><field name="description"/></page>
+                        <page string="Treatment" name="treatment">
+                            <group>
+                                <group>
+                                    <field name="treatment_strategy"/><field name="due_date"/>
+                                </group>
+                            </group>
+                            <field name="current_controls"/>
+                            <field name="planned_actions"/>
+                        </page>
+                        <page string="Residual Risk" name="residual">
+                            <group>
+                                <group>
+                                    <field name="residual_likelihood"/><field name="residual_impact"/>
+                                    <field name="residual_score"/>
+                                </group>
+                                <group>
+                                    <field name="review_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes / Documents" name="notes">
+                            <field name="notes"/>
+                            <field name="document_ids" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_risk_register" model="ir.actions.act_window">
+        <field name="name">Risk &amp; Opportunity Register</field>
+        <field name="res_model">iatf.risk.register</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_risk_search"/>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+</odoo>

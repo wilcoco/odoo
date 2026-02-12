@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Document Search -->
+    <record id="view_iatf_document_search" model="ir.ui.view">
+        <field name="name">iatf.document.search</field>
+        <field name="model">iatf.document</field>
+        <field name="arch" type="xml">
+            <search string="Documents">
+                <field name="doc_number"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="owner_id"/>
+                <separator/>
+                <filter name="my_docs" string="My Documents" domain="[('owner_id','=',uid)]"/>
+                <filter name="to_review" string="Under Review" domain="[('state','=','review')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="obsolete" string="Obsolete" domain="[('state','=','obsolete')]"/>
+                <separator/>
+                <filter name="review_due" string="Review Due"
+                        domain="[('next_review_date','&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'doc_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_owner" string="Owner" context="{'group_by': 'owner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Document Tree -->
+    <record id="view_iatf_document_tree" model="ir.ui.view">
+        <field name="name">iatf.document.tree</field>
+        <field name="model">iatf.document</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'obsolete'" decoration-info="state == 'review'">
+                <field name="doc_number"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="doc_type"/>
+                <field name="current_revision"/>
+                <field name="owner_id" widget="many2one_avatar_user"/>
+                <field name="approval_date"/>
+                <field name="next_review_date"
+                       decoration-danger="next_review_date and next_review_date &lt; current_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'approved'"
+                       decoration-info="state == 'review'"
+                       decoration-muted="state == 'obsolete'"
+                       decoration-warning="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Document Form -->
+    <record id="view_iatf_document_form" model="ir.ui.view">
+        <field name="name">iatf.document.form</field>
+        <field name="model">iatf.document</field>
+        <field name="arch" type="xml">
+            <form string="Controlled Document">
+                <header>
+                    <button name="action_submit_review" string="Submit for Review"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'review'"
+                            groups="iatf_document_control.group_document_manager"/>
+                    <button name="action_new_revision" string="New Revision"
+                            type="object"
+                            invisible="state != 'approved'"
+                            confirm="This will create a new revision and reset the document to Draft. Continue?"/>
+                    <button name="action_obsolete" string="Obsolete"
+                            type="object"
+                            invisible="state not in ('approved',)"
+                            groups="iatf_document_control.group_document_manager"/>
+                    <button name="action_reset_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state not in ('review', 'obsolete')"
+                            groups="iatf_document_control.group_document_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,review,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="doc_number" readonly="1"/>
+                        </h1>
+                        <h2>
+                            <field name="name" placeholder="Document Title"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Classification">
+                            <field name="category_id"/>
+                            <field name="doc_type"/>
+                            <field name="external_origin"
+                                   invisible="doc_type != 'standard'"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group string="Revision">
+                            <field name="current_revision"/>
+                            <field name="revision_date"/>
+                            <field name="owner_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Approval">
+                            <field name="reviewer_id"/>
+                            <field name="approver_id"/>
+                            <field name="review_date"/>
+                            <field name="approval_date"/>
+                        </group>
+                        <group string="Retention &amp; Review">
+                            <field name="next_review_date"/>
+                            <field name="retention_years"/>
+                            <field name="retention_expiry"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                        <page string="Attachments" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Revision History" name="revisions">
+                            <field name="revision_ids">
+                                <list>
+                                    <field name="revision_number"/>
+                                    <field name="revision_date"/>
+                                    <field name="reason"/>
+                                    <field name="revised_by"/>
+                                    <field name="approved_by"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Distribution" name="distribution">
+                            <field name="distribution_ids">
+                                <list editable="bottom">
+                                    <field name="user_id"/>
+                                    <field name="department_id"/>
+                                    <field name="copy_type"/>
+                                    <field name="distributed_date"/>
+                                    <field name="acknowledged"/>
+                                    <field name="acknowledged_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Document Kanban -->
+    <record id="view_iatf_document_kanban" model="ir.ui.view">
+        <field name="name">iatf.document.kanban</field>
+        <field name="model">iatf.document</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="doc_number"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="category_id"/>
+                <field name="current_revision"/>
+                <field name="owner_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <strong><field name="doc_number"/></strong>
+                            <div><field name="name"/></div>
+                            <div class="text-muted">
+                                <field name="category_id"/> | Rev. <field name="current_revision"/>
+                            </div>
+                            <div>
+                                <field name="owner_id" widget="many2one_avatar_user"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Document Action -->
+    <record id="action_iatf_document" model="ir.actions.act_window">
+        <field name="name">Documents</field>
+        <field name="res_model">iatf.document</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_iatf_document_search"/>
+        <field name="context">{'search_default_approved': 1}</field>
+    </record>
+</odoo>

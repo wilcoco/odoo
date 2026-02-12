@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_msa_study_search" model="ir.ui.view">
+        <field name="name">iatf.msa.study.search</field>
+        <field name="model">iatf.msa.study</field>
+        <field name="arch" type="xml">
+            <search string="MSA Studies">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="gage_name"/>
+                <separator/>
+                <filter name="unacceptable" string="Unacceptable" domain="[('grr_status','=','unacceptable')]"/>
+                <filter name="marginal" string="Marginal" domain="[('grr_status','=','marginal')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Study Type" context="{'group_by': 'study_type'}"/>
+                    <filter name="group_status" string="GRR Status" context="{'group_by': 'grr_status'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_msa_study_tree" model="ir.ui.view">
+        <field name="name">iatf.msa.study.tree</field>
+        <field name="model">iatf.msa.study</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="study_type"/>
+                <field name="gage_name"/>
+                <field name="characteristic_name" optional="show"/>
+                <field name="measurement_count" string="Measurements"/>
+                <field name="pct_grr" decoration-danger="pct_grr > 30" decoration-warning="pct_grr > 10"/>
+                <field name="ndc"/>
+                <field name="grr_status" widget="badge"
+                       decoration-success="grr_status == 'acceptable'"
+                       decoration-warning="grr_status == 'marginal'"
+                       decoration-danger="grr_status == 'unacceptable'"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'analyzed'"
+                       decoration-info="state == 'collecting'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_msa_study_form" model="ir.ui.view">
+        <field name="name">iatf.msa.study.form</field>
+        <field name="model">iatf.msa.study</field>
+        <field name="arch" type="xml">
+            <form string="MSA Study">
+                <header>
+                    <button name="action_start_collecting" string="Start Collecting" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_calculate" string="Calculate GRR" type="object" class="oe_highlight"
+                            invisible="state not in ('collecting','analyzed')"/>
+                    <button name="action_close" string="Close" type="object"
+                            invisible="state != 'analyzed'"/>
+                    <button name="action_reset_draft" string="Reset" type="object"
+                            invisible="state in ('draft',)"
+                            groups="iatf_msa.group_msa_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,collecting,analyzed,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="MSA Study Title"/></h2>
+                    </div>
+                    <group>
+                        <group string="Gage Information">
+                            <field name="study_type"/>
+                            <field name="gage_name"/>
+                            <field name="gage_id_number"/>
+                            <field name="gage_resolution"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="Characteristic &amp; Spec">
+                            <field name="characteristic_name"/>
+                            <field name="unit"/>
+                            <field name="usl"/>
+                            <field name="lsl"/>
+                            <field name="tolerance"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Study Design">
+                            <field name="num_operators"/>
+                            <field name="num_parts"/>
+                            <field name="num_trials"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Measurements" name="measurements">
+                            <field name="measurement_ids">
+                                <list editable="bottom">
+                                    <field name="operator_id"/>
+                                    <field name="part_number"/>
+                                    <field name="trial_number"/>
+                                    <field name="measured_value"/>
+                                    <field name="reference_value" optional="hide"/>
+                                    <field name="notes" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="GRR Results" name="results">
+                            <group>
+                                <group string="Variation Components">
+                                    <field name="repeatability"/>
+                                    <field name="reproducibility"/>
+                                    <field name="grr"/>
+                                    <field name="part_variation"/>
+                                    <field name="total_variation"/>
+                                </group>
+                                <group string="Percentages">
+                                    <field name="pct_ev"/>
+                                    <field name="pct_av"/>
+                                    <field name="pct_grr" decoration-danger="pct_grr > 30" decoration-warning="pct_grr > 10"/>
+                                    <field name="pct_pv"/>
+                                    <field name="ndc"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="grr_status" widget="badge"
+                                       decoration-success="grr_status == 'acceptable'"
+                                       decoration-warning="grr_status == 'marginal'"
+                                       decoration-danger="grr_status == 'unacceptable'"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_msa_study" model="ir.actions.act_window">
+        <field name="name">MSA Studies</field>
+        <field name="res_model">iatf.msa.study</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_msa_study_search"/>
+    </record>
+</odoo>

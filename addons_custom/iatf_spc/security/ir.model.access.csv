@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_spc_study_user,iatf.spc.study.user,model_iatf_spc_study,group_spc_user,1,1,1,0
+access_iatf_spc_study_manager,iatf.spc.study.manager,model_iatf_spc_study,group_spc_manager,1,1,1,1
+access_iatf_spc_subgroup_user,iatf.spc.subgroup.user,model_iatf_spc_subgroup,group_spc_user,1,1,1,0
+access_iatf_spc_subgroup_manager,iatf.spc.subgroup.manager,model_iatf_spc_subgroup,group_spc_manager,1,1,1,1

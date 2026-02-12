@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_document_category_user,iatf.document.category.user,model_iatf_document_category,group_document_user,1,0,0,0
+access_iatf_document_category_manager,iatf.document.category.manager,model_iatf_document_category,group_document_manager,1,1,1,1
+access_iatf_document_user,iatf.document.user,model_iatf_document,group_document_user,1,1,1,0
+access_iatf_document_manager,iatf.document.manager,model_iatf_document,group_document_manager,1,1,1,1
+access_iatf_document_revision_user,iatf.document.revision.user,model_iatf_document_revision,group_document_user,1,0,0,0
+access_iatf_document_revision_manager,iatf.document.revision.manager,model_iatf_document_revision,group_document_manager,1,1,1,1
+access_iatf_document_distribution_user,iatf.document.distribution.user,model_iatf_document_distribution,group_document_user,1,1,1,0
+access_iatf_document_distribution_manager,iatf.document.distribution.manager,model_iatf_document_distribution,group_document_manager,1,1,1,1

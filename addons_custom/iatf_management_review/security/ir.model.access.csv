@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_management_review_user,iatf.management.review.user,model_iatf_management_review,group_mgmt_review_user,1,1,1,0
+access_iatf_management_review_manager,iatf.management.review.manager,model_iatf_management_review,group_mgmt_review_manager,1,1,1,1
+access_iatf_management_review_action_user,iatf.management.review.action.user,model_iatf_management_review_action,group_mgmt_review_user,1,1,1,0
+access_iatf_management_review_action_manager,iatf.management.review.action.manager,model_iatf_management_review_action,group_mgmt_review_manager,1,1,1,1

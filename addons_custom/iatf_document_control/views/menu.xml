@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Top-level IATF Quality menu -->
+    <menuitem id="menu_iatf_root"
+              name="IATF Quality"
+              web_icon="iatf_document_control,static/description/icon.png"
+              sequence="55"/>
+
+    <!-- Document Control sub-menu -->
+    <menuitem id="menu_iatf_document_control"
+              name="Document Control"
+              parent="menu_iatf_root"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_documents"
+              name="Documents"
+              parent="menu_iatf_document_control"
+              action="action_iatf_document"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_document_revisions"
+              name="Revision History"
+              parent="menu_iatf_document_control"
+              action="action_iatf_document_revision"
+              sequence="20"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_iatf_config"
+              name="Configuration"
+              parent="menu_iatf_root"
+              sequence="90"/>
+
+    <menuitem id="menu_iatf_document_categories"
+              name="Document Categories"
+              parent="menu_iatf_config"
+              action="action_iatf_document_category"
+              sequence="10"/>
+</odoo>

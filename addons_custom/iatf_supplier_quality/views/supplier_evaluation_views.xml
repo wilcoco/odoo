@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_supplier_evaluation_tree" model="ir.ui.view">
+        <field name="name">iatf.supplier.evaluation.tree</field>
+        <field name="model">iatf.supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="grade == 'd'" decoration-warning="grade == 'c'">
+                <field name="name"/><field name="supplier_id"/><field name="evaluation_date"/>
+                <field name="evaluation_period"/><field name="total_score"/>
+                <field name="grade" widget="badge" decoration-success="grade in ('a','b')" decoration-danger="grade == 'd'" decoration-warning="grade == 'c'"/>
+                <field name="ppm_rate" optional="show"/><field name="on_time_delivery_pct" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_supplier_evaluation_form" model="ir.ui.view">
+        <field name="name">iatf.supplier.evaluation.form</field>
+        <field name="model">iatf.supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <form string="Supplier Evaluation">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'confirmed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Supplier">
+                            <field name="supplier_id"/><field name="evaluation_date"/>
+                            <field name="evaluation_period"/><field name="evaluator_id"/>
+                            <field name="certification"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="total_score"/><field name="grade" widget="badge"/>
+                            <field name="ppm_rate"/><field name="on_time_delivery_pct"/>
+                            <field name="nc_count_period"/><field name="scar_count_period"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Scoring" name="scoring">
+                            <group>
+                                <group string="Scores (0-100)">
+                                    <field name="score_quality"/><field name="score_delivery"/>
+                                    <field name="score_cost"/><field name="score_responsiveness"/>
+                                    <field name="score_system"/>
+                                </group>
+                                <group string="Weights (%)">
+                                    <field name="weight_quality"/><field name="weight_delivery"/>
+                                    <field name="weight_cost"/><field name="weight_responsiveness"/>
+                                    <field name="weight_system"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes / Improvement Plan" name="notes"><field name="notes"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_supplier_evaluation" model="ir.actions.act_window">
+        <field name="name">Supplier Evaluations</field>
+        <field name="res_model">iatf.supplier.evaluation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

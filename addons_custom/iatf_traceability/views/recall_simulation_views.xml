@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recall Simulation Search -->
+    <record id="view_iatf_recall_simulation_search" model="ir.ui.view">
+        <field name="name">iatf.recall.simulation.search</field>
+        <field name="model">iatf.recall.simulation</field>
+        <field name="arch" type="xml">
+            <search string="Recall Simulations">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <separator/>
+                <filter name="done" string="Completed" domain="[('state','=','done')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'simulation_type'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Recall Simulation Tree -->
+    <record id="view_iatf_recall_simulation_tree" model="ir.ui.view">
+        <field name="name">iatf.recall.simulation.tree</field>
+        <field name="model">iatf.recall.simulation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="simulation_date"/>
+                <field name="simulation_type"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="total_qty_affected"/>
+                <field name="elapsed_minutes" widget="float_time"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state == 'running'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Recall Simulation Form -->
+    <record id="view_iatf_recall_simulation_form" model="ir.ui.view">
+        <field name="name">iatf.recall.simulation.form</field>
+        <field name="model">iatf.recall.simulation</field>
+        <field name="arch" type="xml">
+            <form string="Recall / Traceability Simulation">
+                <header>
+                    <button name="action_run_trace" string="Run Trace"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset" string="Reset"
+                            type="object"
+                            invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Parameters">
+                            <field name="simulation_date"/>
+                            <field name="simulation_type"/>
+                            <field name="product_id"/>
+                            <field name="lot_id" context="{'default_product_id': product_id}"/>
+                        </group>
+                        <group string="Results Summary">
+                            <field name="total_qty_affected"/>
+                            <field name="elapsed_minutes"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Trace Result" name="result">
+                            <field name="trace_result" readonly="1"/>
+                        </page>
+                        <page string="Affected Lots" name="lots">
+                            <field name="affected_lot_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="product_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Affected MOs" name="mos">
+                            <field name="affected_production_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="product_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Affected Customers/Suppliers" name="partners">
+                            <field name="affected_partner_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="city"/>
+                                    <field name="phone"/>
+                                    <field name="email"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recall Simulation Action -->
+    <record id="action_iatf_recall_simulation" model="ir.actions.act_window">
+        <field name="name">Recall Simulations</field>
+        <field name="res_model">iatf.recall.simulation</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_recall_simulation_search"/>
+    </record>
+</odoo>

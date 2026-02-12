@@ -1,0 +1,20 @@
+{
+    "name": "IATF Traceability",
+    "summary": "IATF 16949 §8.5.2 — Enhanced lot/serial traceability, process history, and recall simulation",
+    "version": "18.0.1.0.0",
+    "category": "Quality",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["base", "mail", "stock", "mrp", "iatf_document_control", "iatf_nonconformity"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/traceability_record_views.xml",
+        "views/recall_simulation_views.xml",
+        "views/stock_lot_views.xml",
+        "views/menu.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

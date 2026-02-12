@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_scar_tree" model="ir.ui.view">
+        <field name="name">iatf.scar.tree</field>
+        <field name="model">iatf.scar</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="supplier_id"/><field name="product_id"/>
+                <field name="issue_date"/><field name="response_due_date"/>
+                <field name="effective" widget="badge" decoration-success="effective == 'yes'" decoration-danger="effective == 'no'" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-info="state in ('issued','response')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_scar_form" model="ir.ui.view">
+        <field name="name">iatf.scar.form</field>
+        <field name="model">iatf.scar</field>
+        <field name="arch" type="xml">
+            <form string="SCAR">
+                <header>
+                    <button name="action_issue" string="Issue to Supplier" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_receive_response" string="Response Received" type="object" class="oe_highlight" invisible="state != 'issued'"/>
+                    <button name="action_verify" string="Verify" type="object" class="oe_highlight" invisible="state != 'response'"/>
+                    <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'verification'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,issued,response,verification,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Issue">
+                            <field name="supplier_id"/><field name="product_id"/><field name="lot_id"/>
+                            <field name="quantity_affected"/><field name="issue_date"/>
+                            <field name="response_due_date"/><field name="responsible_id"/>
+                        </group>
+                        <group string="Verification">
+                            <field name="response_date"/><field name="verified_by"/>
+                            <field name="effective"/><field name="nonconformity_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem" name="problem"><field name="problem_description"/></page>
+                        <page string="Supplier Response" name="response">
+                            <field name="containment_action"/><field name="root_cause"/>
+                            <field name="corrective_action"/><field name="preventive_action"/>
+                        </page>
+                        <page string="Verification" name="verification"><field name="verification_result"/></page>
+                        <page string="Attachments" name="attach"><field name="attachment_ids" widget="many2many_binary"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_scar" model="ir.actions.act_window">
+        <field name="name">SCARs</field>
+        <field name="res_model">iatf.scar</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_apqp_project_user,iatf.apqp.project.user,model_iatf_apqp_project,group_apqp_user,1,1,1,0
+access_iatf_apqp_project_manager,iatf.apqp.project.manager,model_iatf_apqp_project,group_apqp_manager,1,1,1,1
+access_iatf_apqp_phase_user,iatf.apqp.phase.user,model_iatf_apqp_phase,group_apqp_user,1,1,1,0
+access_iatf_apqp_phase_manager,iatf.apqp.phase.manager,model_iatf_apqp_phase,group_apqp_manager,1,1,1,1
+access_iatf_apqp_deliverable_user,iatf.apqp.deliverable.user,model_iatf_apqp_deliverable,group_apqp_user,1,1,1,0
+access_iatf_apqp_deliverable_manager,iatf.apqp.deliverable.manager,model_iatf_apqp_deliverable,group_apqp_manager,1,1,1,1
+access_iatf_apqp_phase_template_user,iatf.apqp.phase.template.user,model_iatf_apqp_phase_template,group_apqp_user,1,0,0,0
+access_iatf_apqp_phase_template_manager,iatf.apqp.phase.template.manager,model_iatf_apqp_phase_template,group_apqp_manager,1,1,1,1
+access_iatf_apqp_deliverable_template_user,iatf.apqp.deliverable.template.user,model_iatf_apqp_deliverable_template,group_apqp_user,1,0,0,0
+access_iatf_apqp_deliverable_template_manager,iatf.apqp.deliverable.template.manager,model_iatf_apqp_deliverable_template,group_apqp_manager,1,1,1,1

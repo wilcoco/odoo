@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_iatf_supplier_evaluation" model="ir.sequence">
+            <field name="name">Supplier Evaluation</field>
+            <field name="code">iatf.supplier.evaluation</field>
+            <field name="prefix">SEVAL-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_iatf_scar" model="ir.sequence">
+            <field name="name">SCAR</field>
+            <field name="code">iatf.scar</field>
+            <field name="prefix">SCAR-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

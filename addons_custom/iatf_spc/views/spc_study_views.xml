@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_spc_study_search" model="ir.ui.view">
+        <field name="name">iatf.spc.study.search</field>
+        <field name="model">iatf.spc.study</field>
+        <field name="arch" type="xml">
+            <search string="SPC Studies">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="product_id"/>
+                <field name="characteristic_name"/>
+                <separator/>
+                <filter name="not_capable" string="Not Capable" domain="[('capability_status','=','not_capable')]"/>
+                <filter name="has_ooc" string="Has OOC" domain="[('ooc_count','>',0)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_chart" string="Chart Type" context="{'group_by': 'chart_type'}"/>
+                    <filter name="group_capability" string="Capability" context="{'group_by': 'capability_status'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_spc_study_tree" model="ir.ui.view">
+        <field name="name">iatf.spc.study.tree</field>
+        <field name="model">iatf.spc.study</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="chart_type"/>
+                <field name="product_id" optional="show"/>
+                <field name="characteristic_name"/>
+                <field name="subgroup_count" string="Subgroups"/>
+                <field name="cpk" decoration-danger="cpk &lt; 1.0" decoration-warning="cpk &lt; 1.33"/>
+                <field name="capability_status" widget="badge"
+                       decoration-success="capability_status == 'capable'"
+                       decoration-warning="capability_status == 'marginal'"
+                       decoration-danger="capability_status == 'not_capable'"/>
+                <field name="ooc_count" decoration-danger="ooc_count > 0"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'analyzed'"
+                       decoration-info="state == 'collecting'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_spc_study_form" model="ir.ui.view">
+        <field name="name">iatf.spc.study.form</field>
+        <field name="model">iatf.spc.study</field>
+        <field name="arch" type="xml">
+            <form string="SPC Study">
+                <header>
+                    <button name="action_start_collecting" string="Start Collecting" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_calculate" string="Calculate" type="object" class="oe_highlight"
+                            invisible="state not in ('collecting', 'analyzed')"/>
+                    <button name="action_close" string="Close" type="object"
+                            invisible="state != 'analyzed'"/>
+                    <button name="action_reset_draft" string="Reset" type="object"
+                            invisible="state in ('draft',)"
+                            groups="iatf_spc.group_spc_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,collecting,analyzed,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="SPC Study Title"/></h2>
+                    </div>
+                    <group>
+                        <group string="Study Setup">
+                            <field name="chart_type"/>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="characteristic_name"/>
+                            <field name="unit"/>
+                            <field name="subgroup_size"/>
+                        </group>
+                        <group string="Specification Limits">
+                            <field name="usl"/>
+                            <field name="nominal"/>
+                            <field name="lsl"/>
+                            <field name="workcenter_id"/>
+                            <field name="machine_name"/>
+                            <field name="gage_name"/>
+                            <field name="responsible_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Subgroup Data" name="data">
+                            <field name="subgroup_ids">
+                                <list editable="bottom"
+                                      decoration-danger="is_ooc == True">
+                                    <field name="sequence"/>
+                                    <field name="sample_date"/>
+                                    <field name="x1"/>
+                                    <field name="x2"/>
+                                    <field name="x3"/>
+                                    <field name="x4"/>
+                                    <field name="x5"/>
+                                    <field name="x6" optional="hide"/>
+                                    <field name="x7" optional="hide"/>
+                                    <field name="x8" optional="hide"/>
+                                    <field name="x9" optional="hide"/>
+                                    <field name="x10" optional="hide"/>
+                                    <field name="sg_mean"/>
+                                    <field name="sg_range"/>
+                                    <field name="is_ooc"/>
+                                    <field name="operator_id" optional="hide"/>
+                                    <field name="notes" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Control Limits" name="control_limits">
+                            <group>
+                                <group string="X-bar Chart">
+                                    <field name="grand_mean"/>
+                                    <field name="ucl_xbar"/>
+                                    <field name="lcl_xbar"/>
+                                </group>
+                                <group string="Range Chart">
+                                    <field name="mean_range"/>
+                                    <field name="ucl_range"/>
+                                    <field name="lcl_range"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Process Capability" name="capability">
+                            <group>
+                                <group string="Within (Short-Term)">
+                                    <field name="std_dev"/>
+                                    <field name="cp"/>
+                                    <field name="cpk"/>
+                                </group>
+                                <group string="Overall (Long-Term)">
+                                    <field name="pp"/>
+                                    <field name="ppk"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="capability_status" widget="badge"
+                                           decoration-success="capability_status == 'capable'"
+                                           decoration-warning="capability_status == 'marginal'"
+                                           decoration-danger="capability_status == 'not_capable'"/>
+                                    <field name="ooc_count"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iatf_spc_study" model="ir.actions.act_window">
+        <field name="name">SPC Studies</field>
+        <field name="res_model">iatf.spc.study</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_spc_study_search"/>
+    </record>
+</odoo>

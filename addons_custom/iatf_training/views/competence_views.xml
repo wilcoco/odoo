@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_iatf_competence_matrix_search" model="ir.ui.view">
+        <field name="name">iatf.competence.matrix.search</field>
+        <field name="model">iatf.competence.matrix</field>
+        <field name="arch" type="xml">
+            <search string="Competence Matrix">
+                <field name="employee_id"/><field name="skill_name"/>
+                <filter name="has_gap" string="Has Gap" domain="[('gap','=',True)]"/>
+                <filter name="expiring" string="Cert Expiring Soon"
+                        domain="[('expiry_date','!=',False),('expiry_date','&lt;=',(context_today() + datetime.timedelta(days=90)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_dept" string="Department" context="{'group_by': 'department_id'}"/>
+                    <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'skill_category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_iatf_competence_matrix_tree" model="ir.ui.view">
+        <field name="name">iatf.competence.matrix.tree</field>
+        <field name="model">iatf.competence.matrix</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-danger="gap == True">
+                <field name="employee_id"/><field name="department_id"/>
+                <field name="skill_name"/><field name="skill_category"/>
+                <field name="required_level"/><field name="current_level"/>
+                <field name="gap"/>
+                <field name="last_training_date"/><field name="next_retraining_date"/>
+                <field name="certification" optional="show"/><field name="expiry_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_iatf_competence_matrix" model="ir.actions.act_window">
+        <field name="name">Competence Matrix</field>
+        <field name="res_model">iatf.competence.matrix</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_iatf_competence_matrix_search"/>
+    </record>
+</odoo>

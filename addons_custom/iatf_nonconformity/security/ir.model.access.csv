@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_nonconformity_user,iatf.nonconformity.user,model_iatf_nonconformity,group_nc_user,1,1,1,0
+access_iatf_nonconformity_manager,iatf.nonconformity.manager,model_iatf_nonconformity,group_nc_manager,1,1,1,1
+access_iatf_corrective_action_user,iatf.corrective.action.user,model_iatf_corrective_action,group_nc_user,1,1,1,0
+access_iatf_corrective_action_manager,iatf.corrective.action.manager,model_iatf_corrective_action,group_nc_manager,1,1,1,1

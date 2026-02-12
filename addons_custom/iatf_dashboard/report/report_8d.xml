@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_8d" model="ir.actions.report">
+        <field name="name">8D Report</field>
+        <field name="model">iatf.nonconformity</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">iatf_dashboard.report_8d_template</field>
+        <field name="report_file">iatf_dashboard.report_8d_template</field>
+        <field name="print_report_name">'8D_%s' % object.name</field>
+        <field name="binding_model_id" ref="iatf_nonconformity.model_iatf_nonconformity"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

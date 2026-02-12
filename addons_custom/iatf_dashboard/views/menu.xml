@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard as first menu item -->
+    <menuitem id="menu_iatf_dashboard"
+              name="Dashboard"
+              parent="iatf_document_control.menu_iatf_root"
+              action="action_iatf_dashboard"
+              sequence="1"/>
+
+    <!-- Reports submenu -->
+    <menuitem id="menu_iatf_reports_root"
+              name="Reports"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="90"/>
+
+    <!-- Data Import submenu -->
+    <menuitem id="menu_iatf_import"
+              name="Excel Import"
+              parent="iatf_document_control.menu_iatf_root"
+              action="action_iatf_excel_import"
+              sequence="95"
+              groups="iatf_document_control.group_document_manager"/>
+</odoo>
