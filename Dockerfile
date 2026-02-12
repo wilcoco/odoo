@@ -10,9 +10,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . /app
 
+# rjsmin 빌드에 필요한 cython 먼저 설치
+RUN pip install --no-cache-dir cython setuptools wheel
+
 # Odoo 파이썬 의존성
-RUN pip install --no-cache-dir cython setuptools wheel \
-    && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --no-build-isolation -r requirements.txt
 
 # 시작 스크립트 등록
 COPY start-odoo.sh /usr/local/bin/start-odoo.sh
