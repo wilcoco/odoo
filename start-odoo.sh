@@ -114,6 +114,19 @@ INIT_CHECK=$(psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE ssl
   "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" || true)
 
 if [ "$INIT_CHECK" != "1" ]; then
+  # 이전 실패로 DB가 불완전한 상태일 수 있으므로 리셋
+  TABLE_COUNT=$(psql "host=$PGHOST port=$PGPORT user=$PGUSER dbname=$PGDATABASE sslmode=$PGSSLMODE" -At -c \
+    "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" || echo "0")
+  if [ "$TABLE_COUNT" != "0" ] && [ "$TABLE_COUNT" != "" ]; then
+    log "Incomplete DB detected ($TABLE_COUNT tables but no ir_module_module). Dropping and recreating..."
+    psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB_NAME};"
+    psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
+    psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 \
+      -c "\connect ${DB_NAME}" \
+      -c "CREATE EXTENSION IF NOT EXISTS unaccent;" \
+      -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" \
+      -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
+  fi
   log "Initializing Odoo base schema..."
   "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
     -i base \
