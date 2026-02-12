@@ -11,8 +11,8 @@ WORKDIR /app
 COPY . /app
 
 # Odoo 파이썬 의존성
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir rjsmin==1.2.2
+RUN pip install --no-cache-dir cython setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
 
 # 시작 스크립트 등록
 COPY start-odoo.sh /usr/local/bin/start-odoo.sh
