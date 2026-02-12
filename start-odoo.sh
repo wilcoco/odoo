@@ -119,6 +119,9 @@ if [ "$INIT_CHECK" != "1" ]; then
     "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';" || echo "0")
   if [ "$TABLE_COUNT" != "0" ] && [ "$TABLE_COUNT" != "" ]; then
     log "Incomplete DB detected ($TABLE_COUNT tables but no ir_module_module). Dropping and recreating..."
+    psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c \
+      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${DB_NAME}' AND pid <> pg_backend_pid();" || true
+    sleep 1
     psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB_NAME};"
     psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
     psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 \
