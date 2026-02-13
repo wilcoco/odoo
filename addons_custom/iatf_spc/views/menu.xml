@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_spc_root"
-              name="SPC"
+              name="SPC (통계적공정관리)"
               parent="iatf_document_control.menu_iatf_root"
               sequence="48"/>
     <menuitem id="menu_iatf_spc_studies"
-              name="SPC Studies"
+              name="SPC 연구"
               parent="menu_iatf_spc_root"
               action="action_iatf_spc_study"
               sequence="10"/>

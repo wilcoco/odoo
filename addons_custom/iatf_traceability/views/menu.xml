@@ -2,18 +2,18 @@
 <odoo>
     <!-- Traceability sub-menu under IATF Quality -->
     <menuitem id="menu_iatf_traceability_root"
-              name="Traceability"
+              name="추적성"
               parent="iatf_document_control.menu_iatf_root"
               sequence="30"/>
 
     <menuitem id="menu_iatf_traceability_records"
-              name="Traceability Records"
+              name="추적성 기록"
               parent="menu_iatf_traceability_root"
               action="action_iatf_traceability_record"
               sequence="10"/>
 
     <menuitem id="menu_iatf_recall_simulations"
-              name="Recall Simulations"
+              name="리콜 시뮬레이션"
               parent="menu_iatf_traceability_root"
               action="action_iatf_recall_simulation"
               sequence="20"/>

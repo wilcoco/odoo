@@ -2,18 +2,18 @@
 <odoo>
     <!-- Nonconformity sub-menu under IATF Quality -->
     <menuitem id="menu_iatf_nonconformity_root"
-              name="Nonconformity / 8D"
+              name="부적합 / 8D"
               parent="iatf_document_control.menu_iatf_root"
               sequence="20"/>
 
     <menuitem id="menu_iatf_nonconformities"
-              name="Nonconformities"
+              name="부적합 목록"
               parent="menu_iatf_nonconformity_root"
               action="action_iatf_nonconformity"
               sequence="10"/>
 
     <menuitem id="menu_iatf_corrective_actions"
-              name="Corrective Actions"
+              name="시정 조치"
               parent="menu_iatf_nonconformity_root"
               action="action_iatf_corrective_action"
               sequence="20"/>

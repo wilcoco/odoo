@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_complaint_root" name="Customer Complaints" parent="iatf_document_control.menu_iatf_root" sequence="25"/>
-    <menuitem id="menu_iatf_complaints" name="Complaints" parent="menu_iatf_complaint_root" action="action_iatf_customer_complaint" sequence="10"/>
+    <menuitem id="menu_iatf_complaint_root" name="고객 불만" parent="iatf_document_control.menu_iatf_root" sequence="25"/>
+    <menuitem id="menu_iatf_complaints" name="불만 목록" parent="menu_iatf_complaint_root" action="action_iatf_customer_complaint" sequence="10"/>
 </odoo>

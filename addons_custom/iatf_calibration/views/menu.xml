@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_calibration_root" name="Calibration" parent="iatf_document_control.menu_iatf_root" sequence="65"/>
-    <menuitem id="menu_iatf_equipment" name="Equipment" parent="menu_iatf_calibration_root" action="action_iatf_equipment" sequence="10"/>
-    <menuitem id="menu_iatf_calibration_records" name="Calibration Records" parent="menu_iatf_calibration_root" action="action_iatf_calibration_record" sequence="20"/>
+    <menuitem id="menu_iatf_calibration_root" name="교정" parent="iatf_document_control.menu_iatf_root" sequence="65"/>
+    <menuitem id="menu_iatf_equipment" name="측정 장비" parent="menu_iatf_calibration_root" action="action_iatf_equipment" sequence="10"/>
+    <menuitem id="menu_iatf_calibration_records" name="교정 기록" parent="menu_iatf_calibration_root" action="action_iatf_calibration_record" sequence="20"/>
 </odoo>

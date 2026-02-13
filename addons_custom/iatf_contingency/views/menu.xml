@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_contingency_root" name="Contingency Plans" parent="iatf_document_control.menu_iatf_root" sequence="75"/>
-    <menuitem id="menu_iatf_contingency_plans" name="Plans" parent="menu_iatf_contingency_root" action="action_iatf_contingency" sequence="10"/>
+    <menuitem id="menu_iatf_contingency_root" name="비상 대응 계획" parent="iatf_document_control.menu_iatf_root" sequence="75"/>
+    <menuitem id="menu_iatf_contingency_plans" name="계획 목록" parent="menu_iatf_contingency_root" action="action_iatf_contingency" sequence="10"/>
 </odoo>

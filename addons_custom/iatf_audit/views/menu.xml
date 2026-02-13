@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_audit_root" name="Internal Audit" parent="iatf_document_control.menu_iatf_root" sequence="50"/>
-    <menuitem id="menu_iatf_audits" name="Audits" parent="menu_iatf_audit_root" action="action_iatf_audit" sequence="10"/>
+    <menuitem id="menu_iatf_audit_root" name="내부 심사" parent="iatf_document_control.menu_iatf_root" sequence="50"/>
+    <menuitem id="menu_iatf_audits" name="심사 목록" parent="menu_iatf_audit_root" action="action_iatf_audit" sequence="10"/>
 </odoo>

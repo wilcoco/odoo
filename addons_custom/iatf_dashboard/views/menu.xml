@@ -2,20 +2,20 @@
 <odoo>
     <!-- Dashboard as first menu item -->
     <menuitem id="menu_iatf_dashboard"
-              name="Dashboard"
+              name="대시보드"
               parent="iatf_document_control.menu_iatf_root"
               action="action_iatf_dashboard"
               sequence="1"/>
 
     <!-- Reports submenu -->
     <menuitem id="menu_iatf_reports_root"
-              name="Reports"
+              name="리포트"
               parent="iatf_document_control.menu_iatf_root"
               sequence="90"/>
 
     <!-- Data Import submenu -->
     <menuitem id="menu_iatf_import"
-              name="Excel Import"
+              name="엑셀 가져오기"
               parent="iatf_document_control.menu_iatf_root"
               action="action_iatf_excel_import"
               sequence="95"

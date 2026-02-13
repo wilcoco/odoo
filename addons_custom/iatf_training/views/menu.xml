@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_training_root" name="Training &amp; Competence" parent="iatf_document_control.menu_iatf_root" sequence="60"/>
-    <menuitem id="menu_iatf_training_records" name="Training Records" parent="menu_iatf_training_root" action="action_iatf_training_record" sequence="10"/>
-    <menuitem id="menu_iatf_competence_matrix" name="Competence Matrix" parent="menu_iatf_training_root" action="action_iatf_competence_matrix" sequence="20"/>
+    <menuitem id="menu_iatf_training_root" name="교육 및 역량" parent="iatf_document_control.menu_iatf_root" sequence="60"/>
+    <menuitem id="menu_iatf_training_records" name="교육 기록" parent="menu_iatf_training_root" action="action_iatf_training_record" sequence="10"/>
+    <menuitem id="menu_iatf_competence_matrix" name="역량 매트릭스" parent="menu_iatf_training_root" action="action_iatf_competence_matrix" sequence="20"/>
 </odoo>

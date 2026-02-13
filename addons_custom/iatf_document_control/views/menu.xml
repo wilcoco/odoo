@@ -2,35 +2,35 @@
 <odoo>
     <!-- Top-level IATF Quality menu -->
     <menuitem id="menu_iatf_root"
-              name="IATF Quality"
+              name="IATF 품질"
               sequence="55"/>
 
     <!-- Document Control sub-menu -->
     <menuitem id="menu_iatf_document_control"
-              name="Document Control"
+              name="문서 관리"
               parent="menu_iatf_root"
               sequence="10"/>
 
     <menuitem id="menu_iatf_documents"
-              name="Documents"
+              name="문서 목록"
               parent="menu_iatf_document_control"
               action="action_iatf_document"
               sequence="10"/>
 
     <menuitem id="menu_iatf_document_revisions"
-              name="Revision History"
+              name="개정 이력"
               parent="menu_iatf_document_control"
               action="action_iatf_document_revision"
               sequence="20"/>
 
     <!-- Configuration -->
     <menuitem id="menu_iatf_config"
-              name="Configuration"
+              name="설정"
               parent="menu_iatf_root"
               sequence="90"/>
 
     <menuitem id="menu_iatf_document_categories"
-              name="Document Categories"
+              name="문서 카테고리"
               parent="menu_iatf_config"
               action="action_iatf_document_category"
               sequence="10"/>

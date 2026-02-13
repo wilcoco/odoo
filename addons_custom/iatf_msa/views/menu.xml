@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_msa_root"
-              name="MSA"
+              name="MSA (측정시스템분석)"
               parent="iatf_document_control.menu_iatf_root"
               sequence="49"/>
     <menuitem id="menu_iatf_msa_studies"
-              name="MSA Studies"
+              name="MSA 연구"
               parent="menu_iatf_msa_root"
               action="action_iatf_msa_study"
               sequence="10"/>

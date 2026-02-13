@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_apqp_root"
-              name="APQP"
+              name="APQP (사전품질계획)"
               parent="iatf_document_control.menu_iatf_root"
               sequence="40"/>
     <menuitem id="menu_iatf_apqp_projects"
-              name="APQP Projects"
+              name="APQP 프로젝트"
               parent="menu_iatf_apqp_root"
               action="action_iatf_apqp_project"
               sequence="10"/>
     <menuitem id="menu_iatf_apqp_deliverables"
-              name="All Deliverables"
+              name="전체 산출물"
               parent="menu_iatf_apqp_root"
               action="action_iatf_apqp_deliverable"
               sequence="20"/>

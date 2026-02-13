@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_control_plan_root"
-              name="Control Plan"
+              name="관리계획서"
               parent="iatf_document_control.menu_iatf_root"
               sequence="46"/>
     <menuitem id="menu_iatf_control_plans"
-              name="Control Plans"
+              name="관리계획서 목록"
               parent="menu_iatf_control_plan_root"
               action="action_iatf_control_plan"
               sequence="10"/>
