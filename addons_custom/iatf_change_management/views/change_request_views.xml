@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_change_request_list" model="ir.ui.view">
+        <field name="name">iatf.change.request.list</field>
+        <field name="model">iatf.change.request</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="change_type"/>
+                <field name="change_category"/>
+                <field name="risk_level"/>
+                <field name="requested_by"/>
+                <field name="planned_date"/>
+                <field name="customer_notification_required"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_change_request_form" model="ir.ui.view">
+        <field name="name">iatf.change.request.form</field>
+        <field name="model">iatf.change.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_request" string="요청" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_review" string="검토" type="object"
+                            class="btn-primary" invisible="state != 'requested'"/>
+                    <button name="action_approve" string="승인" type="object"
+                            class="btn-success" invisible="state != 'review'"/>
+                    <button name="action_reject" string="반려" type="object"
+                            class="btn-danger" invisible="state != 'review'"/>
+                    <button name="action_implement" string="실행" type="object"
+                            class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_verify" string="검증" type="object"
+                            class="btn-primary" invisible="state != 'implementing'"/>
+                    <button name="action_close" string="종료" type="object"
+                            class="btn-success" invisible="state != 'verification'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,requested,review,approved,implementing,verification,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="변경 제목"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="change_type"/>
+                            <field name="change_category"/>
+                            <field name="change_source"/>
+                            <field name="risk_level"/>
+                        </group>
+                        <group>
+                            <field name="requested_by"/>
+                            <field name="request_date"/>
+                            <field name="planned_date"/>
+                            <field name="actual_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="변경 상세">
+                            <group string="영향 범위">
+                                <field name="affected_product_ids" widget="many2many_tags"/>
+                                <field name="affected_process"/>
+                                <field name="affected_department_ids" widget="many2many_tags"/>
+                            </group>
+                            <separator string="변경 내용"/>
+                            <field name="description"/>
+                            <separator string="변경 사유"/>
+                            <field name="reason"/>
+                            <group>
+                                <group string="변경 전">
+                                    <field name="before_state" nolabel="1"/>
+                                </group>
+                                <group string="변경 후">
+                                    <field name="after_state" nolabel="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="리스크 / 승인">
+                            <separator string="리스크 평가"/>
+                            <field name="risk_assessment"/>
+                            <group>
+                                <group string="승인">
+                                    <field name="reviewed_by"/>
+                                    <field name="review_date"/>
+                                    <field name="approved_by"/>
+                                    <field name="approval_date"/>
+                                    <field name="implemented_by"/>
+                                </group>
+                                <group string="고객 통보">
+                                    <field name="customer_notification_required"/>
+                                    <field name="customer_id" invisible="not customer_notification_required"/>
+                                    <field name="customer_approval" invisible="not customer_notification_required"/>
+                                    <field name="customer_approval_date" invisible="not customer_notification_required"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="검증">
+                            <field name="verification_method"/>
+                            <field name="verification_result"/>
+                            <group>
+                                <field name="verified_by"/>
+                                <field name="verification_date"/>
+                                <field name="effective"/>
+                            </group>
+                            <separator string="문서 갱신"/>
+                            <group>
+                                <field name="fmea_updated"/>
+                                <field name="control_plan_updated"/>
+                                <field name="work_instruction_updated"/>
+                                <field name="ppap_required"/>
+                            </group>
+                        </page>
+                        <page string="기타">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_change_request" model="ir.actions.act_window">
+        <field name="name">변경 관리</field>
+        <field name="res_model">iatf.change.request</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

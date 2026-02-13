@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_csr_user,iatf.csr.user,model_iatf_csr,group_csr_user,1,1,1,0
+access_csr_manager,iatf.csr.manager,model_iatf_csr,group_csr_manager,1,1,1,1

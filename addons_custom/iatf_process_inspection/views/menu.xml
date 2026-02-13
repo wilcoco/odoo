@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_process_inspection_root" name="공정검사 / 출하검사"
+              parent="iatf_document_control.menu_iatf_root" sequence="16"/>
+    <menuitem id="menu_iatf_process_inspections" name="검사 목록"
+              parent="menu_iatf_process_inspection_root"
+              action="action_process_inspection" sequence="10"/>
+</odoo>

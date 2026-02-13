@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_process_inspection" model="ir.sequence">
+            <field name="name">공정검사</field>
+            <field name="code">iatf.process.inspection</field>
+            <field name="prefix">PQC-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

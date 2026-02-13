@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_quality_objective_list" model="ir.ui.view">
+        <field name="name">iatf.quality.objective.list</field>
+        <field name="model">iatf.quality.objective</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="year"/>
+                <field name="title"/>
+                <field name="category"/>
+                <field name="kpi_name"/>
+                <field name="target_value"/>
+                <field name="actual_ytd"/>
+                <field name="achievement_rate"/>
+                <field name="achievement_status" widget="badge"/>
+                <field name="responsible_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_quality_objective_form" model="ir.ui.view">
+        <field name="name">iatf.quality.objective.form</field>
+        <field name="model">iatf.quality.objective</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="활성화" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_review" string="검토" type="object"
+                            class="btn-warning" invisible="state != 'active'"/>
+                    <button name="action_close" string="종료" type="object"
+                            class="btn-success" invisible="state not in ('active', 'review')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,review,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="품질 목표명"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year"/>
+                            <field name="category"/>
+                            <field name="responsible_id"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="kpi_name"/>
+                            <field name="kpi_unit"/>
+                            <field name="direction"/>
+                        </group>
+                    </group>
+                    <group string="목표">
+                        <group>
+                            <field name="baseline_value"/>
+                            <field name="target_value"/>
+                            <field name="stretch_target"/>
+                        </group>
+                        <group>
+                            <field name="actual_ytd"/>
+                            <field name="achievement_rate"/>
+                            <field name="achievement_status"/>
+                        </group>
+                    </group>
+                    <group string="분기별 실적">
+                        <group>
+                            <field name="actual_q1"/>
+                            <field name="actual_q2"/>
+                        </group>
+                        <group>
+                            <field name="actual_q3"/>
+                            <field name="actual_q4"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="설명 / 실행계획">
+                            <field name="description" placeholder="목표 설명..."/>
+                            <separator string="실행 계획"/>
+                            <field name="action_plan"/>
+                        </page>
+                        <page string="검토 기록">
+                            <field name="review_notes"/>
+                        </page>
+                        <page string="관련 문서">
+                            <field name="document_ids" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_quality_objective" model="ir.actions.act_window">
+        <field name="name">품질 목표</field>
+        <field name="res_model">iatf.quality.objective</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

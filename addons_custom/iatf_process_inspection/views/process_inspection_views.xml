@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_process_inspection_list" model="ir.ui.view">
+        <field name="name">iatf.process.inspection.list</field>
+        <field name="model">iatf.process.inspection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="inspection_stage"/>
+                <field name="inspection_date"/>
+                <field name="product_id"/>
+                <field name="production_id"/>
+                <field name="quantity_inspected"/>
+                <field name="defect_rate"/>
+                <field name="result"/>
+                <field name="inspector_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_process_inspection_form" model="ir.ui.view">
+        <field name="name">iatf.process.inspection.form</field>
+        <field name="model">iatf.process.inspection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_inspection" string="검사 시작" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_decide" string="판정 완료" type="object"
+                            class="btn-primary" invisible="state != 'inspecting'"/>
+                    <button name="action_close" string="종료" type="object"
+                            class="btn-success" invisible="state != 'decided'"/>
+                    <button name="action_create_nc" string="부적합 생성" type="object"
+                            class="btn-warning" invisible="result != 'fail'"/>
+                    <button name="action_cancel" string="취소" type="object"
+                            invisible="state in ('closed', 'cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,inspecting,decided,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="inspection_stage"/>
+                            <field name="inspection_date"/>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="lot_id"/>
+                        </group>
+                        <group>
+                            <field name="production_id"/>
+                            <field name="workcenter_id"/>
+                            <field name="control_plan_id"/>
+                            <field name="inspector_id"/>
+                            <field name="approved_by"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="수량">
+                            <field name="quantity_produced"/>
+                            <field name="quantity_inspected"/>
+                            <field name="quantity_accepted"/>
+                            <field name="quantity_rejected"/>
+                            <field name="defect_rate"/>
+                        </group>
+                        <group string="판정">
+                            <field name="result"/>
+                            <field name="disposition"/>
+                            <field name="nonconformity_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="검사 항목">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="characteristic_name"/>
+                                    <field name="characteristic_type"/>
+                                    <field name="special_characteristic"/>
+                                    <field name="specification"/>
+                                    <field name="measurement_method"/>
+                                    <field name="measured_value"/>
+                                    <field name="result"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="기타">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_process_inspection" model="ir.actions.act_window">
+        <field name="name">공정검사 / 최종검사</field>
+        <field name="res_model">iatf.process.inspection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

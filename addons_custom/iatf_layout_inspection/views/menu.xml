@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_layout_root" name="레이아웃 검사"
+              parent="iatf_document_control.menu_iatf_root" sequence="19"/>
+    <menuitem id="menu_iatf_layout_inspections" name="검사 목록"
+              parent="menu_iatf_layout_root"
+              action="action_layout_inspection" sequence="10"/>
+</odoo>

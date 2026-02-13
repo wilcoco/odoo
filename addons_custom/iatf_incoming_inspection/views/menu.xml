@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_incoming_root" name="수입검사"
+              parent="iatf_document_control.menu_iatf_root" sequence="15"/>
+    <menuitem id="menu_iatf_incoming_inspections" name="검사 목록"
+              parent="menu_iatf_incoming_root"
+              action="action_incoming_inspection" sequence="10"/>
+    <menuitem id="menu_iatf_inspection_criteria" name="검사 기준서"
+              parent="menu_iatf_incoming_root"
+              action="action_inspection_criteria" sequence="20"/>
+</odoo>

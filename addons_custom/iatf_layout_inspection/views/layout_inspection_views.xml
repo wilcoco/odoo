@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_layout_inspection_list" model="ir.ui.view">
+        <field name="name">iatf.layout.inspection.list</field>
+        <field name="model">iatf.layout.inspection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="inspection_date"/>
+                <field name="product_id"/>
+                <field name="part_number"/>
+                <field name="inspection_type"/>
+                <field name="total_characteristics"/>
+                <field name="pass_count"/>
+                <field name="fail_count"/>
+                <field name="result"/>
+                <field name="inspector_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_layout_inspection_form" model="ir.ui.view">
+        <field name="name">iatf.layout.inspection.form</field>
+        <field name="model">iatf.layout.inspection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="검사 시작" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_decide" string="판정 완료" type="object"
+                            class="btn-primary" invisible="state != 'inspecting'"/>
+                    <button name="action_close" string="종료" type="object"
+                            class="btn-success" invisible="state != 'decided'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,inspecting,decided,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="검사 제목"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="inspection_date"/>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="customer_id"/>
+                            <field name="lot_id"/>
+                            <field name="sample_size"/>
+                        </group>
+                        <group>
+                            <field name="inspection_type"/>
+                            <field name="drawing_number"/>
+                            <field name="drawing_revision"/>
+                            <field name="frequency"/>
+                            <field name="last_inspection_date"/>
+                            <field name="inspector_id"/>
+                            <field name="approved_by"/>
+                        </group>
+                    </group>
+                    <group string="판정">
+                        <group>
+                            <field name="total_characteristics"/>
+                            <field name="pass_count"/>
+                            <field name="fail_count"/>
+                        </group>
+                        <group>
+                            <field name="result"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="검사 항목">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="balloon_number"/>
+                                    <field name="characteristic_name"/>
+                                    <field name="characteristic_type"/>
+                                    <field name="special_characteristic"/>
+                                    <field name="nominal"/>
+                                    <field name="tolerance"/>
+                                    <field name="measured_value"/>
+                                    <field name="deviation"/>
+                                    <field name="result"/>
+                                    <field name="measurement_tool"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="기타">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_layout_inspection" model="ir.actions.act_window">
+        <field name="name">레이아웃 검사</field>
+        <field name="res_model">iatf.layout.inspection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

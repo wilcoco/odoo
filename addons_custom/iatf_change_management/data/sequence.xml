@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_change_request" model="ir.sequence">
+            <field name="name">변경 관리</field>
+            <field name="code">iatf.change.request</field>
+            <field name="prefix">CR-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

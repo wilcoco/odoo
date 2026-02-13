@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_csr" model="ir.sequence">
+            <field name="name">고객 특수요구사항</field>
+            <field name="code">iatf.csr</field>
+            <field name="prefix">CSR-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

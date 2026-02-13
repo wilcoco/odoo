@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_quality_objective_root" name="품질 목표"
+              parent="iatf_document_control.menu_iatf_root" sequence="3"/>
+    <menuitem id="menu_iatf_quality_objectives" name="품질 목표 목록"
+              parent="menu_iatf_quality_objective_root"
+              action="action_quality_objective" sequence="10"/>
+</odoo>

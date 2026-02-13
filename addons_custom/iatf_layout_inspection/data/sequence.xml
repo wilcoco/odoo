@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_layout_inspection" model="ir.sequence">
+            <field name="name">레이아웃 검사</field>
+            <field name="code">iatf.layout.inspection</field>
+            <field name="prefix">LI-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

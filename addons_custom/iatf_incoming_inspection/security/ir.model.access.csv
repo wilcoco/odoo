@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_incoming_inspection_user,iatf.incoming.inspection.user,model_iatf_incoming_inspection,group_incoming_inspection_user,1,1,1,0
+access_incoming_inspection_manager,iatf.incoming.inspection.manager,model_iatf_incoming_inspection,group_incoming_inspection_manager,1,1,1,1
+access_incoming_inspection_line_user,iatf.incoming.inspection.line.user,model_iatf_incoming_inspection_line,group_incoming_inspection_user,1,1,1,0
+access_incoming_inspection_line_manager,iatf.incoming.inspection.line.manager,model_iatf_incoming_inspection_line,group_incoming_inspection_manager,1,1,1,1
+access_inspection_criteria_user,iatf.inspection.criteria.user,model_iatf_inspection_criteria,group_incoming_inspection_user,1,1,1,0
+access_inspection_criteria_manager,iatf.inspection.criteria.manager,model_iatf_inspection_criteria,group_incoming_inspection_manager,1,1,1,1

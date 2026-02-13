@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_change_root" name="변경 관리"
+              parent="iatf_document_control.menu_iatf_root" sequence="17"/>
+    <menuitem id="menu_iatf_change_requests" name="변경 요청"
+              parent="menu_iatf_change_root"
+              action="action_change_request" sequence="10"/>
+</odoo>

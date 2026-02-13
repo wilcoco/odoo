@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_process_inspection_user,iatf.process.inspection.user,model_iatf_process_inspection,group_process_inspection_user,1,1,1,0
+access_process_inspection_manager,iatf.process.inspection.manager,model_iatf_process_inspection,group_process_inspection_manager,1,1,1,1
+access_process_inspection_line_user,iatf.process.inspection.line.user,model_iatf_process_inspection_line,group_process_inspection_user,1,1,1,0
+access_process_inspection_line_manager,iatf.process.inspection.line.manager,model_iatf_process_inspection_line,group_process_inspection_manager,1,1,1,1

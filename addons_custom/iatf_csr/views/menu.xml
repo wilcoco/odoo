@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_csr_root" name="고객 특수요구사항"
+              parent="iatf_document_control.menu_iatf_root" sequence="18"/>
+    <menuitem id="menu_iatf_csr_list" name="CSR 목록"
+              parent="menu_iatf_csr_root"
+              action="action_csr" sequence="10"/>
+</odoo>
