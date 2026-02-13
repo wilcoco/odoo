@@ -7,57 +7,57 @@ class IatfCompetenceMatrix(models.Model):
     _order = "employee_id, skill_name"
     _rec_name = "display_name"
 
-    employee_id = fields.Many2one("hr.employee", string="Employee", required=True, index=True)
+    employee_id = fields.Many2one("hr.employee", string="직원", required=True, index=True)
     department_id = fields.Many2one(
-        "hr.department", string="Department",
+        "hr.department", string="부서",
         related="employee_id.department_id", store=True, readonly=True,
     )
     job_id = fields.Many2one(
-        "hr.job", string="Job Position",
+        "hr.job", string="직책",
         related="employee_id.job_id", store=True, readonly=True,
     )
 
-    skill_name = fields.Char(string="Skill / Competence", required=True)
+    skill_name = fields.Char(string="기술 / 역량", required=True)
     skill_category = fields.Selection(
         [
-            ("process", "Process Knowledge"),
-            ("quality", "Quality Tools"),
-            ("safety", "Safety"),
-            ("regulatory", "Regulatory / Compliance"),
-            ("technical", "Technical Skill"),
-            ("soft", "Soft Skill"),
+            ("process", "공정 지식"),
+            ("quality", "품질 도구"),
+            ("safety", "안전"),
+            ("regulatory", "규제 / 준법"),
+            ("technical", "기술 스킬"),
+            ("soft", "소프트 스킬"),
         ],
-        string="Category", default="process",
+        string="카테고리", default="process",
     )
 
     required_level = fields.Selection(
         [
-            ("0", "Not Required"),
-            ("1", "Awareness"),
-            ("2", "Can perform under supervision"),
-            ("3", "Can perform independently"),
-            ("4", "Can train others"),
+            ("0", "불필요"),
+            ("1", "인지"),
+            ("2", "감독하에 수행 가능"),
+            ("3", "독립 수행 가능"),
+            ("4", "타인 교육 가능"),
         ],
-        string="Required Level", default="3",
+        string="요구 수준", default="3",
     )
     current_level = fields.Selection(
         [
-            ("0", "Not Trained"),
-            ("1", "Awareness"),
-            ("2", "Can perform under supervision"),
-            ("3", "Can perform independently"),
-            ("4", "Can train others"),
+            ("0", "미교육"),
+            ("1", "인지"),
+            ("2", "감독하에 수행 가능"),
+            ("3", "독립 수행 가능"),
+            ("4", "타인 교육 가능"),
         ],
-        string="Current Level", default="0",
+        string="현재 수준", default="0",
     )
-    gap = fields.Boolean(string="Gap Exists", compute="_compute_gap", store=True)
+    gap = fields.Boolean(string="차이 존재", compute="_compute_gap", store=True)
 
-    last_training_date = fields.Date(string="Last Training Date")
-    next_retraining_date = fields.Date(string="Next Retraining Date")
-    certification = fields.Char(string="Certification / License")
-    expiry_date = fields.Date(string="Certification Expiry")
+    last_training_date = fields.Date(string="최근 교육일")
+    next_retraining_date = fields.Date(string="다음 재교육일")
+    certification = fields.Char(string="자격증 / 면허")
+    expiry_date = fields.Date(string="자격증 만료일")
 
-    notes = fields.Text(string="Notes")
+    notes = fields.Text(string="비고")
 
     display_name = fields.Char(compute="_compute_display_name", store=True)
 

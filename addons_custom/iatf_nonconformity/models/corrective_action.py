@@ -9,55 +9,55 @@ class IatfCorrectiveAction(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="CA Number", required=True, copy=False, readonly=True,
+        string="시정조치 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
     nonconformity_id = fields.Many2one(
-        "iatf.nonconformity", string="Nonconformity", required=True,
+        "iatf.nonconformity", string="부적합", required=True,
         ondelete="cascade", index=True, tracking=True,
     )
     ca_type = fields.Selection(
         [
-            ("correction", "Correction (immediate fix)"),
-            ("corrective", "Corrective Action (eliminate root cause)"),
-            ("preventive", "Preventive Action (prevent recurrence)"),
+            ("correction", "수정 (즉시 조치)"),
+            ("corrective", "시정 조치 (원인 제거)"),
+            ("preventive", "예방 조치 (재발 방지)"),
         ],
-        string="Action Type", required=True, default="corrective", tracking=True,
+        string="조치 유형", required=True, default="corrective", tracking=True,
     )
-    description = fields.Html(string="Action Description", required=True)
-    responsible_id = fields.Many2one("res.users", string="Responsible", required=True, tracking=True)
-    due_date = fields.Date(string="Due Date", required=True, tracking=True)
-    completion_date = fields.Date(string="Completion Date")
+    description = fields.Html(string="조치 내용", required=True)
+    responsible_id = fields.Many2one("res.users", string="담당자", required=True, tracking=True)
+    due_date = fields.Date(string="기한", required=True, tracking=True)
+    completion_date = fields.Date(string="완료일")
 
     # ── Verification ──
-    verification_method = fields.Text(string="Verification Method")
-    verification_result = fields.Html(string="Verification Result")
-    verified_by = fields.Many2one("res.users", string="Verified By")
-    verification_date = fields.Date(string="Verification Date")
+    verification_method = fields.Text(string="검증 방법")
+    verification_result = fields.Html(string="검증 결과")
+    verified_by = fields.Many2one("res.users", string="검증자")
+    verification_date = fields.Date(string="검증 일자")
     effective = fields.Selection(
         [
-            ("yes", "Effective"),
-            ("no", "Not Effective"),
-            ("partial", "Partially Effective"),
+            ("yes", "유효"),
+            ("no", "무효"),
+            ("partial", "부분 유효"),
         ],
-        string="Effectiveness", tracking=True,
+        string="유효성", tracking=True,
     )
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("open", "Open"),
-            ("in_progress", "In Progress"),
-            ("implemented", "Implemented"),
-            ("verified", "Verified"),
-            ("closed", "Closed"),
+            ("open", "미결"),
+            ("in_progress", "진행 중"),
+            ("implemented", "실행 완료"),
+            ("verified", "검증 완료"),
+            ("closed", "종료"),
         ],
-        string="Status", default="open", required=True, tracking=True,
+        string="상태", default="open", required=True, tracking=True,
     )
 
-    attachment_ids = fields.Many2many("ir.attachment", string="Evidence")
+    attachment_ids = fields.Many2many("ir.attachment", string="증빙")
     company_id = fields.Many2one(
-        "res.company", string="Company", related="nonconformity_id.company_id", store=True,
+        "res.company", string="회사", related="nonconformity_id.company_id", store=True,
     )
 
     is_overdue = fields.Boolean(compute="_compute_is_overdue", store=True)

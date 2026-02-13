@@ -8,66 +8,66 @@ class IatfContingencyPlan(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="Plan Number", required=True, copy=False, readonly=True,
+        string="계획 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     plan_type = fields.Selection(
         [
-            ("supply", "Supply Chain Disruption"),
-            ("equipment", "Key Equipment Failure"),
-            ("labor", "Labor Shortage"),
-            ("utility", "Utility Interruption (Power/Water/Gas)"),
-            ("it", "IT System / Cyber Disruption"),
-            ("natural", "Natural Disaster"),
-            ("logistics", "Logistics / Transportation"),
-            ("pandemic", "Pandemic / Health Emergency"),
-            ("other", "Other"),
+            ("supply", "공급망 중단"),
+            ("equipment", "주요 설비 고장"),
+            ("labor", "인력 부족"),
+            ("utility", "유틸리티 중단 (전기/수도/가스)"),
+            ("it", "IT 시스템 / 사이버 장애"),
+            ("natural", "자연재해"),
+            ("logistics", "물류 / 운송"),
+            ("pandemic", "팬데믹 / 보건 비상"),
+            ("other", "기타"),
         ],
-        string="Plan Type", required=True, default="equipment", tracking=True,
+        string="계획 유형", required=True, default="equipment", tracking=True,
     )
-    risk_description = fields.Html(string="Risk / Threat Description", required=True)
+    risk_description = fields.Html(string="위험 / 위협 설명", required=True)
 
     # ── Impact ──
-    affected_process = fields.Char(string="Affected Process(es)")
-    affected_product_ids = fields.Many2many("product.product", string="Affected Products")
+    affected_process = fields.Char(string="영향 공정")
+    affected_product_ids = fields.Many2many("product.product", string="영향 제품")
     impact_severity = fields.Selection(
         [("low", "Low"), ("medium", "Medium"), ("high", "High"), ("critical", "Critical")],
-        string="Impact Severity", default="medium",
+        string="영향 심각도", default="medium",
     )
-    estimated_downtime = fields.Char(string="Estimated Downtime")
+    estimated_downtime = fields.Char(string="예상 중단 시간")
 
     # ── Prevention & Response ──
-    prevention_measures = fields.Html(string="Prevention / Mitigation Measures")
-    response_actions = fields.Html(string="Response Actions (if event occurs)")
-    recovery_actions = fields.Html(string="Recovery Actions")
-    communication_plan = fields.Html(string="Communication Plan (internal & customer)")
-    alternate_source = fields.Char(string="Alternate Source / Backup")
+    prevention_measures = fields.Html(string="예방 / 완화 조치")
+    response_actions = fields.Html(string="대응 조치")
+    recovery_actions = fields.Html(string="복구 조치")
+    communication_plan = fields.Html(string="커뮤니케이션 계획")
+    alternate_source = fields.Char(string="대체 공급원 / 백업")
 
     # ── Validation ──
-    last_test_date = fields.Date(string="Last Test / Drill Date")
-    test_frequency = fields.Char(string="Test Frequency", help="e.g. Annual, Semi-annual")
-    test_result = fields.Html(string="Last Test Result / Lessons Learned")
-    next_test_date = fields.Date(string="Next Test Due")
+    last_test_date = fields.Date(string="최근 훈련일")
+    test_frequency = fields.Char(string="훈련 주기", help="e.g. Annual, Semi-annual")
+    test_result = fields.Html(string="최근 훈련 결과")
+    next_test_date = fields.Date(string="다음 훈련 예정일")
 
     # ── Ownership ──
-    responsible_id = fields.Many2one("res.users", string="Plan Owner",
+    responsible_id = fields.Many2one("res.users", string="계획 담당자",
                                       default=lambda self: self.env.user, tracking=True)
-    team_member_ids = fields.Many2many("res.users", string="Response Team")
+    team_member_ids = fields.Many2many("res.users", string="대응팀")
 
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("active", "Active"),
-            ("activated", "Activated (In Use)"),
-            ("review", "Under Review"),
-            ("obsolete", "Obsolete"),
+            ("draft", "초안"),
+            ("active", "활성"),
+            ("activated", "발동됨"),
+            ("review", "검토 중"),
+            ("obsolete", "폐기"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
 
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
-    attachment_ids = fields.Many2many("ir.attachment", string="Attachments")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
+    attachment_ids = fields.Many2many("ir.attachment", string="첨부파일")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.model_create_multi

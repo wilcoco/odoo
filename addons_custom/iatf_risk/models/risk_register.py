@@ -8,102 +8,102 @@ class IatfRiskRegister(models.Model):
     _order = "risk_score desc, id"
 
     name = fields.Char(
-        string="Risk Number", required=True, copy=False, readonly=True,
+        string="리스크 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     entry_type = fields.Selection(
-        [("risk", "Risk"), ("opportunity", "Opportunity")],
-        string="Type", required=True, default="risk", tracking=True,
+        [("risk", "리스크"), ("opportunity", "기회")],
+        string="유형", required=True, default="risk", tracking=True,
     )
     category = fields.Selection(
         [
-            ("strategic", "Strategic"),
-            ("operational", "Operational"),
-            ("quality", "Quality / Product"),
-            ("supply_chain", "Supply Chain"),
-            ("regulatory", "Regulatory / Compliance"),
-            ("financial", "Financial"),
-            ("environmental", "Environmental"),
-            ("safety", "Health & Safety"),
-            ("it", "Information / Cyber Security"),
+            ("strategic", "전략적"),
+            ("operational", "운영적"),
+            ("quality", "품질 / 제품"),
+            ("supply_chain", "공급망"),
+            ("regulatory", "규제 / 준법"),
+            ("financial", "재무"),
+            ("environmental", "환경"),
+            ("safety", "안전보건"),
+            ("it", "정보보안"),
         ],
-        string="Category", default="quality", tracking=True,
+        string="카테고리", default="quality", tracking=True,
     )
 
     # ── Description ──
-    description = fields.Html(string="Risk / Opportunity Description", required=True)
-    source = fields.Char(string="Source / Trigger")
-    affected_process = fields.Char(string="Affected Process(es)")
-    interested_parties = fields.Char(string="Interested Parties")
+    description = fields.Html(string="리스크 / 기회 설명", required=True)
+    source = fields.Char(string="발생원 / 트리거")
+    affected_process = fields.Char(string="영향 공정")
+    interested_parties = fields.Char(string="이해관계자")
 
     # ── Assessment ──
     likelihood = fields.Selection(
         [("1", "1 - Rare"), ("2", "2 - Unlikely"), ("3", "3 - Possible"),
          ("4", "4 - Likely"), ("5", "5 - Almost Certain")],
-        string="Likelihood", default="3",
+        string="발생 가능성", default="3",
     )
     impact = fields.Selection(
         [("1", "1 - Negligible"), ("2", "2 - Minor"), ("3", "3 - Moderate"),
          ("4", "4 - Major"), ("5", "5 - Catastrophic")],
-        string="Impact", default="3",
+        string="영향도", default="3",
     )
     risk_score = fields.Integer(
-        string="Risk Score", compute="_compute_risk_score", store=True,
+        string="리스크 점수", compute="_compute_risk_score", store=True,
         help="Likelihood × Impact",
     )
     risk_level = fields.Selection(
         [("low", "Low"), ("medium", "Medium"), ("high", "High"), ("critical", "Critical")],
-        string="Risk Level", compute="_compute_risk_score", store=True,
+        string="리스크 수준", compute="_compute_risk_score", store=True,
     )
 
     # ── Treatment ──
     treatment_strategy = fields.Selection(
         [
-            ("avoid", "Avoid"),
-            ("mitigate", "Mitigate / Reduce"),
-            ("transfer", "Transfer"),
-            ("accept", "Accept"),
-            ("exploit", "Exploit (Opportunity)"),
+            ("avoid", "회피"),
+            ("mitigate", "완화 / 감소"),
+            ("transfer", "전가"),
+            ("accept", "수용"),
+            ("exploit", "활용 (기회)"),
         ],
-        string="Treatment Strategy", default="mitigate",
+        string="대응 전략", default="mitigate",
     )
-    current_controls = fields.Html(string="Current Controls")
-    planned_actions = fields.Html(string="Planned Actions / Treatment")
-    responsible_id = fields.Many2one("res.users", string="Risk Owner",
+    current_controls = fields.Html(string="현재 관리 수단")
+    planned_actions = fields.Html(string="계획된 조치")
+    responsible_id = fields.Many2one("res.users", string="리스크 소유자",
                                       default=lambda self: self.env.user, tracking=True)
-    due_date = fields.Date(string="Action Due Date")
+    due_date = fields.Date(string="조치 기한")
 
     # ── Residual risk (after treatment) ──
     residual_likelihood = fields.Selection(
         [("1", "1 - Rare"), ("2", "2 - Unlikely"), ("3", "3 - Possible"),
          ("4", "4 - Likely"), ("5", "5 - Almost Certain")],
-        string="Residual Likelihood", default="1",
+        string="잔여 발생가능성", default="1",
     )
     residual_impact = fields.Selection(
         [("1", "1 - Negligible"), ("2", "2 - Minor"), ("3", "3 - Moderate"),
          ("4", "4 - Major"), ("5", "5 - Catastrophic")],
-        string="Residual Impact", default="1",
+        string="잔여 영향도", default="1",
     )
     residual_score = fields.Integer(
-        string="Residual Score", compute="_compute_residual_score", store=True,
+        string="잔여 점수", compute="_compute_residual_score", store=True,
     )
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("identified", "Identified"),
-            ("assessed", "Assessed"),
-            ("treating", "Treatment In Progress"),
-            ("monitored", "Monitored"),
-            ("closed", "Closed"),
+            ("identified", "식별됨"),
+            ("assessed", "평가 완료"),
+            ("treating", "대응 중"),
+            ("monitored", "모니터링"),
+            ("closed", "종료"),
         ],
-        string="Status", default="identified", tracking=True,
+        string="상태", default="identified", tracking=True,
     )
 
-    review_date = fields.Date(string="Next Review Date")
-    notes = fields.Text(string="Notes")
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
+    review_date = fields.Date(string="다음 검토일")
+    notes = fields.Text(string="비고")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.depends("likelihood", "impact")

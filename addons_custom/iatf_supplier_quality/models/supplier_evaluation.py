@@ -8,49 +8,49 @@ class IatfSupplierEvaluation(models.Model):
     _order = "evaluation_date desc"
 
     name = fields.Char(
-        string="Evaluation Number", required=True, copy=False, readonly=True,
+        string="평가 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    supplier_id = fields.Many2one("res.partner", string="Supplier", required=True,
+    supplier_id = fields.Many2one("res.partner", string="협력업체", required=True,
                                    domain="[('supplier_rank','>',0)]", tracking=True)
-    evaluation_date = fields.Date(string="Evaluation Date", default=fields.Date.today, required=True)
-    evaluation_period = fields.Char(string="Evaluation Period", help="e.g. 2026-Q1")
-    evaluator_id = fields.Many2one("res.users", string="Evaluator", default=lambda self: self.env.user)
+    evaluation_date = fields.Date(string="평가일", default=fields.Date.today, required=True)
+    evaluation_period = fields.Char(string="평가 기간", help="e.g. 2026-Q1")
+    evaluator_id = fields.Many2one("res.users", string="평가자", default=lambda self: self.env.user)
 
     # ── Scoring criteria ──
-    score_quality = fields.Float(string="Quality Score (0-100)", default=0)
-    score_delivery = fields.Float(string="Delivery Score (0-100)", default=0)
-    score_cost = fields.Float(string="Cost Score (0-100)", default=0)
-    score_responsiveness = fields.Float(string="Responsiveness Score (0-100)", default=0)
-    score_system = fields.Float(string="QMS/Certification Score (0-100)", default=0)
+    score_quality = fields.Float(string="품질 점수 (0-100)", default=0)
+    score_delivery = fields.Float(string="납기 점수 (0-100)", default=0)
+    score_cost = fields.Float(string="비용 점수 (0-100)", default=0)
+    score_responsiveness = fields.Float(string="대응력 점수 (0-100)", default=0)
+    score_system = fields.Float(string="QMS/인증 점수 (0-100)", default=0)
 
-    weight_quality = fields.Float(string="Quality Weight (%)", default=40)
-    weight_delivery = fields.Float(string="Delivery Weight (%)", default=25)
-    weight_cost = fields.Float(string="Cost Weight (%)", default=15)
-    weight_responsiveness = fields.Float(string="Responsiveness Weight (%)", default=10)
-    weight_system = fields.Float(string="QMS Weight (%)", default=10)
+    weight_quality = fields.Float(string="품질 가중치 (%)", default=40)
+    weight_delivery = fields.Float(string="납기 가중치 (%)", default=25)
+    weight_cost = fields.Float(string="비용 가중치 (%)", default=15)
+    weight_responsiveness = fields.Float(string="대응력 가중치 (%)", default=10)
+    weight_system = fields.Float(string="품질경영시스템 가중치 (%)", default=10)
 
-    total_score = fields.Float(string="Total Score", compute="_compute_total_score", store=True)
+    total_score = fields.Float(string="총점", compute="_compute_total_score", store=True)
     grade = fields.Selection(
         [
-            ("a", "A — Preferred (≥ 90)"),
-            ("b", "B — Approved (70–89)"),
-            ("c", "C — Conditional (50–69)"),
-            ("d", "D — Disqualified (< 50)"),
+            ("a", "A — 우수 (≥ 90)"),
+            ("b", "B — 승인 (70–89)"),
+            ("c", "C — 조건부 (50–69)"),
+            ("d", "D — 부적격 (< 50)"),
         ],
-        string="Grade", compute="_compute_total_score", store=True,
+        string="등급", compute="_compute_total_score", store=True,
     )
 
     # ── Details ──
-    ppm_rate = fields.Float(string="PPM Rate")
-    on_time_delivery_pct = fields.Float(string="On-Time Delivery (%)")
-    certification = fields.Char(string="Certifications (ISO/IATF)")
-    nc_count_period = fields.Integer(string="NC Count in Period")
-    scar_count_period = fields.Integer(string="SCAR Count in Period")
+    ppm_rate = fields.Float(string="PPM 비율")
+    on_time_delivery_pct = fields.Float(string="납기준수율 (%)")
+    certification = fields.Char(string="인증 (ISO/IATF)")
+    nc_count_period = fields.Integer(string="기간 내 부적합 수")
+    scar_count_period = fields.Integer(string="기간 내 SCAR 수")
 
-    notes = fields.Html(string="Notes / Improvement Plan")
+    notes = fields.Html(string="비고 / 개선 계획")
     state = fields.Selection(
-        [("draft", "Draft"), ("confirmed", "Confirmed"), ("closed", "Closed")],
+        [("draft", "초안"), ("confirmed", "확정"), ("closed", "종료")],
         default="draft", tracking=True,
     )
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)

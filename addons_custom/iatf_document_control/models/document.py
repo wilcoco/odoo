@@ -11,89 +11,89 @@ class IatfDocument(models.Model):
 
     # ── Identification ──
     doc_number = fields.Char(
-        string="Document Number", required=True, copy=False, readonly=True,
+        string="문서 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    name = fields.Char(string="Title", required=True, tracking=True)
+    name = fields.Char(string="제목", required=True, tracking=True)
     category_id = fields.Many2one(
-        "iatf.document.category", string="Category", required=True, tracking=True,
+        "iatf.document.category", string="카테고리", required=True, tracking=True,
     )
     doc_type = fields.Selection(
         [
-            ("manual", "Quality Manual"),
-            ("procedure", "Procedure"),
-            ("instruction", "Work Instruction"),
-            ("form", "Form / Template"),
-            ("specification", "Specification"),
-            ("standard", "External Standard"),
-            ("record", "Quality Record"),
-            ("other", "Other"),
+            ("manual", "품질 매뉴얼"),
+            ("procedure", "절차서"),
+            ("instruction", "작업 지침서"),
+            ("form", "양식"),
+            ("specification", "규격서"),
+            ("standard", "외부 표준"),
+            ("record", "품질 기록"),
+            ("other", "기타"),
         ],
-        string="Document Type", required=True, default="procedure", tracking=True,
+        string="문서 유형", required=True, default="procedure", tracking=True,
     )
-    description = fields.Html(string="Description / Scope")
+    description = fields.Html(string="설명 / 범위")
 
     # ── Ownership ──
     owner_id = fields.Many2one(
-        "res.users", string="Document Owner", default=lambda self: self.env.user,
+        "res.users", string="문서 소유자", default=lambda self: self.env.user,
         tracking=True,
     )
-    department_id = fields.Many2one("hr.department", string="Department")
+    department_id = fields.Many2one("hr.department", string="부서")
     company_id = fields.Many2one(
-        "res.company", string="Company", default=lambda self: self.env.company,
+        "res.company", string="회사", default=lambda self: self.env.company,
     )
 
     # ── Revision control ──
-    current_revision = fields.Char(string="Current Revision", default="00", tracking=True)
-    revision_date = fields.Date(string="Revision Date", tracking=True)
-    revision_ids = fields.One2many("iatf.document.revision", "document_id", string="Revision History")
+    current_revision = fields.Char(string="현재 개정", default="00", tracking=True)
+    revision_date = fields.Date(string="개정일", tracking=True)
+    revision_ids = fields.One2many("iatf.document.revision", "document_id", string="개정 이력")
     revision_count = fields.Integer(compute="_compute_revision_count")
 
     # ── Approval workflow ──
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("review", "Under Review"),
-            ("approved", "Approved"),
-            ("obsolete", "Obsolete"),
+            ("draft", "초안"),
+            ("review", "검토 중"),
+            ("approved", "승인됨"),
+            ("obsolete", "폐기"),
         ],
-        string="Status", default="draft", required=True, tracking=True,
+        string="상태", default="draft", required=True, tracking=True,
     )
-    reviewer_id = fields.Many2one("res.users", string="Reviewer", tracking=True)
-    approver_id = fields.Many2one("res.users", string="Approver", tracking=True)
-    review_date = fields.Date(string="Review Date")
-    approval_date = fields.Date(string="Approval Date")
+    reviewer_id = fields.Many2one("res.users", string="검토자", tracking=True)
+    approver_id = fields.Many2one("res.users", string="승인자", tracking=True)
+    review_date = fields.Date(string="검토일")
+    approval_date = fields.Date(string="승인일")
     next_review_date = fields.Date(
-        string="Next Review Date",
+        string="다음 검토일",
         help="Periodic review date as required by IATF 16949 §7.5.3.1",
         tracking=True,
     )
 
     # ── Retention ──
     retention_years = fields.Integer(
-        string="Retention Period (years)",
+        string="보존 기간 (년)",
         help="How long to retain this document after obsolescence. "
              "Defaults from category if not set.",
     )
     retention_expiry = fields.Date(
-        string="Retention Expiry", compute="_compute_retention_expiry", store=True,
+        string="보존 만료일", compute="_compute_retention_expiry", store=True,
     )
 
     # ── Distribution ──
     distribution_ids = fields.One2many(
-        "iatf.document.distribution", "document_id", string="Distribution List",
+        "iatf.document.distribution", "document_id", string="배포 목록",
     )
 
     # ── Attachments ──
     attachment_ids = fields.Many2many(
-        "ir.attachment", string="Attachments",
+        "ir.attachment", string="첨부파일",
         help="Attach the controlled document files here.",
     )
     attachment_count = fields.Integer(compute="_compute_attachment_count")
 
     # ── External reference ──
     external_origin = fields.Char(
-        string="External Origin",
+        string="외부 출처",
         help="For external documents: origin standard/organization (e.g. ISO, AIAG, customer)",
     )
 

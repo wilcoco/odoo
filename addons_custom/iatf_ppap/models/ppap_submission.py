@@ -9,13 +9,13 @@ class IatfPpapSubmission(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="PPAP Number", required=True, copy=False, readonly=True,
+        string="PPAP 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
-    product_id = fields.Many2one("product.product", string="Product", tracking=True)
-    part_number = fields.Char(string="Part Number")
-    customer_id = fields.Many2one("res.partner", string="Customer", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
+    product_id = fields.Many2one("product.product", string="제품", tracking=True)
+    part_number = fields.Char(string="부품 번호")
+    customer_id = fields.Many2one("res.partner", string="고객", required=True, tracking=True)
 
     submission_level = fields.Selection(
         [
@@ -25,26 +25,26 @@ class IatfPpapSubmission(models.Model):
             ("4", "Level 4 — Warrant + per customer requirements"),
             ("5", "Level 5 — Warrant + complete data at supplier site"),
         ],
-        string="Submission Level", required=True, default="3", tracking=True,
+        string="제출 수준", required=True, default="3", tracking=True,
     )
     submission_reason = fields.Selection(
         [
-            ("new_part", "New Part / Product"),
-            ("engineering_change", "Engineering Change"),
-            ("tooling_change", "Tooling Change"),
-            ("correction", "Correction of Discrepancy"),
-            ("re_submission", "Re-submission"),
-            ("other", "Other"),
+            ("new_part", "신규 부품/제품"),
+            ("engineering_change", "설계 변경"),
+            ("tooling_change", "금형 변경"),
+            ("correction", "불일치 수정"),
+            ("re_submission", "재제출"),
+            ("other", "기타"),
         ],
-        string="Reason for Submission", required=True, default="new_part",
+        string="제출 사유", required=True, default="new_part",
     )
-    submission_date = fields.Date(string="Submission Date", tracking=True)
+    submission_date = fields.Date(string="제출일", tracking=True)
 
-    responsible_id = fields.Many2one("res.users", string="Responsible",
+    responsible_id = fields.Many2one("res.users", string="담당자",
                                       default=lambda self: self.env.user, tracking=True)
 
     # ── 18 Elements ──
-    element_ids = fields.One2many("iatf.ppap.element", "submission_id", string="PPAP Elements")
+    element_ids = fields.One2many("iatf.ppap.element", "submission_id", string="PPAP 요소")
     element_complete_count = fields.Integer(compute="_compute_element_stats")
     element_total_count = fields.Integer(compute="_compute_element_stats")
     progress = fields.Float(compute="_compute_element_stats", store=True)
@@ -52,29 +52,29 @@ class IatfPpapSubmission(models.Model):
     # ── Customer Decision ──
     customer_decision = fields.Selection(
         [
-            ("approved", "Approved"),
-            ("interim", "Interim Approval"),
-            ("rejected", "Rejected"),
+            ("approved", "승인"),
+            ("interim", "잠정 승인"),
+            ("rejected", "반려"),
         ],
-        string="Customer Decision", tracking=True,
+        string="고객 결정", tracking=True,
     )
-    decision_date = fields.Date(string="Decision Date")
-    decision_notes = fields.Text(string="Customer Notes")
+    decision_date = fields.Date(string="결정일")
+    decision_notes = fields.Text(string="고객 비고")
 
     # ── Links ──
-    fmea_id = fields.Many2one("iatf.fmea", string="Related FMEA")
-    control_plan_id = fields.Many2one("iatf.control.plan", string="Related Control Plan")
-    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP Project")
+    fmea_id = fields.Many2one("iatf.fmea", string="관련 FMEA")
+    control_plan_id = fields.Many2one("iatf.control.plan", string="관련 관리계획서")
+    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP 프로젝트")
 
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("preparation", "In Preparation"),
-            ("submitted", "Submitted to Customer"),
-            ("decided", "Customer Decided"),
-            ("closed", "Closed"),
+            ("draft", "초안"),
+            ("preparation", "준비 중"),
+            ("submitted", "고객 제출"),
+            ("decided", "고객 결정완료"),
+            ("closed", "종료"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 

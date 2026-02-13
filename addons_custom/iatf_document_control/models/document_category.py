@@ -6,19 +6,19 @@ class IatfDocumentCategory(models.Model):
     _description = "Document Category (IATF 16949)"
     _order = "sequence, name"
 
-    name = fields.Char(string="Category Name", required=True, translate=True)
-    code = fields.Char(string="Code", required=True)
+    name = fields.Char(string="카테고리명", required=True, translate=True)
+    code = fields.Char(string="코드", required=True)
     sequence = fields.Integer(default=10)
-    parent_id = fields.Many2one("iatf.document.category", string="Parent Category", index=True)
-    child_ids = fields.One2many("iatf.document.category", "parent_id", string="Sub-categories")
-    description = fields.Text(string="Description")
+    parent_id = fields.Many2one("iatf.document.category", string="상위 카테고리", index=True)
+    child_ids = fields.One2many("iatf.document.category", "parent_id", string="하위 카테고리")
+    description = fields.Text(string="설명")
     retention_years = fields.Integer(
-        string="Default Retention (years)",
+        string="기본 보존기간 (년)",
         default=7,
         help="Default retention period for documents in this category. "
              "IATF 16949 requires retention per customer/regulatory requirements.",
     )
-    document_count = fields.Integer(compute="_compute_document_count", string="Documents")
+    document_count = fields.Integer(compute="_compute_document_count", string="문서 수")
     active = fields.Boolean(default=True)
 
     _sql_constraints = [

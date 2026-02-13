@@ -7,8 +7,8 @@ class IatfMeasurementEquipment(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "equipment_id_number"
 
-    name = fields.Char(string="Equipment Name", required=True, tracking=True)
-    equipment_id_number = fields.Char(string="Equipment ID #", required=True, tracking=True)
+    name = fields.Char(string="장비명", required=True, tracking=True)
+    equipment_id_number = fields.Char(string="장비 ID", required=True, tracking=True)
     equipment_type = fields.Selection(
         [
             ("caliper", "Caliper"),
@@ -22,49 +22,49 @@ class IatfMeasurementEquipment(models.Model):
             ("pressure", "Pressure Gauge"),
             ("other", "Other"),
         ],
-        string="Type", default="caliper", tracking=True,
+        string="유형", default="caliper", tracking=True,
     )
-    manufacturer = fields.Char(string="Manufacturer / Brand")
-    model_number = fields.Char(string="Model #")
-    serial_number = fields.Char(string="Serial #")
+    manufacturer = fields.Char(string="제조사")
+    model_number = fields.Char(string="모델")
+    serial_number = fields.Char(string="시리얼")
 
     # ── Specification ──
-    range_min = fields.Float(string="Range Min", digits=(16, 4))
-    range_max = fields.Float(string="Range Max", digits=(16, 4))
-    resolution = fields.Float(string="Resolution", digits=(16, 6))
-    accuracy = fields.Char(string="Accuracy")
-    unit = fields.Char(string="Unit")
+    range_min = fields.Float(string="최소 범위", digits=(16, 4))
+    range_max = fields.Float(string="최대 범위", digits=(16, 4))
+    resolution = fields.Float(string="분해능", digits=(16, 6))
+    accuracy = fields.Char(string="정확도")
+    unit = fields.Char(string="단위")
 
     # ── Location / Ownership ──
-    location = fields.Char(string="Location / Work Center")
-    custodian_id = fields.Many2one("res.users", string="Custodian")
-    department_id = fields.Many2one("hr.department", string="Department")
+    location = fields.Char(string="위치 / 작업장")
+    custodian_id = fields.Many2one("res.users", string="관리자")
+    department_id = fields.Many2one("hr.department", string="부서")
 
     # ── Calibration scheduling ──
-    calibration_frequency_days = fields.Integer(string="Calibration Frequency (days)", default=365)
-    last_calibration_date = fields.Date(string="Last Calibration Date")
-    next_calibration_date = fields.Date(string="Next Calibration Due", compute="_compute_next_cal", store=True)
-    calibration_provider = fields.Char(string="Calibration Provider / Lab")
+    calibration_frequency_days = fields.Integer(string="교정 주기 (일)", default=365)
+    last_calibration_date = fields.Date(string="최근 교정일")
+    next_calibration_date = fields.Date(string="다음 교정 예정일", compute="_compute_next_cal", store=True)
+    calibration_provider = fields.Char(string="교정 업체 / 시험소")
     is_overdue = fields.Boolean(compute="_compute_is_overdue", store=True)
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("active", "Active / In Use"),
-            ("calibrating", "Out for Calibration"),
-            ("quarantine", "Quarantined"),
-            ("retired", "Retired"),
+            ("active", "사용 중"),
+            ("calibrating", "교정 중"),
+            ("quarantine", "격리"),
+            ("retired", "폐기"),
         ],
-        string="Status", default="active", tracking=True,
+        string="상태", default="active", tracking=True,
     )
 
     calibration_record_ids = fields.One2many(
-        "iatf.calibration.record", "equipment_id", string="Calibration History",
+        "iatf.calibration.record", "equipment_id", string="교정 이력",
     )
     calibration_count = fields.Integer(compute="_compute_calibration_count")
 
-    notes = fields.Text(string="Notes")
-    attachment_ids = fields.Many2many("ir.attachment", string="Certificates / Attachments")
+    notes = fields.Text(string="비고")
+    attachment_ids = fields.Many2many("ir.attachment", string="성적서 / 첨부파일")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.depends("last_calibration_date", "calibration_frequency_days")

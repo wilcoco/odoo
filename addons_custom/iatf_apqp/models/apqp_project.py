@@ -9,30 +9,30 @@ class IatfApqpProject(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="Project Number", required=True, copy=False, readonly=True,
+        string="프로젝트 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Project Title", required=True, tracking=True)
-    description = fields.Html(string="Description")
+    title = fields.Char(string="프로젝트 제목", required=True, tracking=True)
+    description = fields.Html(string="설명")
 
     # ── Product / Customer ──
-    product_id = fields.Many2one("product.product", string="Product")
-    customer_id = fields.Many2one("res.partner", string="Customer", tracking=True)
-    part_number = fields.Char(string="Part Number")
+    product_id = fields.Many2one("product.product", string="제품")
+    customer_id = fields.Many2one("res.partner", string="고객", tracking=True)
+    part_number = fields.Char(string="부품 번호")
 
     # ── Team ──
-    project_leader_id = fields.Many2one("res.users", string="Project Leader",
+    project_leader_id = fields.Many2one("res.users", string="프로젝트 리더",
                                          default=lambda self: self.env.user, tracking=True)
-    team_member_ids = fields.Many2many("res.users", string="Team Members")
+    team_member_ids = fields.Many2many("res.users", string="팀원")
 
     # ── Timeline ──
-    date_start = fields.Date(string="Start Date", tracking=True)
-    date_target_sop = fields.Date(string="Target SOP Date",
+    date_start = fields.Date(string="시작일", tracking=True)
+    date_target_sop = fields.Date(string="목표 SOP 일자",
                                    help="Start of Production target date", tracking=True)
-    date_actual_sop = fields.Date(string="Actual SOP Date")
+    date_actual_sop = fields.Date(string="실제 SOP 일자")
 
     # ── Phases ──
-    phase_ids = fields.One2many("iatf.apqp.phase", "project_id", string="APQP Phases")
+    phase_ids = fields.One2many("iatf.apqp.phase", "project_id", string="APQP 단계")
     current_phase = fields.Selection(
         [
             ("1", "Phase 1: Plan & Define"),
@@ -41,25 +41,25 @@ class IatfApqpProject(models.Model):
             ("4", "Phase 4: Product & Process Validation"),
             ("5", "Phase 5: Production"),
         ],
-        string="Current Phase", compute="_compute_current_phase", store=True,
+        string="현재 단계", compute="_compute_current_phase", store=True,
     )
-    progress = fields.Float(string="Overall Progress (%)", compute="_compute_progress", store=True)
+    progress = fields.Float(string="전체 진행률 (%)", compute="_compute_progress", store=True)
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("active", "Active"),
-            ("on_hold", "On Hold"),
-            ("completed", "Completed"),
-            ("cancelled", "Cancelled"),
+            ("draft", "초안"),
+            ("active", "진행 중"),
+            ("on_hold", "보류"),
+            ("completed", "완료"),
+            ("cancelled", "취소"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
 
     # ── Links ──
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
-    odoo_project_id = fields.Many2one("project.project", string="Linked Odoo Project")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
+    odoo_project_id = fields.Many2one("project.project", string="연결된 Odoo 프로젝트")
 
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 

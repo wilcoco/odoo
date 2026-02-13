@@ -9,85 +9,85 @@ class IatfCustomerComplaint(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="Complaint Number", required=True, copy=False, readonly=True,
+        string="불만 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     complaint_type = fields.Selection(
         [
-            ("quality", "Quality Defect"),
-            ("delivery", "Delivery Issue"),
-            ("warranty", "Warranty Claim"),
-            ("field_return", "Field Return / MIS"),
-            ("ntr", "NTF (No Trouble Found)"),
-            ("other", "Other"),
+            ("quality", "품질 결함"),
+            ("delivery", "납기 문제"),
+            ("warranty", "보증 청구"),
+            ("field_return", "현장 반품"),
+            ("ntr", "NTF (문제없음)"),
+            ("other", "기타"),
         ],
-        string="Complaint Type", required=True, default="quality", tracking=True,
+        string="불만 유형", required=True, default="quality", tracking=True,
     )
     severity_level = fields.Selection(
         [
-            ("critical", "Critical (Safety / Recall)"),
-            ("major", "Major"),
-            ("minor", "Minor"),
+            ("critical", "치명적 (안전/리콜)"),
+            ("major", "중대"),
+            ("minor", "경미"),
         ],
-        string="Severity", default="major", tracking=True,
+        string="심각도", default="major", tracking=True,
     )
 
     # ── Customer ──
-    customer_id = fields.Many2one("res.partner", string="Customer", required=True, tracking=True)
-    customer_ref = fields.Char(string="Customer Reference #")
-    received_date = fields.Date(string="Date Received", default=fields.Date.today, required=True)
-    response_due_date = fields.Date(string="Response Due Date", tracking=True)
+    customer_id = fields.Many2one("res.partner", string="고객", required=True, tracking=True)
+    customer_ref = fields.Char(string="고객 참조번호")
+    received_date = fields.Date(string="접수일", default=fields.Date.today, required=True)
+    response_due_date = fields.Date(string="답변 기한", tracking=True)
 
     # ── Product / Lot ──
-    product_id = fields.Many2one("product.product", string="Product")
-    part_number = fields.Char(string="Part Number")
-    lot_id = fields.Many2one("stock.lot", string="Lot/Serial")
-    quantity_affected = fields.Float(string="Qty Affected")
-    quantity_returned = fields.Float(string="Qty Returned")
+    product_id = fields.Many2one("product.product", string="제품")
+    part_number = fields.Char(string="부품 번호")
+    lot_id = fields.Many2one("stock.lot", string="로트/시리얼")
+    quantity_affected = fields.Float(string="영향 수량")
+    quantity_returned = fields.Float(string="반품 수량")
 
     # ── Problem description ──
-    problem_description = fields.Html(string="Problem Description", required=True)
-    failure_mode = fields.Char(string="Failure Mode")
-    customer_impact = fields.Html(string="Customer Impact")
+    problem_description = fields.Html(string="문제 설명", required=True)
+    failure_mode = fields.Char(string="고장 모드")
+    customer_impact = fields.Html(string="고객 영향")
 
     # ── Containment ──
-    containment_action = fields.Html(string="Immediate Containment Action")
-    containment_date = fields.Date(string="Containment Date")
+    containment_action = fields.Html(string="즉시 격리 조치")
+    containment_date = fields.Date(string="격리 일자")
 
     # ── Root cause & corrective action ──
-    root_cause = fields.Html(string="Root Cause Analysis")
-    corrective_action = fields.Html(string="Corrective Action")
-    preventive_action = fields.Html(string="Preventive Action")
-    verification_result = fields.Html(string="Verification of Effectiveness")
+    root_cause = fields.Html(string="근본원인 분석")
+    corrective_action = fields.Html(string="시정 조치")
+    preventive_action = fields.Html(string="예방 조치")
+    verification_result = fields.Html(string="유효성 검증")
 
     # ── Links ──
-    nonconformity_id = fields.Many2one("iatf.nonconformity", string="Linked NC / 8D")
+    nonconformity_id = fields.Many2one("iatf.nonconformity", string="연결된 부적합/8D")
 
     # ── Costs ──
-    cost_sorting = fields.Float(string="Sorting Cost")
-    cost_rework = fields.Float(string="Rework Cost")
-    cost_scrap = fields.Float(string="Scrap Cost")
-    cost_freight = fields.Float(string="Premium Freight Cost")
-    cost_warranty = fields.Float(string="Warranty Cost")
-    cost_total = fields.Float(string="Total Cost", compute="_compute_cost_total", store=True)
+    cost_sorting = fields.Float(string="선별 비용")
+    cost_rework = fields.Float(string="재작업 비용")
+    cost_scrap = fields.Float(string="폐기 비용")
+    cost_freight = fields.Float(string="긴급 운송 비용")
+    cost_warranty = fields.Float(string="보증 비용")
+    cost_total = fields.Float(string="총 비용", compute="_compute_cost_total", store=True)
 
     # ── Status ──
-    responsible_id = fields.Many2one("res.users", string="Responsible",
+    responsible_id = fields.Many2one("res.users", string="담당자",
                                       default=lambda self: self.env.user, tracking=True)
     state = fields.Selection(
         [
-            ("new", "New"),
-            ("containment", "Containment"),
-            ("analysis", "Root Cause Analysis"),
-            ("corrective", "Corrective Action"),
-            ("verification", "Verification"),
-            ("closed", "Closed"),
+            ("new", "신규"),
+            ("containment", "격리"),
+            ("analysis", "원인분석"),
+            ("corrective", "시정조치"),
+            ("verification", "검증"),
+            ("closed", "종료"),
         ],
-        string="Status", default="new", tracking=True,
+        string="상태", default="new", tracking=True,
     )
 
-    attachment_ids = fields.Many2many("ir.attachment", string="Attachments")
+    attachment_ids = fields.Many2many("ir.attachment", string="첨부파일")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.depends("cost_sorting", "cost_rework", "cost_scrap", "cost_freight", "cost_warranty")

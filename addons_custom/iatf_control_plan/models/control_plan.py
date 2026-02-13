@@ -9,44 +9,44 @@ class IatfControlPlan(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="CP Number", required=True, copy=False, readonly=True,
+        string="CP 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     cp_type = fields.Selection(
         [
-            ("prototype", "Prototype"),
-            ("pre_launch", "Pre-Launch"),
-            ("production", "Production"),
+            ("prototype", "시작품"),
+            ("pre_launch", "양산 선행"),
+            ("production", "양산"),
         ],
-        string="Control Plan Type", required=True, default="production", tracking=True,
+        string="관리계획서 유형", required=True, default="production", tracking=True,
     )
 
-    product_id = fields.Many2one("product.product", string="Product")
-    part_number = fields.Char(string="Part Number")
-    customer_id = fields.Many2one("res.partner", string="Customer")
-    revision = fields.Char(string="Revision", default="01")
-    revision_date = fields.Date(string="Revision Date", default=fields.Date.today)
+    product_id = fields.Many2one("product.product", string="제품")
+    part_number = fields.Char(string="부품 번호")
+    customer_id = fields.Many2one("res.partner", string="고객")
+    revision = fields.Char(string="개정", default="01")
+    revision_date = fields.Date(string="개정일", default=fields.Date.today)
 
-    responsible_id = fields.Many2one("res.users", string="Owner",
+    responsible_id = fields.Many2one("res.users", string="담당자",
                                       default=lambda self: self.env.user, tracking=True)
-    team_member_ids = fields.Many2many("res.users", string="Core Team")
+    team_member_ids = fields.Many2many("res.users", string="핵심 팀원")
 
-    fmea_id = fields.Many2one("iatf.fmea", string="Related FMEA")
-    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP Project")
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
+    fmea_id = fields.Many2one("iatf.fmea", string="관련 FMEA")
+    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP 프로젝트")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
 
-    line_ids = fields.One2many("iatf.control.plan.line", "control_plan_id", string="Control Plan Lines")
+    line_ids = fields.One2many("iatf.control.plan.line", "control_plan_id", string="관리계획서 항목")
     line_count = fields.Integer(compute="_compute_line_count")
 
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("review", "Under Review"),
-            ("approved", "Approved"),
-            ("obsolete", "Obsolete"),
+            ("draft", "초안"),
+            ("review", "검토 중"),
+            ("approved", "승인됨"),
+            ("obsolete", "폐기"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 

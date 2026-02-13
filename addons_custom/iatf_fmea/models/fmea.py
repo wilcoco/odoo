@@ -9,57 +9,57 @@ class IatfFmea(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="FMEA Number", required=True, copy=False, readonly=True,
+        string="FMEA 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     fmea_type = fields.Selection(
         [
-            ("dfmea", "DFMEA (Design)"),
-            ("pfmea", "PFMEA (Process)"),
+            ("dfmea", "DFMEA (설계)"),
+            ("pfmea", "PFMEA (공정)"),
         ],
-        string="FMEA Type", required=True, default="pfmea", tracking=True,
+        string="FMEA 유형", required=True, default="pfmea", tracking=True,
     )
 
     # ── Header info (AIAG-VDA FMEA format) ──
-    product_id = fields.Many2one("product.product", string="Product")
-    part_number = fields.Char(string="Part Number")
-    process_name = fields.Char(string="Process / System Name")
-    customer_id = fields.Many2one("res.partner", string="Customer")
-    model_year = fields.Char(string="Model Year / Program")
+    product_id = fields.Many2one("product.product", string="제품")
+    part_number = fields.Char(string="부품 번호")
+    process_name = fields.Char(string="공정 / 시스템명")
+    customer_id = fields.Many2one("res.partner", string="고객")
+    model_year = fields.Char(string="모델연도 / 프로그램")
 
     # ── Team ──
-    responsible_id = fields.Many2one("res.users", string="FMEA Owner",
+    responsible_id = fields.Many2one("res.users", string="FMEA 담당자",
                                       default=lambda self: self.env.user, tracking=True)
-    team_member_ids = fields.Many2many("res.users", string="Core Team")
+    team_member_ids = fields.Many2many("res.users", string="핵심 팀원")
 
     # ── Revision ──
-    revision = fields.Char(string="Revision", default="01")
-    revision_date = fields.Date(string="Revision Date", default=fields.Date.today)
+    revision = fields.Char(string="개정", default="01")
+    revision_date = fields.Date(string="개정일", default=fields.Date.today)
 
     # ── FMEA Lines ──
-    line_ids = fields.One2many("iatf.fmea.line", "fmea_id", string="FMEA Lines")
+    line_ids = fields.One2many("iatf.fmea.line", "fmea_id", string="FMEA 항목")
     line_count = fields.Integer(compute="_compute_line_count")
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("in_progress", "In Progress"),
-            ("review", "Under Review"),
-            ("approved", "Approved"),
+            ("draft", "초안"),
+            ("in_progress", "진행 중"),
+            ("review", "검토 중"),
+            ("approved", "승인됨"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
 
     # ── Statistics ──
-    max_rpn = fields.Integer(string="Highest RPN", compute="_compute_stats", store=True)
-    high_risk_count = fields.Integer(string="High Risk Items", compute="_compute_stats", store=True)
-    open_action_count = fields.Integer(string="Open Actions", compute="_compute_stats", store=True)
+    max_rpn = fields.Integer(string="최고 RPN", compute="_compute_stats", store=True)
+    high_risk_count = fields.Integer(string="고위험 항목", compute="_compute_stats", store=True)
+    open_action_count = fields.Integer(string="미결 조치", compute="_compute_stats", store=True)
 
     # ── Links ──
-    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP Project")
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
+    apqp_project_id = fields.Many2one("iatf.apqp.project", string="APQP 프로젝트")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
 
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 

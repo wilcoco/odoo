@@ -10,10 +10,10 @@ class IatfSpcStudy(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="Study Number", required=True, copy=False, readonly=True,
+        string="연구 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     chart_type = fields.Selection(
         [
             ("xbar_r", "X-bar R Chart"),
@@ -24,28 +24,28 @@ class IatfSpcStudy(models.Model):
             ("c_chart", "c Chart (count of defects)"),
             ("u_chart", "u Chart"),
         ],
-        string="Chart Type", required=True, default="xbar_r", tracking=True,
+        string="관리도 유형", required=True, default="xbar_r", tracking=True,
     )
 
     # ── Product / Process ──
-    product_id = fields.Many2one("product.product", string="Product")
-    part_number = fields.Char(string="Part Number")
-    characteristic_name = fields.Char(string="Characteristic", required=True)
-    unit = fields.Char(string="Unit of Measure")
-    workcenter_id = fields.Many2one("mrp.workcenter", string="Work Center")
-    machine_name = fields.Char(string="Machine / Equipment")
-    gage_name = fields.Char(string="Gage / Instrument")
+    product_id = fields.Many2one("product.product", string="제품")
+    part_number = fields.Char(string="부품 번호")
+    characteristic_name = fields.Char(string="특성", required=True)
+    unit = fields.Char(string="측정 단위")
+    workcenter_id = fields.Many2one("mrp.workcenter", string="작업장")
+    machine_name = fields.Char(string="설비")
+    gage_name = fields.Char(string="게이지 / 측정기")
 
     # ── Specification ──
-    usl = fields.Float(string="USL (Upper Spec Limit)")
-    lsl = fields.Float(string="LSL (Lower Spec Limit)")
-    nominal = fields.Float(string="Nominal / Target")
+    usl = fields.Float(string="USL (상한 규격)")
+    lsl = fields.Float(string="LSL (하한 규격)")
+    nominal = fields.Float(string="목표값")
 
     # ── Subgroup config ──
-    subgroup_size = fields.Integer(string="Subgroup Size (n)", default=5)
+    subgroup_size = fields.Integer(string="부분군 크기 (n)", default=5)
 
     # ── Data ──
-    subgroup_ids = fields.One2many("iatf.spc.subgroup", "study_id", string="Subgroups")
+    subgroup_ids = fields.One2many("iatf.spc.subgroup", "study_id", string="부분군")
     subgroup_count = fields.Integer(compute="_compute_stats", store=True)
 
     # ── Calculated results ──
@@ -65,28 +65,28 @@ class IatfSpcStudy(models.Model):
 
     capability_status = fields.Selection(
         [
-            ("capable", "Capable (Cpk ≥ 1.33)"),
-            ("marginal", "Marginal (1.00 ≤ Cpk < 1.33)"),
-            ("not_capable", "Not Capable (Cpk < 1.00)"),
-            ("not_calculated", "Not Calculated"),
+            ("capable", "적합 (Cpk ≥ 1.33)"),
+            ("marginal", "한계 (1.00 ≤ Cpk < 1.33)"),
+            ("not_capable", "부적합 (Cpk < 1.00)"),
+            ("not_calculated", "미산출"),
         ],
-        string="Capability Status", default="not_calculated", readonly=True,
+        string="공정능력 상태", default="not_calculated", readonly=True,
     )
 
-    ooc_count = fields.Integer(string="Out of Control Points", readonly=True)
+    ooc_count = fields.Integer(string="관리이탈 포인트", readonly=True)
 
-    responsible_id = fields.Many2one("res.users", string="Responsible",
+    responsible_id = fields.Many2one("res.users", string="담당자",
                                       default=lambda self: self.env.user, tracking=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("collecting", "Collecting Data"),
-            ("analyzed", "Analyzed"),
-            ("closed", "Closed"),
+            ("draft", "초안"),
+            ("collecting", "데이터 수집 중"),
+            ("analyzed", "분석 완료"),
+            ("closed", "종료"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
-    notes = fields.Text(string="Notes / Conclusions")
+    notes = fields.Text(string="비고 / 결론")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     # d2 constants for subgroup sizes 2-10

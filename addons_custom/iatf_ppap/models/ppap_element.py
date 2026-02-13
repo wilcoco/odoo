@@ -7,30 +7,30 @@ class IatfPpapElement(models.Model):
     _order = "element_number_int, id"
 
     submission_id = fields.Many2one(
-        "iatf.ppap.submission", string="PPAP Submission", required=True, ondelete="cascade", index=True,
+        "iatf.ppap.submission", string="PPAP 제출", required=True, ondelete="cascade", index=True,
     )
-    element_number = fields.Char(string="Element #", required=True)
+    element_number = fields.Char(string="요소 #", required=True)
     element_number_int = fields.Integer(compute="_compute_number_int", store=True)
-    name = fields.Char(string="Element Name", required=True)
-    is_required = fields.Boolean(string="Required", default=True)
+    name = fields.Char(string="요소명", required=True)
+    is_required = fields.Boolean(string="필수", default=True)
 
-    responsible_id = fields.Many2one("res.users", string="Responsible")
-    due_date = fields.Date(string="Due Date")
-    completion_date = fields.Date(string="Completion Date")
+    responsible_id = fields.Many2one("res.users", string="담당자")
+    due_date = fields.Date(string="기한")
+    completion_date = fields.Date(string="완료일")
 
     state = fields.Selection(
         [
-            ("todo", "To Do"),
-            ("in_progress", "In Progress"),
-            ("done", "Done"),
-            ("na", "N/A"),
+            ("todo", "할 일"),
+            ("in_progress", "진행 중"),
+            ("done", "완료"),
+            ("na", "해당없음"),
         ],
-        string="Status", default="todo",
+        string="상태", default="todo",
     )
 
-    document_id = fields.Many2one("iatf.document", string="Linked Document")
-    attachment_ids = fields.Many2many("ir.attachment", string="Attachments")
-    notes = fields.Text(string="Notes")
+    document_id = fields.Many2one("iatf.document", string="연결 문서")
+    attachment_ids = fields.Many2many("ir.attachment", string="첨부파일")
+    notes = fields.Text(string="비고")
 
     def _compute_number_int(self):
         for rec in self:

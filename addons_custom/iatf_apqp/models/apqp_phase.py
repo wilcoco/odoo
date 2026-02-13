@@ -8,7 +8,7 @@ class IatfApqpPhase(models.Model):
     _order = "phase_number"
 
     project_id = fields.Many2one(
-        "iatf.apqp.project", string="APQP Project", required=True,
+        "iatf.apqp.project", string="APQP 프로젝트", required=True,
         ondelete="cascade", index=True,
     )
     phase_number = fields.Selection(
@@ -21,33 +21,33 @@ class IatfApqpPhase(models.Model):
         ],
         string="Phase", required=True,
     )
-    name = fields.Char(string="Phase Name", required=True)
-    description = fields.Html(string="Description")
+    name = fields.Char(string="단계명", required=True)
+    description = fields.Html(string="설명")
 
     # ── Timeline ──
-    date_planned_start = fields.Date(string="Planned Start")
-    date_planned_end = fields.Date(string="Planned End")
-    date_actual_start = fields.Date(string="Actual Start")
-    date_actual_end = fields.Date(string="Actual End")
+    date_planned_start = fields.Date(string="계획 시작일")
+    date_planned_end = fields.Date(string="계획 종료일")
+    date_actual_start = fields.Date(string="실제 시작일")
+    date_actual_end = fields.Date(string="실제 종료일")
 
     # ── Gate review ──
-    gate_reviewer_id = fields.Many2one("res.users", string="Gate Reviewer")
-    gate_review_date = fields.Date(string="Gate Review Date")
+    gate_reviewer_id = fields.Many2one("res.users", string="게이트 검토자")
+    gate_review_date = fields.Date(string="게이트 검토일")
     gate_result = fields.Selection(
         [
-            ("go", "Go"),
-            ("conditional", "Conditional Go"),
-            ("no_go", "No Go"),
+            ("go", "통과"),
+            ("conditional", "조건부 통과"),
+            ("no_go", "불통과"),
         ],
-        string="Gate Result",
+        string="게이트 결과",
     )
-    gate_notes = fields.Text(string="Gate Review Notes")
+    gate_notes = fields.Text(string="게이트 검토 비고")
 
     # ── Deliverables ──
-    deliverable_ids = fields.One2many("iatf.apqp.deliverable", "phase_id", string="Deliverables")
+    deliverable_ids = fields.One2many("iatf.apqp.deliverable", "phase_id", string="산출물")
     deliverable_count = fields.Integer(compute="_compute_deliverable_stats")
     deliverable_done_count = fields.Integer(compute="_compute_deliverable_stats")
-    progress = fields.Float(string="Progress (%)", compute="_compute_deliverable_stats", store=True)
+    progress = fields.Float(string="진행률 (%)", compute="_compute_deliverable_stats", store=True)
 
     state = fields.Selection(
         [
@@ -100,10 +100,10 @@ class IatfApqpPhaseTemplate(models.Model):
         ],
         string="Phase", required=True,
     )
-    name = fields.Char(string="Phase Name", required=True)
-    description = fields.Html(string="Description")
+    name = fields.Char(string="단계명", required=True)
+    description = fields.Html(string="설명")
     deliverable_template_ids = fields.One2many(
-        "iatf.apqp.deliverable.template", "phase_template_id", string="Deliverable Templates",
+        "iatf.apqp.deliverable.template", "phase_template_id", string="산출물 템플릿",
     )
 
 
@@ -113,10 +113,10 @@ class IatfApqpDeliverableTemplate(models.Model):
     _order = "sequence"
 
     phase_template_id = fields.Many2one(
-        "iatf.apqp.phase.template", string="Phase Template",
+        "iatf.apqp.phase.template", string="단계 템플릿",
         required=True, ondelete="cascade",
     )
     sequence = fields.Integer(default=10)
-    name = fields.Char(string="Deliverable Name", required=True)
-    description = fields.Text(string="Description")
-    is_required = fields.Boolean(string="Required", default=True)
+    name = fields.Char(string="산출물명", required=True)
+    description = fields.Text(string="설명")
+    is_required = fields.Boolean(string="필수", default=True)

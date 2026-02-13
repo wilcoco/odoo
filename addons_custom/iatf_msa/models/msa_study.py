@@ -10,10 +10,10 @@ class IatfMsaStudy(models.Model):
     _order = "create_date desc"
 
     name = fields.Char(
-        string="MSA Number", required=True, copy=False, readonly=True,
+        string="MSA 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
+    title = fields.Char(string="제목", required=True, tracking=True)
     study_type = fields.Selection(
         [
             ("grr_crossed", "Gage R&R (Crossed)"),
@@ -22,36 +22,36 @@ class IatfMsaStudy(models.Model):
             ("linearity", "Linearity Study"),
             ("stability", "Stability Study"),
         ],
-        string="Study Type", required=True, default="grr_crossed", tracking=True,
+        string="연구 유형", required=True, default="grr_crossed", tracking=True,
     )
 
     # ── Gage info ──
-    gage_name = fields.Char(string="Gage / Instrument Name", required=True)
-    gage_id_number = fields.Char(string="Gage ID #")
-    gage_resolution = fields.Float(string="Gage Resolution", digits=(16, 6))
+    gage_name = fields.Char(string="게이지 / 측정기명", required=True)
+    gage_id_number = fields.Char(string="게이지 ID")
+    gage_resolution = fields.Float(string="게이지 분해능", digits=(16, 6))
 
     # ── Characteristic ──
-    characteristic_name = fields.Char(string="Characteristic")
-    unit = fields.Char(string="Unit")
-    usl = fields.Float(string="USL")
-    lsl = fields.Float(string="LSL")
-    tolerance = fields.Float(string="Tolerance", compute="_compute_tolerance", store=True)
+    characteristic_name = fields.Char(string="특성")
+    unit = fields.Char(string="단위")
+    usl = fields.Float(string="USL (상한)")
+    lsl = fields.Float(string="LSL (하한)")
+    tolerance = fields.Float(string="공차", compute="_compute_tolerance", store=True)
 
     # ── Study design ──
-    num_operators = fields.Integer(string="# Operators", default=3)
-    num_parts = fields.Integer(string="# Parts", default=10)
-    num_trials = fields.Integer(string="# Trials", default=3)
+    num_operators = fields.Integer(string="측정자 수", default=3)
+    num_parts = fields.Integer(string="부품 수", default=10)
+    num_trials = fields.Integer(string="반복 횟수", default=3)
 
     # ── Measurements ──
-    measurement_ids = fields.One2many("iatf.msa.measurement", "study_id", string="Measurements")
+    measurement_ids = fields.One2many("iatf.msa.measurement", "study_id", string="측정 데이터")
     measurement_count = fields.Integer(compute="_compute_measurement_count")
 
     # ── Results ──
-    repeatability = fields.Float(string="Repeatability (EV)", digits=(16, 6), readonly=True)
-    reproducibility = fields.Float(string="Reproducibility (AV)", digits=(16, 6), readonly=True)
+    repeatability = fields.Float(string="반복성 (EV)", digits=(16, 6), readonly=True)
+    reproducibility = fields.Float(string="재현성 (AV)", digits=(16, 6), readonly=True)
     grr = fields.Float(string="GRR (R&R)", digits=(16, 6), readonly=True)
-    part_variation = fields.Float(string="Part Variation (PV)", digits=(16, 6), readonly=True)
-    total_variation = fields.Float(string="Total Variation (TV)", digits=(16, 6), readonly=True)
+    part_variation = fields.Float(string="부품 변동 (PV)", digits=(16, 6), readonly=True)
+    total_variation = fields.Float(string="전체 변동 (TV)", digits=(16, 6), readonly=True)
 
     pct_ev = fields.Float(string="%EV", digits=(16, 2), readonly=True)
     pct_av = fields.Float(string="%AV", digits=(16, 2), readonly=True)
@@ -61,26 +61,26 @@ class IatfMsaStudy(models.Model):
 
     grr_status = fields.Selection(
         [
-            ("acceptable", "Acceptable (%GRR < 10%)"),
-            ("marginal", "Marginal (10% ≤ %GRR ≤ 30%)"),
-            ("unacceptable", "Unacceptable (%GRR > 30%)"),
-            ("not_calculated", "Not Calculated"),
+            ("acceptable", "합격 (%GRR < 10%)"),
+            ("marginal", "한계 (10% ≤ %GRR ≤ 30%)"),
+            ("unacceptable", "불합격 (%GRR > 30%)"),
+            ("not_calculated", "미산출"),
         ],
-        string="GRR Status", default="not_calculated", readonly=True,
+        string="GRR 상태", default="not_calculated", readonly=True,
     )
 
-    responsible_id = fields.Many2one("res.users", string="Responsible",
+    responsible_id = fields.Many2one("res.users", string="담당자",
                                       default=lambda self: self.env.user, tracking=True)
     state = fields.Selection(
         [
-            ("draft", "Draft"),
-            ("collecting", "Collecting Data"),
-            ("analyzed", "Analyzed"),
-            ("closed", "Closed"),
+            ("draft", "초안"),
+            ("collecting", "데이터 수집 중"),
+            ("analyzed", "분석 완료"),
+            ("closed", "종료"),
         ],
-        string="Status", default="draft", tracking=True,
+        string="상태", default="draft", tracking=True,
     )
-    notes = fields.Text(string="Notes / Conclusions")
+    notes = fields.Text(string="비고 / 결론")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     # AIAG MSA K1 constants (by number of trials)

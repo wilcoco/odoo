@@ -8,60 +8,60 @@ class IatfManagementReview(models.Model):
     _order = "meeting_date desc"
 
     name = fields.Char(
-        string="Review Number", required=True, copy=False, readonly=True,
+        string="검토 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Title", required=True, tracking=True)
-    meeting_date = fields.Date(string="Meeting Date", required=True, default=fields.Date.today, tracking=True)
-    review_period = fields.Char(string="Review Period", help="e.g. 2026-H1")
+    title = fields.Char(string="제목", required=True, tracking=True)
+    meeting_date = fields.Date(string="회의일", required=True, default=fields.Date.today, tracking=True)
+    review_period = fields.Char(string="검토 기간", help="e.g. 2026-H1")
 
-    chairperson_id = fields.Many2one("res.users", string="Chairperson", required=True,
+    chairperson_id = fields.Many2one("res.users", string="의장", required=True,
                                       default=lambda self: self.env.user, tracking=True)
-    attendee_ids = fields.Many2many("res.users", string="Attendees")
+    attendee_ids = fields.Many2many("res.users", string="참석자")
 
     # ── Inputs (§9.3.2) ──
-    input_audit_results = fields.Html(string="Audit Results Summary")
-    input_customer_feedback = fields.Html(string="Customer Feedback & Satisfaction")
-    input_process_performance = fields.Html(string="Process Performance & Product Conformity")
-    input_nc_corrective = fields.Html(string="Nonconformities & Corrective Actions")
-    input_previous_actions = fields.Html(string="Status of Previous Review Actions")
-    input_changes = fields.Html(string="Changes (Internal/External)")
-    input_improvement_opportunities = fields.Html(string="Opportunities for Improvement")
-    input_resource_needs = fields.Html(string="Resource Adequacy")
+    input_audit_results = fields.Html(string="심사 결과 요약")
+    input_customer_feedback = fields.Html(string="고객 피드백 및 만족도")
+    input_process_performance = fields.Html(string="공정 성과 및 제품 적합성")
+    input_nc_corrective = fields.Html(string="부적합 및 시정조치")
+    input_previous_actions = fields.Html(string="이전 검토 조치 현황")
+    input_changes = fields.Html(string="변경사항 (내부/외부)")
+    input_improvement_opportunities = fields.Html(string="개선 기회")
+    input_resource_needs = fields.Html(string="자원 적절성")
 
     # ── IATF Supplemental Inputs (§9.3.2.1) ──
-    input_cost_poor_quality = fields.Html(string="Cost of Poor Quality (COPQ)")
-    input_process_effectiveness = fields.Html(string="Process Effectiveness Measures")
-    input_product_conformity = fields.Html(string="Product Conformity Measures")
-    input_warranty = fields.Html(string="Warranty & Field Returns")
-    input_customer_scorecards = fields.Html(string="Customer Scorecards")
-    input_field_failures = fields.Html(string="Potential Field Failures (FMEA)")
-    input_risk_assessment = fields.Html(string="Risk Assessment Summary")
+    input_cost_poor_quality = fields.Html(string="불량 비용 (COPQ)")
+    input_process_effectiveness = fields.Html(string="공정 유효성 측정")
+    input_product_conformity = fields.Html(string="제품 적합성 측정")
+    input_warranty = fields.Html(string="보증 및 현장 반품")
+    input_customer_scorecards = fields.Html(string="고객 스코어카드")
+    input_field_failures = fields.Html(string="잠재적 현장 고장 (FMEA)")
+    input_risk_assessment = fields.Html(string="리스크 평가 요약")
 
     # ── Outputs (§9.3.3) ──
-    output_improvement = fields.Html(string="Improvement Decisions")
-    output_resource = fields.Html(string="Resource Needs / Changes")
-    output_qms_changes = fields.Html(string="QMS Changes Required")
-    output_quality_objectives = fields.Html(string="Quality Objectives Update")
-    output_other = fields.Html(string="Other Decisions")
+    output_improvement = fields.Html(string="개선 결정")
+    output_resource = fields.Html(string="자원 필요/변경")
+    output_qms_changes = fields.Html(string="QMS 변경 필요사항")
+    output_quality_objectives = fields.Html(string="품질 목표 갱신")
+    output_other = fields.Html(string="기타 결정사항")
 
     # ── Action Items ──
-    action_item_ids = fields.One2many("iatf.management.review.action", "review_id", string="Action Items")
+    action_item_ids = fields.One2many("iatf.management.review.action", "review_id", string="조치 항목")
     action_count = fields.Integer(compute="_compute_action_count")
     open_action_count = fields.Integer(compute="_compute_action_count")
 
     state = fields.Selection(
         [
-            ("planned", "Planned"),
-            ("in_progress", "In Progress"),
-            ("minutes_issued", "Minutes Issued"),
-            ("closed", "Closed"),
+            ("planned", "계획됨"),
+            ("in_progress", "진행 중"),
+            ("minutes_issued", "회의록 발행"),
+            ("closed", "종료"),
         ],
-        string="Status", default="planned", tracking=True,
+        string="상태", default="planned", tracking=True,
     )
 
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
-    attachment_ids = fields.Many2many("ir.attachment", string="Attachments")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
+    attachment_ids = fields.Many2many("ir.attachment", string="첨부파일")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.depends("action_item_ids", "action_item_ids.state")

@@ -7,24 +7,24 @@ class IatfControlPlanLine(models.Model):
     _order = "sequence, id"
 
     control_plan_id = fields.Many2one(
-        "iatf.control.plan", string="Control Plan", required=True, ondelete="cascade", index=True,
+        "iatf.control.plan", string="관리계획서", required=True, ondelete="cascade", index=True,
     )
     sequence = fields.Integer(default=10)
 
     # ── Process ──
-    process_step_number = fields.Char(string="Step #")
-    process_name = fields.Char(string="Process Name / Operation")
-    machine_device = fields.Char(string="Machine / Device / Tool")
+    process_step_number = fields.Char(string="단계 #")
+    process_name = fields.Char(string="공정명 / 작업")
+    machine_device = fields.Char(string="설비 / 장치 / 공구")
 
     # ── Characteristic ──
-    characteristic_number = fields.Char(string="Char. #")
-    characteristic_name = fields.Char(string="Characteristic", required=True)
+    characteristic_number = fields.Char(string="특성 #")
+    characteristic_name = fields.Char(string="특성", required=True)
     characteristic_type = fields.Selection(
         [
-            ("product", "Product"),
-            ("process", "Process"),
+            ("product", "제품"),
+            ("process", "공정"),
         ],
-        string="Char. Type", default="product",
+        string="특성 유형", default="product",
     )
     special_characteristic = fields.Selection(
         [
@@ -33,20 +33,20 @@ class IatfControlPlanLine(models.Model):
             ("sc", "SC - Significant"),
             ("hi", "HI - High Impact"),
         ],
-        string="Special Char.", default="none",
+        string="특별 특성", default="none",
     )
 
     # ── Specification ──
-    specification = fields.Char(string="Product/Process Specification / Tolerance")
-    evaluation_method = fields.Char(string="Evaluation / Measurement Technique")
-    sample_size = fields.Char(string="Sample Size")
-    sample_frequency = fields.Char(string="Sample Frequency")
+    specification = fields.Char(string="규격 / 공차")
+    evaluation_method = fields.Char(string="평가 / 측정 방법")
+    sample_size = fields.Char(string="시료 크기")
+    sample_frequency = fields.Char(string="시료 빈도")
 
     # ── Control Method ──
-    control_method = fields.Text(string="Control Method")
-    reaction_plan = fields.Text(string="Reaction Plan")
+    control_method = fields.Text(string="관리 방법")
+    reaction_plan = fields.Text(string="대응 계획")
 
     # ── FMEA link ──
-    fmea_line_id = fields.Many2one("iatf.fmea.line", string="FMEA Line Reference")
+    fmea_line_id = fields.Many2one("iatf.fmea.line", string="FMEA 항목 참조")
 
-    notes = fields.Text(string="Notes")
+    notes = fields.Text(string="비고")

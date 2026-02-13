@@ -9,67 +9,67 @@ class IatfAudit(models.Model):
     _order = "planned_date desc"
 
     name = fields.Char(
-        string="Audit Number", required=True, copy=False, readonly=True,
+        string="심사 번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    title = fields.Char(string="Audit Title", required=True, tracking=True)
+    title = fields.Char(string="심사 제목", required=True, tracking=True)
     audit_type = fields.Selection(
         [
-            ("system", "QMS / System Audit"),
-            ("process", "Process Audit (VDA 6.3)"),
-            ("product", "Product Audit"),
-            ("supplier", "Supplier Audit"),
+            ("system", "QMS / 시스템 심사"),
+            ("process", "공정 심사 (VDA 6.3)"),
+            ("product", "제품 심사"),
+            ("supplier", "협력업체 심사"),
         ],
-        string="Audit Type", required=True, default="system", tracking=True,
+        string="심사 유형", required=True, default="system", tracking=True,
     )
 
     # ── Planning ──
-    planned_date = fields.Date(string="Planned Date", required=True, tracking=True)
-    actual_date = fields.Date(string="Actual Date")
-    department_id = fields.Many2one("hr.department", string="Audited Area / Department")
-    process_name = fields.Char(string="Audited Process")
+    planned_date = fields.Date(string="계획일", required=True, tracking=True)
+    actual_date = fields.Date(string="실제 일자")
+    department_id = fields.Many2one("hr.department", string="피심사 부서")
+    process_name = fields.Char(string="피심사 공정")
     standard_reference = fields.Char(
-        string="Standard / Clause Reference",
+        string="표준 / 조항 참조",
         help="e.g. IATF 16949 §8.5, VDA 6.3 P5-P7",
     )
 
     # ── Auditors ──
-    lead_auditor_id = fields.Many2one("res.users", string="Lead Auditor", required=True, tracking=True)
-    auditor_ids = fields.Many2many("res.users", string="Audit Team")
+    lead_auditor_id = fields.Many2one("res.users", string="수석 심사원", required=True, tracking=True)
+    auditor_ids = fields.Many2many("res.users", string="심사팀")
 
     # ── Findings ──
-    finding_ids = fields.One2many("iatf.audit.finding", "audit_id", string="Findings")
+    finding_ids = fields.One2many("iatf.audit.finding", "audit_id", string="지적사항")
     finding_count = fields.Integer(compute="_compute_finding_count")
-    nc_major_count = fields.Integer(string="Major NCs", compute="_compute_finding_count", store=True)
-    nc_minor_count = fields.Integer(string="Minor NCs", compute="_compute_finding_count", store=True)
-    observation_count = fields.Integer(string="Observations", compute="_compute_finding_count", store=True)
+    nc_major_count = fields.Integer(string="중대 부적합", compute="_compute_finding_count", store=True)
+    nc_minor_count = fields.Integer(string="경미 부적합", compute="_compute_finding_count", store=True)
+    observation_count = fields.Integer(string="관찰사항", compute="_compute_finding_count", store=True)
 
     # ── Score (for VDA 6.3) ──
-    vda_score = fields.Float(string="VDA 6.3 Score (%)", digits=(5, 1))
+    vda_score = fields.Float(string="VDA 6.3 점수 (%)", digits=(5, 1))
     vda_grade = fields.Selection(
         [
             ("a", "A (≥ 90%)"),
             ("b", "B (80–89%)"),
             ("c", "C (< 80%)"),
         ],
-        string="VDA Grade",
+        string="VDA 등급",
     )
 
     # ── Status ──
     state = fields.Selection(
         [
-            ("planned", "Planned"),
-            ("in_progress", "In Progress"),
-            ("report", "Report Issued"),
-            ("follow_up", "Follow-up"),
-            ("closed", "Closed"),
-            ("cancelled", "Cancelled"),
+            ("planned", "계획됨"),
+            ("in_progress", "진행 중"),
+            ("report", "보고서 발행"),
+            ("follow_up", "후속 조치"),
+            ("closed", "종료"),
+            ("cancelled", "취소"),
         ],
-        string="Status", default="planned", tracking=True,
+        string="상태", default="planned", tracking=True,
     )
-    audit_report = fields.Html(string="Audit Report / Summary")
-    document_ids = fields.Many2many("iatf.document", string="Related Documents")
-    attachment_ids = fields.Many2many("ir.attachment", string="Attachments")
+    audit_report = fields.Html(string="심사 보고서 / 요약")
+    document_ids = fields.Many2many("iatf.document", string="관련 문서")
+    attachment_ids = fields.Many2many("ir.attachment", string="첨부파일")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     @api.depends("finding_ids", "finding_ids.finding_type")
