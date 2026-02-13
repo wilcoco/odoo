@@ -55,6 +55,30 @@ class IatfDashboard(models.TransientModel):
     # ── APQP ──
     apqp_active = fields.Integer(compute="_compute_all")
 
+    # ── Incoming Inspection ──
+    iqc_open = fields.Integer(compute="_compute_all")
+    iqc_fail = fields.Integer(compute="_compute_all")
+
+    # ── Process Inspection ──
+    pqc_open = fields.Integer(compute="_compute_all")
+    pqc_fail = fields.Integer(compute="_compute_all")
+
+    # ── Quality Objective ──
+    qo_active = fields.Integer(compute="_compute_all")
+    qo_behind = fields.Integer(compute="_compute_all")
+
+    # ── Change Management ──
+    cr_open = fields.Integer(compute="_compute_all")
+    cr_high_risk = fields.Integer(compute="_compute_all")
+
+    # ── CSR ──
+    csr_active = fields.Integer(compute="_compute_all")
+    csr_non_compliant = fields.Integer(compute="_compute_all")
+
+    # ── Layout Inspection ──
+    li_open = fields.Integer(compute="_compute_all")
+    li_fail = fields.Integer(compute="_compute_all")
+
     def _compute_all(self):
         today = fields.Date.today()
         year_start = today.replace(month=1, day=1)
@@ -136,6 +160,42 @@ class IatfDashboard(models.TransientModel):
             rec.apqp_active = self.env["iatf.apqp.project"].search_count(
                 [("state", "=", "active")])
 
+            # Incoming Inspection
+            rec.iqc_open = self.env["iatf.incoming.inspection"].search_count(
+                [("state", "not in", ("closed", "cancelled"))])
+            rec.iqc_fail = self.env["iatf.incoming.inspection"].search_count(
+                [("result", "=", "fail")])
+
+            # Process Inspection
+            rec.pqc_open = self.env["iatf.process.inspection"].search_count(
+                [("state", "not in", ("closed", "cancelled"))])
+            rec.pqc_fail = self.env["iatf.process.inspection"].search_count(
+                [("result", "=", "fail")])
+
+            # Quality Objective
+            rec.qo_active = self.env["iatf.quality.objective"].search_count(
+                [("state", "=", "active")])
+            rec.qo_behind = self.env["iatf.quality.objective"].search_count(
+                [("achievement_status", "in", ("behind", "at_risk")), ("state", "=", "active")])
+
+            # Change Management
+            rec.cr_open = self.env["iatf.change.request"].search_count(
+                [("state", "not in", ("closed", "rejected"))])
+            rec.cr_high_risk = self.env["iatf.change.request"].search_count(
+                [("risk_level", "in", ("high", "critical")), ("state", "not in", ("closed", "rejected"))])
+
+            # CSR
+            rec.csr_active = self.env["iatf.csr"].search_count(
+                [("state", "=", "active")])
+            rec.csr_non_compliant = self.env["iatf.csr"].search_count(
+                [("compliance_status", "in", ("non_compliant", "partial")), ("state", "=", "active")])
+
+            # Layout Inspection
+            rec.li_open = self.env["iatf.layout.inspection"].search_count(
+                [("state", "not in", ("closed",))])
+            rec.li_fail = self.env["iatf.layout.inspection"].search_count(
+                [("result", "=", "fail")])
+
     def action_open_nc_open(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.nonconformity",
                 "view_mode": "list,form", "name": _("Open Nonconformities"),
@@ -190,3 +250,33 @@ class IatfDashboard(models.TransientModel):
         return {"type": "ir.actions.act_window", "res_model": "iatf.msa.study",
                 "view_mode": "list,form", "name": _("Unacceptable MSA Studies"),
                 "domain": [("grr_status", "=", "unacceptable")]}
+
+    def action_open_iqc_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.incoming.inspection",
+                "view_mode": "list,form", "name": _("수입검사 진행 중"),
+                "domain": [("state", "not in", ("closed", "cancelled"))]}
+
+    def action_open_pqc_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.process.inspection",
+                "view_mode": "list,form", "name": _("공정검사 진행 중"),
+                "domain": [("state", "not in", ("closed", "cancelled"))]}
+
+    def action_open_qo_behind(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.quality.objective",
+                "view_mode": "list,form", "name": _("품질 목표 미달/위험"),
+                "domain": [("achievement_status", "in", ("behind", "at_risk")), ("state", "=", "active")]}
+
+    def action_open_cr_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.change.request",
+                "view_mode": "list,form", "name": _("변경 요청 진행 중"),
+                "domain": [("state", "not in", ("closed", "rejected"))]}
+
+    def action_open_csr_noncompliant(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.csr",
+                "view_mode": "list,form", "name": _("CSR 부적합/부분적합"),
+                "domain": [("compliance_status", "in", ("non_compliant", "partial")), ("state", "=", "active")]}
+
+    def action_open_li_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.layout.inspection",
+                "view_mode": "list,form", "name": _("레이아웃 검사 진행 중"),
+                "domain": [("state", "not in", ("closed",))]}

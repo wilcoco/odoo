@@ -24,6 +24,12 @@
         "iatf_management_review",
         "iatf_contingency",
         "iatf_risk",
+        "iatf_incoming_inspection",
+        "iatf_process_inspection",
+        "iatf_quality_objective",
+        "iatf_change_management",
+        "iatf_csr",
+        "iatf_layout_inspection",
     ],
     "data": [
         "security/ir.model.access.csv",

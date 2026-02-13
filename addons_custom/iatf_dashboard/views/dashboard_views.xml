@@ -149,9 +149,79 @@
                         </div>
                     </div>
 
-                    <!-- Row 4: YTD Summary -->
+                    <!-- Row 4: Inspection & New Modules -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">수입검사 (IQC)</h5>
+                                    <h2><field name="iqc_open" class="text-white"/></h2>
+                                    <small>불합격: <field name="iqc_fail" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_iqc_open" type="object" class="btn btn-sm btn-light mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">공정/출하검사</h5>
+                                    <h2><field name="pqc_open" class="text-white"/></h2>
+                                    <small>불합격: <field name="pqc_fail" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_pqc_open" type="object" class="btn btn-sm btn-light mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">품질 목표</h5>
+                                    <h2><field name="qo_active" class="text-white"/></h2>
+                                    <small>미달/위험: <field name="qo_behind" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_qo_behind" type="object" class="btn btn-sm btn-light mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-warning">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">변경 관리</h5>
+                                    <h2><field name="cr_open"/></h2>
+                                    <small>고위험: <field name="cr_high_risk"/></small>
+                                    <br/>
+                                    <button name="action_open_cr_open" type="object" class="btn btn-sm btn-dark mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: CSR, Layout, YTD -->
                     <div class="row">
-                        <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">고객 특수요구사항</h5>
+                                    <h2><field name="csr_active"/></h2>
+                                    <small class="text-danger">부적합: <field name="csr_non_compliant"/></small>
+                                    <br/>
+                                    <button name="action_open_csr_noncompliant" type="object" class="btn btn-sm btn-outline-danger mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">레이아웃 검사</h5>
+                                    <h2><field name="li_open"/></h2>
+                                    <small class="text-danger">불합격: <field name="li_fail"/></small>
+                                    <br/>
+                                    <button name="action_open_li_open" type="object" class="btn btn-sm btn-outline-primary mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
                             <div class="card border-secondary">
                                 <div class="card-body text-center">
                                     <h5 class="card-title">부적합 합계 (연간)</h5>
@@ -159,7 +229,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="col-lg-3 col-md-6 mb-3">
                             <div class="card border-secondary">
                                 <div class="card-body text-center">
                                     <h5 class="card-title">불만 비용 (연간)</h5>
