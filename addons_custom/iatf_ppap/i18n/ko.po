@@ -1,0 +1,111 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_ppap
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_ppap
+#: model:res.groups,name:iatf_ppap.group_ppap_user
+msgid "PPAP User"
+msgstr "PPAP 사용자"
+
+#. module: iatf_ppap
+#: model:res.groups,name:iatf_ppap.group_ppap_manager
+msgid "PPAP Manager"
+msgstr "PPAP 관리자"
+
+#. module: iatf_ppap
+#: model:ir.ui.menu,name:iatf_ppap.menu_iatf_ppap_root
+msgid "PPAP"
+msgstr "PPAP (양산부품승인)"
+
+#. module: iatf_ppap
+#: model:ir.ui.menu,name:iatf_ppap.menu_iatf_ppap
+msgid "PPAP Submissions"
+msgstr "PPAP 제출"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__name
+msgid "PPAP Number"
+msgstr "PPAP 번호"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__customer_id
+msgid "Customer"
+msgstr "고객"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__part_name
+msgid "Part Name"
+msgstr "부품명"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__part_number
+msgid "Part Number"
+msgstr "부품 번호"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__submission_level
+msgid "Submission Level"
+msgstr "제출 레벨"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_submission__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_ppap
+#: model:ir.model.fields.selection,name:iatf_ppap.selection__iatf_ppap_submission__state__draft
+msgid "Draft"
+msgstr "초안"
+
+#. module: iatf_ppap
+#: model:ir.model.fields.selection,name:iatf_ppap.selection__iatf_ppap_submission__state__submitted
+msgid "Submitted"
+msgstr "제출됨"
+
+#. module: iatf_ppap
+#: model:ir.model.fields.selection,name:iatf_ppap.selection__iatf_ppap_submission__state__approved
+msgid "Approved"
+msgstr "승인됨"
+
+#. module: iatf_ppap
+#: model:ir.model.fields.selection,name:iatf_ppap.selection__iatf_ppap_submission__state__rejected
+msgid "Rejected"
+msgstr "반려됨"
+
+#. module: iatf_ppap
+#: model:ir.model.fields.selection,name:iatf_ppap.selection__iatf_ppap_submission__state__interim
+msgid "Interim Approval"
+msgstr "잠정 승인"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_element__name
+msgid "Element Name"
+msgstr "요소명"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_element__element_number
+msgid "Element Number"
+msgstr "요소 번호"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_element__required
+msgid "Required"
+msgstr "필수 여부"
+
+#. module: iatf_ppap
+#: model:ir.model.fields,field_description:iatf_ppap.field_iatf_ppap_element__status
+msgid "Status"
+msgstr "상태"

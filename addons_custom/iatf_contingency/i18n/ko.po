@@ -1,0 +1,91 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_contingency
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_contingency
+#: model:res.groups,name:iatf_contingency.group_contingency_user
+msgid "Contingency Plan User"
+msgstr "비상 대응 사용자"
+
+#. module: iatf_contingency
+#: model:res.groups,name:iatf_contingency.group_contingency_manager
+msgid "Contingency Plan Manager"
+msgstr "비상 대응 관리자"
+
+#. module: iatf_contingency
+#: model:ir.ui.menu,name:iatf_contingency.menu_iatf_contingency_root
+msgid "Contingency Plans"
+msgstr "비상 대응 계획"
+
+#. module: iatf_contingency
+#: model:ir.ui.menu,name:iatf_contingency.menu_iatf_contingency_plans
+msgid "Plans"
+msgstr "계획 목록"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__name
+msgid "Plan Reference"
+msgstr "계획 번호"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__scenario
+msgid "Scenario / Risk"
+msgstr "시나리오 / 위험"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__trigger_conditions
+msgid "Trigger Conditions"
+msgstr "발동 조건"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__response_actions
+msgid "Response Actions"
+msgstr "대응 조치"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__last_test_date
+msgid "Last Test Date"
+msgstr "최근 테스트일"
+
+#. module: iatf_contingency
+#: model:ir.model.fields,field_description:iatf_contingency.field_iatf_contingency_plan__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_contingency
+#: model:ir.model.fields.selection,name:iatf_contingency.selection__iatf_contingency_plan__state__draft
+msgid "Draft"
+msgstr "초안"
+
+#. module: iatf_contingency
+#: model:ir.model.fields.selection,name:iatf_contingency.selection__iatf_contingency_plan__state__active
+msgid "Active"
+msgstr "활성"
+
+#. module: iatf_contingency
+#: model:ir.model.fields.selection,name:iatf_contingency.selection__iatf_contingency_plan__state__activated
+msgid "Activated"
+msgstr "발동됨"
+
+#. module: iatf_contingency
+#: model:ir.model.fields.selection,name:iatf_contingency.selection__iatf_contingency_plan__state__review
+msgid "Under Review"
+msgstr "검토 중"

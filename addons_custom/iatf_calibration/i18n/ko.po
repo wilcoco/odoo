@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_calibration
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_calibration
+#: model:res.groups,name:iatf_calibration.group_calibration_user
+msgid "Calibration User"
+msgstr "교정 사용자"
+
+#. module: iatf_calibration
+#: model:res.groups,name:iatf_calibration.group_calibration_manager
+msgid "Calibration Manager"
+msgstr "교정 관리자"
+
+#. module: iatf_calibration
+#: model:ir.ui.menu,name:iatf_calibration.menu_iatf_calibration_root
+msgid "Calibration"
+msgstr "교정"
+
+#. module: iatf_calibration
+#: model:ir.ui.menu,name:iatf_calibration.menu_iatf_equipment
+msgid "Equipment"
+msgstr "측정 장비"
+
+#. module: iatf_calibration
+#: model:ir.ui.menu,name:iatf_calibration.menu_iatf_calibration_records
+msgid "Calibration Records"
+msgstr "교정 기록"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__name
+msgid "Equipment Name"
+msgstr "장비명"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__equipment_number
+msgid "Equipment Number"
+msgstr "장비 번호"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__equipment_type
+msgid "Equipment Type"
+msgstr "장비 유형"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__location
+msgid "Location"
+msgstr "위치"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__department_id
+msgid "Department"
+msgstr "부서"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__calibration_interval
+msgid "Calibration Interval (days)"
+msgstr "교정 주기 (일)"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__next_calibration_date
+msgid "Next Calibration Date"
+msgstr "다음 교정일"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_calibration_record__calibration_date
+msgid "Calibration Date"
+msgstr "교정 일자"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_calibration_record__calibrated_by
+msgid "Calibrated By"
+msgstr "교정 수행자"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_calibration_record__result
+msgid "Result"
+msgstr "결과"
+
+#. module: iatf_calibration
+#: model:ir.model.fields.selection,name:iatf_calibration.selection__iatf_calibration_record__result__pass
+msgid "Pass"
+msgstr "합격"
+
+#. module: iatf_calibration
+#: model:ir.model.fields.selection,name:iatf_calibration.selection__iatf_calibration_record__result__fail
+msgid "Fail"
+msgstr "불합격"
+
+#. module: iatf_calibration
+#: model:ir.model.fields.selection,name:iatf_calibration.selection__iatf_calibration_record__result__adjusted
+msgid "Adjusted & Pass"
+msgstr "조정 후 합격"
+
+#. module: iatf_calibration
+#: model:ir.model.fields,field_description:iatf_calibration.field_iatf_measurement_equipment__calibration_count
+msgid "Calibrations"
+msgstr "교정 횟수"

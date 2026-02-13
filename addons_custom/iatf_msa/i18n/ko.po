@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_msa
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_msa
+#: model:res.groups,name:iatf_msa.group_msa_user
+msgid "MSA User"
+msgstr "MSA 사용자"
+
+#. module: iatf_msa
+#: model:res.groups,name:iatf_msa.group_msa_manager
+msgid "MSA Manager"
+msgstr "MSA 관리자"
+
+#. module: iatf_msa
+#: model:ir.ui.menu,name:iatf_msa.menu_iatf_msa_root
+msgid "MSA"
+msgstr "MSA (측정시스템분석)"
+
+#. module: iatf_msa
+#: model:ir.ui.menu,name:iatf_msa.menu_iatf_msa_studies
+msgid "MSA Studies"
+msgstr "MSA 연구"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__name
+msgid "Study Reference"
+msgstr "연구 번호"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__gage_name
+msgid "Gage Name"
+msgstr "게이지명"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__gage_number
+msgid "Gage Number"
+msgstr "게이지 번호"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__study_type
+msgid "Study Type"
+msgstr "연구 유형"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__study_type__grr
+msgid "Gage R&R"
+msgstr "게이지 R&R"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__study_type__bias
+msgid "Bias Study"
+msgstr "편의 연구"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__study_type__linearity
+msgid "Linearity Study"
+msgstr "직선성 연구"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__study_type__stability
+msgid "Stability Study"
+msgstr "안정성 연구"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__grr_percent
+msgid "GRR %"
+msgstr "GRR %"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__acceptability
+msgid "Acceptability"
+msgstr "판정"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__acceptability__acceptable
+msgid "Acceptable"
+msgstr "합격"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__acceptability__marginal
+msgid "Marginal"
+msgstr "한계"
+
+#. module: iatf_msa
+#: model:ir.model.fields.selection,name:iatf_msa.selection__iatf_msa_study__acceptability__unacceptable
+msgid "Unacceptable"
+msgstr "불합격"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__num_operators
+msgid "Number of Operators"
+msgstr "측정자 수"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__num_parts
+msgid "Number of Parts"
+msgstr "부품 수"
+
+#. module: iatf_msa
+#: model:ir.model.fields,field_description:iatf_msa.field_iatf_msa_study__num_trials
+msgid "Number of Trials"
+msgstr "반복 횟수"

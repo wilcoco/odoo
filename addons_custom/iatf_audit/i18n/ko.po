@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_audit
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_audit
+#: model:res.groups,name:iatf_audit.group_audit_user
+msgid "Audit User"
+msgstr "심사 사용자"
+
+#. module: iatf_audit
+#: model:res.groups,name:iatf_audit.group_audit_manager
+msgid "Audit Manager"
+msgstr "심사 관리자"
+
+#. module: iatf_audit
+#: model:ir.ui.menu,name:iatf_audit.menu_iatf_audit_root
+msgid "Internal Audit"
+msgstr "내부 심사"
+
+#. module: iatf_audit
+#: model:ir.ui.menu,name:iatf_audit.menu_iatf_audits
+msgid "Audits"
+msgstr "심사 목록"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__name
+msgid "Audit Reference"
+msgstr "심사 번호"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__audit_type
+msgid "Audit Type"
+msgstr "심사 유형"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit__audit_type__system
+msgid "System Audit"
+msgstr "시스템 심사"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit__audit_type__process
+msgid "Process Audit"
+msgstr "공정 심사"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit__audit_type__product
+msgid "Product Audit"
+msgstr "제품 심사"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit__audit_type__vda63
+msgid "VDA 6.3"
+msgstr "VDA 6.3"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__auditor_id
+msgid "Lead Auditor"
+msgstr "수석 심사원"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__department_id
+msgid "Audited Department"
+msgstr "피심사 부서"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__planned_date
+msgid "Planned Date"
+msgstr "계획일"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__actual_date
+msgid "Actual Date"
+msgstr "실제 일자"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_audit
+#: model:ir.model.fields,field_description:iatf_audit.field_iatf_audit_finding__finding_type
+msgid "Finding Type"
+msgstr "발견 유형"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit_finding__finding_type__nc_major
+msgid "Major NC"
+msgstr "중대 부적합"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit_finding__finding_type__nc_minor
+msgid "Minor NC"
+msgstr "경미 부적합"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit_finding__finding_type__observation
+msgid "Observation"
+msgstr "관찰 사항"
+
+#. module: iatf_audit
+#: model:ir.model.fields.selection,name:iatf_audit.selection__iatf_audit_finding__finding_type__opportunity
+msgid "Opportunity for Improvement"
+msgstr "개선 기회"

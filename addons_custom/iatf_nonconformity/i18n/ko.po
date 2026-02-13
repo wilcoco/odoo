@@ -1,0 +1,226 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_nonconformity
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_nonconformity
+#: model:res.groups,name:iatf_nonconformity.group_nc_user
+msgid "NC User"
+msgstr "부적합 사용자"
+
+#. module: iatf_nonconformity
+#: model:res.groups,name:iatf_nonconformity.group_nc_manager
+msgid "NC Manager"
+msgstr "부적합 관리자"
+
+#. module: iatf_nonconformity
+#: model:ir.ui.menu,name:iatf_nonconformity.menu_iatf_nonconformity_root
+msgid "Nonconformity / 8D"
+msgstr "부적합 / 8D"
+
+#. module: iatf_nonconformity
+#: model:ir.ui.menu,name:iatf_nonconformity.menu_iatf_nonconformities
+msgid "Nonconformities"
+msgstr "부적합 목록"
+
+#. module: iatf_nonconformity
+#: model:ir.ui.menu,name:iatf_nonconformity.menu_iatf_corrective_actions
+msgid "Corrective Actions"
+msgstr "시정 조치"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__name
+msgid "NC Number"
+msgstr "부적합 번호"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__description
+msgid "Description"
+msgstr "설명"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__nc_type
+msgid "NC Type"
+msgstr "부적합 유형"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__nc_type__internal
+msgid "Internal"
+msgstr "내부"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__nc_type__supplier
+msgid "Supplier"
+msgstr "협력업체"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__nc_type__customer
+msgid "Customer"
+msgstr "고객"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__severity
+msgid "Severity"
+msgstr "심각도"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__severity__minor
+msgid "Minor"
+msgstr "경미"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__severity__major
+msgid "Major"
+msgstr "중대"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__severity__critical
+msgid "Critical"
+msgstr "치명적"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__draft
+msgid "Draft"
+msgstr "초안"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__open
+msgid "Open"
+msgstr "진행 중"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__containment
+msgid "Containment"
+msgstr "격리 조치"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__root_cause
+msgid "Root Cause Analysis"
+msgstr "원인 분석"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__corrective
+msgid "Corrective Action"
+msgstr "시정 조치"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__verification
+msgid "Verification"
+msgstr "효과 검증"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_nonconformity__state__closed
+msgid "Closed"
+msgstr "종료"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__detected_date
+msgid "Detected Date"
+msgstr "발견 일자"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__detected_by
+msgid "Detected By"
+msgstr "발견자"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__target_close_date
+msgid "Target Close Date"
+msgstr "목표 종료일"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__actual_close_date
+msgid "Actual Close Date"
+msgstr "실제 종료일"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__containment_action
+msgid "Containment Action (D3)"
+msgstr "격리 조치 (D3)"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__root_cause
+msgid "Root Cause Analysis (D4)"
+msgstr "근본 원인 분석 (D4)"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__preventive_action
+msgid "Preventive Action (D7)"
+msgstr "예방 조치 (D7)"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__verification_result
+msgid "Verification of Effectiveness (D6)"
+msgstr "유효성 검증 (D6)"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__closure_notes
+msgid "Team Recognition / Closure Notes (D8)"
+msgstr "팀 인정 / 종료 기록 (D8)"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_nonconformity__notes
+msgid "Notes"
+msgstr "비고"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_corrective_action__name
+msgid "CA Reference"
+msgstr "시정 조치 번호"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_corrective_action__ca_type
+msgid "Action Type"
+msgstr "조치 유형"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_corrective_action__ca_type__correction
+msgid "Correction"
+msgstr "수정"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_corrective_action__ca_type__corrective
+msgid "Corrective"
+msgstr "시정"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields.selection,name:iatf_nonconformity.selection__iatf_corrective_action__ca_type__preventive
+msgid "Preventive"
+msgstr "예방"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_corrective_action__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_corrective_action__due_date
+msgid "Due Date"
+msgstr "기한"
+
+#. module: iatf_nonconformity
+#: model:ir.model.fields,field_description:iatf_nonconformity.field_iatf_corrective_action__description
+msgid "Description"
+msgstr "설명"

@@ -1,0 +1,91 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_customer_complaint
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_customer_complaint
+#: model:res.groups,name:iatf_customer_complaint.group_complaint_user
+msgid "Customer Complaint User"
+msgstr "고객 불만 사용자"
+
+#. module: iatf_customer_complaint
+#: model:res.groups,name:iatf_customer_complaint.group_complaint_manager
+msgid "Customer Complaint Manager"
+msgstr "고객 불만 관리자"
+
+#. module: iatf_customer_complaint
+#: model:ir.ui.menu,name:iatf_customer_complaint.menu_iatf_complaint_root
+msgid "Customer Complaints"
+msgstr "고객 불만"
+
+#. module: iatf_customer_complaint
+#: model:ir.ui.menu,name:iatf_customer_complaint.menu_iatf_complaints
+msgid "Complaints"
+msgstr "불만 목록"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__name
+msgid "Complaint Number"
+msgstr "불만 번호"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__customer_id
+msgid "Customer"
+msgstr "고객"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__complaint_date
+msgid "Complaint Date"
+msgstr "불만 접수일"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__description
+msgid "Description"
+msgstr "설명"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__product_id
+msgid "Product"
+msgstr "제품"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__lot_id
+msgid "Lot / Serial"
+msgstr "로트 / 시리얼"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__severity
+msgid "Severity"
+msgstr "심각도"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__warranty_claim
+msgid "Warranty Claim"
+msgstr "보증 청구"
+
+#. module: iatf_customer_complaint
+#: model:ir.model.fields,field_description:iatf_customer_complaint.field_iatf_customer_complaint__cost
+msgid "Cost"
+msgstr "비용"

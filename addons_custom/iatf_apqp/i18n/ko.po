@@ -1,0 +1,131 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_apqp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_apqp
+#: model:res.groups,name:iatf_apqp.group_apqp_user
+msgid "APQP User"
+msgstr "APQP 사용자"
+
+#. module: iatf_apqp
+#: model:res.groups,name:iatf_apqp.group_apqp_manager
+msgid "APQP Manager"
+msgstr "APQP 관리자"
+
+#. module: iatf_apqp
+#: model:ir.ui.menu,name:iatf_apqp.menu_iatf_apqp_root
+msgid "APQP"
+msgstr "APQP (사전품질계획)"
+
+#. module: iatf_apqp
+#: model:ir.ui.menu,name:iatf_apqp.menu_iatf_apqp_projects
+msgid "APQP Projects"
+msgstr "APQP 프로젝트"
+
+#. module: iatf_apqp
+#: model:ir.ui.menu,name:iatf_apqp.menu_iatf_apqp_deliverables
+msgid "All Deliverables"
+msgstr "전체 산출물"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__name
+msgid "Project Name"
+msgstr "프로젝트명"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__customer_id
+msgid "Customer"
+msgstr "고객"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__product_name
+msgid "Product / Part Name"
+msgstr "제품 / 부품명"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__part_number
+msgid "Part Number"
+msgstr "부품 번호"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__current_phase
+msgid "Current Phase"
+msgstr "현재 단계"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__start_date
+msgid "Start Date"
+msgstr "시작일"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__target_date
+msgid "Target Date"
+msgstr "목표일"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_project__project_manager_id
+msgid "Project Manager"
+msgstr "프로젝트 관리자"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_deliverable__name
+msgid "Deliverable Name"
+msgstr "산출물명"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_deliverable__phase
+msgid "Phase"
+msgstr "단계"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_deliverable__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_apqp
+#: model:ir.model.fields,field_description:iatf_apqp.field_iatf_apqp_deliverable__due_date
+msgid "Due Date"
+msgstr "기한"
+
+#. module: iatf_apqp
+#: model:ir.model.fields.selection,name:iatf_apqp.selection__iatf_apqp_project__current_phase__1
+msgid "Phase 1 - Plan & Define"
+msgstr "1단계 - 계획 및 정의"
+
+#. module: iatf_apqp
+#: model:ir.model.fields.selection,name:iatf_apqp.selection__iatf_apqp_project__current_phase__2
+msgid "Phase 2 - Product Design"
+msgstr "2단계 - 제품 설계"
+
+#. module: iatf_apqp
+#: model:ir.model.fields.selection,name:iatf_apqp.selection__iatf_apqp_project__current_phase__3
+msgid "Phase 3 - Process Design"
+msgstr "3단계 - 공정 설계"
+
+#. module: iatf_apqp
+#: model:ir.model.fields.selection,name:iatf_apqp.selection__iatf_apqp_project__current_phase__4
+msgid "Phase 4 - Validation"
+msgstr "4단계 - 유효성 확인"
+
+#. module: iatf_apqp
+#: model:ir.model.fields.selection,name:iatf_apqp.selection__iatf_apqp_project__current_phase__5
+msgid "Phase 5 - Production"
+msgstr "5단계 - 양산"

@@ -1,0 +1,341 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_document_control
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_document_control
+#: model:ir.module.category,name:iatf_document_control.module_category_iatf
+msgid "IATF Quality"
+msgstr "IATF 품질"
+
+#. module: iatf_document_control
+#: model:res.groups,name:iatf_document_control.group_document_user
+msgid "Document User"
+msgstr "문서 사용자"
+
+#. module: iatf_document_control
+#: model:res.groups,name:iatf_document_control.group_document_manager
+msgid "Document Manager"
+msgstr "문서 관리자"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_root
+msgid "IATF Quality"
+msgstr "IATF 품질"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_document_control
+msgid "Document Control"
+msgstr "문서 관리"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_documents
+msgid "Documents"
+msgstr "문서"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_document_revisions
+msgid "Revision History"
+msgstr "개정 이력"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_config
+msgid "Configuration"
+msgstr "설정"
+
+#. module: iatf_document_control
+#: model:ir.ui.menu,name:iatf_document_control.menu_iatf_document_categories
+msgid "Document Categories"
+msgstr "문서 분류"
+
+#. module: iatf_document_control
+#: model:ir.model,name:iatf_document_control.model_iatf_document
+msgid "Controlled Document (IATF 16949 §7.5)"
+msgstr "관리 문서 (IATF 16949 §7.5)"
+
+#. module: iatf_document_control
+#: model:ir.model,name:iatf_document_control.model_iatf_document_category
+msgid "Document Category (IATF 16949)"
+msgstr "문서 분류 (IATF 16949)"
+
+#. module: iatf_document_control
+#: model:ir.model,name:iatf_document_control.model_iatf_document_revision
+msgid "Document Revision"
+msgstr "문서 개정"
+
+#. module: iatf_document_control
+#: model:ir.model,name:iatf_document_control.model_iatf_document_distribution
+msgid "Document Distribution"
+msgstr "문서 배포"
+
+#. module: iatf_document_control
+#: model:ir.actions.act_window,name:iatf_document_control.action_iatf_document
+msgid "Documents"
+msgstr "문서"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__doc_number
+msgid "Document Number"
+msgstr "문서 번호"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__name
+msgid "Title"
+msgstr "제목"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__category_id
+msgid "Category"
+msgstr "분류"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__doc_type
+msgid "Document Type"
+msgstr "문서 유형"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__policy
+msgid "Quality Policy"
+msgstr "품질 방침"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__manual
+msgid "Quality Manual"
+msgstr "품질 매뉴얼"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__procedure
+msgid "Procedure"
+msgstr "절차서"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__work_instruction
+msgid "Work Instruction"
+msgstr "작업 지시서"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__form
+msgid "Form / Template"
+msgstr "양식 / 템플릿"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__external
+msgid "External Document"
+msgstr "외부 문서"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__record
+msgid "Quality Record"
+msgstr "품질 기록"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__doc_type__other
+msgid "Other"
+msgstr "기타"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__description
+msgid "Description / Scope"
+msgstr "설명 / 범위"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__owner_id
+msgid "Document Owner"
+msgstr "문서 소유자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__department_id
+msgid "Department"
+msgstr "부서"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__current_revision
+msgid "Current Revision"
+msgstr "현재 개정 번호"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__revision_date
+msgid "Revision Date"
+msgstr "개정 일자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__state__draft
+msgid "Draft"
+msgstr "초안"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__state__review
+msgid "Under Review"
+msgstr "검토 중"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__state__approved
+msgid "Approved"
+msgstr "승인됨"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document__state__obsolete
+msgid "Obsolete"
+msgstr "폐기"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__reviewer_id
+msgid "Reviewer"
+msgstr "검토자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__approver_id
+msgid "Approver"
+msgstr "승인자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__review_date
+msgid "Review Date"
+msgstr "검토 일자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__approval_date
+msgid "Approval Date"
+msgstr "승인 일자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__next_review_date
+msgid "Next Review Date"
+msgstr "다음 검토일"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__retention_years
+msgid "Retention Period (years)"
+msgstr "보존 기간 (년)"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__retention_expiry
+msgid "Retention Expiry"
+msgstr "보존 만료일"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__external_origin
+msgid "External Origin"
+msgstr "외부 출처"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__attachment_ids
+msgid "Attachments"
+msgstr "첨부 파일"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document__distribution_ids
+msgid "Distribution List"
+msgstr "배포 목록"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_revision__revision_number
+msgid "Revision"
+msgstr "개정 번호"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_revision__reason
+msgid "Reason for Change"
+msgstr "변경 사유"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_revision__change_description
+msgid "Change Description"
+msgstr "변경 내용"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_revision__revised_by
+msgid "Revised By"
+msgstr "개정자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_revision__approved_by
+msgid "Approved By"
+msgstr "승인자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_distribution__user_id
+msgid "Distributed To"
+msgstr "배포 대상"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_distribution__distributed_date
+msgid "Distribution Date"
+msgstr "배포 일자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_distribution__copy_type
+msgid "Copy Type"
+msgstr "사본 유형"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document_distribution__copy_type__controlled
+msgid "Controlled Copy"
+msgstr "관리본"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document_distribution__copy_type__uncontrolled
+msgid "Uncontrolled Copy"
+msgstr "비관리본"
+
+#. module: iatf_document_control
+#: model:ir.model.fields.selection,name:iatf_document_control.selection__iatf_document_distribution__copy_type__electronic
+msgid "Electronic Access"
+msgstr "전자 접근"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_distribution__acknowledged
+msgid "Acknowledged"
+msgstr "확인됨"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_distribution__acknowledged_date
+msgid "Acknowledged Date"
+msgstr "확인 일자"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__name
+msgid "Category Name"
+msgstr "분류명"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__code
+msgid "Code"
+msgstr "코드"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__parent_id
+msgid "Parent Category"
+msgstr "상위 분류"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__child_ids
+msgid "Sub-categories"
+msgstr "하위 분류"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__retention_years
+msgid "Default Retention (years)"
+msgstr "기본 보존 기간 (년)"
+
+#. module: iatf_document_control
+#: model:ir.model.fields,field_description:iatf_document_control.field_iatf_document_category__description
+msgid "Description"
+msgstr "설명"

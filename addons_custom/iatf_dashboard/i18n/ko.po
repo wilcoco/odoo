@@ -1,0 +1,136 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_dashboard
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_dashboard
+#: model:ir.ui.menu,name:iatf_dashboard.menu_iatf_dashboard
+msgid "Dashboard"
+msgstr "대시보드"
+
+#. module: iatf_dashboard
+#: model:ir.ui.menu,name:iatf_dashboard.menu_iatf_reports_root
+msgid "Reports"
+msgstr "리포트"
+
+#. module: iatf_dashboard
+#: model:ir.ui.menu,name:iatf_dashboard.menu_iatf_import
+msgid "Excel Import"
+msgstr "엑셀 가져오기"
+
+#. module: iatf_dashboard
+#: model:ir.actions.act_window,name:iatf_dashboard.action_iatf_dashboard
+msgid "IATF 16949 Quality Dashboard"
+msgstr "IATF 16949 품질 대시보드"
+
+#. module: iatf_dashboard
+#: model:ir.actions.act_window,name:iatf_dashboard.action_iatf_excel_import
+msgid "Excel Import Wizard"
+msgstr "엑셀 가져오기 마법사"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__open_nc_count
+msgid "Open NC / 8D"
+msgstr "미결 부적합 / 8D"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__overdue_nc_count
+msgid "Overdue"
+msgstr "기한 초과"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__complaint_count
+msgid "Customer Complaints"
+msgstr "고객 불만"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__critical_complaint_count
+msgid "Critical"
+msgstr "치명적"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__fmea_high_risk_count
+msgid "FMEA High Risk"
+msgstr "FMEA 고위험"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__open_fmea_actions
+msgid "Open Actions"
+msgstr "미결 조치"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__ppap_open_count
+msgid "PPAP Open"
+msgstr "PPAP 진행 중"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__ppap_rejected_count
+msgid "Rejected"
+msgstr "반려"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__spc_not_capable_count
+msgid "SPC Not Capable"
+msgstr "SPC 부적합"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__ooc_study_count
+msgid "OOC Studies"
+msgstr "관리 이탈 연구"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__msa_unacceptable_count
+msgid "MSA Unacceptable"
+msgstr "MSA 불합격"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__calibration_overdue_count
+msgid "Calibration Overdue"
+msgstr "교정 기한 초과"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_dashboard__competence_gap_count
+msgid "Competence Gaps"
+msgstr "역량 차이"
+
+#. module: iatf_dashboard
+#: model:ir.actions.report,name:iatf_dashboard.action_report_8d
+msgid "8D Report"
+msgstr "8D 보고서"
+
+#. module: iatf_dashboard
+#: model:ir.actions.report,name:iatf_dashboard.action_report_fmea
+msgid "FMEA Report"
+msgstr "FMEA 보고서"
+
+#. module: iatf_dashboard
+#: model:ir.actions.report,name:iatf_dashboard.action_report_control_plan
+msgid "Control Plan Report"
+msgstr "관리계획서 보고서"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_excel_import__import_type
+msgid "Import Type"
+msgstr "가져오기 유형"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_excel_import__file
+msgid "Excel File"
+msgstr "엑셀 파일"
+
+#. module: iatf_dashboard
+#: model:ir.model.fields,field_description:iatf_dashboard.field_iatf_excel_import__filename
+msgid "Filename"
+msgstr "파일명"

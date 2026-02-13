@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_risk
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_risk
+#: model:res.groups,name:iatf_risk.group_risk_user
+msgid "Risk Management User"
+msgstr "리스크 관리 사용자"
+
+#. module: iatf_risk
+#: model:res.groups,name:iatf_risk.group_risk_manager
+msgid "Risk Management Manager"
+msgstr "리스크 관리 관리자"
+
+#. module: iatf_risk
+#: model:ir.ui.menu,name:iatf_risk.menu_iatf_risk_root
+msgid "Risk Management"
+msgstr "리스크 관리"
+
+#. module: iatf_risk
+#: model:ir.ui.menu,name:iatf_risk.menu_iatf_risk_register
+msgid "Risk & Opportunity Register"
+msgstr "리스크 및 기회 대장"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__name
+msgid "Risk / Opportunity Reference"
+msgstr "리스크 / 기회 번호"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__risk_type
+msgid "Type"
+msgstr "유형"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_type__risk
+msgid "Risk"
+msgstr "리스크"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_type__opportunity
+msgid "Opportunity"
+msgstr "기회"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__description
+msgid "Description"
+msgstr "설명"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__likelihood
+msgid "Likelihood"
+msgstr "발생 가능성"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__impact
+msgid "Impact"
+msgstr "영향도"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__risk_score
+msgid "Risk Score"
+msgstr "리스크 점수"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__risk_level
+msgid "Risk Level"
+msgstr "리스크 수준"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_level__low
+msgid "Low"
+msgstr "낮음"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_level__medium
+msgid "Medium"
+msgstr "보통"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_level__high
+msgid "High"
+msgstr "높음"
+
+#. module: iatf_risk
+#: model:ir.model.fields.selection,name:iatf_risk.selection__iatf_risk_register__risk_level__critical
+msgid "Critical"
+msgstr "치명적"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__mitigation_plan
+msgid "Mitigation / Action Plan"
+msgstr "완화 / 조치 계획"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_risk
+#: model:ir.model.fields,field_description:iatf_risk.field_iatf_risk_register__state
+msgid "Status"
+msgstr "상태"

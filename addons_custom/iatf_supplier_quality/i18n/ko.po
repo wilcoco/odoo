@@ -1,0 +1,91 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_supplier_quality
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_supplier_quality
+#: model:res.groups,name:iatf_supplier_quality.group_supplier_quality_user
+msgid "Supplier Quality User"
+msgstr "협력업체 품질 사용자"
+
+#. module: iatf_supplier_quality
+#: model:res.groups,name:iatf_supplier_quality.group_supplier_quality_manager
+msgid "Supplier Quality Manager"
+msgstr "협력업체 품질 관리자"
+
+#. module: iatf_supplier_quality
+#: model:ir.ui.menu,name:iatf_supplier_quality.menu_iatf_supplier_root
+msgid "Supplier Quality"
+msgstr "협력업체 품질"
+
+#. module: iatf_supplier_quality
+#: model:ir.ui.menu,name:iatf_supplier_quality.menu_iatf_supplier_eval
+msgid "Evaluations"
+msgstr "평가"
+
+#. module: iatf_supplier_quality
+#: model:ir.ui.menu,name:iatf_supplier_quality.menu_iatf_scar
+msgid "SCARs"
+msgstr "SCAR (시정조치요구서)"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_supplier_evaluation__supplier_id
+msgid "Supplier"
+msgstr "협력업체"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_supplier_evaluation__evaluation_date
+msgid "Evaluation Date"
+msgstr "평가 일자"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_supplier_evaluation__quality_score
+msgid "Quality Score"
+msgstr "품질 점수"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_supplier_evaluation__delivery_score
+msgid "Delivery Score"
+msgstr "납기 점수"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_supplier_evaluation__overall_rating
+msgid "Overall Rating"
+msgstr "종합 등급"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_scar__name
+msgid "SCAR Number"
+msgstr "SCAR 번호"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_scar__supplier_id
+msgid "Supplier"
+msgstr "협력업체"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_scar__issue_description
+msgid "Issue Description"
+msgstr "문제 설명"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_scar__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_supplier_quality
+#: model:ir.model.fields,field_description:iatf_supplier_quality.field_iatf_scar__due_date
+msgid "Due Date"
+msgstr "기한"

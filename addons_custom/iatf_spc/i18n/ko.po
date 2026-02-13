@@ -1,0 +1,111 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_spc
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_spc
+#: model:res.groups,name:iatf_spc.group_spc_user
+msgid "SPC User"
+msgstr "SPC 사용자"
+
+#. module: iatf_spc
+#: model:res.groups,name:iatf_spc.group_spc_manager
+msgid "SPC Manager"
+msgstr "SPC 관리자"
+
+#. module: iatf_spc
+#: model:ir.ui.menu,name:iatf_spc.menu_iatf_spc_root
+msgid "SPC"
+msgstr "SPC (통계적공정관리)"
+
+#. module: iatf_spc
+#: model:ir.ui.menu,name:iatf_spc.menu_iatf_spc_studies
+msgid "SPC Studies"
+msgstr "SPC 연구"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__name
+msgid "Study Reference"
+msgstr "연구 번호"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__characteristic_name
+msgid "Characteristic Name"
+msgstr "특성명"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__usl
+msgid "Upper Specification Limit (USL)"
+msgstr "상한 규격 (USL)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__lsl
+msgid "Lower Specification Limit (LSL)"
+msgstr "하한 규격 (LSL)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__target
+msgid "Target Value"
+msgstr "목표값"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__cp
+msgid "Cp"
+msgstr "공정능력지수 (Cp)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__cpk
+msgid "Cpk"
+msgstr "공정능력지수 (Cpk)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__x_bar
+msgid "X-bar (Mean)"
+msgstr "X-bar (평균)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__r_bar
+msgid "R-bar (Mean Range)"
+msgstr "R-bar (평균 범위)"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__capability_status
+msgid "Capability Status"
+msgstr "공정능력 상태"
+
+#. module: iatf_spc
+#: model:ir.model.fields.selection,name:iatf_spc.selection__iatf_spc_study__capability_status__capable
+msgid "Capable"
+msgstr "적합"
+
+#. module: iatf_spc
+#: model:ir.model.fields.selection,name:iatf_spc.selection__iatf_spc_study__capability_status__marginal
+msgid "Marginal"
+msgstr "한계"
+
+#. module: iatf_spc
+#: model:ir.model.fields.selection,name:iatf_spc.selection__iatf_spc_study__capability_status__not_capable
+msgid "Not Capable"
+msgstr "부적합"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_study__workcenter_id
+msgid "Work Center"
+msgstr "작업장"
+
+#. module: iatf_spc
+#: model:ir.model.fields,field_description:iatf_spc.field_iatf_spc_subgroup__values
+msgid "Measured Values"
+msgstr "측정값"

@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_control_plan
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_control_plan
+#: model:res.groups,name:iatf_control_plan.group_cp_user
+msgid "Control Plan User"
+msgstr "관리계획서 사용자"
+
+#. module: iatf_control_plan
+#: model:res.groups,name:iatf_control_plan.group_cp_manager
+msgid "Control Plan Manager"
+msgstr "관리계획서 관리자"
+
+#. module: iatf_control_plan
+#: model:ir.ui.menu,name:iatf_control_plan.menu_iatf_control_plan_root
+msgid "Control Plan"
+msgstr "관리계획서"
+
+#. module: iatf_control_plan
+#: model:ir.ui.menu,name:iatf_control_plan.menu_iatf_control_plans
+msgid "Control Plans"
+msgstr "관리계획서 목록"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan__name
+msgid "Control Plan Number"
+msgstr "관리계획서 번호"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan__cp_type
+msgid "Control Plan Type"
+msgstr "관리계획서 유형"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields.selection,name:iatf_control_plan.selection__iatf_control_plan__cp_type__prototype
+msgid "Prototype"
+msgstr "시작품"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields.selection,name:iatf_control_plan.selection__iatf_control_plan__cp_type__pre_launch
+msgid "Pre-Launch"
+msgstr "양산 선행"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields.selection,name:iatf_control_plan.selection__iatf_control_plan__cp_type__production
+msgid "Production"
+msgstr "양산"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan__product_name
+msgid "Product / Part Name"
+msgstr "제품 / 부품명"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan__part_number
+msgid "Part Number"
+msgstr "부품 번호"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__process_name
+msgid "Process Name / Operation"
+msgstr "공정명 / 작업"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__characteristic
+msgid "Product / Process Characteristic"
+msgstr "제품 / 공정 특성"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__special_char_class
+msgid "Special Characteristic Class"
+msgstr "특별 특성 등급"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__specification
+msgid "Specification / Tolerance"
+msgstr "규격 / 공차"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__measurement_method
+msgid "Measurement Method"
+msgstr "측정 방법"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__sample_size
+msgid "Sample Size"
+msgstr "시료 크기"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__sample_frequency
+msgid "Sample Frequency"
+msgstr "시료 빈도"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__control_method
+msgid "Control Method"
+msgstr "관리 방법"
+
+#. module: iatf_control_plan
+#: model:ir.model.fields,field_description:iatf_control_plan.field_iatf_control_plan_line__reaction_plan
+msgid "Reaction Plan"
+msgstr "대응 계획"

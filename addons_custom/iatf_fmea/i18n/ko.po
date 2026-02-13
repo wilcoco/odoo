@@ -1,0 +1,146 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_fmea
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_fmea
+#: model:res.groups,name:iatf_fmea.group_fmea_user
+msgid "FMEA User"
+msgstr "FMEA 사용자"
+
+#. module: iatf_fmea
+#: model:res.groups,name:iatf_fmea.group_fmea_manager
+msgid "FMEA Manager"
+msgstr "FMEA 관리자"
+
+#. module: iatf_fmea
+#: model:ir.ui.menu,name:iatf_fmea.menu_iatf_fmea_root
+msgid "FMEA"
+msgstr "FMEA (고장모드영향분석)"
+
+#. module: iatf_fmea
+#: model:ir.ui.menu,name:iatf_fmea.menu_iatf_fmea
+msgid "FMEA Documents"
+msgstr "FMEA 문서"
+
+#. module: iatf_fmea
+#: model:ir.ui.menu,name:iatf_fmea.menu_iatf_fmea_lines
+msgid "All Failure Modes"
+msgstr "전체 고장 모드"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea__name
+msgid "FMEA Reference"
+msgstr "FMEA 번호"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea__fmea_type
+msgid "FMEA Type"
+msgstr "FMEA 유형"
+
+#. module: iatf_fmea
+#: model:ir.model.fields.selection,name:iatf_fmea.selection__iatf_fmea__fmea_type__dfmea
+msgid "DFMEA"
+msgstr "DFMEA (설계)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields.selection,name:iatf_fmea.selection__iatf_fmea__fmea_type__pfmea
+msgid "PFMEA"
+msgstr "PFMEA (공정)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea__product_name
+msgid "Product / Process"
+msgstr "제품 / 공정"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea__responsible_id
+msgid "Responsible Engineer"
+msgstr "담당 엔지니어"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__function
+msgid "Item / Function"
+msgstr "항목 / 기능"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__failure_mode
+msgid "Potential Failure Mode"
+msgstr "잠재적 고장 모드"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__failure_effect
+msgid "Potential Effect(s) of Failure"
+msgstr "고장의 잠재적 영향"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__severity
+msgid "Severity (S)"
+msgstr "심각도 (S)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__failure_cause
+msgid "Potential Cause(s)"
+msgstr "잠재적 원인"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__occurrence
+msgid "Occurrence (O)"
+msgstr "발생도 (O)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__current_controls_prevention
+msgid "Current Prevention Controls"
+msgstr "현재 예방 관리"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__current_controls_detection
+msgid "Current Detection Controls"
+msgstr "현재 검출 관리"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__detection
+msgid "Detection (D)"
+msgstr "검출도 (D)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__rpn
+msgid "RPN"
+msgstr "위험우선순위(RPN)"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__action_priority
+msgid "Action Priority"
+msgstr "조치 우선순위"
+
+#. module: iatf_fmea
+#: model:ir.model.fields,field_description:iatf_fmea.field_iatf_fmea_line__recommended_action
+msgid "Recommended Action(s)"
+msgstr "권장 조치"
+
+#. module: iatf_fmea
+#: model:ir.model.fields.selection,name:iatf_fmea.selection__iatf_fmea_line__action_priority__high
+msgid "High"
+msgstr "높음"
+
+#. module: iatf_fmea
+#: model:ir.model.fields.selection,name:iatf_fmea.selection__iatf_fmea_line__action_priority__medium
+msgid "Medium"
+msgstr "보통"
+
+#. module: iatf_fmea
+#: model:ir.model.fields.selection,name:iatf_fmea.selection__iatf_fmea_line__action_priority__low
+msgid "Low"
+msgstr "낮음"

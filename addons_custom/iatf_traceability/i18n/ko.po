@@ -1,0 +1,66 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_traceability
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_traceability
+#: model:res.groups,name:iatf_traceability.group_traceability_user
+msgid "Traceability User"
+msgstr "추적성 사용자"
+
+#. module: iatf_traceability
+#: model:res.groups,name:iatf_traceability.group_traceability_manager
+msgid "Traceability Manager"
+msgstr "추적성 관리자"
+
+#. module: iatf_traceability
+#: model:ir.ui.menu,name:iatf_traceability.menu_iatf_traceability_root
+msgid "Traceability"
+msgstr "추적성"
+
+#. module: iatf_traceability
+#: model:ir.ui.menu,name:iatf_traceability.menu_iatf_traceability_records
+msgid "Traceability Records"
+msgstr "추적성 기록"
+
+#. module: iatf_traceability
+#: model:ir.ui.menu,name:iatf_traceability.menu_iatf_recall_simulations
+msgid "Recall Simulations"
+msgstr "리콜 시뮬레이션"
+
+#. module: iatf_traceability
+#: model:ir.model.fields,field_description:iatf_traceability.field_iatf_recall_simulation__name
+msgid "Simulation Reference"
+msgstr "시뮬레이션 번호"
+
+#. module: iatf_traceability
+#: model:ir.model.fields,field_description:iatf_traceability.field_iatf_recall_simulation__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_traceability
+#: model:ir.model.fields,field_description:iatf_traceability.field_iatf_recall_simulation__simulation_date
+msgid "Simulation Date"
+msgstr "시뮬레이션 일자"
+
+#. module: iatf_traceability
+#: model:ir.model.fields,field_description:iatf_traceability.field_iatf_recall_simulation__response_time
+msgid "Response Time (hours)"
+msgstr "대응 시간 (시간)"
+
+#. module: iatf_traceability
+#: model:ir.model.fields,field_description:iatf_traceability.field_iatf_recall_simulation__result
+msgid "Result"
+msgstr "결과"

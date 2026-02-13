@@ -1,0 +1,111 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * iatf_management_review
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-13 00:00+0000\n"
+"PO-Revision-Date: 2026-02-13 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
+
+#. module: iatf_management_review
+#: model:res.groups,name:iatf_management_review.group_mgmt_review_user
+msgid "Management Review User"
+msgstr "경영 검토 사용자"
+
+#. module: iatf_management_review
+#: model:res.groups,name:iatf_management_review.group_mgmt_review_manager
+msgid "Management Review Manager"
+msgstr "경영 검토 관리자"
+
+#. module: iatf_management_review
+#: model:ir.ui.menu,name:iatf_management_review.menu_iatf_mgmt_review_root
+msgid "Management Review"
+msgstr "경영 검토"
+
+#. module: iatf_management_review
+#: model:ir.ui.menu,name:iatf_management_review.menu_iatf_mgmt_reviews
+msgid "Reviews"
+msgstr "검토 목록"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__name
+msgid "Review Reference"
+msgstr "검토 번호"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__review_date
+msgid "Review Date"
+msgstr "검토 일자"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__chairperson_id
+msgid "Chairperson"
+msgstr "의장"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__state
+msgid "Status"
+msgstr "상태"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__audit_results
+msgid "Audit Results"
+msgstr "심사 결과"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__customer_feedback
+msgid "Customer Feedback"
+msgstr "고객 피드백"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__process_performance
+msgid "Process Performance"
+msgstr "공정 성과"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__product_conformity
+msgid "Product Conformity"
+msgstr "제품 적합성"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__corrective_action_status
+msgid "Corrective Action Status"
+msgstr "시정 조치 현황"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__resource_needs
+msgid "Resource Needs"
+msgstr "자원 필요 사항"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__improvement_opportunities
+msgid "Improvement Opportunities"
+msgstr "개선 기회"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_management_review__conclusions
+msgid "Conclusions & Decisions"
+msgstr "결론 및 결정사항"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_review_action_item__description
+msgid "Action Description"
+msgstr "조치 내용"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_review_action_item__responsible_id
+msgid "Responsible"
+msgstr "담당자"
+
+#. module: iatf_management_review
+#: model:ir.model.fields,field_description:iatf_management_review.field_iatf_review_action_item__due_date
+msgid "Due Date"
+msgstr "기한"
