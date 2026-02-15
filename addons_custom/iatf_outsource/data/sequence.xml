@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_outsource_order" model="ir.sequence">
+            <field name="name">외주발주</field>
+            <field name="code">iatf.outsource.order</field>
+            <field name="prefix">OS-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

@@ -79,6 +79,23 @@ class IatfDashboard(models.TransientModel):
     li_open = fields.Integer(compute="_compute_all")
     li_fail = fields.Integer(compute="_compute_all")
 
+    # ── Equipment / TPM ──
+    eq_active = fields.Integer(compute="_compute_all")
+    eq_breakdown = fields.Integer(compute="_compute_all")
+    eq_pm_overdue = fields.Integer(compute="_compute_all")
+
+    # ── Mold ──
+    mold_active = fields.Integer(compute="_compute_all")
+    mold_life_warning = fields.Integer(compute="_compute_all")
+
+    # ── Customer Property ──
+    cp_active = fields.Integer(compute="_compute_all")
+    cp_issue = fields.Integer(compute="_compute_all")
+
+    # ── Outsource ──
+    os_open = fields.Integer(compute="_compute_all")
+    os_fail = fields.Integer(compute="_compute_all")
+
     def _compute_all(self):
         today = fields.Date.today()
         year_start = today.replace(month=1, day=1)
@@ -196,6 +213,32 @@ class IatfDashboard(models.TransientModel):
             rec.li_fail = self.env["iatf.layout.inspection"].search_count(
                 [("result", "=", "fail")])
 
+            # Equipment / TPM
+            rec.eq_active = self.env["iatf.equipment"].search_count(
+                [("state", "=", "active")])
+            rec.eq_breakdown = self.env["iatf.equipment"].search_count(
+                [("state", "=", "breakdown")])
+            rec.eq_pm_overdue = self.env["iatf.equipment"].search_count(
+                [("is_pm_overdue", "=", True), ("state", "=", "active")])
+
+            # Mold
+            rec.mold_active = self.env["iatf.mold"].search_count(
+                [("state", "=", "active")])
+            rec.mold_life_warning = self.env["iatf.mold"].search_count(
+                [("life_percentage", ">=", 80), ("state", "=", "active")])
+
+            # Customer Property
+            rec.cp_active = self.env["iatf.customer.property"].search_count(
+                [("state", "=", "active")])
+            rec.cp_issue = self.env["iatf.customer.property"].search_count(
+                [("current_condition", "in", ("damaged", "lost")), ("state", "=", "active")])
+
+            # Outsource
+            rec.os_open = self.env["iatf.outsource.order"].search_count(
+                [("state", "not in", ("closed",))])
+            rec.os_fail = self.env["iatf.outsource.order"].search_count(
+                [("inspection_result", "=", "fail")])
+
     def action_open_nc_open(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.nonconformity",
                 "view_mode": "list,form", "name": _("Open Nonconformities"),
@@ -279,4 +322,24 @@ class IatfDashboard(models.TransientModel):
     def action_open_li_open(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.layout.inspection",
                 "view_mode": "list,form", "name": _("레이아웃 검사 진행 중"),
+                "domain": [("state", "not in", ("closed",))]}
+
+    def action_open_eq_breakdown(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.equipment",
+                "view_mode": "list,form", "name": _("설비 고장/PM 초과"),
+                "domain": ['|', ("state", "=", "breakdown"), ("is_pm_overdue", "=", True)]}
+
+    def action_open_mold_warning(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.mold",
+                "view_mode": "list,form", "name": _("금형 수명 경고"),
+                "domain": [("life_percentage", ">=", 80), ("state", "=", "active")]}
+
+    def action_open_cp_issue(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.customer.property",
+                "view_mode": "list,form", "name": _("고객재산 이상"),
+                "domain": [("current_condition", "in", ("damaged", "lost")), ("state", "=", "active")]}
+
+    def action_open_os_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.outsource.order",
+                "view_mode": "list,form", "name": _("외주 진행 중"),
                 "domain": [("state", "not in", ("closed",))]}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_work_area_list" model="ir.ui.view">
+        <field name="name">iatf.work.area.list</field>
+        <field name="model">iatf.work.area</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="area_type"/>
+                <field name="temp_min"/>
+                <field name="temp_max"/>
+                <field name="humidity_min"/>
+                <field name="humidity_max"/>
+                <field name="cleanliness_class"/>
+                <field name="fiveS_check_cycle"/>
+                <field name="responsible_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_work_area_form" model="ir.ui.view">
+        <field name="name">iatf.work.area.form</field>
+        <field name="model">iatf.work.area</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="area_type"/>
+                            <field name="department_id"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="환경 기준">
+                            <field name="temp_min"/>
+                            <field name="temp_max"/>
+                            <field name="humidity_min"/>
+                            <field name="humidity_max"/>
+                            <field name="cleanliness_class"/>
+                            <field name="lighting_lux"/>
+                            <field name="noise_db"/>
+                            <field name="dust_level"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="fiveS_check_cycle"/>
+                        <field name="special_requirements"/>
+                        <field name="notes"/>
+                    </group>
+                    <notebook>
+                        <page string="점검 기록">
+                            <field name="check_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="check_type"/>
+                                    <field name="check_date"/>
+                                    <field name="temperature"/>
+                                    <field name="humidity"/>
+                                    <field name="fiveS_total"/>
+                                    <field name="result" widget="badge"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_work_area" model="ir.actions.act_window">
+        <field name="name">작업 구역</field>
+        <field name="res_model">iatf.work.area</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

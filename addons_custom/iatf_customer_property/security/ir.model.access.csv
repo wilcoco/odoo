@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_customer_property_user,iatf.customer.property.user,model_iatf_customer_property,group_customer_property_user,1,1,1,0
+access_customer_property_manager,iatf.customer.property.manager,model_iatf_customer_property,group_customer_property_manager,1,1,1,1

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_customer_property_list" model="ir.ui.view">
+        <field name="name">iatf.customer.property.list</field>
+        <field name="model">iatf.customer.property</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="title"/>
+                <field name="property_type"/>
+                <field name="customer_code"/>
+                <field name="quantity"/>
+                <field name="current_condition" widget="badge"/>
+                <field name="location"/>
+                <field name="responsible_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_customer_property_form" model="ir.ui.view">
+        <field name="name">iatf.customer.property.form</field>
+        <field name="model">iatf.customer.property</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="관리 시작" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_return" string="반환" type="object" class="btn-warning" invisible="state != 'active'"/>
+                    <button name="action_dispose" string="폐기" type="object" invisible="state in ('disposed','returned')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="품명/명칭"/></h2>
+                    </div>
+                    <group>
+                        <group string="기본 정보">
+                            <field name="customer_id"/>
+                            <field name="property_type"/>
+                            <field name="customer_code"/>
+                            <field name="serial_number"/>
+                            <field name="quantity"/>
+                            <field name="uom"/>
+                        </group>
+                        <group string="입고/보관">
+                            <field name="receive_date"/>
+                            <field name="received_by"/>
+                            <field name="condition_on_receipt"/>
+                            <field name="current_condition"/>
+                            <field name="location"/>
+                            <field name="preservation_method"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="상세 설명">
+                            <field name="description"/>
+                        </page>
+                        <page string="이상/통보">
+                            <group>
+                                <field name="incident_date"/>
+                                <field name="incident_description"/>
+                                <field name="customer_notified"/>
+                                <field name="notification_date" invisible="not customer_notified"/>
+                            </group>
+                        </page>
+                        <page string="반환">
+                            <group>
+                                <field name="return_date"/>
+                                <field name="return_condition"/>
+                            </group>
+                        </page>
+                        <page string="담당/문서">
+                            <group>
+                                <field name="responsible_id"/>
+                                <field name="department_id"/>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_customer_property" model="ir.actions.act_window">
+        <field name="name">고객재산 관리</field>
+        <field name="res_model">iatf.customer.property</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

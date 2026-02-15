@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_customer_property" model="ir.sequence">
+            <field name="name">고객재산</field>
+            <field name="code">iatf.customer.property</field>
+            <field name="prefix">CP-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

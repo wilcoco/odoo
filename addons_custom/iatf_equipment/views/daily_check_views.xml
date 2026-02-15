@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_daily_check_list" model="ir.ui.view">
+        <field name="name">iatf.daily.check.list</field>
+        <field name="model">iatf.daily.check</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="equipment_id"/>
+                <field name="check_date"/>
+                <field name="shift"/>
+                <field name="checker_id"/>
+                <field name="overall_result" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_daily_check_form" model="ir.ui.view">
+        <field name="name">iatf.daily.check.form</field>
+        <field name="model">iatf.daily.check</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="equipment_id"/>
+                            <field name="check_date"/>
+                        </group>
+                        <group>
+                            <field name="shift"/>
+                            <field name="checker_id"/>
+                            <field name="overall_result"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="item_name"/>
+                            <field name="standard"/>
+                            <field name="result"/>
+                            <field name="remark"/>
+                        </list>
+                    </field>
+                    <group><field name="notes"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_daily_check" model="ir.actions.act_window">
+        <field name="name">일상점검</field>
+        <field name="res_model">iatf.daily.check</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

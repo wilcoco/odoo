@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_mold_root" name="금형/치공구 관리"
+              parent="iatf_document_control.menu_iatf_root" sequence="21"/>
+    <menuitem id="menu_iatf_mold_list" name="금형 대장"
+              parent="menu_iatf_mold_root" action="action_mold" sequence="10"/>
+    <menuitem id="menu_iatf_mold_maintenance" name="보전/수리 이력"
+              parent="menu_iatf_mold_root" action="action_mold_maintenance" sequence="20"/>
+</odoo>

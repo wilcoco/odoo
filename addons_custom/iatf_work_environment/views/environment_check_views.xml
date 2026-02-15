@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_environment_check_list" model="ir.ui.view">
+        <field name="name">iatf.environment.check.list</field>
+        <field name="model">iatf.environment.check</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="work_area_id"/>
+                <field name="check_type"/>
+                <field name="check_date"/>
+                <field name="temperature"/>
+                <field name="humidity"/>
+                <field name="fiveS_total"/>
+                <field name="result" widget="badge"/>
+                <field name="checker_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_environment_check_form" model="ir.ui.view">
+        <field name="name">iatf.environment.check.form</field>
+        <field name="model">iatf.environment.check</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" string="완료" type="object" class="btn-success" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="work_area_id"/>
+                            <field name="check_type"/>
+                            <field name="check_date"/>
+                            <field name="checker_id"/>
+                        </group>
+                        <group>
+                            <field name="result"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="환경 측정" invisible="check_type != 'environment'">
+                            <group>
+                                <field name="temperature"/>
+                                <field name="humidity"/>
+                                <field name="lighting"/>
+                                <field name="noise"/>
+                                <field name="dust"/>
+                            </group>
+                        </page>
+                        <page string="5S 점검" invisible="check_type != 'fiveS'">
+                            <group>
+                                <field name="score_seiri"/>
+                                <field name="score_seiton"/>
+                                <field name="score_seiso"/>
+                                <field name="score_seiketsu"/>
+                                <field name="score_shitsuke"/>
+                                <field name="fiveS_total"/>
+                            </group>
+                        </page>
+                        <page string="세부 항목">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="item_name"/>
+                                    <field name="standard"/>
+                                    <field name="measured_value"/>
+                                    <field name="result"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="조치/첨부">
+                            <group><field name="corrective_action"/></group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                            <group><field name="notes"/></group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_environment_check" model="ir.actions.act_window">
+        <field name="name">환경/5S 점검</field>
+        <field name="res_model">iatf.environment.check</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_work_area_user,iatf.work.area.user,model_iatf_work_area,group_work_environment_user,1,1,1,0
+access_work_area_manager,iatf.work.area.manager,model_iatf_work_area,group_work_environment_manager,1,1,1,1
+access_env_check_user,iatf.environment.check.user,model_iatf_environment_check,group_work_environment_user,1,1,1,0
+access_env_check_manager,iatf.environment.check.manager,model_iatf_environment_check,group_work_environment_manager,1,1,1,1
+access_env_check_line_user,iatf.environment.check.line.user,model_iatf_environment_check_line,group_work_environment_user,1,1,1,0
+access_env_check_line_manager,iatf.environment.check.line.manager,model_iatf_environment_check_line,group_work_environment_manager,1,1,1,1

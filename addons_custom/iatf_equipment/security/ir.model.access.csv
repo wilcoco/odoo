@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_equipment_user,iatf.equipment.user,model_iatf_equipment,group_equipment_user,1,1,1,0
+access_equipment_manager,iatf.equipment.manager,model_iatf_equipment,group_equipment_manager,1,1,1,1
+access_equipment_spare_user,iatf.equipment.spare.user,model_iatf_equipment_spare,group_equipment_user,1,1,1,0
+access_equipment_spare_manager,iatf.equipment.spare.manager,model_iatf_equipment_spare,group_equipment_manager,1,1,1,1
+access_pm_schedule_user,iatf.pm.schedule.user,model_iatf_pm_schedule,group_equipment_user,1,1,1,0
+access_pm_schedule_manager,iatf.pm.schedule.manager,model_iatf_pm_schedule,group_equipment_manager,1,1,1,1
+access_breakdown_user,iatf.equipment.breakdown.user,model_iatf_equipment_breakdown,group_equipment_user,1,1,1,0
+access_breakdown_manager,iatf.equipment.breakdown.manager,model_iatf_equipment_breakdown,group_equipment_manager,1,1,1,1
+access_daily_check_user,iatf.daily.check.user,model_iatf_daily_check,group_equipment_user,1,1,1,0
+access_daily_check_manager,iatf.daily.check.manager,model_iatf_daily_check,group_equipment_manager,1,1,1,1
+access_daily_check_line_user,iatf.daily.check.line.user,model_iatf_daily_check_line,group_equipment_user,1,1,1,0
+access_daily_check_line_manager,iatf.daily.check.line.manager,model_iatf_daily_check_line,group_equipment_manager,1,1,1,1

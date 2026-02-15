@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_outsource_root" name="외주공정 관리"
+              parent="iatf_document_control.menu_iatf_root" sequence="25"/>
+    <menuitem id="menu_iatf_outsource_process" name="외주공정 등록"
+              parent="menu_iatf_outsource_root" action="action_outsource_process" sequence="10"/>
+    <menuitem id="menu_iatf_outsource_order" name="외주 발주/입고"
+              parent="menu_iatf_outsource_root" action="action_outsource_order" sequence="20"/>
+</odoo>

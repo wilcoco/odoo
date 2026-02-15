@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_packaging_spec_list" model="ir.ui.view">
+        <field name="name">iatf.packaging.spec.list</field>
+        <field name="model">iatf.packaging.spec</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="customer_id"/>
+                <field name="revision"/>
+                <field name="inner_quantity"/>
+                <field name="outer_quantity"/>
+                <field name="total_per_pallet"/>
+                <field name="storage_condition"/>
+                <field name="customer_approved"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_packaging_spec_form" model="ir.ui.view">
+        <field name="name">iatf.packaging.spec.form</field>
+        <field name="model">iatf.packaging.spec</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="활성화" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_review" string="검토 필요" type="object" class="btn-warning" invisible="state != 'active'"/>
+                    <button name="action_activate" string="검토 완료" type="object" class="btn-success" invisible="state != 'review'"/>
+                    <button name="action_obsolete" string="폐기" type="object" invisible="state in ('draft','obsolete')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="customer_id"/>
+                        </group>
+                        <group>
+                            <field name="revision"/>
+                            <field name="effective_date"/>
+                            <field name="responsible_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="내포장">
+                            <group>
+                                <field name="inner_packaging_type"/>
+                                <field name="inner_quantity"/>
+                                <field name="inner_material"/>
+                                <field name="inner_dimension"/>
+                            </group>
+                        </page>
+                        <page string="외포장">
+                            <group>
+                                <field name="outer_packaging_type"/>
+                                <field name="outer_quantity"/>
+                                <field name="outer_material"/>
+                                <field name="outer_dimension"/>
+                                <field name="gross_weight"/>
+                            </group>
+                        </page>
+                        <page string="파렛트">
+                            <group>
+                                <field name="pallet_type"/>
+                                <field name="boxes_per_pallet"/>
+                                <field name="pallet_stack"/>
+                                <field name="total_per_pallet"/>
+                            </group>
+                        </page>
+                        <page string="라벨">
+                            <group>
+                                <field name="label_required"/>
+                                <field name="label_type" invisible="not label_required"/>
+                                <field name="label_info" invisible="not label_required"/>
+                            </group>
+                        </page>
+                        <page string="보존 조건">
+                            <group>
+                                <field name="storage_condition"/>
+                                <field name="temperature_range"/>
+                                <field name="humidity_range"/>
+                                <field name="shelf_life_days"/>
+                                <field name="anticorrosion_method"/>
+                                <field name="special_instruction"/>
+                            </group>
+                        </page>
+                        <page string="고객 승인">
+                            <group>
+                                <field name="customer_approved"/>
+                                <field name="approval_date"/>
+                                <field name="approval_reference"/>
+                            </group>
+                        </page>
+                        <page string="문서/첨부">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_packaging_spec" model="ir.actions.act_window">
+        <field name="name">포장 사양서</field>
+        <field name="res_model">iatf.packaging.spec</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

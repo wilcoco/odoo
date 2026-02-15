@@ -30,6 +30,12 @@
         "iatf_change_management",
         "iatf_csr",
         "iatf_layout_inspection",
+        "iatf_equipment",
+        "iatf_mold",
+        "iatf_customer_property",
+        "iatf_packaging",
+        "iatf_work_environment",
+        "iatf_outsource",
     ],
     "data": [
         "security/ir.model.access.csv",

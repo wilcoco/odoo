@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mold_maintenance_list" model="ir.ui.view">
+        <field name="name">iatf.mold.maintenance.list</field>
+        <field name="model">iatf.mold.maintenance</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="mold_id"/>
+                <field name="maintenance_type"/>
+                <field name="date"/>
+                <field name="shots_at_maintenance"/>
+                <field name="cost"/>
+                <field name="result"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_mold_maintenance_form" model="ir.ui.view">
+        <field name="name">iatf.mold.maintenance.form</field>
+        <field name="model">iatf.mold.maintenance</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" string="완료" type="object" class="btn-success" invisible="state != 'planned'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="mold_id"/>
+                            <field name="maintenance_type"/>
+                            <field name="date"/>
+                            <field name="shots_at_maintenance"/>
+                        </group>
+                        <group>
+                            <field name="responsible_id"/>
+                            <field name="vendor"/>
+                            <field name="duration_hours"/>
+                            <field name="cost"/>
+                            <field name="result"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="작업 내용">
+                            <field name="work_description"/>
+                            <group><field name="parts_replaced"/></group>
+                        </page>
+                        <page string="첨부">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                            <group><field name="notes"/></group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_mold_maintenance" model="ir.actions.act_window">
+        <field name="name">금형 보전 이력</field>
+        <field name="res_model">iatf.mold.maintenance</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_outsource_process_list" model="ir.ui.view">
+        <field name="name">iatf.outsource.process.list</field>
+        <field name="model">iatf.outsource.process</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="process_type"/>
+                <field name="is_special_process"/>
+                <field name="cqi_standard"/>
+                <field name="supplier_id"/>
+                <field name="inspection_method"/>
+                <field name="responsible_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_outsource_process_form" model="ir.ui.view">
+        <field name="name">iatf.outsource.process.form</field>
+        <field name="model">iatf.outsource.process</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="활성화" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_deactivate" string="비활성" type="object" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="공정 정보">
+                            <field name="code"/>
+                            <field name="process_type"/>
+                            <field name="is_special_process"/>
+                            <field name="cqi_standard" invisible="not is_special_process"/>
+                        </group>
+                        <group string="외주업체">
+                            <field name="supplier_id"/>
+                            <field name="backup_supplier_id"/>
+                            <field name="inspection_method"/>
+                            <field name="responsible_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="product_ids" widget="many2many_tags"/>
+                    </group>
+                    <notebook>
+                        <page string="품질 요구사항">
+                            <field name="quality_requirements"/>
+                            <group>
+                                <field name="specification_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                        <page string="외주 발주 이력">
+                            <field name="order_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity_sent"/>
+                                    <field name="send_date"/>
+                                    <field name="quantity_received"/>
+                                    <field name="inspection_result"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="문서/첨부">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_outsource_process" model="ir.actions.act_window">
+        <field name="name">외주공정 등록</field>
+        <field name="res_model">iatf.outsource.process</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

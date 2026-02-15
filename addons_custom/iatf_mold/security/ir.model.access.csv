@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mold_user,iatf.mold.user,model_iatf_mold,group_mold_user,1,1,1,0
+access_mold_manager,iatf.mold.manager,model_iatf_mold,group_mold_manager,1,1,1,1
+access_mold_maint_user,iatf.mold.maintenance.user,model_iatf_mold_maintenance,group_mold_user,1,1,1,0
+access_mold_maint_manager,iatf.mold.maintenance.manager,model_iatf_mold_maintenance,group_mold_manager,1,1,1,1

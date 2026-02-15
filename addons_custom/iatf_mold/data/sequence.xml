@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_mold" model="ir.sequence">
+            <field name="name">금형</field>
+            <field name="code">iatf.mold</field>
+            <field name="prefix">MD-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_mold_maintenance" model="ir.sequence">
+            <field name="name">금형보전</field>
+            <field name="code">iatf.mold.maintenance</field>
+            <field name="prefix">MM-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

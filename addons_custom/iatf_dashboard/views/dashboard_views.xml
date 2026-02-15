@@ -238,6 +238,54 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Row 6: Equipment, Mold, Customer Property, Outsource -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">설비 / TPM</h5>
+                                    <h2><field name="eq_active" class="text-white"/></h2>
+                                    <small>고장: <field name="eq_breakdown" class="text-white"/> | PM초과: <field name="eq_pm_overdue" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_eq_breakdown" type="object" class="btn btn-sm btn-light mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card bg-dark text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">금형 / 치공구</h5>
+                                    <h2><field name="mold_active" class="text-white"/></h2>
+                                    <small>수명 경고 (≥80%): <field name="mold_life_warning" class="text-white"/></small>
+                                    <br/>
+                                    <button name="action_open_mold_warning" type="object" class="btn btn-sm btn-light mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">고객재산</h5>
+                                    <h2><field name="cp_active"/></h2>
+                                    <small class="text-danger">손상/분실: <field name="cp_issue"/></small>
+                                    <br/>
+                                    <button name="action_open_cp_issue" type="object" class="btn btn-sm btn-outline-danger mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">외주공정</h5>
+                                    <h2><field name="os_open"/></h2>
+                                    <small class="text-danger">불합격: <field name="os_fail"/></small>
+                                    <br/>
+                                    <button name="action_open_os_open" type="object" class="btn btn-sm btn-outline-primary mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </sheet>
             </form>
         </field>

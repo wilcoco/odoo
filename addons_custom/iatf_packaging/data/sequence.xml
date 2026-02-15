@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_packaging_spec" model="ir.sequence">
+            <field name="name">포장사양서</field>
+            <field name="code">iatf.packaging.spec</field>
+            <field name="prefix">PKG-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

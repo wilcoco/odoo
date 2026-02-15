@@ -1,0 +1,21 @@
+{
+    "name": "IATF 설비 관리 / TPM",
+    "version": "18.0.1.0.0",
+    "summary": "설비 대장, 예방보전(PM), 고장이력, TPM (IATF 16949 §8.5.1.5)",
+    "category": "Quality",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["base", "mail", "hr", "mrp", "iatf_document_control"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/equipment_views.xml",
+        "views/pm_schedule_views.xml",
+        "views/breakdown_views.xml",
+        "views/daily_check_views.xml",
+        "views/menu.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

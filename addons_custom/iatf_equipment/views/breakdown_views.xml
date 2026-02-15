@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_breakdown_list" model="ir.ui.view">
+        <field name="name">iatf.equipment.breakdown.list</field>
+        <field name="model">iatf.equipment.breakdown</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="equipment_id"/>
+                <field name="occurrence_date"/>
+                <field name="breakdown_type"/>
+                <field name="severity"/>
+                <field name="downtime_hours"/>
+                <field name="responsible_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_breakdown_form" model="ir.ui.view">
+        <field name="name">iatf.equipment.breakdown.form</field>
+        <field name="model">iatf.equipment.breakdown</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_repair" string="수리 시작" type="object" class="btn-warning" invisible="state != 'open'"/>
+                    <button name="action_close" string="수리 완료" type="object" class="btn-success" invisible="state != 'repairing'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="equipment_id"/>
+                            <field name="breakdown_type"/>
+                            <field name="severity"/>
+                        </group>
+                        <group>
+                            <field name="occurrence_date"/>
+                            <field name="repair_start"/>
+                            <field name="repair_end"/>
+                            <field name="downtime_hours"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="responsible_id"/>
+                            <field name="technician"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="분석/수리">
+                            <group><field name="symptom"/></group>
+                            <group><field name="root_cause"/></group>
+                            <separator string="수리 내용"/>
+                            <field name="repair_action"/>
+                            <group><field name="parts_used"/></group>
+                            <separator string="재발 방지"/>
+                            <field name="preventive_action"/>
+                        </page>
+                        <page string="첨부">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                            <group><field name="notes"/></group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_breakdown" model="ir.actions.act_window">
+        <field name="name">고장 이력</field>
+        <field name="res_model">iatf.equipment.breakdown</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

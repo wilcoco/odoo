@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mold_list" model="ir.ui.view">
+        <field name="name">iatf.mold.list</field>
+        <field name="model">iatf.mold</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="mold_type"/>
+                <field name="product_id"/>
+                <field name="ownership"/>
+                <field name="current_shots"/>
+                <field name="guaranteed_shots"/>
+                <field name="life_percentage"/>
+                <field name="storage_location"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_mold_form" model="ir.ui.view">
+        <field name="name">iatf.mold.form</field>
+        <field name="model">iatf.mold</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="사용" type="object" class="btn-success" invisible="state in ('active','disposed')"/>
+                    <button name="action_maintenance" string="보전" type="object" class="btn-warning" invisible="state != 'active'"/>
+                    <button name="action_inactive" string="비사용" type="object" invisible="state in ('disposed','draft')"/>
+                    <button name="action_dispose" string="폐기" type="object" invisible="state == 'disposed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="code" readonly="1"/> - <field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="기본 정보">
+                            <field name="mold_type"/>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                            <field name="cavity_count"/>
+                            <field name="material"/>
+                            <field name="weight_kg"/>
+                            <field name="dimensions"/>
+                        </group>
+                        <group string="제작/소유">
+                            <field name="manufacturer"/>
+                            <field name="manufacture_date"/>
+                            <field name="receive_date"/>
+                            <field name="cost"/>
+                            <field name="ownership"/>
+                            <field name="owner_id" invisible="ownership == 'company'"/>
+                            <field name="customer_mold_number" invisible="ownership != 'customer'"/>
+                        </group>
+                    </group>
+                    <group string="수명/보전">
+                        <group>
+                            <field name="guaranteed_shots"/>
+                            <field name="current_shots"/>
+                            <field name="remaining_shots"/>
+                            <field name="life_percentage" widget="progressbar"/>
+                        </group>
+                        <group>
+                            <field name="pm_cycle_shots"/>
+                            <field name="last_pm_shots"/>
+                            <field name="next_pm_shots"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="storage_location"/>
+                            <field name="preservation_method"/>
+                        </group>
+                        <group>
+                            <field name="responsible_id"/>
+                            <field name="department_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="보전/수리 이력">
+                            <field name="maintenance_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="maintenance_type"/>
+                                    <field name="date"/>
+                                    <field name="shots_at_maintenance"/>
+                                    <field name="cost"/>
+                                    <field name="result"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="문서/첨부">
+                            <group>
+                                <field name="document_ids" widget="many2many_tags"/>
+                                <field name="notes"/>
+                            </group>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_mold" model="ir.actions.act_window">
+        <field name="name">금형/치공구 대장</field>
+        <field name="res_model">iatf.mold</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

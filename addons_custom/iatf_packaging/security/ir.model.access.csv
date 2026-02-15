@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_packaging_spec_user,iatf.packaging.spec.user,model_iatf_packaging_spec,group_packaging_user,1,1,1,0
+access_packaging_spec_manager,iatf.packaging.spec.manager,model_iatf_packaging_spec,group_packaging_manager,1,1,1,1

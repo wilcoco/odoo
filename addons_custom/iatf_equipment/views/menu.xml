@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_equipment_root" name="설비 관리 / TPM"
+              parent="iatf_document_control.menu_iatf_root" sequence="20"/>
+    <menuitem id="menu_iatf_equipment_list" name="설비 대장"
+              parent="menu_iatf_equipment_root" action="action_equipment" sequence="10"/>
+    <menuitem id="menu_iatf_pm_schedule" name="예방보전 (PM)"
+              parent="menu_iatf_equipment_root" action="action_pm_schedule" sequence="20"/>
+    <menuitem id="menu_iatf_breakdown" name="고장 이력"
+              parent="menu_iatf_equipment_root" action="action_breakdown" sequence="30"/>
+    <menuitem id="menu_iatf_daily_check" name="일상점검"
+              parent="menu_iatf_equipment_root" action="action_daily_check" sequence="40"/>
+</odoo>
