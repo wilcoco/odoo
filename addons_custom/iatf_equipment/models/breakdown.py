@@ -70,6 +70,30 @@ class IatfEquipmentBreakdown(models.Model):
     def action_start_repair(self):
         self.write({"state": "repairing", "repair_start": fields.Datetime.now()})
         self.mapped("equipment_id").action_breakdown()
+        for rec in self:
+            rec._auto_trigger_contingency()
+
+    def _auto_trigger_contingency(self):
+        """설비 고장 시 비상대응계획 자동 활성화 (L2-14)"""
+        ContPlan = self.env.get("iatf.contingency.plan")
+        if ContPlan is None:
+            return
+        plans = ContPlan.search([
+            ("state", "=", "active"),
+            "|",
+            ("trigger_type", "=", "equipment_failure"),
+            ("trigger_type", "=", False),
+        ])
+        for plan in plans:
+            desc = (plan.description or "").lower()
+            eq_name = (self.equipment_id.name or "").lower()
+            if eq_name in desc or "설비" in desc or "equipment" in desc:
+                plan.action_trigger()
+                plan.message_post(
+                    body=_("설비 고장으로 비상대응계획 자동 활성화: %s (설비: %s)") % (
+                        self.name, self.equipment_id.name))
+                self.message_post(
+                    body=_("비상대응계획 %s 활성화됨") % plan.name)
 
     def action_close(self):
         self.write({"state": "closed", "repair_end": fields.Datetime.now()})

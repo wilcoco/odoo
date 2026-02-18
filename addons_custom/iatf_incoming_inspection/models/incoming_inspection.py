@@ -103,9 +103,17 @@ class IatfIncomingInspection(models.Model):
             if not rec.result:
                 raise UserError(_("판정 결과를 입력해 주세요."))
             rec.write({"state": "decided"})
-            if rec.result == "fail":
+            if rec.result in ("pass", "conditional"):
+                rec._release_quality_hold()
+            elif rec.result == "fail":
                 rec._auto_create_nc()
                 rec._auto_quarantine_lot()
+
+    def _release_quality_hold(self):
+        """IQC 합격 시 로트 품질 보류 해제 (L3-1)"""
+        if self.lot_id and self.lot_id.quality_hold:
+            self.lot_id.write({"quality_hold": False, "hold_reason": False})
+            self.message_post(body=_("로트 %s 품질 보류 해제됨 (IQC 합격)") % self.lot_id.name)
 
     def _auto_create_nc(self):
         """불합격 시 부적합 자동 생성"""

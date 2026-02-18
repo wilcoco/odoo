@@ -22,8 +22,10 @@ class IatfProcessInspection(models.Model):
     )
     inspection_date = fields.Datetime(string="검사 일시", default=fields.Datetime.now, required=True)
 
-    # ── 제조 참조 ──
+    # ── 제조/출하 참조 ──
     production_id = fields.Many2one("mrp.production", string="제조 오더", tracking=True)
+    picking_id = fields.Many2one("stock.picking", string="출하 전표", tracking=True)
+    workorder_id = fields.Many2one("mrp.workorder", string="작업지시", tracking=True)
     workcenter_id = fields.Many2one("mrp.workcenter", string="작업장")
     product_id = fields.Many2one("product.product", string="제품", required=True, tracking=True)
     part_number = fields.Char(string="부품 번호")
@@ -108,9 +110,29 @@ class IatfProcessInspection(models.Model):
             if not rec.result:
                 raise UserError(_("판정 결과를 입력해 주세요."))
             rec.write({"state": "decided"})
+            rec._auto_feed_spc()
             if rec.result == "fail":
                 rec._auto_create_nc()
                 rec._auto_quarantine_lot()
+
+    def _auto_feed_spc(self):
+        """검사 결과를 활성 SPC 연구에 자동 반영"""
+        SpcStudy = self.env.get("iatf.spc.study")
+        if SpcStudy is None:
+            return
+        if not self.line_ids:
+            return
+        for line in self.line_ids:
+            studies = SpcStudy.search([
+                ("product_id", "=", self.product_id.id),
+                ("characteristic_name", "=", line.characteristic),
+                ("state", "=", "collecting"),
+            ])
+            for study in studies:
+                next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
+                vals = {"study_id": study.id, "sequence": next_seq,
+                        "sample_date": self.inspection_date, "x1": line.actual_value}
+                self.env["iatf.spc.subgroup"].create(vals)
 
     def _auto_create_nc(self):
         """불합격 시 부적합 자동 생성"""
@@ -157,6 +179,59 @@ class IatfProcessInspection(models.Model):
             })._action_confirm()._action_done()
         if quants:
             self.message_post(body=_("로트 %s 격리 위치로 자동 이동됨") % self.lot_id.name)
+
+    def action_load_from_control_plan(self):
+        """Control Plan에서 검사항목/기준 자동 로딩 (L3-5)"""
+        self.ensure_one()
+        CP = self.env.get("iatf.control.plan")
+        if CP is None:
+            return
+        cp = self.control_plan_id
+        if not cp:
+            cp = CP.search([
+                ("product_id", "=", self.product_id.id),
+                ("state", "=", "approved"),
+            ], order="create_date desc", limit=1)
+            if cp:
+                self.control_plan_id = cp.id
+        if not cp:
+            return
+        existing_chars = set(self.line_ids.mapped("characteristic_name"))
+        lines_to_create = []
+        for cp_line in cp.line_ids:
+            if cp_line.characteristic_name not in existing_chars:
+                lines_to_create.append({
+                    "inspection_id": self.id,
+                    "sequence": cp_line.sequence,
+                    "characteristic_name": cp_line.characteristic_name,
+                    "characteristic_type": "dimensional" if cp_line.characteristic_type == "product" else "performance",
+                    "special_characteristic": cp_line.special_characteristic if cp_line.special_characteristic != "hi" else "cc",
+                    "specification": cp_line.specification,
+                    "measurement_method": cp_line.evaluation_method,
+                })
+        if lines_to_create:
+            self.env["iatf.process.inspection.line"].create(lines_to_create)
+            self.message_post(body=_("관리계획서 %s에서 %d개 검사항목 로딩됨") % (cp.name, len(lines_to_create)))
+
+    def action_compute_aql_sample(self):
+        """AQL 테이블 기반 샘플 수량 자동 계산 (L3-6)"""
+        self.ensure_one()
+        qty = self.quantity_produced or self.quantity_inspected or 0
+        # AQL Level II Normal — 간소화된 참조 테이블
+        aql_table = [
+            (2, 2), (8, 3), (15, 5), (25, 8), (50, 13),
+            (90, 20), (150, 32), (280, 50), (500, 80),
+            (1200, 125), (3200, 200), (10000, 315),
+            (35000, 500), (150000, 800), (500000, 1250),
+            (float("inf"), 2000),
+        ]
+        sample = qty  # default full
+        for lot_max, sample_size in aql_table:
+            if qty <= lot_max:
+                sample = min(sample_size, qty)
+                break
+        self.quantity_inspected = sample
+        self.message_post(body=_("AQL Level II 기준 샘플 수량 자동 계산: %d (로트 크기: %d)") % (sample, qty))
 
     def action_close(self):
         self.write({"state": "closed"})

@@ -70,3 +70,58 @@ class IatfCompetenceMatrix(models.Model):
     def _compute_display_name(self):
         for rec in self:
             rec.display_name = "%s — %s" % (rec.employee_id.name or "", rec.skill_name or "")
+
+    @api.model
+    def _cron_training_expiry_alert(self):
+        """매일 실행: 자격증 만료/재교육 기한 알림"""
+        from datetime import timedelta
+        today = fields.Date.today()
+        soon = today + timedelta(days=30)
+
+        # 자격증 만료 임박/초과
+        expiring = self.search([
+            "|",
+            "&", ("expiry_date", "<=", soon), ("expiry_date", ">=", today),
+            ("expiry_date", "<", today),
+        ])
+        for cm in expiring:
+            user = cm.employee_id.user_id
+            if not user:
+                continue
+            expired = cm.expiry_date < today
+            summary = _("자격증 만료%s: %s - %s (만료일: %s)") % (
+                "" if expired else " 임박",
+                cm.employee_id.name, cm.certification or cm.skill_name, cm.expiry_date)
+            # HR 매니저에게 알림
+            cm.env["mail.activity"].create({
+                "res_model_id": self.env["ir.model"]._get("iatf.competence.matrix").id,
+                "res_id": cm.id,
+                "activity_type_id": self.env.ref("mail.mail_activity_data_todo").id,
+                "summary": summary,
+                "user_id": user.id,
+                "date_deadline": cm.expiry_date or today,
+            })
+
+        # 재교육 기한 임박
+        retraining = self.search([
+            ("next_retraining_date", "<=", soon),
+            ("next_retraining_date", ">=", today),
+        ])
+        for cm in retraining:
+            user = cm.employee_id.user_id
+            if not user:
+                continue
+            existing = self.env["mail.activity"].search([
+                ("res_model", "=", "iatf.competence.matrix"),
+                ("res_id", "=", cm.id),
+                ("summary", "like", "재교육"),
+            ], limit=1)
+            if not existing:
+                self.env["mail.activity"].create({
+                    "res_model_id": self.env["ir.model"]._get("iatf.competence.matrix").id,
+                    "res_id": cm.id,
+                    "activity_type_id": self.env.ref("mail.mail_activity_data_todo").id,
+                    "summary": _("재교육 기한 임박: %s - %s") % (cm.employee_id.name, cm.skill_name),
+                    "user_id": user.id,
+                    "date_deadline": cm.next_retraining_date,
+                })

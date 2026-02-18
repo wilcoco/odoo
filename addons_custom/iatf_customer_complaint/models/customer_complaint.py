@@ -105,6 +105,26 @@ class IatfCustomerComplaint(models.Model):
 
     def action_containment(self):
         self.write({"state": "containment"})
+        for rec in self:
+            if not rec.nonconformity_id:
+                rec._auto_create_complaint_nc()
+
+    def _auto_create_complaint_nc(self):
+        """고객불만 접수 → NC 자동 생성 (L4-3 폐쇄 루프)"""
+        NC = self.env.get("iatf.nonconformity")
+        if NC is None:
+            return
+        nc = NC.create({
+            "title": _("고객불만: %s") % self.title,
+            "nc_type": "customer",
+            "severity": "major" if self.severity_level in ("critical", "major") else "minor",
+            "problem_description": self.problem_description,
+            "product_id": self.product_id.id if self.product_id else False,
+            "lot_id": self.lot_id.id if self.lot_id else False,
+            "partner_id": self.customer_id.id if self.customer_id else False,
+        })
+        self.nonconformity_id = nc.id
+        self.message_post(body=_("고객불만 → 부적합 %s 자동 생성됨. 8D CAPA 진행 필요.") % nc.name)
 
     def action_analysis(self):
         self.write({"state": "analysis"})
@@ -116,6 +136,13 @@ class IatfCustomerComplaint(models.Model):
         self.write({"state": "verification"})
 
     def action_close(self):
+        """종료 시 연결된 NC의 CAPA 유효성 검증 확인 (L4-3)"""
+        for rec in self:
+            if rec.nonconformity_id and rec.nonconformity_id.state != "closed":
+                from odoo.exceptions import UserError as UE
+                raise UE(_(
+                    "연결된 부적합(%s)이 아직 종결되지 않았습니다.\n"
+                    "CAPA 유효성 검증 완료 후 고객불만을 종결하세요.") % rec.nonconformity_id.name)
         self.write({"state": "closed"})
 
     # ── 출하 역추적 ──

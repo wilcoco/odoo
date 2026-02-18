@@ -41,6 +41,25 @@ class IatfAuditFinding(models.Model):
     closure_notes = fields.Text(string="종료 기록")
     attachment_ids = fields.Many2many("ir.attachment", string="증빙")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.finding_type in ("major", "minor") and not rec.nonconformity_id:
+                rec._auto_create_nc()
+        return records
+
+    def _auto_create_nc(self):
+        """심사 지적사항(중대/경미) → NC 자동 생성 (L2-15)"""
+        nc = self.env["iatf.nonconformity"].create({
+            "title": _("심사 지적: %s — %s") % (self.audit_id.name, self.clause_reference or ""),
+            "nc_type": "audit",
+            "severity": "major" if self.finding_type == "major" else "minor",
+            "problem_description": self.description,
+        })
+        self.nonconformity_id = nc.id
+        self.audit_id.message_post(body=_("지적사항 → 부적합 %s 자동 생성됨") % nc.name)
+
     def action_close(self):
         self.write({"state": "closed"})
 

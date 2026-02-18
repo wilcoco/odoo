@@ -10,6 +10,7 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "data/cron.xml",
         "views/nonconformity_views.xml",
         "views/corrective_action_views.xml",
         "views/menu.xml",

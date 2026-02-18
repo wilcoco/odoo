@@ -165,7 +165,58 @@ class IatfNonconformity(models.Model):
         for vals in vals_list:
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.nonconformity") or _("New")
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for rec in records:
+            rec._auto_check_scar_threshold()
+            rec._auto_update_risk()
+        return records
+
+    def _auto_check_scar_threshold(self):
+        """업체 NC 3건 이상 반복 시 SCAR 자동 생성 (L2-12)"""
+        if self.nc_type != "supplier" or not self.partner_id:
+            return
+        SCAR = self.env.get("iatf.scar")
+        if SCAR is None:
+            return
+        from datetime import timedelta
+        six_months_ago = fields.Date.today() - timedelta(days=180)
+        recent_nc_count = self.search_count([
+            ("nc_type", "=", "supplier"),
+            ("partner_id", "=", self.partner_id.id),
+            ("detection_date", ">=", six_months_ago),
+        ])
+        if recent_nc_count >= 3:
+            existing_scar = SCAR.search([
+                ("supplier_id", "=", self.partner_id.id),
+                ("state", "not in", ("closed", "cancelled")),
+            ], limit=1)
+            if not existing_scar:
+                scar = SCAR.create({
+                    "supplier_id": self.partner_id.id,
+                    "product_id": self.product_id.id if self.product_id else False,
+                    "problem_description": "<p>6개월간 부적합 %d건 반복 발생으로 SCAR 자동 발행<br/>최근 NC: %s</p>" % (
+                        recent_nc_count, self.name),
+                    "nonconformity_id": self.id,
+                    "response_due_date": fields.Date.today() + timedelta(days=14),
+                })
+                self.message_post(body=_("SCAR %s 자동 발행됨 (6개월 NC %d건)") % (scar.name, recent_nc_count))
+
+    def _auto_update_risk(self):
+        """NC 발생 시 관련 리스크 등급 재평가 알림 (L2-17)"""
+        RiskReg = self.env.get("iatf.risk.register")
+        if RiskReg is None:
+            return
+        risks = RiskReg.search([
+            ("state", "not in", ("closed",)),
+        ])
+        for risk in risks:
+            if self.product_id and hasattr(risk, "description") and risk.description:
+                if self.product_id.name in (risk.description or ""):
+                    risk.activity_schedule(
+                        "mail.mail_activity_data_warning",
+                        summary=_("관련 NC 발생으로 리스크 재평가 필요: %s") % self.name,
+                        user_id=risk.responsible_id.id if risk.responsible_id else self.env.user.id,
+                    )
 
     # ── Workflow actions ──
 
@@ -199,6 +250,45 @@ class IatfNonconformity(models.Model):
                       "%d action(s) still open.") % len(open_cas)
                 )
         self.write({"state": "closed"})
+
+    @api.model
+    def _cron_nc_closure_check(self):
+        """NC 폐쇄루프 검증 cron — 장기 미종결 NC 알림 (L5-3)"""
+        from datetime import timedelta
+        today = fields.Date.today()
+        threshold_30 = today - timedelta(days=30)
+        threshold_60 = today - timedelta(days=60)
+
+        # 30일 초과 미종결 NC → 담당자 경고
+        stale_ncs = self.search([
+            ("state", "not in", ("closed", "cancelled")),
+            ("detection_date", "<=", threshold_30),
+        ])
+        for nc in stale_ncs:
+            days_open = (today - nc.detection_date).days if nc.detection_date else 0
+            user_id = nc.responsible_id.id if nc.responsible_id else self.env.ref("base.user_admin").id
+            if days_open >= 60:
+                nc.activity_schedule(
+                    "mail.mail_activity_data_todo",
+                    summary=_("NC %s 가 %d일째 미종결 — 즉시 조치 필요") % (nc.name, days_open),
+                    user_id=user_id,
+                )
+            elif days_open >= 30:
+                nc.activity_schedule(
+                    "mail.mail_activity_data_warning",
+                    summary=_("NC %s 가 %d일째 미종결 — CAPA 진행 확인 필요") % (nc.name, days_open),
+                    user_id=user_id,
+                )
+
+        # CAPA 유효성 미검증 체크: verification 상태에서 14일 초과
+        verify_threshold = today - timedelta(days=14)
+        verify_ncs = self.search([
+            ("state", "=", "verification"),
+            ("write_date", "<=", verify_threshold),
+        ])
+        for nc in verify_ncs:
+            nc.message_post(body=_(
+                "CAPA 유효성 검증이 14일 초과하여 지연되고 있습니다. 검증 완료 후 NC를 종결하세요."))
 
     def action_cancel(self):
         self.write({"state": "cancelled"})

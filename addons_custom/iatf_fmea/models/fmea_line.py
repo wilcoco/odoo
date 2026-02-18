@@ -89,6 +89,41 @@ class IatfFmeaLine(models.Model):
 
     notes = fields.Text(string="비고")
 
+    def write(self, vals):
+        """RPN 변경 시 관련 Control Plan에 알림"""
+        rpn_fields = {"severity", "occurrence", "detection"}
+        trigger = rpn_fields & set(vals.keys())
+        old_rpns = {}
+        if trigger:
+            for rec in self:
+                old_rpns[rec.id] = rec.rpn
+
+        res = super().write(vals)
+
+        if trigger:
+            for rec in self:
+                old_rpn = old_rpns.get(rec.id, 0)
+                if rec.rpn != old_rpn and rec.fmea_id and rec.fmea_id.product_id:
+                    cps = self.env.get("iatf.control.plan")
+                    if cps is not None:
+                        plans = cps.search([
+                            ("product_id", "=", rec.fmea_id.product_id.id),
+                            ("state", "=", "approved"),
+                        ])
+                        for cp in plans:
+                            cp.message_post(
+                                body=_("⚠ FMEA RPN 변경: %s → %s (고장모드: %s, FMEA: %s)") % (
+                                    old_rpn, rec.rpn, rec.failure_mode, rec.fmea_id.name),
+                                subject=_("FMEA RPN 변경 알림"),
+                            )
+                    if rec.rpn >= 200 and old_rpn < 200:
+                        rec.fmea_id.activity_schedule(
+                            "mail.mail_activity_data_warning",
+                            summary=_("고위험 RPN ≥200: %s (RPN=%d)") % (rec.failure_mode, rec.rpn),
+                            user_id=rec.action_responsible_id.id or rec.fmea_id.responsible_id.id or self.env.user.id,
+                        )
+        return res
+
     @api.depends("severity", "occurrence", "detection")
     def _compute_rpn(self):
         for line in self:

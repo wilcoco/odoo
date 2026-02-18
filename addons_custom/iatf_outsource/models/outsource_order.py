@@ -64,6 +64,23 @@ class IatfOutsourceOrder(models.Model):
 
     def action_receive(self):
         self.write({"state": "received", "receive_date": fields.Date.today()})
+        for rec in self:
+            rec._auto_create_outsource_iqc()
+
+    def _auto_create_outsource_iqc(self):
+        """외주 입고 시 수입검사(IQC) 자동 생성"""
+        IQC = self.env.get("iatf.incoming.inspection")
+        if IQC is None:
+            return
+        iqc = IQC.create({
+            "supplier_id": self.supplier_id.id,
+            "product_id": self.product_id.id,
+            "lot_id": self.lot_id.id if self.lot_id else False,
+            "quantity_received": self.quantity_received or self.quantity_sent,
+            "quantity_inspected": self.quantity_received or self.quantity_sent,
+            "inspection_type": "sampling",
+        })
+        self.message_post(body=_("외주 입고 수입검사 %s 자동 생성됨") % iqc.name)
 
     def action_inspect(self):
         self.write({"state": "inspected"})

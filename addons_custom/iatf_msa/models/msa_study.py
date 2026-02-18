@@ -121,6 +121,38 @@ class IatfMsaStudy(models.Model):
     def action_reset_draft(self):
         self.write({"state": "draft"})
 
+    @api.model
+    def _cron_msa_schedule_alert(self):
+        """주간 실행: 최근 1년간 MSA 미수행 게이지/특성 알림"""
+        from datetime import timedelta
+        one_year_ago = fields.Date.today() - timedelta(days=365)
+        # 1년 이상 갱신 안된 closed 연구 → 재수행 필요
+        old_studies = self.search([
+            ("state", "=", "closed"),
+            ("create_date", "<", one_year_ago),
+        ])
+        seen = set()
+        for study in old_studies:
+            key = (study.gage_name, study.characteristic_name)
+            if key in seen:
+                continue
+            # 이후 최신 연구가 있으면 skip
+            newer = self.search_count([
+                ("gage_name", "=", study.gage_name),
+                ("characteristic_name", "=", study.characteristic_name),
+                ("create_date", ">=", one_year_ago),
+            ])
+            if newer:
+                continue
+            seen.add(key)
+            study.activity_schedule(
+                "mail.mail_activity_data_todo",
+                summary=_("MSA 재수행 필요: %s / %s (최근: %s)") % (
+                    study.gage_name, study.characteristic_name,
+                    study.create_date.strftime("%Y-%m-%d") if study.create_date else "-"),
+                user_id=study.responsible_id.id or self.env.ref("base.user_admin").id,
+            )
+
     def _calculate_grr(self):
         self.ensure_one()
         measurements = self.measurement_ids

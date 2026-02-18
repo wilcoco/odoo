@@ -5,11 +5,12 @@
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "hr", "iatf_document_control"],
+    "depends": ["base", "mail", "hr", "mrp", "iatf_document_control"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "data/cron.xml",
         "views/training_views.xml",
         "views/competence_views.xml",
         "views/menu.xml",

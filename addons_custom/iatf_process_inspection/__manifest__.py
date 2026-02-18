@@ -12,6 +12,7 @@
         "data/sequence.xml",
         "views/process_inspection_views.xml",
         "views/mrp_production_views.xml",
+        "views/stock_picking_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

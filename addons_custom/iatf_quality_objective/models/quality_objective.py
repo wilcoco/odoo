@@ -125,6 +125,103 @@ class IatfQualityObjective(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.quality.objective") or _("New")
         return super().create(vals_list)
 
+    def action_auto_calculate_kpi(self):
+        """KPI 자동 계산: 각 모듈에서 실적 데이터 수집 (L5-1)"""
+        self.ensure_one()
+        from datetime import date
+        year = int(self.year) if self.year.isdigit() else date.today().year
+        quarter_ranges = {
+            1: (date(year, 1, 1), date(year, 3, 31)),
+            2: (date(year, 4, 1), date(year, 6, 30)),
+            3: (date(year, 7, 1), date(year, 9, 30)),
+            4: (date(year, 10, 1), date(year, 12, 31)),
+        }
+        values = {}
+        kpi = self.kpi_name.lower() if self.kpi_name else ""
+
+        for q, (start, end) in quarter_ranges.items():
+            val = 0.0
+            if "ppm" in kpi:
+                val = self._calc_ppm(start, end)
+            elif "납기" in kpi or "delivery" in kpi.lower():
+                val = self._calc_otd(start, end)
+            elif "cpk" in kpi:
+                val = self._calc_avg_cpk()
+            elif "고객불만" in kpi or "complaint" in kpi.lower():
+                val = self._calc_complaints(start, end)
+            elif "copq" in kpi or "불량비용" in kpi:
+                val = self._calc_copq(start, end)
+            values[q] = val
+
+        self.write({
+            "actual_q1": values.get(1, 0),
+            "actual_q2": values.get(2, 0),
+            "actual_q3": values.get(3, 0),
+            "actual_q4": values.get(4, 0),
+        })
+        self.message_post(body=_("KPI 자동 계산 완료"))
+
+    def _calc_ppm(self, start, end):
+        """불량 PPM 계산"""
+        IQC = self.env.get("iatf.incoming.inspection")
+        PQC = self.env.get("iatf.process.inspection")
+        total_qty = rejected_qty = 0.0
+        if IQC:
+            recs = IQC.search([("inspection_date", ">=", start), ("inspection_date", "<=", end), ("state", "=", "decided")])
+            total_qty += sum(recs.mapped("quantity_inspected"))
+            rejected_qty += sum(recs.mapped("quantity_rejected"))
+        if PQC:
+            recs = PQC.search([("inspection_date", ">=", start), ("inspection_date", "<=", end), ("state", "=", "decided")])
+            total_qty += sum(recs.mapped("quantity_inspected"))
+            rejected_qty += sum(recs.mapped("quantity_rejected"))
+        return (rejected_qty / total_qty * 1000000) if total_qty else 0.0
+
+    def _calc_otd(self, start, end):
+        """납기 준수율 (%) — 출하 전표 기준"""
+        pickings = self.env["stock.picking"].search([
+            ("picking_type_code", "=", "outgoing"),
+            ("state", "=", "done"),
+            ("date_done", ">=", start),
+            ("date_done", "<=", end),
+        ])
+        if not pickings:
+            return 0.0
+        on_time = pickings.filtered(lambda p: p.date_done and p.scheduled_date and p.date_done <= p.scheduled_date)
+        return len(on_time) / len(pickings) * 100.0
+
+    def _calc_avg_cpk(self):
+        """평균 Cpk"""
+        SPC = self.env.get("iatf.spc.study")
+        if not SPC:
+            return 0.0
+        studies = SPC.search([("state", "=", "analyzed"), ("cpk", ">", 0)])
+        return sum(studies.mapped("cpk")) / len(studies) if studies else 0.0
+
+    def _calc_complaints(self, start, end):
+        """고객불만 건수"""
+        CC = self.env.get("iatf.customer.complaint")
+        if not CC:
+            return 0.0
+        return CC.search_count([("received_date", ">=", start), ("received_date", "<=", end)])
+
+    def _calc_copq(self, start, end):
+        """불량 비용 (COPQ)"""
+        NC = self.env.get("iatf.nonconformity")
+        if not NC:
+            return 0.0
+        ncs = NC.search([("detection_date", ">=", start), ("detection_date", "<=", end)])
+        return sum(ncs.mapped("cost_total"))
+
+    @api.model
+    def _cron_auto_calculate_all(self):
+        """월간 KPI 자동 계산 cron (L5-3)"""
+        objectives = self.search([("state", "=", "active")])
+        for obj in objectives:
+            try:
+                obj.action_auto_calculate_kpi()
+            except Exception as e:
+                obj.message_post(body=_("KPI 자동 계산 오류: %s") % str(e))
+
     def action_activate(self):
         self.write({"state": "active"})
 

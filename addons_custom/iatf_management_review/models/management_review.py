@@ -77,6 +77,70 @@ class IatfManagementReview(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.management.review") or _("New")
         return super().create(vals_list)
 
+    def action_auto_collect_inputs(self):
+        """경영검토 입력 데이터 자동 수집 (L2-16)"""
+        self.ensure_one()
+        from datetime import timedelta
+        today = fields.Date.today()
+        period_start = today - timedelta(days=180)
+        parts = []
+
+        # 심사 결과
+        Audit = self.env.get("iatf.audit")
+        if Audit:
+            audits = Audit.search([("actual_date", ">=", period_start), ("state", "=", "closed")])
+            total_findings = sum(len(a.finding_ids) for a in audits if hasattr(a, "finding_ids"))
+            parts.append("<p><b>심사:</b> %d건 완료, 지적 %d건</p>" % (len(audits), total_findings))
+            self.input_audit_results = "".join(parts) if parts else False
+
+        # 고객 불만
+        CC = self.env.get("iatf.customer.complaint")
+        cc_parts = []
+        if CC:
+            complaints = CC.search([("received_date", ">=", period_start)])
+            closed = complaints.filtered(lambda c: c.state == "closed")
+            total_cost = sum(c.cost_total for c in complaints)
+            cc_parts.append("<p><b>고객불만:</b> %d건 (종결 %d건), 총비용 %s</p>" % (
+                len(complaints), len(closed), "{:,.0f}".format(total_cost)))
+        self.input_customer_feedback = "".join(cc_parts) if cc_parts else False
+
+        # 부적합/시정조치
+        NC = self.env.get("iatf.nonconformity")
+        nc_parts = []
+        if NC:
+            ncs = NC.search([("detection_date", ">=", period_start)])
+            by_type = {}
+            for nc in ncs:
+                by_type.setdefault(nc.nc_type, 0)
+                by_type[nc.nc_type] += 1
+            nc_parts.append("<p><b>부적합:</b> 총 %d건 — %s</p>" % (
+                len(ncs), ", ".join("%s: %d" % (k, v) for k, v in by_type.items())))
+            copq = sum(nc.cost_total for nc in ncs)
+            nc_parts.append("<p><b>불량비용(COPQ):</b> %s</p>" % "{:,.0f}".format(copq))
+        self.input_nc_corrective = "".join(nc_parts) if nc_parts else False
+        self.input_cost_poor_quality = nc_parts[-1] if len(nc_parts) > 1 else False
+
+        # 공정 성과
+        SPC = self.env.get("iatf.spc.study")
+        spc_parts = []
+        if SPC:
+            studies = SPC.search([("state", "=", "analyzed")])
+            capable = studies.filtered(lambda s: s.capability_status == "capable")
+            spc_parts.append("<p><b>SPC:</b> %d건 분석, 공정능력 적합 %d건 (%.0f%%)</p>" % (
+                len(studies), len(capable), len(capable) / len(studies) * 100 if studies else 0))
+        self.input_process_effectiveness = "".join(spc_parts) if spc_parts else False
+
+        # 업체 성과
+        SE = self.env.get("iatf.supplier.evaluation")
+        se_parts = []
+        if SE:
+            evals = SE.search([("evaluation_date", ">=", period_start), ("state", "=", "confirmed")])
+            d_grade = evals.filtered(lambda e: e.grade == "d")
+            se_parts.append("<p><b>업체 평가:</b> %d건, D등급(부적격) %d건</p>" % (len(evals), len(d_grade)))
+        self.input_process_performance = "".join(se_parts) if se_parts else False
+
+        self.message_post(body=_("경영검토 입력 데이터 자동 수집 완료"))
+
     def action_start(self):
         self.write({"state": "in_progress"})
 

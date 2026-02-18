@@ -89,6 +89,69 @@ class IatfApqpProject(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.apqp.project") or _("New")
         return super().create(vals_list)
 
+    def action_auto_advance(self):
+        """APQP 5단계 End-to-End 자동 진행 (L4-1)
+        현재 단계 완료 확인 → 다음 단계 자동 시작 + 관련 산출물 자동 생성"""
+        self.ensure_one()
+        for phase in self.phase_ids.sorted("phase_number"):
+            if phase.state == "completed":
+                continue
+            if phase.state == "not_started":
+                phase.action_start()
+                self.message_post(body=_("APQP Phase %s 자동 시작됨") % phase.phase_number)
+            # Phase 2 완료 시 → FMEA 자동 생성
+            if phase.phase_number == "2" and phase.state == "completed":
+                self._auto_create_fmea()
+            # Phase 3 완료 시 → Control Plan 자동 생성
+            if phase.phase_number == "3" and phase.state == "completed":
+                self._auto_create_control_plan()
+            # Phase 4 완료 시 → PPAP 자동 생성
+            if phase.phase_number == "4" and phase.state == "completed":
+                self._auto_create_ppap()
+            break
+
+    def _auto_create_fmea(self):
+        FMEA = self.env.get("iatf.fmea")
+        if FMEA is None or not self.product_id:
+            return
+        existing = FMEA.search([("product_id", "=", self.product_id.id)], limit=1)
+        if not existing:
+            FMEA.create({
+                "title": _("PFMEA: %s") % self.product_id.name,
+                "fmea_type": "pfmea",
+                "product_id": self.product_id.id,
+                "customer_id": self.customer_id.id if self.customer_id else False,
+            })
+            self.message_post(body=_("APQP Phase 2 완료 → PFMEA 자동 생성됨"))
+
+    def _auto_create_control_plan(self):
+        CP = self.env.get("iatf.control.plan")
+        if CP is None or not self.product_id:
+            return
+        existing = CP.search([("product_id", "=", self.product_id.id)], limit=1)
+        if not existing:
+            CP.create({
+                "plan_type": "pre_launch",
+                "product_id": self.product_id.id,
+                "customer_id": self.customer_id.id if self.customer_id else False,
+            })
+            self.message_post(body=_("APQP Phase 3 완료 → Control Plan (Pre-Launch) 자동 생성됨"))
+
+    def _auto_create_ppap(self):
+        PPAP = self.env.get("iatf.ppap.submission")
+        if PPAP is None or not self.product_id:
+            return
+        existing = PPAP.search([("product_id", "=", self.product_id.id)], limit=1)
+        if not existing:
+            PPAP.create({
+                "title": _("PPAP: %s") % self.product_id.name,
+                "product_id": self.product_id.id,
+                "customer_id": self.customer_id.id if self.customer_id else False,
+                "apqp_project_id": self.id,
+                "submission_level": "3",
+            })
+            self.message_post(body=_("APQP Phase 4 완료 → PPAP 제출 자동 생성됨"))
+
     def action_activate(self):
         self.write({"state": "active"})
 

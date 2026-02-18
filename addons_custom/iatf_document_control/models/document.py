@@ -182,4 +182,21 @@ class IatfDocument(models.Model):
             "review_date": False,
             "approval_date": False,
         })
+        self._auto_create_change_request(next_rev)
         return True
+
+    def _auto_create_change_request(self, new_rev):
+        """문서 개정 시 변경요청(CR) 자동 생성 (L2-18)"""
+        CR = self.env.get("iatf.change.request")
+        if CR is None:
+            return
+        CR.create({
+            "title": _("문서 개정: %s (Rev.%s)") % (self.name, new_rev),
+            "change_type": "method",
+            "change_category": "planned",
+            "change_source": "engineering",
+            "description": "<p>문서 개정에 의한 자동 변경요청 생성<br/>문서: %s<br/>문서번호: %s<br/>신규 개정: %s</p>" % (
+                self.title, self.doc_number, new_rev),
+            "reason": "<p>문서 개정</p>",
+        })
+        self.message_post(body=_("문서 개정 → 변경요청(CR) 자동 생성됨"))

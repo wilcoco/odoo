@@ -236,3 +236,33 @@ class IatfSpcStudy(models.Model):
             else:
                 sg.is_ooc = False
         self.ooc_count = ooc
+        if ooc > 0:
+            self._auto_create_spc_nc(ooc)
+
+    def _auto_create_spc_nc(self, ooc_count):
+        """SPC 관리 이탈 → NC 자동 생성 → CAPA 루프 (L4-2)"""
+        NC = self.env.get("iatf.nonconformity")
+        if NC is None:
+            return
+        existing = NC.search([
+            ("title", "like", "SPC 관리이탈: %s" % self.name),
+            ("state", "!=", "closed"),
+        ], limit=1)
+        if existing:
+            return
+        nc = NC.create({
+            "title": _("SPC 관리이탈: %s — %s") % (self.name, self.characteristic_name),
+            "nc_type": "process",
+            "severity": "major" if ooc_count >= 3 else "minor",
+            "problem_description": (
+                "<p>SPC 분석 관리이탈 감지<br/>"
+                "연구: %s<br/>특성: %s<br/>"
+                "관리이탈 포인트: %d건<br/>"
+                "Cpk: %.3f<br/>"
+                "공정능력: %s</p>"
+            ) % (self.name, self.characteristic_name, ooc_count,
+                 self.cpk, dict(self._fields["capability_status"].selection).get(self.capability_status, "")),
+            "product_id": self.product_id.id if self.product_id else False,
+        })
+        self.message_post(body=_(
+            "SPC 관리이탈 %d건 → 부적합 %s 자동 생성됨. CAPA 진행 필요.") % (ooc_count, nc.name))

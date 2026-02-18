@@ -1,7 +1,15 @@
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 import logging
 
 _logger = logging.getLogger(__name__)
+
+
+class StockLot(models.Model):
+    _inherit = "stock.lot"
+
+    quality_hold = fields.Boolean(string="품질 보류", default=False, tracking=True)
+    hold_reason = fields.Char(string="보류 사유")
 
 
 class StockPicking(models.Model):
@@ -41,6 +49,12 @@ class StockPicking(models.Model):
                 "inspection_type": "sampling",
             }
             iqc = IQC.create(vals)
+            # 로트에 품질 보류 설정 (L3-1)
+            if move.lot_ids:
+                move.lot_ids.write({
+                    "quality_hold": True,
+                    "hold_reason": _("IQC 검사 대기: %s") % iqc.name,
+                })
             _logger.info("IQC auto-created: %s for picking %s, product %s",
                          iqc.name, self.name, move.product_id.name)
 
@@ -61,3 +75,22 @@ class StockPicking(models.Model):
             "name": _("수입검사"),
             "context": {"default_picking_id": self.id},
         }
+
+
+class StockMove(models.Model):
+    _inherit = "stock.move"
+
+    def _action_confirm(self, merge=True, merge_into=False):
+        """품질 보류 로트가 MO에 투입되는 것을 차단 (L3-1)"""
+        for move in self:
+            if move.production_id and move.lot_ids:
+                held_lots = move.lot_ids.filtered(lambda l: l.quality_hold)
+                if held_lots:
+                    raise UserError(_(
+                        "품질 보류 중인 로트는 제조에 투입할 수 없습니다.\n"
+                        "보류 로트: %s\n사유: %s"
+                    ) % (
+                        ", ".join(held_lots.mapped("name")),
+                        ", ".join(filter(None, held_lots.mapped("hold_reason"))),
+                    ))
+        return super()._action_confirm(merge=merge, merge_into=merge_into)

@@ -98,6 +98,36 @@ class IatfLayoutInspection(models.Model):
     def action_close(self):
         self.write({"state": "closed"})
 
+    @api.model
+    def _cron_layout_inspection_reminder(self):
+        """월간 실행: 연간 레이아웃 검사 미수행 제품 알림"""
+        from datetime import timedelta
+        one_year_ago = fields.Date.today() - timedelta(days=365)
+        # 최근 1년간 검사 완료된 제품
+        recent = self.search([
+            ("state", "in", ("decided", "closed")),
+            ("inspection_date", ">=", one_year_ago),
+        ])
+        done_products = set(recent.mapped("product_id").ids)
+        # 이전에 검사한 적 있지만 1년 초과된 제품
+        old = self.search([
+            ("state", "in", ("decided", "closed")),
+            ("inspection_date", "<", one_year_ago),
+        ])
+        overdue_products = set(old.mapped("product_id").ids) - done_products
+        for pid in overdue_products:
+            last = self.search([
+                ("product_id", "=", pid),
+                ("state", "in", ("decided", "closed")),
+            ], order="inspection_date desc", limit=1)
+            if last:
+                last.activity_schedule(
+                    "mail.mail_activity_data_todo",
+                    summary=_("연간 레이아웃 검사 미수행: %s (최근: %s)") % (
+                        last.product_id.name, last.inspection_date),
+                    user_id=last.inspector_id.id if last.inspector_id else self.env.ref("base.user_admin").id,
+                )
+
 
 class IatfLayoutInspectionLine(models.Model):
     _name = "iatf.layout.inspection.line"
