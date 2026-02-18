@@ -16,6 +16,25 @@ class MrpWorkorder(models.Model):
         for rec in self:
             rec.ipqc_count = len(rec.ipqc_inspection_ids)
 
+    def button_start(self):
+        """작업 시작 시 이전 공정 IPQC 합격 확인 (B6 품질 게이트)"""
+        from odoo.exceptions import UserError
+        for wo in self:
+            prev_wos = wo.production_id.workorder_ids.filtered(
+                lambda w: w.id != wo.id and w.state == "done"
+                and w.sequence < wo.sequence
+            )
+            for prev in prev_wos:
+                failed = prev.ipqc_inspection_ids.filtered(
+                    lambda r: r.result == "fail" and r.state == "decided")
+                if failed:
+                    raise UserError(_(
+                        "이전 공정 '%s'의 IPQC가 불합격입니다.\n"
+                        "불합격 검사: %s\n"
+                        "시정조치 후 진행하세요.") % (
+                        prev.name, ", ".join(failed.mapped("name"))))
+        return super().button_start()
+
     def button_finish(self):
         res = super().button_finish()
         for wo in self:

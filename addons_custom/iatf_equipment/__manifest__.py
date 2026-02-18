@@ -5,7 +5,7 @@
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "hr", "mrp", "iatf_document_control"],
+    "depends": ["base", "mail", "hr", "mrp", "maintenance", "iatf_document_control"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
@@ -15,6 +15,7 @@
         "views/pm_schedule_views.xml",
         "views/breakdown_views.xml",
         "views/daily_check_views.xml",
+        "views/maintenance_equipment_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

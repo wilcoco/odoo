@@ -11,6 +11,7 @@
         "security/ir.model.access.csv",
         "data/sequence.xml",
         "views/control_plan_views.xml",
+        "views/mrp_workcenter_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

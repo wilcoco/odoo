@@ -147,11 +147,61 @@ class IatfNonconformity(models.Model):
     cost_internal = fields.Float(string="내부 비용")
     cost_external = fields.Float(string="외부 비용")
     cost_total = fields.Float(string="총 비용", compute="_compute_cost_total", store=True)
+    account_move_id = fields.Many2one("account.move", string="COPQ 전표", readonly=True, copy=False)
 
     @api.depends("cost_internal", "cost_external")
     def _compute_cost_total(self):
         for rec in self:
             rec.cost_total = rec.cost_internal + rec.cost_external
+
+    def action_post_copq_journal(self):
+        """COPQ 비용을 회계 전표로 전기 (B4)"""
+        self.ensure_one()
+        if self.account_move_id:
+            raise UserError(_("이미 전표가 생성되어 있습니다: %s") % self.account_move_id.name)
+        if not self.cost_total:
+            raise UserError(_("비용이 0이므로 전표를 생성할 수 없습니다."))
+
+        journal = self.env["account.journal"].search([("type", "=", "general")], limit=1)
+        if not journal:
+            raise UserError(_("일반 분개장을 찾을 수 없습니다."))
+
+        # COPQ 비용 계정 / 미지급금 계정 (기본 계정으로 대체 가능)
+        expense_account = self.env["account.account"].search([
+            ("account_type", "=", "expense"),
+            ("company_id", "=", self.company_id.id),
+        ], limit=1)
+        payable_account = self.env["account.account"].search([
+            ("account_type", "=", "liability_current"),
+            ("company_id", "=", self.company_id.id),
+        ], limit=1)
+
+        if not expense_account or not payable_account:
+            raise UserError(_("COPQ 비용 계정 또는 미지급 계정을 찾을 수 없습니다. 회계 설정을 확인하세요."))
+
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "ref": _("COPQ: %s") % self.name,
+            "line_ids": [
+                (0, 0, {
+                    "name": _("불량비용(COPQ) — %s") % self.title,
+                    "account_id": expense_account.id,
+                    "debit": self.cost_total,
+                    "credit": 0,
+                }),
+                (0, 0, {
+                    "name": _("불량비용(COPQ) — %s") % self.title,
+                    "account_id": payable_account.id,
+                    "debit": 0,
+                    "credit": self.cost_total,
+                }),
+            ],
+        })
+        self.account_move_id = move.id
+        self.message_post(body=_("COPQ 회계 전표 %s 생성됨 (금액: %s)") % (
+            move.name, "{:,.0f}".format(self.cost_total)))
 
     @api.depends("corrective_action_ids")
     def _compute_ca_count(self):

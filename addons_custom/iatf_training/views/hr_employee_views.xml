@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_employee_form_iatf_training" model="ir.ui.view">
+        <field name="name">hr.employee.form.iatf.training</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_training_records" type="object"
+                        class="oe_stat_button" icon="fa-graduation-cap"
+                        invisible="training_count == 0">
+                    <field name="training_count" string="교육" widget="statinfo"/>
+                </button>
+                <button name="action_view_competence_matrix" type="object"
+                        class="oe_stat_button" icon="fa-th"
+                        invisible="competence_count == 0">
+                    <field name="competence_count" string="역량" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

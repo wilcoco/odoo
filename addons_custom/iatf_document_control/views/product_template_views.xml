@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_iatf" model="ir.ui.view">
+        <field name="name">product.template.form.iatf</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_iatf_fmea" type="object"
+                        class="oe_stat_button" icon="fa-exclamation-triangle"
+                        invisible="iatf_fmea_count == 0">
+                    <field name="iatf_fmea_count" string="FMEA" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_control_plan" type="object"
+                        class="oe_stat_button" icon="fa-clipboard"
+                        invisible="iatf_control_plan_count == 0">
+                    <field name="iatf_control_plan_count" string="CP" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_spc" type="object"
+                        class="oe_stat_button" icon="fa-line-chart"
+                        invisible="iatf_spc_count == 0">
+                    <field name="iatf_spc_count" string="SPC" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_ppap" type="object"
+                        class="oe_stat_button" icon="fa-check-square-o"
+                        invisible="iatf_ppap_count == 0">
+                    <field name="iatf_ppap_count" string="PPAP" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_nc" type="object"
+                        class="oe_stat_button" icon="fa-ban"
+                        invisible="iatf_nc_count == 0">
+                    <field name="iatf_nc_count" string="NC" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_inspection" type="object"
+                        class="oe_stat_button" icon="fa-search"
+                        invisible="iatf_inspection_count == 0">
+                    <field name="iatf_inspection_count" string="검사" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_complaint" type="object"
+                        class="oe_stat_button" icon="fa-frown-o"
+                        invisible="iatf_complaint_count == 0">
+                    <field name="iatf_complaint_count" string="고객불만" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_msa" type="object"
+                        class="oe_stat_button" icon="fa-bullseye"
+                        invisible="iatf_msa_count == 0">
+                    <field name="iatf_msa_count" string="MSA" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -20,6 +20,9 @@ class IatfApqpProject(models.Model):
     customer_id = fields.Many2one("res.partner", string="고객", tracking=True)
     part_number = fields.Char(string="부품 번호")
 
+    # ── Odoo Project 연동 (B7) ──
+    project_project_id = fields.Many2one("project.project", string="Odoo 프로젝트", copy=False)
+
     # ── Team ──
     project_leader_id = fields.Many2one("res.users", string="프로젝트 리더",
                                          default=lambda self: self.env.user, tracking=True)

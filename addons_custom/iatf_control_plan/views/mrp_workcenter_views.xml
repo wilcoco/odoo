@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_workcenter_form_iatf" model="ir.ui.view">
+        <field name="name">mrp.workcenter.form.iatf</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_control_plans" type="object"
+                        class="oe_stat_button" icon="fa-clipboard"
+                        invisible="control_plan_count == 0">
+                    <field name="control_plan_count" string="CP" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_equipment" type="object"
+                        class="oe_stat_button" icon="fa-cog"
+                        invisible="iatf_equipment_count == 0">
+                    <field name="iatf_equipment_count" string="IATF 설비" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
