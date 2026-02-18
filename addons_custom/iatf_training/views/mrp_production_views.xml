@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_iatf_training" model="ir.ui.view">
+        <field name="name">mrp.production.form.iatf.training</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" icon="fa-user-check"
+                        invisible="operator_qualified" disabled="1">
+                    <span class="o_stat_text text-danger">자격 미달</span>
+                </button>
+                <button class="oe_stat_button" icon="fa-user-check"
+                        invisible="not operator_qualified" disabled="1">
+                    <span class="o_stat_text text-success">자격 적합</span>
+                </button>
+                <field name="operator_qualified" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

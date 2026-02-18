@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_form_iatf_packaging" model="ir.ui.view">
+        <field name="name">stock.picking.form.iatf.packaging</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_packaging_specs" type="object"
+                        class="oe_stat_button" icon="fa-archive"
+                        invisible="packaging_spec_count == 0">
+                    <field name="packaging_spec_count" string="포장사양" widget="statinfo"/>
+                </button>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <field name="packaging_verified" invisible="1"/>
+                <div invisible="packaging_spec_count == 0 or packaging_verified" class="alert alert-warning" role="alert">
+                    <strong>⚠ 포장사양서 미검증</strong> — 출하 전 포장 상태를 확인하세요.
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

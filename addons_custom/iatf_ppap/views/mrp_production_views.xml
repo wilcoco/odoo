@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_iatf_ppap" model="ir.ui.view">
+        <field name="name">mrp.production.form.iatf.ppap</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_ppap" type="object"
+                        class="oe_stat_button" icon="fa-check-square-o"
+                        invisible="not ppap_submission_id">
+                    <span class="o_stat_text">PPAP</span>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

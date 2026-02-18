@@ -12,6 +12,7 @@
         "data/sequence.xml",
         "views/mold_views.xml",
         "views/mold_maintenance_views.xml",
+        "views/mrp_production_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

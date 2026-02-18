@@ -48,3 +48,14 @@ class MrpProduction(models.Model):
         self.message_post(body=_("신규 제품 첫 MO → PPAP 제출 요청 %s 자동 생성됨") % ppap.name)
         _logger.info("PPAP auto-created: %s for first MO %s, product %s",
                      ppap.name, self.name, self.product_id.name)
+
+    def action_view_ppap(self):
+        self.ensure_one()
+        if self.ppap_submission_id:
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "iatf.ppap.submission",
+                "res_id": self.ppap_submission_id.id,
+                "view_mode": "form",
+                "target": "current",
+            }

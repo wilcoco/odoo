@@ -11,6 +11,7 @@
         "security/ir.model.access.csv",
         "data/sequence.xml",
         "views/packaging_spec_views.xml",
+        "views/stock_picking_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

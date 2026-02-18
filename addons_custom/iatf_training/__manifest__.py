@@ -14,6 +14,7 @@
         "views/training_views.xml",
         "views/competence_views.xml",
         "views/hr_employee_views.xml",
+        "views/mrp_production_views.xml",
         "views/menu.xml",
     ],
     "installable": True,
