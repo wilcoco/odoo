@@ -102,7 +102,54 @@ class IatfIncomingInspection(models.Model):
         for rec in self:
             if not rec.result:
                 raise UserError(_("판정 결과를 입력해 주세요."))
-        self.write({"state": "decided"})
+            rec.write({"state": "decided"})
+            if rec.result == "fail":
+                rec._auto_create_nc()
+                rec._auto_quarantine_lot()
+
+    def _auto_create_nc(self):
+        """불합격 시 부적합 자동 생성"""
+        if self.nonconformity_id:
+            return
+        nc = self.env["iatf.nonconformity"].create({
+            "title": _("수입검사 불합격: %s - %s") % (self.name, self.product_id.name),
+            "nc_type": "supplier",
+            "severity": "major",
+            "problem_description": "<p>수입검사 %s 불합격 자동 생성<br/>제품: %s<br/>업체: %s<br/>수량: %s</p>" % (
+                self.name, self.product_id.name, self.supplier_id.name, self.quantity_rejected or self.quantity_received),
+            "product_id": self.product_id.id,
+            "lot_id": self.lot_id.id if self.lot_id else False,
+            "partner_id": self.supplier_id.id,
+            "quantity_affected": self.quantity_received,
+            "quantity_rejected": self.quantity_rejected or 0,
+        })
+        self.nonconformity_id = nc.id
+        self.message_post(body=_("부적합 %s 자동 생성됨") % nc.name)
+
+    def _auto_quarantine_lot(self):
+        """불합격 로트를 격리 위치로 이동"""
+        if not self.lot_id:
+            return
+        quarantine_loc = self.env.ref("stock.stock_location_scrapped", raise_if_not_found=False)
+        if not quarantine_loc:
+            return
+        quants = self.env["stock.quant"].search([
+            ("lot_id", "=", self.lot_id.id),
+            ("location_id.usage", "=", "internal"),
+            ("quantity", ">", 0),
+        ])
+        for quant in quants:
+            self.env["stock.move"].create({
+                "name": _("IQC 불합격 격리: %s") % self.name,
+                "product_id": quant.product_id.id,
+                "product_uom_qty": quant.quantity,
+                "product_uom": quant.product_id.uom_id.id,
+                "location_id": quant.location_id.id,
+                "location_dest_id": quarantine_loc.id,
+                "origin": self.name,
+            })._action_confirm()._action_done()
+        if quants:
+            self.message_post(body=_("로트 %s 격리 위치로 자동 이동됨") % self.lot_id.name)
 
     def action_close(self):
         self.write({"state": "closed"})

@@ -98,3 +98,41 @@ class IatfMeasurementEquipment(models.Model):
 
     def action_retire(self):
         self.write({"state": "retired"})
+
+    @api.model
+    def _cron_calibration_overdue_alert(self):
+        """매일 실행: 교정 기한 초과/임박 장비에 activity 알림"""
+        from datetime import timedelta
+        today = fields.Date.today()
+        soon = today + timedelta(days=14)
+
+        overdue = self.search([
+            ("is_overdue", "=", True),
+            ("state", "=", "active"),
+        ])
+        for eq in overdue:
+            eq.activity_schedule(
+                "mail.mail_activity_data_todo",
+                summary=_("교정 기한 초과: %s (예정일: %s)") % (eq.name, eq.next_calibration_date),
+                user_id=eq.custodian_id.id or self.env.ref("base.user_admin").id,
+                date_deadline=today,
+            )
+
+        upcoming = self.search([
+            ("next_calibration_date", "<=", soon),
+            ("next_calibration_date", ">=", today),
+            ("state", "=", "active"),
+        ])
+        for eq in upcoming:
+            existing = self.env["mail.activity"].search([
+                ("res_model", "=", "iatf.measurement.equipment"),
+                ("res_id", "=", eq.id),
+                ("summary", "like", "교정 기한 임박"),
+            ], limit=1)
+            if not existing:
+                eq.activity_schedule(
+                    "mail.mail_activity_data_todo",
+                    summary=_("교정 기한 임박: %s (예정일: %s)") % (eq.name, eq.next_calibration_date),
+                    user_id=eq.custodian_id.id or self.env.ref("base.user_admin").id,
+                    date_deadline=eq.next_calibration_date,
+                )

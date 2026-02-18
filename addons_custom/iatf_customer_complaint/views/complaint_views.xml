@@ -45,10 +45,16 @@
                     <button name="action_corrective" string="Corrective Action" type="object" class="oe_highlight" invisible="state != 'analysis'"/>
                     <button name="action_verification" string="Verify" type="object" class="oe_highlight" invisible="state != 'corrective'"/>
                     <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'verification'"/>
+                    <button name="action_traceback_shipments" string="출하 역추적" type="object" class="btn-secondary" invisible="state == 'closed'"/>
                     <button name="action_create_nc" string="Create NC/8D" type="object" class="btn-secondary" invisible="nonconformity_id != False or state == 'closed'"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,containment,analysis,corrective,verification,closed"/>
                 </header>
                 <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_view_related_pickings" type="object" class="oe_stat_button" icon="fa-truck" invisible="related_picking_count == 0">
+                            <field name="related_picking_count" widget="statinfo" string="출하 전표"/>
+                        </button>
+                    </div>
                     <div class="oe_title"><h1><field name="name" readonly="1"/></h1><h2><field name="title"/></h2></div>
                     <group>
                         <group string="Complaint Info">
@@ -92,6 +98,17 @@
                                     <field name="cost_total"/>
                                 </group>
                             </group>
+                        </page>
+                        <page string="출하 역추적" name="traceback">
+                            <field name="related_picking_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="scheduled_date"/>
+                                    <field name="date_done"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Attachments" name="attach">
                             <field name="attachment_ids" widget="many2many_binary"/>

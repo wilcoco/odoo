@@ -12,6 +12,7 @@
         "data/sequence.xml",
         "views/incoming_inspection_views.xml",
         "views/inspection_criteria_views.xml",
+        "views/stock_picking_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

@@ -134,6 +134,46 @@ class IatfEquipment(models.Model):
     def action_dispose(self):
         self.write({"state": "disposed"})
 
+    @api.model
+    def _cron_pm_overdue_alert(self):
+        """매일 실행: PM 기한 초과/임박 설비에 activity 알림 생성"""
+        from datetime import timedelta
+        today = fields.Date.today()
+        soon = today + timedelta(days=7)
+
+        # PM 기한 초과
+        overdue = self.search([
+            ("is_pm_overdue", "=", True),
+            ("state", "=", "active"),
+        ])
+        for eq in overdue:
+            eq.activity_schedule(
+                "mail.mail_activity_data_todo",
+                summary=_("PM 기한 초과: %s (예정일: %s)") % (eq.name, eq.next_pm_date),
+                user_id=eq.responsible_id.id or self.env.ref("base.user_admin").id,
+                date_deadline=today,
+            )
+
+        # PM 기한 7일 이내
+        upcoming = self.search([
+            ("next_pm_date", "<=", soon),
+            ("next_pm_date", ">=", today),
+            ("state", "=", "active"),
+        ])
+        for eq in upcoming:
+            existing = self.env["mail.activity"].search([
+                ("res_model", "=", "iatf.equipment"),
+                ("res_id", "=", eq.id),
+                ("summary", "like", "PM 기한 임박"),
+            ], limit=1)
+            if not existing:
+                eq.activity_schedule(
+                    "mail.mail_activity_data_todo",
+                    summary=_("PM 기한 임박: %s (예정일: %s)") % (eq.name, eq.next_pm_date),
+                    user_id=eq.responsible_id.id or self.env.ref("base.user_admin").id,
+                    date_deadline=eq.next_pm_date,
+                )
+
 
 class IatfEquipmentSpare(models.Model):
     _name = "iatf.equipment.spare"

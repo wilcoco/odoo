@@ -10,6 +10,7 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "data/cron.xml",
         "views/equipment_views.xml",
         "views/pm_schedule_views.xml",
         "views/breakdown_views.xml",

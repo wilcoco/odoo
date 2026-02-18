@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_inherit_iqc" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.iqc</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_iqc" type="object"
+                        class="oe_stat_button" icon="fa-check-square"
+                        invisible="picking_type_code != 'incoming'">
+                    <field name="iqc_count" widget="statinfo" string="수입검사"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

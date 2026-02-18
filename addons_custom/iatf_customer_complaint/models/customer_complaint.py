@@ -118,6 +118,54 @@ class IatfCustomerComplaint(models.Model):
     def action_close(self):
         self.write({"state": "closed"})
 
+    # ── 출하 역추적 ──
+    related_picking_ids = fields.Many2many(
+        "stock.picking", string="관련 출하 전표", readonly=True,
+    )
+    related_picking_count = fields.Integer(compute="_compute_picking_count")
+
+    def _compute_picking_count(self):
+        for rec in self:
+            rec.related_picking_count = len(rec.related_picking_ids)
+
+    def action_traceback_shipments(self):
+        """로트/제품 기반으로 해당 고객에게 출하한 전표를 자동 역추적"""
+        self.ensure_one()
+        domain = [
+            ("picking_type_code", "=", "outgoing"),
+            ("state", "=", "done"),
+            ("partner_id", "=", self.customer_id.id),
+        ]
+        if self.lot_id:
+            domain.append(("move_ids.lot_ids", "in", [self.lot_id.id]))
+        elif self.product_id:
+            domain.append(("move_ids.product_id", "=", self.product_id.id))
+        else:
+            return
+
+        pickings = self.env["stock.picking"].search(domain)
+        self.related_picking_ids = [(6, 0, pickings.ids)]
+        msg = _("출하 역추적 완료: %d건의 출하 전표 발견") % len(pickings)
+        self.message_post(body=msg)
+
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "stock.picking",
+            "view_mode": "list,form",
+            "domain": [("id", "in", pickings.ids)],
+            "name": _("관련 출하 전표"),
+        }
+
+    def action_view_related_pickings(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "stock.picking",
+            "view_mode": "list,form",
+            "domain": [("id", "in", self.related_picking_ids.ids)],
+            "name": _("관련 출하 전표"),
+        }
+
     def action_create_nc(self):
         self.ensure_one()
         nc = self.env["iatf.nonconformity"].create({
