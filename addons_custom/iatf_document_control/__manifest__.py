@@ -5,7 +5,7 @@
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "hr", "web", "product"],
+    "depends": ["base", "mail", "hr", "web", "product", "account", "stock"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
@@ -14,6 +14,7 @@
         "views/document_views.xml",
         "views/product_template_views.xml",
         "views/document_revision_views.xml",
+        "views/res_config_settings_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

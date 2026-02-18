@@ -11,6 +11,7 @@
         "security/ir.model.access.csv",
         "data/sequence.xml",
         "views/change_request_views.xml",
+        "views/mrp_bom_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

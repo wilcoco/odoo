@@ -13,6 +13,8 @@
         "data/cron.xml",
         "views/supplier_evaluation_views.xml",
         "views/scar_views.xml",
+        "views/res_partner_views.xml",
+        "views/purchase_order_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- V3: purchase.order 폼뷰 — 업체 등급 경고 -->
+    <record id="purchase_order_form_iatf" model="ir.ui.view">
+        <field name="name">purchase.order.form.iatf</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="supplier_grade" invisible="not supplier_grade"/>
+                <div invisible="not supplier_grade_warning" class="alert alert-danger" role="alert">
+                    <strong>⚠ 부적격 업체 (D등급)</strong> — 발주 전 품질팀 승인 필요
+                </div>
+                <field name="supplier_grade_warning" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

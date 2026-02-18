@@ -57,6 +57,22 @@ class ResPartner(models.Model):
         "iatf.scar", "supplier_id", string="SCAR 이력",
     )
 
+    iatf_evaluation_count = fields.Integer(compute="_compute_iatf_partner_counts")
+    iatf_scar_count = fields.Integer(compute="_compute_iatf_partner_counts")
+    iatf_nc_count = fields.Integer(compute="_compute_iatf_partner_counts")
+    iatf_iqc_count = fields.Integer(compute="_compute_iatf_partner_counts")
+
+    def _compute_iatf_partner_counts(self):
+        for rec in self:
+            rec.iatf_evaluation_count = len(rec.iatf_evaluation_ids)
+            rec.iatf_scar_count = len(rec.iatf_scar_ids)
+            NC = self.env.get("iatf.nonconformity")
+            rec.iatf_nc_count = NC.search_count([
+                ("partner_id", "=", rec.id)]) if NC else 0
+            IQC = self.env.get("iatf.incoming.inspection")
+            rec.iatf_iqc_count = IQC.search_count([
+                ("supplier_id", "=", rec.id)]) if IQC else 0
+
     @api.depends("iatf_evaluation_ids.grade", "iatf_evaluation_ids.state")
     def _compute_iatf_grade(self):
         for rec in self:
@@ -65,3 +81,23 @@ class ResPartner(models.Model):
                 ("state", "=", "confirmed"),
             ], order="evaluation_date desc", limit=1)
             rec.iatf_supplier_grade = latest.grade if latest else False
+
+    def action_view_iatf_evaluations(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.supplier.evaluation",
+                "view_mode": "list,form", "domain": [("supplier_id", "=", self.id)],
+                "name": _("업체 평가"), "context": {"default_supplier_id": self.id}}
+
+    def action_view_iatf_scars(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.scar",
+                "view_mode": "list,form", "domain": [("supplier_id", "=", self.id)],
+                "name": _("SCAR"), "context": {"default_supplier_id": self.id}}
+
+    def action_view_iatf_ncs(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.nonconformity",
+                "view_mode": "list,form", "domain": [("partner_id", "=", self.id)],
+                "name": _("부적합")}
+
+    def action_view_iatf_iqcs(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.incoming.inspection",
+                "view_mode": "list,form", "domain": [("supplier_id", "=", self.id)],
+                "name": _("수입검사")}

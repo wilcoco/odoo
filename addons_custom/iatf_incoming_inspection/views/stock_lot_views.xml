@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- V7: stock.lot 폼뷰 — quality_hold 필드 표시 -->
+    <record id="stock_lot_form_iatf_hold" model="ir.ui.view">
+        <field name="name">stock.lot.form.iatf.hold</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="quality_hold" invisible="1"/>
+                <button class="oe_stat_button" icon="fa-lock"
+                        invisible="not quality_hold" disabled="1">
+                    <span class="o_stat_text text-danger">품질 보류</span>
+                </button>
+            </xpath>
+            <xpath expr="//group[1]" position="after">
+                <group string="IATF 품질 보류" invisible="not quality_hold">
+                    <field name="quality_hold" readonly="1"/>
+                    <field name="hold_reason" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

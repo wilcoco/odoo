@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- V1: res.partner 폼뷰 — 업체 IATF 스마트버튼 -->
+    <record id="res_partner_form_iatf_supplier" model="ir.ui.view">
+        <field name="name">res.partner.form.iatf.supplier</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_iatf_evaluations" type="object"
+                        class="oe_stat_button" icon="fa-star"
+                        invisible="iatf_evaluation_count == 0">
+                    <field name="iatf_evaluation_count" string="업체평가" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_scars" type="object"
+                        class="oe_stat_button" icon="fa-warning"
+                        invisible="iatf_scar_count == 0">
+                    <field name="iatf_scar_count" string="SCAR" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_ncs" type="object"
+                        class="oe_stat_button" icon="fa-ban"
+                        invisible="iatf_nc_count == 0">
+                    <field name="iatf_nc_count" string="NC" widget="statinfo"/>
+                </button>
+                <button name="action_view_iatf_iqcs" type="object"
+                        class="oe_stat_button" icon="fa-search"
+                        invisible="iatf_iqc_count == 0">
+                    <field name="iatf_iqc_count" string="IQC" widget="statinfo"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[1]" position="after">
+                <page string="IATF 품질" name="iatf_quality">
+                    <group>
+                        <field name="iatf_supplier_grade" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

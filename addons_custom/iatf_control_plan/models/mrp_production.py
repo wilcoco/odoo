@@ -29,3 +29,14 @@ class MrpProduction(models.Model):
             self.control_plan_id = cp.id
             self.message_post(body=_("관리계획서 %s 자동 연결됨") % cp.name)
             _logger.info("Control Plan %s auto-linked to MO %s", cp.name, self.name)
+
+    def action_view_control_plan(self):
+        self.ensure_one()
+        if self.control_plan_id:
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "iatf.control.plan",
+                "res_id": self.control_plan_id.id,
+                "view_mode": "form",
+                "target": "current",
+            }

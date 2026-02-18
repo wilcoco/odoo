@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_iatf_cp" model="ir.ui.view">
+        <field name="name">mrp.production.form.iatf.cp</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_control_plan" type="object"
+                        class="oe_stat_button" icon="fa-clipboard"
+                        invisible="not control_plan_id">
+                    <span class="o_stat_text">관리계획서</span>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

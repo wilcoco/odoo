@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_iatf" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.iatf</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="IATF 16949" string="IATF 16949" groups="base.group_system">
+                    <block title="IATF 품질 설정" name="iatf_quality_settings">
+                        <setting string="검사 불합격 시 NC 자동 생성" help="IQC/PQC/OQC 불합격 시 부적합(NC) 자동 생성">
+                            <field name="iatf_auto_nc_on_fail"/>
+                        </setting>
+                        <setting string="IQC 대기 중 로트 자동 보류" help="수입검사 완료 전 해당 로트를 품질 보류 상태로 설정">
+                            <field name="iatf_auto_hold_on_iqc"/>
+                        </setting>
+                        <setting string="기본 AQL 검사 수준" help="AQL 샘플 수량 자동 계산 시 사용할 검사 수준">
+                            <field name="iatf_aql_level"/>
+                        </setting>
+                    </block>
+                    <block title="COPQ / 회계" name="iatf_copq_settings">
+                        <setting string="COPQ 비용 계정" help="부적합 비용 회계 전기 시 사용할 비용 계정">
+                            <field name="iatf_copq_expense_account_id"/>
+                        </setting>
+                        <setting string="격리 창고 위치" help="불합격 자재를 이동시킬 격리 위치">
+                            <field name="iatf_quarantine_location_id"/>
+                        </setting>
+                    </block>
+                    <block title="NC / SCAR" name="iatf_nc_settings">
+                        <setting string="SCAR 자동 발행 임계값" help="6개월 내 업체 NC 건수가 이 값 이상이면 SCAR 자동 발행">
+                            <field name="iatf_scar_threshold"/>
+                        </setting>
+                        <setting string="NC 미종결 경고 일수" help="NC 생성 후 이 일수가 지나면 담당자에게 경고">
+                            <field name="iatf_nc_closure_days_warning"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
