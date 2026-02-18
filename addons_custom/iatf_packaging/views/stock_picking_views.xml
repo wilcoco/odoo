@@ -12,9 +12,9 @@
                     <field name="packaging_spec_count" string="포장사양" widget="statinfo"/>
                 </button>
             </xpath>
-            <xpath expr="//header" position="inside">
+            <xpath expr="//sheet" position="before">
                 <field name="packaging_verified" invisible="1"/>
-                <div invisible="packaging_spec_count == 0 or packaging_verified" class="alert alert-warning" role="alert">
+                <div invisible="packaging_spec_count == 0 or packaging_verified" class="alert alert-warning text-center" role="alert">
                     <strong>⚠ 포장사양서 미검증</strong> — 출하 전 포장 상태를 확인하세요.
                 </div>
             </xpath>

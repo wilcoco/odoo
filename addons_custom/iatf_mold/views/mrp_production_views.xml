@@ -8,8 +8,9 @@
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" icon="fa-industry"
                         invisible="not mold_id" disabled="1">
-                    <field name="mold_id" string="금형" widget="statinfo" options="{'label_field': 'name'}"/>
+                    <span class="o_stat_text">금형</span>
                 </button>
+                <field name="mold_id" invisible="1"/>
             </xpath>
         </field>
     </record>
