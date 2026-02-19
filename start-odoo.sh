@@ -130,22 +130,24 @@ if [ "$INIT_CHECK" != "1" ]; then
       -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" \
       -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
   fi
-  log "Initializing Odoo base schema..."
+  log "Initializing Odoo base+web schema..."
+  INIT_START=$(date +%s)
   "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
-    -i base \
+    -i web \
     --database="$PGDATABASE" \
     --db_host="$PGHOST" --db_port="$PGPORT" \
     --db_user="$PGUSER" --db_password="$PGPASSWORD" \
     --db_sslmode="$PGSSLMODE" \
-    --without-demo=all --stop-after-init
-  log "Base schema initialized."
+    --without-demo=all --stop-after-init --workers=0
+  INIT_END=$(date +%s)
+  log "Schema initialized in $((INIT_END - INIT_START))s."
 else
   log "Odoo base schema already present. Skipping initialization."
 fi
 
 # ---------------- START ODOO ----------------
 HTTP_PORT="${PORT:-8069}"
-log "Starting Odoo on port $HTTP_PORT ..."
+log "Starting Odoo on port $HTTP_PORT (workers=0) ..."
 exec "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
   --database="$PGDATABASE" \
   --db_host="$PGHOST" --db_port="$PGPORT" \
@@ -155,4 +157,5 @@ exec "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
   ${ODOO_DATA_DIR:+--data-dir="$ODOO_DATA_DIR"} \
   --http-port="$HTTP_PORT" \
   --proxy-mode \
+  --workers=0 \
   --without-demo=all
