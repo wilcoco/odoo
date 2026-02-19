@@ -96,147 +96,162 @@ class IatfDashboard(models.TransientModel):
     os_open = fields.Integer(compute="_compute_all")
     os_fail = fields.Integer(compute="_compute_all")
 
+    def _safe_count(self, model, domain):
+        """search_count that returns 0 if model is not installed."""
+        try:
+            return self.env[model].search_count(domain)
+        except KeyError:
+            return 0
+
+    def _safe_search(self, model, domain):
+        """search that returns empty recordset if model is not installed."""
+        try:
+            return self.env[model].search(domain)
+        except KeyError:
+            return self.env["base"].browse()
+
     def _compute_all(self):
         today = fields.Date.today()
         year_start = today.replace(month=1, day=1)
+        sc = self._safe_count
+        ss = self._safe_search
 
         for rec in self:
             # Document Control
-            docs = self.env["iatf.document"].search([])
-            rec.doc_total = len(docs)
-            rec.doc_pending_approval = self.env["iatf.document"].search_count(
+            rec.doc_total = sc("iatf.document", [])
+            rec.doc_pending_approval = sc("iatf.document",
                 [("state", "=", "review")])
 
             # NC
-            rec.nc_open = self.env["iatf.nonconformity"].search_count(
+            rec.nc_open = sc("iatf.nonconformity",
                 [("state", "not in", ("closed", "cancelled"))])
-            rec.nc_overdue = self.env["iatf.nonconformity"].search_count(
+            rec.nc_overdue = sc("iatf.nonconformity",
                 [("state", "not in", ("closed", "cancelled")),
                  ("target_close_date", "<", today)])
-            rec.nc_total_ytd = self.env["iatf.nonconformity"].search_count(
+            rec.nc_total_ytd = sc("iatf.nonconformity",
                 [("create_date", ">=", year_start)])
 
             # Customer Complaints
-            rec.complaint_open = self.env["iatf.customer.complaint"].search_count(
+            rec.complaint_open = sc("iatf.customer.complaint",
                 [("state", "!=", "closed")])
-            rec.complaint_critical = self.env["iatf.customer.complaint"].search_count(
+            rec.complaint_critical = sc("iatf.customer.complaint",
                 [("severity_level", "=", "critical"), ("state", "!=", "closed")])
-            complaints_ytd = self.env["iatf.customer.complaint"].search(
+            complaints_ytd = ss("iatf.customer.complaint",
                 [("create_date", ">=", year_start)])
-            rec.complaint_cost_ytd = sum(complaints_ytd.mapped("cost_total"))
+            rec.complaint_cost_ytd = sum(complaints_ytd.mapped("cost_total")) if complaints_ytd else 0
 
             # FMEA
-            rec.fmea_high_risk = self.env["iatf.fmea.line"].search_count(
+            rec.fmea_high_risk = sc("iatf.fmea.line",
                 [("action_priority", "=", "high")])
-            rec.fmea_open_actions = self.env["iatf.fmea.line"].search_count(
+            rec.fmea_open_actions = sc("iatf.fmea.line",
                 [("action_status", "in", ("open", "in_progress"))])
 
             # PPAP
-            rec.ppap_open = self.env["iatf.ppap.submission"].search_count(
+            rec.ppap_open = sc("iatf.ppap.submission",
                 [("state", "not in", ("closed",))])
-            rec.ppap_rejected = self.env["iatf.ppap.submission"].search_count(
+            rec.ppap_rejected = sc("iatf.ppap.submission",
                 [("customer_decision", "=", "rejected")])
 
             # SPC
-            rec.spc_not_capable = self.env["iatf.spc.study"].search_count(
+            rec.spc_not_capable = sc("iatf.spc.study",
                 [("capability_status", "=", "not_capable")])
-            rec.spc_ooc = self.env["iatf.spc.study"].search_count(
+            rec.spc_ooc = sc("iatf.spc.study",
                 [("ooc_count", ">", 0)])
 
             # MSA
-            rec.msa_unacceptable = self.env["iatf.msa.study"].search_count(
+            rec.msa_unacceptable = sc("iatf.msa.study",
                 [("grr_status", "=", "unacceptable")])
 
             # Audit
-            rec.audit_open_findings = self.env["iatf.audit.finding"].search_count(
+            rec.audit_open_findings = sc("iatf.audit.finding",
                 [("state", "!=", "closed")])
-            rec.audit_planned = self.env["iatf.audit"].search_count(
+            rec.audit_planned = sc("iatf.audit",
                 [("state", "=", "planned")])
 
             # Supplier
-            rec.supplier_grade_d = self.env["iatf.supplier.evaluation"].search_count(
+            rec.supplier_grade_d = sc("iatf.supplier.evaluation",
                 [("grade", "=", "d"), ("state", "=", "confirmed")])
-            rec.scar_open = self.env["iatf.scar"].search_count(
+            rec.scar_open = sc("iatf.scar",
                 [("state", "not in", ("closed",))])
 
             # Calibration
-            rec.cal_overdue = self.env["iatf.measurement.equipment"].search_count(
+            rec.cal_overdue = sc("iatf.measurement.equipment",
                 [("is_overdue", "=", True), ("state", "=", "active")])
 
             # Training
-            rec.training_gaps = self.env["iatf.competence.matrix"].search_count(
+            rec.training_gaps = sc("iatf.competence.matrix",
                 [("gap", "=", True)])
 
             # Risk
-            rec.risk_critical = self.env["iatf.risk.register"].search_count(
+            rec.risk_critical = sc("iatf.risk.register",
                 [("risk_level", "=", "critical"), ("state", "!=", "closed")])
-            rec.risk_high = self.env["iatf.risk.register"].search_count(
+            rec.risk_high = sc("iatf.risk.register",
                 [("risk_level", "=", "high"), ("state", "!=", "closed")])
 
             # APQP
-            rec.apqp_active = self.env["iatf.apqp.project"].search_count(
+            rec.apqp_active = sc("iatf.apqp.project",
                 [("state", "=", "active")])
 
             # Incoming Inspection
-            rec.iqc_open = self.env["iatf.incoming.inspection"].search_count(
+            rec.iqc_open = sc("iatf.incoming.inspection",
                 [("state", "not in", ("closed", "cancelled"))])
-            rec.iqc_fail = self.env["iatf.incoming.inspection"].search_count(
+            rec.iqc_fail = sc("iatf.incoming.inspection",
                 [("result", "=", "fail")])
 
             # Process Inspection
-            rec.pqc_open = self.env["iatf.process.inspection"].search_count(
+            rec.pqc_open = sc("iatf.process.inspection",
                 [("state", "not in", ("closed", "cancelled"))])
-            rec.pqc_fail = self.env["iatf.process.inspection"].search_count(
+            rec.pqc_fail = sc("iatf.process.inspection",
                 [("result", "=", "fail")])
 
             # Quality Objective
-            rec.qo_active = self.env["iatf.quality.objective"].search_count(
+            rec.qo_active = sc("iatf.quality.objective",
                 [("state", "=", "active")])
-            rec.qo_behind = self.env["iatf.quality.objective"].search_count(
+            rec.qo_behind = sc("iatf.quality.objective",
                 [("achievement_status", "in", ("behind", "at_risk")), ("state", "=", "active")])
 
             # Change Management
-            rec.cr_open = self.env["iatf.change.request"].search_count(
+            rec.cr_open = sc("iatf.change.request",
                 [("state", "not in", ("closed", "rejected"))])
-            rec.cr_high_risk = self.env["iatf.change.request"].search_count(
+            rec.cr_high_risk = sc("iatf.change.request",
                 [("risk_level", "in", ("high", "critical")), ("state", "not in", ("closed", "rejected"))])
 
             # CSR
-            rec.csr_active = self.env["iatf.csr"].search_count(
+            rec.csr_active = sc("iatf.csr",
                 [("state", "=", "active")])
-            rec.csr_non_compliant = self.env["iatf.csr"].search_count(
+            rec.csr_non_compliant = sc("iatf.csr",
                 [("compliance_status", "in", ("non_compliant", "partial")), ("state", "=", "active")])
 
             # Layout Inspection
-            rec.li_open = self.env["iatf.layout.inspection"].search_count(
+            rec.li_open = sc("iatf.layout.inspection",
                 [("state", "not in", ("closed",))])
-            rec.li_fail = self.env["iatf.layout.inspection"].search_count(
+            rec.li_fail = sc("iatf.layout.inspection",
                 [("result", "=", "fail")])
 
             # Equipment / TPM
-            rec.eq_active = self.env["iatf.equipment"].search_count(
+            rec.eq_active = sc("iatf.equipment",
                 [("state", "=", "active")])
-            rec.eq_breakdown = self.env["iatf.equipment"].search_count(
+            rec.eq_breakdown = sc("iatf.equipment",
                 [("state", "=", "breakdown")])
-            rec.eq_pm_overdue = self.env["iatf.equipment"].search_count(
+            rec.eq_pm_overdue = sc("iatf.equipment",
                 [("is_pm_overdue", "=", True), ("state", "=", "active")])
 
             # Mold
-            rec.mold_active = self.env["iatf.mold"].search_count(
+            rec.mold_active = sc("iatf.mold",
                 [("state", "=", "active")])
-            rec.mold_life_warning = self.env["iatf.mold"].search_count(
+            rec.mold_life_warning = sc("iatf.mold",
                 [("life_percentage", ">=", 80), ("state", "=", "active")])
 
             # Customer Property
-            rec.cp_active = self.env["iatf.customer.property"].search_count(
+            rec.cp_active = sc("iatf.customer.property",
                 [("state", "=", "active")])
-            rec.cp_issue = self.env["iatf.customer.property"].search_count(
+            rec.cp_issue = sc("iatf.customer.property",
                 [("current_condition", "in", ("damaged", "lost")), ("state", "=", "active")])
 
             # Outsource
-            rec.os_open = self.env["iatf.outsource.order"].search_count(
+            rec.os_open = sc("iatf.outsource.order",
                 [("state", "not in", ("closed",))])
-            rec.os_fail = self.env["iatf.outsource.order"].search_count(
+            rec.os_fail = sc("iatf.outsource.order",
                 [("inspection_result", "=", "fail")])
 
     def action_open_nc_open(self):
