@@ -254,6 +254,17 @@ class IatfDashboard(models.TransientModel):
             rec.os_fail = sc("iatf.outsource.order",
                 [("inspection_result", "=", "fail")])
 
+    def action_refresh(self):
+        """Create a fresh transient record and reopen the dashboard."""
+        new = self.create({})
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "iatf.dashboard",
+            "res_id": new.id,
+            "view_mode": "form",
+            "target": "inline",
+        }
+
     def action_open_nc_open(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.nonconformity",
                 "view_mode": "list,form", "name": _("Open Nonconformities"),

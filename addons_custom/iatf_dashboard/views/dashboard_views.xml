@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <form string="IATF Quality Dashboard" create="false" edit="false" delete="false">
                 <sheet>
-                    <div class="oe_title mb-3">
-                        <h1>IATF 16949 품질 대시보드</h1>
+                    <div class="oe_title mb-3 d-flex align-items-center">
+                        <h1 class="me-3">IATF 16949 품질 대시보드</h1>
+                        <button name="action_refresh" type="object" class="btn btn-primary btn-sm" icon="fa-refresh">
+                            새로고침
+                        </button>
                     </div>
 
                     <!-- Row 1: Critical Alerts -->
