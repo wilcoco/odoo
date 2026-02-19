@@ -4,7 +4,7 @@
     <menuitem id="menu_iatf_dashboard"
               name="대시보드"
               parent="iatf_document_control.menu_iatf_root"
-              action="action_iatf_dashboard"
+              action="action_iatf_dashboard_server"
               sequence="1"/>
 
     <!-- Reports submenu -->

@@ -299,6 +299,22 @@
         <field name="res_model">iatf.dashboard</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
-        <field name="context">{'create': True}</field>
+    </record>
+
+    <!-- Server action to always create fresh dashboard -->
+    <record id="action_iatf_dashboard_server" model="ir.actions.server">
+        <field name="name">IATF 품질 대시보드 (자동 새로고침)</field>
+        <field name="model_id" ref="model_iatf_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+rec = model.create({})
+action = {
+    "type": "ir.actions.act_window",
+    "res_model": "iatf.dashboard",
+    "res_id": rec.id,
+    "view_mode": "form",
+    "target": "inline",
+}
+        </field>
     </record>
 </odoo>
