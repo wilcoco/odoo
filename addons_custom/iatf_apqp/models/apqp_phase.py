@@ -45,9 +45,9 @@ class IatfApqpPhase(models.Model):
 
     # ── Deliverables ──
     deliverable_ids = fields.One2many("iatf.apqp.deliverable", "phase_id", string="산출물")
-    deliverable_count = fields.Integer(compute="_compute_deliverable_stats")
-    deliverable_done_count = fields.Integer(compute="_compute_deliverable_stats")
-    progress = fields.Float(string="진행률 (%)", compute="_compute_deliverable_stats", store=True)
+    deliverable_count = fields.Integer(compute="_compute_deliverable_stats", compute_sudo=True)
+    deliverable_done_count = fields.Integer(compute="_compute_deliverable_stats", compute_sudo=True)
+    progress = fields.Float(string="진행률 (%)", compute="_compute_deliverable_stats", store=True, compute_sudo=True)
 
     state = fields.Selection(
         [
