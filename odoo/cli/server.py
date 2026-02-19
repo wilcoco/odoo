@@ -40,14 +40,13 @@ def check_root_user():
             sys.stderr.write("Running as user 'root' is a security risk.\n")
 
 def check_postgres_user():
-    """ Exit if the configured database user is 'postgres'.
+    """ Warn if the configured database user is 'postgres'.
 
     This function assumes the configuration has been initialized.
     """
     config = odoo.tools.config
     if (config['db_user'] or os.environ.get('PGUSER')) == 'postgres':
-        sys.stderr.write("Using the database user 'postgres' is a security risk, aborting.")
-        sys.exit(1)
+        sys.stderr.write("Using the database user 'postgres' is a security risk.\n")
 
 def report_configuration():
     """ Log the server version and some configuration values.
