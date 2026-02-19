@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="IATF Document Control" string="IATF 16949" data-key="iatf_document_control" groups="base.group_system">
+                <app data-string="IATF Document Control" string="IATF 16949" name="iatf_document_control" groups="base.group_system">
                     <block title="IATF 품질 설정" name="iatf_quality_settings">
                         <setting string="검사 불합격 시 NC 자동 생성" help="IQC/PQC/OQC 불합격 시 부적합(NC) 자동 생성">
                             <field name="iatf_auto_nc_on_fail"/>
