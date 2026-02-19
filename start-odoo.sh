@@ -64,13 +64,14 @@ PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER"
   || die "Cannot connect to admin DB"
 log "Admin DB connection OK"
 
-# ════════════ CREATE RUNTIME USER + DB ════════════
-# Odoo refuses db_user='postgres', so we create a dedicated user
+# ════════════ CREATE RUNTIME USER (reuse existing DB) ════════════
+# Odoo refuses db_user='postgres', so we create a non-superuser
+# but use the EXISTING database from DATABASE_URL (do NOT create a new DB)
 ODOO_DB_USER="${ODOO_DB_USER:-odoo}"
 ODOO_DB_PASS="${ODOO_DB_PASS:-odoo_$(echo "$ADMIN_PASS" | md5sum | head -c 12)}"
-ODOO_DB_NAME="${ODOO_DB_NAME:-odoo}"
+ODOO_DB_NAME="$ADMIN_DB"  # ← 기존 DB 그대로 사용 (railway)
 
-log "Setting up runtime DB user=$ODOO_DB_USER db=$ODOO_DB_NAME"
+log "Setting up runtime user=$ODOO_DB_USER on existing db=$ODOO_DB_NAME"
 
 # Create user (idempotent)
 ESC_PASS=$(printf "%s" "$ODOO_DB_PASS" | sed "s/'/''/g")
@@ -85,17 +86,20 @@ PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER"
 PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
   -c "ALTER USER ${ODOO_DB_USER} WITH PASSWORD '${ESC_PASS}';" >/dev/null 2>&1 || true
 
-# Create database (idempotent)
-PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
-  -Atc "SELECT 1 FROM pg_database WHERE datname='${ODOO_DB_NAME}'" 2>/dev/null | grep -q 1 \
-  || PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
-       -c "CREATE DATABASE ${ODOO_DB_NAME} OWNER ${ODOO_DB_USER};" 2>&1 \
-  && log "Database $ODOO_DB_NAME ready" \
-  || log "WARNING: Could not create database $ODOO_DB_NAME"
-
-# Grant privileges
+# Grant privileges on EXISTING database
 PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
   -c "GRANT ALL PRIVILEGES ON DATABASE ${ODOO_DB_NAME} TO ${ODOO_DB_USER};" >/dev/null 2>&1 || true
+
+# Grant on all existing tables/sequences/functions in the DB
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ODOO_DB_NAME" \
+  -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO ${ODOO_DB_USER};" \
+  -c "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO ${ODOO_DB_USER};" \
+  -c "GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO ${ODOO_DB_USER};" \
+  -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${ODOO_DB_USER};" \
+  -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${ODOO_DB_USER};" \
+  -c "GRANT USAGE, CREATE ON SCHEMA public TO ${ODOO_DB_USER};" >/dev/null 2>&1 \
+  && log "Privileges granted on $ODOO_DB_NAME" \
+  || log "WARNING: Some privilege grants failed"
 
 # Extensions (need superuser, target DB)
 PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ODOO_DB_NAME" \
