@@ -22,7 +22,7 @@ class MrpProduction(models.Model):
             return
         cp = self.env["iatf.control.plan"].search([
             ("product_id", "=", self.product_id.id),
-            ("plan_type", "=", "production"),
+            ("cp_type", "=", "production"),
             ("state", "=", "approved"),
         ], order="create_date desc", limit=1)
         if cp:
