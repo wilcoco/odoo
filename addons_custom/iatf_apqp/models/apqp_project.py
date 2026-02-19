@@ -134,7 +134,7 @@ class IatfApqpProject(models.Model):
         existing = CP.search([("product_id", "=", self.product_id.id)], limit=1)
         if not existing:
             CP.create({
-                "plan_type": "pre_launch",
+                "cp_type": "pre_launch",
                 "product_id": self.product_id.id,
                 "customer_id": self.customer_id.id if self.customer_id else False,
             })
