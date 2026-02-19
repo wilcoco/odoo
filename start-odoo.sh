@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # ── Robust Odoo starter for Railway ──
-# Key: use DATABASE_URL credentials directly, no CREATE USER/DB
+# Odoo refuses db_user=postgres → create odoo_user via admin, then run Odoo with it
+# Dockerfile runs as non-root 'odoo' user
 
 log(){ echo "[odoo $(date +%T)] $*"; }
 die(){ echo "[odoo $(date +%T)] FATAL: $*" >&2; exit 1; }
 
-# Catch unexpected exits for debugging
 trap 'echo "[odoo] Script exited at line $LINENO with code $?" >&2' ERR
-
 [ "${DEBUG:-0}" = "1" ] && set -x
 
 # ════════════ ODOO BIN ════════════
@@ -26,36 +25,33 @@ log "ADDONS_PATH=$ADDONS_PATH"
 
 ODOO_DATA_DIR="${ODOO_DATA_DIR:-/data}"
 
-# ════════════ DATABASE URL ════════════
-# Railway: DATABASE_URL, DATABASE_PRIVATE_URL, DATABASE_PUBLIC_URL
-DB_URL="${DATABASE_URL:-${DATABASE_PRIVATE_URL:-${DATABASE_PUBLIC_URL:-}}}"
+# ════════════ ADMIN DATABASE URL ════════════
+# Railway provides DATABASE_URL with postgres superuser
+ADMIN_URL="${DATABASE_URL:-${DATABASE_PRIVATE_URL:-${DATABASE_PUBLIC_URL:-}}}"
 
-# Fallback: build from PG* vars
-if [ -z "$DB_URL" ] && [ -n "${PGHOST:-}" ]; then
-  DB_URL="postgresql://${PGUSER:-postgres}:${PGPASSWORD:-}@${PGHOST}:${PGPORT:-5432}/${PGDATABASE:-railway}"
-  log "Built DB_URL from PG* vars"
+if [ -z "$ADMIN_URL" ] && [ -n "${PGHOST:-}" ]; then
+  ADMIN_URL="postgresql://${PGUSER:-postgres}:${PGPASSWORD:-}@${PGHOST}:${PGPORT:-5432}/${PGDATABASE:-railway}"
+  log "Built ADMIN_URL from PG* vars"
 fi
+[ -n "$ADMIN_URL" ] || die "DATABASE_URL (or DATABASE_PRIVATE_URL / PG* vars) is required"
 
-[ -n "$DB_URL" ] || die "DATABASE_URL (or DATABASE_PRIVATE_URL / PG* vars) is required"
-
-# ════════════ PARSE DB URL ════════════
-read -r DB_HOST DB_PORT DB_USER DB_PASS DB_NAME <<< "$(python3 -c "
+# ════════════ PARSE ADMIN URL ════════════
+read -r ADMIN_HOST ADMIN_PORT ADMIN_USER ADMIN_PASS ADMIN_DB <<< "$(python3 -c "
 import urllib.parse, os
-u = urllib.parse.urlparse(os.environ.get('DATABASE_URL','') or os.environ.get('DATABASE_PRIVATE_URL','') or os.environ.get('DATABASE_PUBLIC_URL','') or '$DB_URL')
+u = urllib.parse.urlparse(os.environ.get('DATABASE_URL','') or os.environ.get('DATABASE_PRIVATE_URL','') or os.environ.get('DATABASE_PUBLIC_URL','') or '')
 print(u.hostname or 'localhost', u.port or 5432, urllib.parse.unquote(u.username or 'postgres'), urllib.parse.unquote(u.password or ''), (u.path or '/railway').lstrip('/'))
 ")"
 
 # SSL: internal → disable, external → require
 SSLMODE=require
-echo "$DB_HOST" | grep -q "railway\.internal" && SSLMODE=disable
-export PGSSLMODE="$SSLMODE"
+echo "$ADMIN_HOST" | grep -q "railway\.internal" && SSLMODE=disable
 
-log "DB: user=$DB_USER host=$DB_HOST port=$DB_PORT db=$DB_NAME ssl=$SSLMODE"
+log "ADMIN: user=$ADMIN_USER host=$ADMIN_HOST port=$ADMIN_PORT db=$ADMIN_DB ssl=$SSLMODE"
 
 # ════════════ WAIT FOR POSTGRES ════════════
 log "Waiting for PostgreSQL..."
 for i in $(seq 1 30); do
-  if pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -t 2 >/dev/null 2>&1; then
+  if pg_isready -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -t 2 >/dev/null 2>&1; then
     log "PostgreSQL is ready (attempt $i)"
     break
   fi
@@ -63,32 +59,71 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
-# Verify actual connection
-PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
   -c "SELECT 1;" >/dev/null 2>&1 \
-  || die "Cannot connect to $DB_NAME as $DB_USER"
+  || die "Cannot connect to admin DB"
+log "Admin DB connection OK"
 
-log "DB connection OK"
+# ════════════ CREATE RUNTIME USER + DB ════════════
+# Odoo refuses db_user='postgres', so we create a dedicated user
+ODOO_DB_USER="${ODOO_DB_USER:-odoo}"
+ODOO_DB_PASS="${ODOO_DB_PASS:-odoo_$(echo "$ADMIN_PASS" | md5sum | head -c 12)}"
+ODOO_DB_NAME="${ODOO_DB_NAME:-odoo}"
 
-# ════════════ EXTENSIONS (non-fatal) ════════════
-log "Installing extensions..."
-PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+log "Setting up runtime DB user=$ODOO_DB_USER db=$ODOO_DB_NAME"
+
+# Create user (idempotent)
+ESC_PASS=$(printf "%s" "$ODOO_DB_PASS" | sed "s/'/''/g")
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+  -Atc "SELECT 1 FROM pg_roles WHERE rolname='${ODOO_DB_USER}'" 2>/dev/null | grep -q 1 \
+  || PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+       -c "CREATE USER ${ODOO_DB_USER} WITH LOGIN PASSWORD '${ESC_PASS}';" 2>&1 \
+  && log "User $ODOO_DB_USER ready" \
+  || log "WARNING: Could not create user $ODOO_DB_USER"
+
+# Update password (in case it changed)
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+  -c "ALTER USER ${ODOO_DB_USER} WITH PASSWORD '${ESC_PASS}';" >/dev/null 2>&1 || true
+
+# Create database (idempotent)
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+  -Atc "SELECT 1 FROM pg_database WHERE datname='${ODOO_DB_NAME}'" 2>/dev/null | grep -q 1 \
+  || PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+       -c "CREATE DATABASE ${ODOO_DB_NAME} OWNER ${ODOO_DB_USER};" 2>&1 \
+  && log "Database $ODOO_DB_NAME ready" \
+  || log "WARNING: Could not create database $ODOO_DB_NAME"
+
+# Grant privileges
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ADMIN_DB" \
+  -c "GRANT ALL PRIVILEGES ON DATABASE ${ODOO_DB_NAME} TO ${ODOO_DB_USER};" >/dev/null 2>&1 || true
+
+# Extensions (need superuser, target DB)
+PGPASSWORD="$ADMIN_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ADMIN_USER" -d "$ODOO_DB_NAME" \
   -c "CREATE EXTENSION IF NOT EXISTS unaccent;" \
   -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" 2>/dev/null \
   && log "Extensions OK" \
-  || log "WARNING: Extension install skipped (not superuser?)"
+  || log "WARNING: Extension install skipped"
+
+# ════════════ VERIFY RUNTIME CONNECTION ════════════
+PGPASSWORD="$ODOO_DB_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ODOO_DB_USER" -d "$ODOO_DB_NAME" \
+  -c "SELECT current_user, current_database();" >/dev/null 2>&1 \
+  || die "Cannot connect as $ODOO_DB_USER to $ODOO_DB_NAME"
+log "Runtime DB connection OK ($ODOO_DB_USER@$ODOO_DB_NAME)"
+
+# Clear env vars so Odoo doesn't pick up 'postgres' from PGUSER
+unset PGUSER PGPASSWORD PGDATABASE PGHOST PGPORT
 
 # ════════════ FIRST-RUN INIT ════════════
-INIT_CHECK=$(PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+INIT_CHECK=$(PGPASSWORD="$ODOO_DB_PASS" psql -h "$ADMIN_HOST" -p "$ADMIN_PORT" -U "$ODOO_DB_USER" -d "$ODOO_DB_NAME" \
   -At -c "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" 2>/dev/null || echo "")
 
 if [ "$INIT_CHECK" != "1" ]; then
-  log "First run detected — initializing Odoo (this may take 3-8 min)..."
+  log "First run — initializing Odoo (may take 3-8 min)..."
   INIT_START=$(date +%s)
   "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
-    -d "$DB_NAME" \
-    --db_host="$DB_HOST" --db_port="$DB_PORT" \
-    --db_user="$DB_USER" --db_password="$DB_PASS" \
+    -d "$ODOO_DB_NAME" \
+    --db_host="$ADMIN_HOST" --db_port="$ADMIN_PORT" \
+    --db_user="$ODOO_DB_USER" --db_password="$ODOO_DB_PASS" \
     --db_sslmode="$SSLMODE" \
     -i web \
     --without-demo=all --stop-after-init --workers=0 2>&1 \
@@ -100,13 +135,13 @@ fi
 
 # ════════════ START ODOO ════════════
 HTTP_PORT="${PORT:-8069}"
-log "Starting Odoo on 0.0.0.0:$HTTP_PORT ..."
+log "Starting Odoo on 0.0.0.0:$HTTP_PORT (user=$ODOO_DB_USER db=$ODOO_DB_NAME)..."
 exec "$ODOO_BIN" ${ADDONS_PATH:+--addons-path="$ADDONS_PATH"} \
-  -d "$DB_NAME" \
-  --db_host="$DB_HOST" --db_port="$DB_PORT" \
-  --db_user="$DB_USER" --db_password="$DB_PASS" \
+  -d "$ODOO_DB_NAME" \
+  --db_host="$ADMIN_HOST" --db_port="$ADMIN_PORT" \
+  --db_user="$ODOO_DB_USER" --db_password="$ODOO_DB_PASS" \
   --db_sslmode="$SSLMODE" \
-  --db-filter="^${DB_NAME}$" \
+  --db-filter="^${ODOO_DB_NAME}$" \
   ${ODOO_DATA_DIR:+--data-dir="$ODOO_DATA_DIR"} \
   --http-interface=0.0.0.0 \
   --http-port="$HTTP_PORT" \
