@@ -8,7 +8,7 @@
             <field name="code">model._cron_auto_score_all()</field>
             <field name="interval_number">3</field>
             <field name="interval_type">months</field>
-            <field name="numbercall">-1</field>
+
             <field name="active">True</field>
         </record>
     </data>

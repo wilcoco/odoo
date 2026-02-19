@@ -8,7 +8,7 @@
             <field name="code">model._cron_training_expiry_alert()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
+
             <field name="active">True</field>
         </record>
     </data>
