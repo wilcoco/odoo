@@ -38,6 +38,19 @@ class IatfProcessInspection(models.Model):
     quantity_rejected = fields.Float(string="불합격 수량")
     defect_rate = fields.Float(string="불량률 (%)", compute="_compute_defect_rate", store=True)
 
+    # ── 검사 기준 ──
+    inspection_type = fields.Selection(
+        [
+            ("full", "전수 검사"),
+            ("sampling", "샘플링 검사"),
+            ("spc", "SPC 샘플링"),
+        ],
+        string="검사 유형", default="sampling", tracking=True,
+    )
+    sampling_plan = fields.Char(string="샘플링 계획")
+    sample_size = fields.Integer(string="샘플 크기")
+    accept_number = fields.Integer(string="합격 판정 개수")
+
     # ── 검사 항목 ──
     line_ids = fields.One2many("iatf.process.inspection.line", "inspection_id", string="검사 항목")
 
