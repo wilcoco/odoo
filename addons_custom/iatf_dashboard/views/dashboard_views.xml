@@ -299,5 +299,6 @@
         <field name="res_model">iatf.dashboard</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
+        <field name="context">{'create': True}</field>
     </record>
 </odoo>

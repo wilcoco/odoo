@@ -5,6 +5,7 @@ class IatfDashboard(models.TransientModel):
     _name = "iatf.dashboard"
     _description = "IATF Quality Dashboard KPI"
 
+    
     # ── Document Control ──
     doc_total = fields.Integer(compute="_compute_all")
     doc_pending_approval = fields.Integer(compute="_compute_all")
