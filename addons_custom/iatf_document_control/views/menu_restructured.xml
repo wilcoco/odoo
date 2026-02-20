@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <!-- IATF 16949 메인 메뉴 재구성 -->
-        <menuitem id="menu_iatf_main" name="IATF 16949" sequence="10" web_icon="iatf_document_control,static/description/icon.png"/>
+    <!-- IATF 16949 메인 메뉴 재구성 -->
+    <menuitem id="menu_iatf_main" name="IATF 16949" sequence="10" web_icon="iatf_document_control,static/description/icon.png"/>
 
     <!-- 1. 경영 및 기획 -->
     <menuitem id="menu_iatf_management" name="경영 및 기획" parent="menu_iatf_main" sequence="1"/>
@@ -133,5 +132,4 @@
     
     <menuitem id="menu_iatf_config" name="IATF 설정" parent="menu_iatf_settings" sequence="10"
               action="base.action_res_config_settings"/>
-    </data>
 </odoo>
