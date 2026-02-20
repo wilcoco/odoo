@@ -2,7 +2,8 @@
 <odoo>
     <data>
         <!-- IATF 16949 메인 메뉴 재구성 -->
-        <menuitem id="menu_iatf_main" name="IATF 16949" sequence="10" web_icon="iatf_document_control,static/description/icon.png"/>
+        <menuitem id="menu_iatf_main" name="IATF 16949" sequence="10" web_icon="iatf_document_control,static/description/icon.png"
+                  action="iatf_dashboard.action_iatf_dashboard_server"/>
 
     <!-- 1. 경영 및 기획 -->
     <menuitem id="menu_iatf_management" name="경영 및 기획" parent="menu_iatf_main" sequence="1"/>
