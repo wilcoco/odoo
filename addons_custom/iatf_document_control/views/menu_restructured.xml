@@ -14,7 +14,7 @@
               action="iatf_quality_objective.action_quality_objective"/>
     
     <menuitem id="menu_iatf_risk" name="리스크관리" parent="menu_iatf_management" sequence="30"
-              action="iatf_contingency.action_iatf_contingency_plan"/>
+              action="iatf_contingency.action_iatf_contingency"/>
     
     <menuitem id="menu_iatf_continuous_improvement" name="지속적개선" parent="menu_iatf_management" sequence="40"
               action="iatf_nonconformity.action_iatf_nonconformity"/>
@@ -106,7 +106,7 @@
     <menuitem id="menu_iatf_safety" name="비상 및 안전 관리" parent="menu_iatf_main" sequence="8"/>
     
     <menuitem id="menu_iatf_contingency" name="비상대응계획" parent="menu_iatf_safety" sequence="10"
-              action="iatf_contingency.action_iatf_contingency_plan"/>
+              action="iatf_contingency.action_iatf_contingency"/>
     
     <menuitem id="menu_iatf_recall" name="리콜시뮬레이션" parent="menu_iatf_safety" sequence="20"
               action="iatf_traceability.action_iatf_recall_simulation"/>
