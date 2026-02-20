@@ -11,7 +11,7 @@
               action="iatf_management_review.action_iatf_management_review"/>
     
     <menuitem id="menu_iatf_quality_objective" name="품질목표 관리" parent="menu_iatf_management" sequence="20"
-              action="iatf_quality_objective.action_iatf_quality_objective"/>
+              action="iatf_quality_objective.action_quality_objective"/>
     
     <menuitem id="menu_iatf_risk" name="리스크관리" parent="menu_iatf_management" sequence="30"
               action="iatf_contingency.action_iatf_contingency_plan"/>
