@@ -47,7 +47,7 @@
         <menuitem id="menu_iatf_apqp_project" name="APQP 프로젝트" sequence="10"
                   action="iatf_apqp.action_iatf_apqp_project"/>
         <menuitem id="menu_iatf_ppap" name="PPAP 제출서류" sequence="20"
-                  action="iatf_ppap.action_iatf_ppap_submission"/>
+                  action="iatf_ppap.action_iatf_ppap"/>
     </menuitem>
     
     <menuitem id="menu_iatf_process" name="공정관리" parent="menu_iatf_production" sequence="20">
