@@ -127,6 +127,6 @@
               groups="base.group_system"/>
     
     <menuitem id="menu_iatf_config" name="IATF 설정" parent="menu_iatf_settings" sequence="10"
-              action="base.action_res_config_settings"/>
+              action="base.res_config_setting_act_window"/>
     </data>
 </odoo>
