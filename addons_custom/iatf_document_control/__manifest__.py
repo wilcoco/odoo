@@ -16,6 +16,7 @@
         "views/document_revision_views.xml",
         "views/res_config_settings_views.xml",
         "views/menu.xml",
+        "views/menu_restructured.xml",
     ],
     "installable": True,
     "application": True,
