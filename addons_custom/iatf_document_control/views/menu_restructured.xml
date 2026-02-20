@@ -114,7 +114,7 @@
     <!-- 9. 리포트 및 분석 -->
     <menuitem id="menu_iatf_reports" name="리포트 및 분석" parent="menu_iatf_main" sequence="9"/>
     
-    <menuitem id="menu_iatf_dashboard" name="품질대시보드" parent="menu_iatf_reports" sequence="10"
+    <menuitem id="menu_iatf_dashboard" name="품질대시보드" parent="menu_iatf_main" sequence="10"
               action="iatf_dashboard.action_iatf_dashboard_server"/>
     
     <menuitem id="menu_iatf_excel_import" name="엑셀 가져오기" parent="menu_iatf_reports" sequence="20"
