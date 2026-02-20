@@ -61,7 +61,7 @@
     
     <menuitem id="menu_iatf_inspection" name="검사관리" parent="menu_iatf_production" sequence="30">
         <menuitem id="menu_iatf_incoming" name="수입검사" sequence="10"
-                  action="iatf_incoming_inspection.action_iatf_incoming_inspection"/>
+                  action="iatf_incoming_inspection.action_incoming_inspection"/>
         <menuitem id="menu_iatf_process_inspection" name="공정검사" sequence="20"
                   action="iatf_process_inspection.action_iatf_process_inspection"/>
         <menuitem id="menu_iatf_layout" name="레이아웃검사" sequence="30"
