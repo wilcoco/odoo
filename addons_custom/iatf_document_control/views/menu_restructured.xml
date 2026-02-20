@@ -63,9 +63,9 @@
         <menuitem id="menu_iatf_incoming" name="수입검사" sequence="10"
                   action="iatf_incoming_inspection.action_incoming_inspection"/>
         <menuitem id="menu_iatf_process_inspection" name="공정검사" sequence="20"
-                  action="iatf_process_inspection.action_iatf_process_inspection"/>
+                  action="iatf_process_inspection.action_process_inspection"/>
         <menuitem id="menu_iatf_layout" name="레이아웃검사" sequence="30"
-                  action="iatf_layout_inspection.action_iatf_layout_inspection"/>
+                  action="iatf_layout_inspection.action_layout_inspection"/>
     </menuitem>
 
     <!-- 5. 설비 및 금형 관리 -->
