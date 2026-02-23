@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_drawing_spec_change_list" model="ir.ui.view">
+        <field name="name">iatf.drawing.spec.change.list</field>
+        <field name="model">iatf.drawing.spec.change</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="eo_number"/>
+                <field name="product_group_id"/>
+                <field name="drawing_type_id"/>
+                <field name="product_standard_id"/>
+                <field name="category_item_id"/>
+                <field name="part_number"/>
+                <field name="part_name"/>
+                <field name="car_model_id"/>
+                <field name="revision"/>
+                <field name="customer_received_date"/>
+                <field name="distributor_id"/>
+                <field name="retention_year_id"/>
+                <field name="specification_id"/>
+                <field name="attachment_link" widget="url"/>
+                <field name="document_status_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_drawing_spec_change_form" model="ir.ui.view">
+        <field name="name">iatf.drawing.spec.change.form</field>
+        <field name="model">iatf.drawing.spec.change</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="eo_number" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="product_group_id"/>
+                            <field name="drawing_type_id"/>
+                            <field name="product_standard_id"/>
+                            <field name="category_item_id"/>
+                            <field name="part_number"/>
+                            <field name="part_name"/>
+                            <field name="car_model_id"/>
+                            <field name="revision"/>
+                        </group>
+                        <group>
+                            <field name="customer_received_date"/>
+                            <field name="distributor_id"/>
+                            <field name="retention_year_id"/>
+                            <field name="specification_id"/>
+                            <field name="attachment_link" widget="url"/>
+                            <field name="document_status_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_drawing_spec_change_search" model="ir.ui.view">
+        <field name="name">iatf.drawing.spec.change.search</field>
+        <field name="model">iatf.drawing.spec.change</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="eo_number"/>
+                <field name="part_number"/>
+                <field name="part_name"/>
+                <field name="product_group_id"/>
+                <field name="drawing_type_id"/>
+                <field name="product_standard_id"/>
+                <field name="car_model_id"/>
+                <field name="document_status_id"/>
+                <filter string="도면구분" name="group_drawing_type" context="{'group_by': 'drawing_type_id'}"/>
+                <filter string="문서상태" name="group_document_status" context="{'group_by': 'document_status_id'}"/>
+                <filter string="제품군" name="group_product_group" context="{'group_by': 'product_group_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_drawing_spec_change" model="ir.actions.act_window">
+        <field name="name">기술사양변경 내역서</field>
+        <field name="res_model">iatf.drawing.spec.change</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_drawing_spec_change_search"/>
+    </record>
+</odoo>

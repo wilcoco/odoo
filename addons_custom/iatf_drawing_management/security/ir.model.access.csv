@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_drawing_config_user,iatf.drawing.config.user,model_iatf_drawing_config,group_drawing_user,1,1,1,0
+access_drawing_config_manager,iatf.drawing.config.manager,model_iatf_drawing_config,group_drawing_manager,1,1,1,1
+access_drawing_spec_change_user,iatf.drawing.spec.change.user,model_iatf_drawing_spec_change,group_drawing_user,1,1,1,0
+access_drawing_spec_change_manager,iatf.drawing.spec.change.manager,model_iatf_drawing_spec_change,group_drawing_manager,1,1,1,1
+access_drawing_procedure_user,iatf.drawing.procedure.user,model_iatf_drawing_procedure,group_drawing_user,1,1,1,0
+access_drawing_procedure_manager,iatf.drawing.procedure.manager,model_iatf_drawing_procedure,group_drawing_manager,1,1,1,1
+access_drawing_issue_register_user,iatf.drawing.issue.register.user,model_iatf_drawing_issue_register,group_drawing_user,1,1,1,0
+access_drawing_issue_register_manager,iatf.drawing.issue.register.manager,model_iatf_drawing_issue_register,group_drawing_manager,1,1,1,1
+access_drawing_change_register_user,iatf.drawing.change.register.user,model_iatf_drawing_change_register,group_drawing_user,1,1,1,0
+access_drawing_change_register_manager,iatf.drawing.change.register.manager,model_iatf_drawing_change_register,group_drawing_manager,1,1,1,1

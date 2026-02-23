@@ -1,0 +1,23 @@
+{
+    "name": "IATF 도면관리",
+    "version": "18.0.1.0.0",
+    "summary": "도면관리, 기술사양변경 내역서, 도면 불출대장, 변경관리대장",
+    "category": "Quality",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["base", "mail", "hr", "iatf_document_control"],
+    "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "data/drawing_config_data.xml",
+        "views/drawing_spec_change_views.xml",
+        "views/drawing_procedure_views.xml",
+        "views/drawing_issue_register_views.xml",
+        "views/drawing_change_register_views.xml",
+        "views/drawing_config_views.xml",
+        "views/menu.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

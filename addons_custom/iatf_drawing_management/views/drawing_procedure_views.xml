@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_drawing_procedure_list" model="ir.ui.view">
+        <field name="name">iatf.drawing.procedure.list</field>
+        <field name="model">iatf.drawing.procedure</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="procedure_number"/>
+                <field name="name"/>
+                <field name="revision"/>
+                <field name="effective_date"/>
+                <field name="owner_id"/>
+                <field name="department_id"/>
+                <field name="document_status_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_drawing_procedure_form" model="ir.ui.view">
+        <field name="name">iatf.drawing.procedure.form</field>
+        <field name="model">iatf.drawing.procedure</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="procedure_number" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="revision"/>
+                            <field name="effective_date"/>
+                        </group>
+                        <group>
+                            <field name="owner_id"/>
+                            <field name="department_id"/>
+                            <field name="document_status_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="summary"/>
+                        <field name="file_link" widget="url"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_drawing_procedure" model="ir.actions.act_window">
+        <field name="name">도면관리 절차서</field>
+        <field name="res_model">iatf.drawing.procedure</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

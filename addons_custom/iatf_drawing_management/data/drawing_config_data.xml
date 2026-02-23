@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="config_drawing_type_mass" model="iatf.drawing.config">
+            <field name="name">양산도</field>
+            <field name="config_type">drawing_type</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="config_drawing_type_approval" model="iatf.drawing.config">
+            <field name="name">승인도</field>
+            <field name="config_type">drawing_type</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="config_doc_status_draft" model="iatf.drawing.config">
+            <field name="name">초안</field>
+            <field name="config_type">document_status</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="config_doc_status_review" model="iatf.drawing.config">
+            <field name="name">검토</field>
+            <field name="config_type">document_status</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="config_doc_status_approved" model="iatf.drawing.config">
+            <field name="name">승인</field>
+            <field name="config_type">document_status</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="config_doc_status_release" model="iatf.drawing.config">
+            <field name="name">배포</field>
+            <field name="config_type">document_status</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="config_doc_status_obsolete" model="iatf.drawing.config">
+            <field name="name">폐기</field>
+            <field name="config_type">document_status</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="config_retention_3y" model="iatf.drawing.config">
+            <field name="name">3년</field>
+            <field name="config_type">retention_year</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="config_retention_5y" model="iatf.drawing.config">
+            <field name="name">5년</field>
+            <field name="config_type">retention_year</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="config_retention_10y" model="iatf.drawing.config">
+            <field name="name">10년</field>
+            <field name="config_type">retention_year</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="config_change_type_man" model="iatf.drawing.config">
+            <field name="name">Man</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="config_change_type_machine" model="iatf.drawing.config">
+            <field name="name">Machine</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="config_change_type_material" model="iatf.drawing.config">
+            <field name="name">Material</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="config_change_type_method" model="iatf.drawing.config">
+            <field name="name">Method</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="config_change_type_environment" model="iatf.drawing.config">
+            <field name="name">Environment</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="config_change_type_eo" model="iatf.drawing.config">
+            <field name="name">EO</field>
+            <field name="config_type">change_type</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+</odoo>

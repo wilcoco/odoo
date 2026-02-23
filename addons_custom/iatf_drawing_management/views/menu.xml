@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_drawing_root"
+              name="도면관리"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="15"
+              groups="iatf_drawing_management.group_drawing_user"/>
+
+    <menuitem id="menu_iatf_drawing_spec_change"
+              name="기술사양변경 내역서"
+              parent="menu_iatf_drawing_root"
+              action="action_drawing_spec_change"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_drawing_procedure"
+              name="도면관리 절차서"
+              parent="menu_iatf_drawing_root"
+              action="action_drawing_procedure"
+              sequence="20"/>
+
+    <menuitem id="menu_iatf_drawing_issue_register"
+              name="도면 불출대장"
+              parent="menu_iatf_drawing_root"
+              action="action_drawing_issue_register"
+              sequence="30"/>
+
+    <menuitem id="menu_iatf_drawing_change_register"
+              name="변경 관리대장(4M, EO) - 고객사"
+              parent="menu_iatf_drawing_root"
+              action="action_drawing_change_register"
+              sequence="40"/>
+
+    <menuitem id="menu_iatf_drawing_config"
+              name="도면관리 설정"
+              parent="menu_iatf_drawing_root"
+              action="action_drawing_config"
+              sequence="90"
+              groups="iatf_drawing_management.group_drawing_manager"/>
+</odoo>

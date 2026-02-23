@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_drawing_spec_change" model="ir.sequence">
+            <field name="name">기술사양변경 내역서</field>
+            <field name="code">iatf.drawing.spec.change</field>
+            <field name="prefix">EO-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_drawing_procedure" model="ir.sequence">
+            <field name="name">도면관리 절차서</field>
+            <field name="code">iatf.drawing.procedure</field>
+            <field name="prefix">DRW-P-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_drawing_issue_register" model="ir.sequence">
+            <field name="name">도면 불출대장</field>
+            <field name="code">iatf.drawing.issue.register</field>
+            <field name="prefix">DRW-ISS-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_drawing_change_register" model="ir.sequence">
+            <field name="name">도면 변경관리대장</field>
+            <field name="code">iatf.drawing.change.register</field>
+            <field name="prefix">DRW-CHG-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

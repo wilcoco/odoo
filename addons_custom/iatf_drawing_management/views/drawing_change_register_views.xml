@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_drawing_change_register_list" model="ir.ui.view">
+        <field name="name">iatf.drawing.change.register.list</field>
+        <field name="model">iatf.drawing.change.register</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="change_number"/>
+                <field name="eo_number"/>
+                <field name="change_type_id"/>
+                <field name="change_item"/>
+                <field name="part_number"/>
+                <field name="part_name"/>
+                <field name="customer_id"/>
+                <field name="request_date"/>
+                <field name="approval_date"/>
+                <field name="completion_date"/>
+                <field name="document_status_id"/>
+                <field name="file_link" widget="url"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_drawing_change_register_form" model="ir.ui.view">
+        <field name="name">iatf.drawing.change.register.form</field>
+        <field name="model">iatf.drawing.change.register</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="change_number" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="eo_number"/>
+                            <field name="change_type_id"/>
+                            <field name="change_item"/>
+                            <field name="part_number"/>
+                            <field name="part_name"/>
+                        </group>
+                        <group>
+                            <field name="customer_id"/>
+                            <field name="request_date"/>
+                            <field name="approval_date"/>
+                            <field name="completion_date"/>
+                            <field name="document_status_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                        <field name="file_link" widget="url"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_drawing_change_register" model="ir.actions.act_window">
+        <field name="name">변경 관리대장(4M, EO) - 고객사</field>
+        <field name="res_model">iatf.drawing.change.register</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
