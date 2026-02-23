@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_work_env_root" name="작업환경 관리"
-              parent="iatf_document_control.menu_iatf_root" sequence="24"/>
+              parent="iatf_document_control.menu_iatf_misc" sequence="24"/>
     <menuitem id="menu_iatf_work_area" name="작업 구역"
               parent="menu_iatf_work_env_root" action="action_work_area" sequence="10"/>
     <menuitem id="menu_iatf_env_check" name="환경/5S 점검"

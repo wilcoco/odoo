@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_customer_property_root" name="고객재산 관리"
-              parent="iatf_document_control.menu_iatf_root" sequence="22"/>
+              parent="iatf_document_control.menu_iatf_misc" sequence="22"/>
     <menuitem id="menu_iatf_customer_property_list" name="고객재산 목록"
               parent="menu_iatf_customer_property_root"
               action="action_customer_property" sequence="10"/>

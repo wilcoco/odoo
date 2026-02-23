@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_iatf_risk_root" name="리스크 관리" parent="iatf_document_control.menu_iatf_root" sequence="80"/>
+    <menuitem id="menu_iatf_risk_root" name="리스크 관리" parent="iatf_document_control.menu_iatf_misc" sequence="80"/>
     <menuitem id="menu_iatf_risk_register" name="리스크 및 기회 대장" parent="menu_iatf_risk_root" action="action_iatf_risk_register" sequence="10"/>
 </odoo>

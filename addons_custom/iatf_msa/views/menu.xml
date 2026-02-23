@@ -2,7 +2,7 @@
 <odoo>
     <menuitem id="menu_iatf_msa_root"
               name="MSA (측정시스템분석)"
-              parent="iatf_document_control.menu_iatf_root"
+              parent="iatf_document_control.menu_iatf_misc"
               sequence="49"/>
     <menuitem id="menu_iatf_msa_studies"
               name="MSA 연구"
