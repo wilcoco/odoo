@@ -284,12 +284,26 @@ class IatfApprovalMixin(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
+        approval_line_commands_list = []
+        for vals in vals_list:
+            approval_line_commands_list.append(vals.pop("approval_line_ids", None))
+
         records = super().create(vals_list)
         records._approval_ensure_request()
+
+        for record, line_commands in zip(records, approval_line_commands_list):
+            if line_commands is not None:
+                record.approval_request_id.write({"line_ids": line_commands})
         return records
 
     def write(self, vals):
-        res = super().write(vals)
+        line_commands = vals.pop("approval_line_ids", None)
+        if line_commands is not None:
+            self._approval_ensure_request()
+            for record in self:
+                record.approval_request_id.write({"line_ids": line_commands})
+
+        res = super().write(vals) if vals else True
         if self._approval_should_reset(vals):
             for record in self:
                 if record.approval_state == "approved":

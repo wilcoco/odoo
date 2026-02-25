@@ -39,7 +39,7 @@
                     <field name="approval_state" widget="statusbar"
                            statusbar_visible="draft,in_progress,approved,rejected"/>
                     <button name="action_submit_approval" string="Submit" type="object"
-                            class="oe_highlight" invisible="approval_state != 'draft'"/>
+                            class="oe_highlight" invisible="approval_state and approval_state != 'draft'"/>
                     <button name="action_approve_approval" string="Approve" type="object"
                             class="oe_highlight"
                             invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
@@ -51,6 +51,7 @@
                             groups="iatf_drawing_management.group_drawing_manager"/>
                 </header>
                 <sheet>
+                    <field name="approval_request_id" invisible="1"/>
                     <div class="oe_title">
                         <h1><field name="eo_number" readonly="1"/></h1>
                     </div>
@@ -80,7 +81,7 @@
                     </group>
                     <notebook>
                         <page string="결재선" name="approvals">
-                            <field name="approval_line_ids" readonly="approval_state != 'draft'">
+                            <field name="approval_line_ids" readonly="approval_state and approval_state != 'draft'" context="{'default_request_id': approval_request_id}">
                                 <list editable="bottom">
                                     <field name="sequence"/>
                                     <field name="user_id" widget="many2one_avatar_user"/>
