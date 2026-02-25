@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfDrawingSpecChange(models.Model):
     _name = "iatf.drawing.spec.change"
     _description = "기술사양변경 내역서"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin"]
     _order = "eo_number desc"
     _rec_name = "eo_number"
 

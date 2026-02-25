@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_activity_data_approval" model="mail.activity.type">
+        <field name="name">Approval</field>
+        <field name="summary">Approval Required</field>
+        <field name="icon">fa-check-square</field>
+        <field name="sequence">20</field>
+    </record>
+</odoo>

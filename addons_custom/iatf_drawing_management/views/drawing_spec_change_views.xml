@@ -20,6 +20,12 @@
                 <field name="specification_id"/>
                 <field name="attachment_link" widget="url"/>
                 <field name="document_status_id"/>
+                <field name="approval_state" widget="badge"
+                       decoration-success="approval_state == 'approved'"
+                       decoration-info="approval_state == 'in_progress'"
+                       decoration-warning="approval_state == 'draft'"
+                       decoration-danger="approval_state == 'rejected'"/>
+                <field name="approval_current_approver_id" widget="many2one_avatar_user"/>
             </list>
         </field>
     </record>
@@ -29,6 +35,21 @@
         <field name="model">iatf.drawing.spec.change</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <field name="approval_state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,approved,rejected"/>
+                    <button name="action_submit_approval" string="Submit" type="object"
+                            class="oe_highlight" invisible="approval_state != 'draft'"/>
+                    <button name="action_approve_approval" string="Approve" type="object"
+                            class="oe_highlight"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="Reject" type="object"
+                            class="btn-secondary"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reset_approval" string="Reset to Draft" type="object"
+                            invisible="approval_state != 'approved' and approval_state != 'rejected'"
+                            groups="iatf_drawing_management.group_drawing_manager"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="eo_number" readonly="1"/></h1>
@@ -51,11 +72,29 @@
                             <field name="specification_id"/>
                             <field name="attachment_link" widget="url"/>
                             <field name="document_status_id"/>
+                            <field name="approval_current_approver_id" widget="many2one_avatar_user" readonly="1"/>
                         </group>
                     </group>
                     <group>
                         <field name="note"/>
                     </group>
+                    <notebook>
+                        <page string="결재선" name="approvals">
+                            <field name="approval_line_ids" readonly="approval_state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-info="state == 'pending'"
+                                           decoration-danger="state == 'rejected'"
+                                           decoration-muted="state == 'new'"/>
+                                    <field name="action_date"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>
