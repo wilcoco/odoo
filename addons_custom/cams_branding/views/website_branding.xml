@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="website_layout" inherit_id="website.layout" priority="1000">
+        <xpath expr="//t[@t-set='default_title']" position="attributes">
+            <attribute name="t-value">(additional_title + ' | ' if additional_title else '') + 'CAMS ERP'</attribute>
+        </xpath>
+    </template>
+
+    <template id="option_header_brand_logo" inherit_id="website.option_header_brand_logo" priority="1000">
+        <xpath expr="//span[@t-field='website.logo']" position="replace">
+            <img t-attf-src="/web/binary/company_logo?company=#{website.company_id.id}" width="95" height="40" alt="CAMS ERP" style="height: 40px; width: auto;"/>
+        </xpath>
+    </template>
+
+    <template id="option_header_brand_name" inherit_id="website.option_header_brand_name" priority="1000">
+        <xpath expr="//a" position="replace">
+            <a href="/" t-attf-class="navbar-brand #{_link_class}">CAMS ERP</a>
+        </xpath>
+    </template>
+
+    <record id="website.default_website" model="website">
+        <field name="name">CAMS ERP</field>
+    </record>
+</odoo>
