@@ -2,7 +2,7 @@
 
 import { registry } from "@web/core/registry";
 
-const BRAND = "CAMS ERP";
+const BRAND = "Escon ERP";
 
 export const camsBrandTitleService = {
     dependencies: ["title"],

@@ -15,7 +15,7 @@ from odoo.addons.web.controllers.database import Database as WebDatabase
 class Database(WebDatabase):
 
     def _patch_database_manager_template(self, template):
-        template = re.sub(r"<title>[^<]*</title>", "<title>CAMS ERP</title>", template, count=1)
+        template = re.sub(r"<title>[^<]*</title>", "<title>Escon ERP</title>", template, count=1)
         template = template.replace("/web/static/img/favicon.ico", "/cams_branding/static/src/img/favicon.svg")
         template = template.replace('type="image/x-icon"', 'type="image/svg+xml"')
         template = template.replace("/web/static/img/logo2.png", "/cams_branding/static/src/img/logo.svg")
