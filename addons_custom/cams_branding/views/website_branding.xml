@@ -8,7 +8,7 @@
 
     <template id="option_header_brand_logo" inherit_id="website.option_header_brand_logo" priority="1000">
         <xpath expr="//span[@t-field='website.logo']" position="replace">
-            <img src="/cams_branding/static/src/img/logo.svg" width="95" height="40" alt="ESCON ERP" style="height: 40px; width: auto;"/>
+            <img t-attf-src="/web/binary/company_logo?company=#{website.company_id.id}" width="95" height="40" alt="ESCON ERP" style="height: 40px; width: auto;"/>
             <span class="ms-2">ESCON ERP</span>
         </xpath>
     </template>
