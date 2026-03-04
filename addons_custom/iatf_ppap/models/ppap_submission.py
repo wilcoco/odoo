@@ -15,7 +15,7 @@ class IatfPpapSubmission(models.Model):
     title = fields.Char(string="제목", required=True, tracking=True)
     product_id = fields.Many2one("product.product", string="제품", tracking=True)
     part_number = fields.Char(string="부품 번호")
-    customer_id = fields.Many2one("res.partner", string="고객", required=True, tracking=True)
+    customer_id = fields.Many2one("res.partner", string="고객", tracking=True)
 
     submission_level = fields.Selection(
         [
@@ -99,6 +99,8 @@ class IatfPpapSubmission(models.Model):
 
     def action_submit(self):
         for rec in self:
+            if not rec.customer_id:
+                raise UserError(_("Please set the Customer first."))
             required_not_done = rec.element_ids.filtered(
                 lambda e: e.is_required and e.state not in ("done", "na")
             )
