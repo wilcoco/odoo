@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 사출 생산 관리 루트 메뉴 -->
+    <menuitem id="menu_engel_injection_root"
+              name="사출 생산 관리"
+              parent="iatf_document_control.menu_iatf_root"
+              sequence="22"/>
+
+    <!-- 하위 메뉴 -->
+    <menuitem id="menu_injection_serial"
+              name="시리얼 레코드"
+              parent="menu_engel_injection_root"
+              action="action_injection_serial"
+              sequence="10"/>
+
+    <menuitem id="menu_defect_type"
+              name="불량 유형"
+              parent="menu_engel_injection_root"
+              action="action_defect_type"
+              sequence="20"/>
+
+    <menuitem id="menu_machine_status"
+              name="설비 상태"
+              parent="menu_engel_injection_root"
+              action="action_machine_status"
+              sequence="30"/>
+
+</odoo>

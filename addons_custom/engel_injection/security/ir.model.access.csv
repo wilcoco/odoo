@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_injection_serial_user,engel.injection.serial.user,model_engel_injection_serial,group_injection_user,1,1,1,0
+access_injection_serial_manager,engel.injection.serial.manager,model_engel_injection_serial,group_injection_manager,1,1,1,1
+access_defect_type_user,engel.defect.type.user,model_engel_defect_type,group_injection_user,1,0,0,0
+access_defect_type_manager,engel.defect.type.manager,model_engel_defect_type,group_injection_manager,1,1,1,1
+access_machine_status_user,engel.machine.status.user,model_engel_machine_status,group_injection_user,1,1,1,0
+access_machine_status_manager,engel.machine.status.manager,model_engel_machine_status,group_injection_manager,1,1,1,1

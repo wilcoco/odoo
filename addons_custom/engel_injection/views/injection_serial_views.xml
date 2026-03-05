@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── 검색 ── -->
+    <record id="view_injection_serial_search" model="ir.ui.view">
+        <field name="name">engel.injection.serial.search</field>
+        <field name="model">engel.injection.serial</field>
+        <field name="arch" type="xml">
+            <search string="사출 시리얼">
+                <field name="barcode"/>
+                <field name="serial_no"/>
+                <field name="product_id"/>
+                <field name="production_id"/>
+                <field name="mold_id"/>
+                <field name="car_model"/>
+                <field name="operator_id"/>
+                <separator/>
+                <filter name="today" string="오늘"
+                        domain="[('produced_at','&gt;=', (context_today()).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="ok" string="합격"
+                        domain="[('qc_result','=','ok')]"/>
+                <filter name="ng" string="불합격"
+                        domain="[('qc_result','=','ng')]"/>
+                <separator/>
+                <filter name="produced" string="생산"
+                        domain="[('status','=','produced')]"/>
+                <filter name="inspected" string="검사완료"
+                        domain="[('status','=','inspected')]"/>
+                <filter name="shipped" string="출하"
+                        domain="[('status','=','shipped')]"/>
+                <separator/>
+                <group expand="0" string="그룹">
+                    <filter name="group_product" string="제품"
+                            context="{'group_by': 'product_id'}"/>
+                    <filter name="group_mold" string="금형"
+                            context="{'group_by': 'mold_id'}"/>
+                    <filter name="group_shift" string="근무조"
+                            context="{'group_by': 'shift'}"/>
+                    <filter name="group_car_model" string="차종"
+                            context="{'group_by': 'car_model'}"/>
+                    <filter name="group_operator" string="작업자"
+                            context="{'group_by': 'operator_id'}"/>
+                    <filter name="group_qc" string="품질 판정"
+                            context="{'group_by': 'qc_result'}"/>
+                    <filter name="group_date" string="생산일"
+                            context="{'group_by': 'produced_at:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── 리스트 ── -->
+    <record id="view_injection_serial_list" model="ir.ui.view">
+        <field name="name">engel.injection.serial.list</field>
+        <field name="model">engel.injection.serial</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="qc_result == 'ng'">
+                <field name="barcode"/>
+                <field name="produced_at"/>
+                <field name="product_id"/>
+                <field name="car_model"/>
+                <field name="production_id" optional="show"/>
+                <field name="mold_id" optional="show"/>
+                <field name="mold_cavity"/>
+                <field name="operator_id"/>
+                <field name="shift"/>
+                <field name="weight"/>
+                <field name="cycle_time"/>
+                <field name="inject_pressure" optional="hide"/>
+                <field name="mold_temp" optional="hide"/>
+                <field name="qc_result" widget="badge"
+                       decoration-success="qc_result == 'ok'"
+                       decoration-danger="qc_result == 'ng'"/>
+                <field name="defect_type_id" optional="hide"/>
+                <field name="status" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── 폼 ── -->
+    <record id="view_injection_serial_form" model="ir.ui.view">
+        <field name="name">engel.injection.serial.form</field>
+        <field name="model">engel.injection.serial</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="produced,inspected,shipped"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="barcode" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <!-- 생산 정보 -->
+                    <group>
+                        <group string="생산 정보">
+                            <field name="serial_no"/>
+                            <field name="product_id"/>
+                            <field name="production_id"/>
+                            <field name="lot_id"/>
+                            <field name="car_model"/>
+                            <field name="produced_at"/>
+                        </group>
+                        <group string="금형 / 작업자">
+                            <field name="mold_id"/>
+                            <field name="mold_cavity"/>
+                            <field name="operator_id"/>
+                            <field name="shift"/>
+                        </group>
+                    </group>
+
+                    <!-- 사출 파라미터 -->
+                    <group string="사출 공정 파라미터">
+                        <group>
+                            <field name="weight"/>
+                            <field name="cycle_time"/>
+                            <field name="inject_pressure"/>
+                            <field name="hold_pressure"/>
+                        </group>
+                        <group>
+                            <field name="barrel_temp"/>
+                            <field name="mold_temp"/>
+                            <field name="cushion"/>
+                        </group>
+                    </group>
+
+                    <!-- 품질 -->
+                    <group string="품질 판정">
+                        <group>
+                            <field name="qc_result" widget="radio"/>
+                            <field name="defect_type_id"
+                                   invisible="qc_result != 'ng'"/>
+                        </group>
+                        <group>
+                            <field name="traceability_record_id"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── 액션 ── -->
+    <record id="action_injection_serial" model="ir.actions.act_window">
+        <field name="name">사출 시리얼 레코드</field>
+        <field name="res_model">engel.injection.serial</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_injection_serial_search"/>
+        <field name="context">{"search_default_today": 1}</field>
+    </record>
+
+</odoo>

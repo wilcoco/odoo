@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 검색 -->
+    <record id="view_machine_status_search" model="ir.ui.view">
+        <field name="name">engel.machine.status.search</field>
+        <field name="model">engel.machine.status</field>
+        <field name="arch" type="xml">
+            <search string="설비 상태">
+                <field name="machine_name"/>
+                <field name="workcenter_id"/>
+                <field name="current_mo_id"/>
+                <separator/>
+                <filter name="running" string="가동 중"
+                        domain="[('status','=','running')]"/>
+                <filter name="stopped" string="정지"
+                        domain="[('status','=','stopped')]"/>
+                <filter name="alarm" string="알람"
+                        domain="[('status','=','alarm')]"/>
+                <separator/>
+                <group expand="0" string="그룹">
+                    <filter name="group_status" string="상태"
+                            context="{'group_by': 'status'}"/>
+                    <filter name="group_workcenter" string="작업장"
+                            context="{'group_by': 'workcenter_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 리스트 -->
+    <record id="view_machine_status_list" model="ir.ui.view">
+        <field name="name">engel.machine.status.list</field>
+        <field name="model">engel.machine.status</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status == 'running'"
+                  decoration-danger="status == 'alarm'"
+                  decoration-muted="status == 'idle'"
+                  create="false">
+                <field name="machine_name"/>
+                <field name="workcenter_id"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'running'"
+                       decoration-danger="status == 'alarm'"
+                       decoration-warning="status == 'stopped'"
+                       decoration-info="status == 'idle'"/>
+                <field name="current_mo_id"/>
+                <field name="total_shots_today"/>
+                <field name="cycle_time_avg"/>
+                <field name="last_shot_time"/>
+                <field name="updated_at"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 폼 -->
+    <record id="view_machine_status_form" model="ir.ui.view">
+        <field name="name">engel.machine.status.form</field>
+        <field name="model">engel.machine.status</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="machine_name"/></h1>
+                    </div>
+                    <group>
+                        <group string="설비 정보">
+                            <field name="workcenter_id"/>
+                            <field name="status" widget="badge"/>
+                            <field name="current_mo_id"/>
+                        </group>
+                        <group string="생산 현황">
+                            <field name="total_shots_today"/>
+                            <field name="cycle_time_avg"/>
+                            <field name="last_shot_time"/>
+                            <field name="updated_at"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_machine_status" model="ir.actions.act_window">
+        <field name="name">설비 상태</field>
+        <field name="res_model">engel.machine.status</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_machine_status_search"/>
+    </record>
+
+</odoo>
