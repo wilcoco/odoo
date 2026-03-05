@@ -51,7 +51,7 @@ class MrpWorkorder(models.Model):
             "workorder_id": self.id,
             "workcenter_id": self.workcenter_id.id,
             "product_id": self.product_id.id,
-            "lot_id": self.lot_id.id if self.lot_id else (
+            "lot_id": self.finished_lot_id.id if self.finished_lot_id else (
                 self.production_id.lot_producing_id.id if self.production_id.lot_producing_id else False),
             "quantity_produced": self.qty_produced,
             "quantity_inspected": self.qty_produced,
