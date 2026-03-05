@@ -41,7 +41,6 @@ class MrpProduction(models.Model):
         ppap = PPAP.create({
             "title": _("초도품 PPAP: %s") % self.product_id.name,
             "product_id": self.product_id.id,
-            "customer_id": False,
             "submission_level": "3",
         })
         self.ppap_submission_id = ppap.id
