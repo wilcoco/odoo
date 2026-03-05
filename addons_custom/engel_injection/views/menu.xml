@@ -14,6 +14,12 @@
               action="action_injection_serial"
               sequence="10"/>
 
+    <menuitem id="menu_car_model"
+              name="차종 관리"
+              parent="menu_engel_injection_root"
+              action="action_car_model"
+              sequence="15"/>
+
     <menuitem id="menu_defect_type"
               name="불량 유형"
               parent="menu_engel_injection_root"

@@ -24,7 +24,7 @@
 
             <!-- 차종 필드 추가 (제품 필드 다음) -->
             <xpath expr="//field[@name='product_id']" position="after">
-                <field name="car_model"/>
+                <field name="car_model_id"/>
             </xpath>
 
         </field>
@@ -37,7 +37,7 @@
         <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="before">
-                <field name="car_model" optional="hide"/>
+                <field name="car_model_id" optional="hide"/>
                 <field name="injection_serial_count" optional="hide" string="시리얼"/>
                 <field name="injection_defect_rate" optional="hide" string="불량률(%)"/>
             </xpath>

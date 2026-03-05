@@ -32,7 +32,9 @@ class EngelInjectionSerial(models.Model):
     lot_id = fields.Many2one(
         "stock.lot", string="로트", index=True, tracking=True,
     )
-    car_model = fields.Char(string="차종", tracking=True)
+    car_model_id = fields.Many2one(
+        "engel.car.model", string="차종", tracking=True,
+    )
 
     # ── 금형 ──
     mold_id = fields.Many2one("iatf.mold", string="금형", tracking=True)

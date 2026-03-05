@@ -65,7 +65,7 @@ class EngelInjectionAPI(http.Controller):
                 "product_barcode": mo.product_id.barcode or "",
                 "qty_to_produce": mo.product_qty,
                 "qty_produced": mo.qty_produced,
-                "car_model": mo.car_model or "",
+                "car_model": mo.car_model_id.name if mo.car_model_id else "",
                 "mold_id": mo.mold_id.id if mo.mold_id else None,
                 "mold_name": mo.mold_id.name if mo.mold_id else "",
                 "mold_cavity_count": mo.mold_id.cavity_count if mo.mold_id else 0,
@@ -105,7 +105,7 @@ class EngelInjectionAPI(http.Controller):
             "product_barcode": mo.product_id.barcode or "",
             "qty_to_produce": mo.product_qty,
             "qty_produced": mo.qty_produced,
-            "car_model": mo.car_model or "",
+            "car_model": mo.car_model_id.name if mo.car_model_id else "",
             "mold_id": mo.mold_id.id if mo.mold_id else None,
             "mold_name": mo.mold_id.name if mo.mold_id else "",
             "mold_cavity_count": mo.mold_id.cavity_count if mo.mold_id else 0,
@@ -209,6 +209,7 @@ class EngelInjectionAPI(http.Controller):
         int_fields = [
             "production_id", "lot_id", "mold_id",
             "mold_cavity", "operator_id", "defect_type_id",
+            "car_model_id",
         ]
         for field in int_fields:
             if field in body and body[field] is not None:
@@ -216,7 +217,7 @@ class EngelInjectionAPI(http.Controller):
 
         # 선택적 필드 매핑 (문자열 타입)
         str_fields = [
-            "serial_no", "car_model", "shift", "qc_result",
+            "serial_no", "shift", "qc_result",
         ]
         for field in str_fields:
             if field in body and body[field] is not None:

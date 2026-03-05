@@ -12,7 +12,7 @@
                 <field name="product_id"/>
                 <field name="production_id"/>
                 <field name="mold_id"/>
-                <field name="car_model"/>
+                <field name="car_model_id"/>
                 <field name="operator_id"/>
                 <separator/>
                 <filter name="today" string="오늘"
@@ -36,8 +36,8 @@
                             context="{'group_by': 'mold_id'}"/>
                     <filter name="group_shift" string="근무조"
                             context="{'group_by': 'shift'}"/>
-                    <filter name="group_car_model" string="차종"
-                            context="{'group_by': 'car_model'}"/>
+                    <filter name="group_car_model_id" string="차종"
+                            context="{'group_by': 'car_model_id'}"/>
                     <filter name="group_operator" string="작업자"
                             context="{'group_by': 'operator_id'}"/>
                     <filter name="group_qc" string="품질 판정"
@@ -58,7 +58,7 @@
                 <field name="barcode"/>
                 <field name="produced_at"/>
                 <field name="product_id"/>
-                <field name="car_model"/>
+                <field name="car_model_id"/>
                 <field name="production_id" optional="show"/>
                 <field name="mold_id" optional="show"/>
                 <field name="mold_cavity"/>
@@ -101,7 +101,7 @@
                             <field name="product_id"/>
                             <field name="production_id"/>
                             <field name="lot_id"/>
-                            <field name="car_model"/>
+                            <field name="car_model_id"/>
                             <field name="produced_at"/>
                         </group>
                         <group string="금형 / 작업자">

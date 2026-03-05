@@ -5,3 +5,5 @@ access_defect_type_user,engel.defect.type.user,model_engel_defect_type,group_inj
 access_defect_type_manager,engel.defect.type.manager,model_engel_defect_type,group_injection_manager,1,1,1,1
 access_machine_status_user,engel.machine.status.user,model_engel_machine_status,group_injection_user,1,1,1,0
 access_machine_status_manager,engel.machine.status.manager,model_engel_machine_status,group_injection_manager,1,1,1,1
+access_car_model_user,engel.car.model.user,model_engel_car_model,group_injection_user,1,0,0,0
+access_car_model_manager,engel.car.model.manager,model_engel_car_model,group_injection_manager,1,1,1,1

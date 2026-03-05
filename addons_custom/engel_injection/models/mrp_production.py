@@ -7,7 +7,9 @@ _logger = logging.getLogger(__name__)
 class MrpProduction(models.Model):
     _inherit = "mrp.production"
 
-    car_model = fields.Char(string="차종", tracking=True)
+    car_model_id = fields.Many2one(
+        "engel.car.model", string="차종", tracking=True,
+    )
 
     injection_serial_ids = fields.One2many(
         "engel.injection.serial", "production_id", string="사출 시리얼",
@@ -57,7 +59,7 @@ class MrpProduction(models.Model):
             "context": {
                 "default_production_id": self.id,
                 "default_product_id": self.product_id.id,
-                "default_car_model": self.car_model,
+                "default_car_model_id": self.car_model_id.id if self.car_model_id else False,
                 "default_mold_id": self.mold_id.id if self.mold_id else False,
             },
         }

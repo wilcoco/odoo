@@ -20,6 +20,7 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "views/car_model_views.xml",
         "views/defect_type_views.xml",
         "views/injection_serial_views.xml",
         "views/mrp_production_views.xml",
