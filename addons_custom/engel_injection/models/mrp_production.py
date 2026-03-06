@@ -13,22 +13,24 @@ class MrpProduction(models.Model):
 
     @api.onchange("product_id")
     def _onchange_product_set_injection_defaults(self):
-        """품목 선택 시 금형, 차종 자동 입력"""
+        """품목 선택 시 차종 자동 입력 + 금형 필터링"""
         if not self.product_id:
+            self.mold_id = False
             return
-        # 금형 자동 입력: 해당 제품용 활성 금형 검색
-        mold = self.env["iatf.mold"].search(
-            [
-                ("product_id", "=", self.product_id.id),
-                ("state", "=", "active"),
-            ],
-            limit=1,
-        )
-        if mold:
-            self.mold_id = mold.id
         # 차종 자동 입력: 제품 템플릿의 기본 차종
         if self.product_id.product_tmpl_id.default_car_model_id:
             self.car_model_id = self.product_id.product_tmpl_id.default_car_model_id.id
+        # 금형: 기존 선택 초기화 (제품 바뀌면 금형도 리셋)
+        self.mold_id = False
+        # 금형 드롭다운을 해당 제품용 활성 금형만 필터링
+        return {
+            "domain": {
+                "mold_id": [
+                    ("product_id", "=", self.product_id.id),
+                    ("state", "=", "active"),
+                ]
+            }
+        }
 
     def _generate_lot_name(self):
         """LOT 번호 자동 생성: LOT-YYYYMM-NNNN"""
