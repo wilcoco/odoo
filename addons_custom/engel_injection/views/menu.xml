@@ -32,11 +32,5 @@
               action="action_machine_status"
               sequence="30"/>
 
-    <!-- 청구서 발행 → 회계 메뉴에 재고 평가 추가 -->
-    <menuitem id="menu_stock_valuation_in_accounting"
-              name="재고 평가"
-              parent="account.menu_finance_entries"
-              action="stock_account.stock_account_move_action"
-              sequence="25"/>
 
 </odoo>
