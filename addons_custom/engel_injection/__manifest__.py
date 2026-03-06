@@ -11,6 +11,7 @@
         "mrp",
         "stock",
         "hr",
+        "account",
         "iatf_document_control",
         "iatf_mold",
         "iatf_traceability",
