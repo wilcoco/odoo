@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!-- Top-level IATF Quality menu -->
+        <menuitem id="menu_iatf_root"
+                  name="IATF 16949"
+                  sequence="55"
+                  web_icon="iatf_document_control,static/description/icon.png"
+                  action="iatf_dashboard.action_iatf_dashboard_server"/>
+
         <!-- IATF 16949 메뉴 재구성 -->
 
     <!-- 1. 경영 및 기획 -->
@@ -36,8 +43,14 @@
     <menuitem id="menu_iatf_customer_satisfaction" name="고객만족도" parent="menu_iatf_quality_system" sequence="20"
               action="iatf_customer_complaint.action_iatf_customer_complaint"/>
     
-    <menuitem id="menu_iatf_document_control" name="문서관리" parent="menu_iatf_quality_system" sequence="30"
-              action="iatf_document_control.action_iatf_document"/>
+    <menuitem id="menu_iatf_document_control" name="문서관리" parent="menu_iatf_quality_system" sequence="30"/>
+
+    <menuitem id="menu_iatf_documents" name="문서 목록" parent="menu_iatf_document_control"
+              action="action_iatf_document" sequence="10"/>
+    <menuitem id="menu_iatf_document_revisions" name="개정 이력" parent="menu_iatf_document_control"
+              action="action_iatf_document_revision" sequence="20"/>
+    <menuitem id="menu_iatf_document_categories" name="문서 카테고리" parent="menu_iatf_document_control"
+              action="action_iatf_document_category" sequence="30"/>
 
     <!-- 4. 생산 및 공정 관리 -->
     <menuitem id="menu_iatf_production" name="생산 및 공정 관리" parent="menu_iatf_root" sequence="4"/>

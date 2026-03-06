@@ -15,6 +15,7 @@
         "iatf_mold",
         "iatf_traceability",
         "iatf_process_inspection",
+        "iatf_spc",
     ],
     "data": [
         "security/security.xml",
