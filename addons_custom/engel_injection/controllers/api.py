@@ -239,6 +239,122 @@ class EngelInjectionAPI(http.Controller):
         return vals
 
     # ─────────────────────────────────────────────
+    # 시리얼 조회 / 업데이트 (로봇 연동)
+    # ─────────────────────────────────────────────
+    @http.route(
+        "/api/v1/injection/serial/<int:serial_id>",
+        auth="bearer", type="http", methods=["GET"],
+        csrf=False, readonly=True,
+    )
+    def get_serial(self, serial_id, **kwargs):
+        """시리얼 레코드 조회 (ID)"""
+        serial = request.env["engel.injection.serial"].browse(serial_id)
+        if not serial.exists():
+            return self._error_response("Serial not found", 404)
+        return self._success_response(self._serial_to_dict(serial))
+
+    @http.route(
+        "/api/v1/injection/serial/barcode/<string:barcode>",
+        auth="bearer", type="http", methods=["GET"],
+        csrf=False, readonly=True,
+    )
+    def get_serial_by_barcode(self, barcode, **kwargs):
+        """시리얼 레코드 조회 (바코드)"""
+        serial = request.env["engel.injection.serial"].search(
+            [("barcode", "=", barcode)], limit=1,
+        )
+        if not serial:
+            return self._error_response("Serial not found", 404)
+        return self._success_response(self._serial_to_dict(serial))
+
+    @http.route(
+        "/api/v1/injection/serial/<int:serial_id>",
+        auth="bearer", type="http", methods=["PUT"],
+        csrf=False,
+    )
+    def update_serial(self, serial_id, **kwargs):
+        """시리얼 레코드 업데이트 (중량로봇, 바코드로봇 등)"""
+        serial = request.env["engel.injection.serial"].sudo().browse(serial_id)
+        if not serial.exists():
+            return self._error_response("Serial not found", 404)
+
+        body = self._json_body()
+        vals = {}
+
+        # 업데이트 가능 필드 (float)
+        float_fields = [
+            "weight", "cycle_time", "inject_pressure",
+            "hold_pressure", "barrel_temp", "mold_temp", "cushion",
+        ]
+        for field in float_fields:
+            if field in body and body[field] is not None:
+                vals[field] = float(body[field])
+
+        # 업데이트 가능 필드 (str)
+        str_fields = ["qc_result", "status", "serial_no"]
+        for field in str_fields:
+            if field in body and body[field] is not None:
+                vals[field] = body[field]
+
+        # 업데이트 가능 필드 (int)
+        int_fields = ["defect_type_id", "operator_id"]
+        for field in int_fields:
+            if field in body and body[field] is not None:
+                vals[field] = int(body[field])
+
+        if vals:
+            serial.write(vals)
+
+        return self._success_response(self._serial_to_dict(serial))
+
+    @http.route(
+        "/api/v1/injection/serial/pending",
+        auth="bearer", type="http", methods=["GET"],
+        csrf=False, readonly=True,
+    )
+    def get_pending_serials(self, **kwargs):
+        """바코드 출력 대기 중인 시리얼 목록 (status=produced)"""
+        domain = [("status", "=", "produced")]
+
+        if kwargs.get("production_id"):
+            domain.append(("production_id", "=", int(kwargs["production_id"])))
+        if kwargs.get("limit"):
+            limit = int(kwargs["limit"])
+        else:
+            limit = 50
+
+        serials = request.env["engel.injection.serial"].search(
+            domain, order="produced_at asc", limit=limit,
+        )
+        data = [self._serial_to_dict(s) for s in serials]
+        return self._success_response(data)
+
+    def _serial_to_dict(self, serial):
+        """시리얼 레코드 → dict 변환"""
+        return {
+            "id": serial.id,
+            "barcode": serial.barcode,
+            "serial_no": serial.serial_no or "",
+            "product_id": serial.product_id.id,
+            "product_name": serial.product_id.name,
+            "production_id": serial.production_id.id if serial.production_id else None,
+            "production_name": serial.production_id.name if serial.production_id else "",
+            "lot_id": serial.lot_id.id if serial.lot_id else None,
+            "mold_id": serial.mold_id.id if serial.mold_id else None,
+            "car_model": serial.car_model_id.name if serial.car_model_id else "",
+            "weight": serial.weight,
+            "cycle_time": serial.cycle_time,
+            "inject_pressure": serial.inject_pressure,
+            "hold_pressure": serial.hold_pressure,
+            "barrel_temp": serial.barrel_temp,
+            "mold_temp": serial.mold_temp,
+            "cushion": serial.cushion,
+            "qc_result": serial.qc_result,
+            "status": serial.status,
+            "produced_at": fields.Datetime.to_string(serial.produced_at) if serial.produced_at else "",
+        }
+
+    # ─────────────────────────────────────────────
     # 불량 유형 마스터
     # ─────────────────────────────────────────────
     @http.route(
