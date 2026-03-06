@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 청구서 발행 → 회계 메뉴 -->
+    <menuitem id="menu_accounting"
+              name="회계"
+              parent="account.menu_finance"
+              sequence="4"/>
+
+    <menuitem id="menu_journal_entries"
+              name="전표 (분개장)"
+              parent="menu_accounting"
+              action="account.action_move_journal_line"
+              sequence="10"/>
+
+    <menuitem id="menu_journal_items"
+              name="분개 항목"
+              parent="menu_accounting"
+              action="account.action_account_moves_all"
+              sequence="20"/>
+
+    <menuitem id="menu_stock_valuation"
+              name="재고 평가"
+              parent="menu_accounting"
+              action="stock_account.stock_account_move_action"
+              sequence="30"/>
+
+</odoo>
