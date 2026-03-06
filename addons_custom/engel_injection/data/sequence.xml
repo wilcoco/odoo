@@ -7,5 +7,12 @@
             <field name="prefix">INJ-%(year)s%(month)s-</field>
             <field name="padding">6</field>
         </record>
+
+        <record id="seq_production_lot" model="ir.sequence">
+            <field name="name">사출 생산 LOT</field>
+            <field name="code">engel.production.lot</field>
+            <field name="prefix">LOT-%(year)s%(month)s-</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>

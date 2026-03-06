@@ -11,6 +11,51 @@ class MrpProduction(models.Model):
         "engel.car.model", string="차종", tracking=True,
     )
 
+    @api.onchange("product_id")
+    def _onchange_product_set_injection_defaults(self):
+        """품목 선택 시 금형, 차종 자동 입력"""
+        if not self.product_id:
+            return
+        # 금형 자동 입력: 해당 제품용 활성 금형 검색
+        mold = self.env["iatf.mold"].search(
+            [
+                ("product_id", "=", self.product_id.id),
+                ("state", "=", "active"),
+            ],
+            limit=1,
+        )
+        if mold:
+            self.mold_id = mold.id
+        # 차종 자동 입력: 제품 템플릿의 기본 차종
+        if self.product_id.product_tmpl_id.default_car_model_id:
+            self.car_model_id = self.product_id.product_tmpl_id.default_car_model_id.id
+
+    def _generate_lot_name(self):
+        """LOT 번호 자동 생성: LOT-YYYYMM-NNNN"""
+        seq = self.env["ir.sequence"].next_by_code("engel.production.lot")
+        return seq or ("LOT-%s" % fields.Date.today().strftime("%Y%m%d"))
+
+    def action_confirm(self):
+        """MO 확정 시 LOT 자동 생성"""
+        res = super().action_confirm()
+        for production in self:
+            if (
+                production.product_id.tracking in ("lot", "serial")
+                and not production.lot_producing_id
+            ):
+                lot = self.env["stock.lot"].create(
+                    {
+                        "name": production._generate_lot_name(),
+                        "product_id": production.product_id.id,
+                        "company_id": production.company_id.id,
+                    }
+                )
+                production.lot_producing_id = lot.id
+                _logger.info(
+                    "Auto-created LOT %s for MO %s", lot.name, production.name
+                )
+        return res
+
     injection_serial_ids = fields.One2many(
         "engel.injection.serial", "production_id", string="사출 시리얼",
     )
