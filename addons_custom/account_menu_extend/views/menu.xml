@@ -22,7 +22,7 @@
     <menuitem id="menu_stock_valuation"
               name="재고 평가"
               parent="menu_accounting"
-              action="stock_account.stock_account_move_action"
+              action="stock_account.stock_valuation_layer_action"
               sequence="30"/>
 
 </odoo>
