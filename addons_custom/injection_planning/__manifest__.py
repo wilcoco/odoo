@@ -26,6 +26,7 @@
         "views/product_planning_views.xml",
         "views/menu.xml",
         "wizards/generate_mo_wizard_views.xml",
+        "wizards/import_demand_wizard_views.xml",
     ],
     "installable": True,
     "application": True,

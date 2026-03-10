@@ -38,6 +38,12 @@
                             <field name="planning_horizon"/>
                         </group>
                     </group>
+                    <group string="가동 시간">
+                        <group>
+                            <field name="daily_operating_hours"/>
+                            <field name="daily_break_hours"/>
+                        </group>
+                    </group>
                     <group string="글로벌 기본값">
                         <group>
                             <field name="default_changeover"/>

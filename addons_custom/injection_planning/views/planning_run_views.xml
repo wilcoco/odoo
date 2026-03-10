@@ -45,6 +45,9 @@
                     <button name="action_fetch_demand" string="수요 가져오기"
                             type="object" class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button name="action_import_demand_file" string="파일 업로드 (CSV)"
+                            type="object"
+                            invisible="state != 'draft'"/>
                     <button name="action_add_manual_demand" string="수동 수요 추가"
                             type="object"
                             invisible="state != 'draft'"/>

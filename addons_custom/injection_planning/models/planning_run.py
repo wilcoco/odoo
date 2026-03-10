@@ -151,6 +151,18 @@ class PlanningRun(models.Model):
             },
         }
 
+    def action_import_demand_file(self):
+        """CSV 파일에서 수요 데이터 임포트 (Oracle 대체)"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "수요 파일 업로드",
+            "res_model": "injection.import.demand.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_planning_run_id": self.id},
+        }
+
     def _get_config(self):
         config = self.env["injection.planning.config"].search([], limit=1)
         if not config:
@@ -436,8 +448,16 @@ class PlanningRun(models.Model):
                 "capability": best_cap,
             })
 
+        # 일 가용 시간 = 가동시간 - 휴게시간
+        available_hours = (config.daily_operating_hours or 24.0) - (config.daily_break_hours or 0.0)
+        if available_hours <= 0:
+            available_hours = 24.0
+
         # 사출기별 스케줄링 (같은 금형 연속 배치)
         lines_data = []
+        # 사출기별 시간 커서 (타임라인 계산용)
+        machine_time_cursor = {}  # wc_id → datetime
+
         for wc_id, jobs in machine_jobs.items():
             # 금형별로 그룹핑 후 연속 배치 (교체 최소화)
             jobs_by_mold = defaultdict(list)
@@ -445,6 +465,13 @@ class PlanningRun(models.Model):
                 jobs_by_mold[job["capability"].mold_id.id].append(job)
 
             seq = 10
+            # 첫 작업 시작: 계획 시작일 08:00
+            if wc_id not in machine_time_cursor:
+                start_dt = datetime.strptime(
+                    str(self.plan_date_from), "%Y-%m-%d"
+                ).replace(hour=8)
+                machine_time_cursor[wc_id] = start_dt
+
             for mold_id, mold_jobs in jobs_by_mold.items():
                 mold = Mold.browse(mold_id)
                 # 금형 교체 판단
@@ -473,6 +500,32 @@ class PlanningRun(models.Model):
 
                     co_hours = mold.changeover_hours or config.default_changeover if needs_changeover else 0.0
 
+                    # 생산 시간 계산
+                    prod_hours = 0.0
+                    if cap.hourly_capacity > 0:
+                        prod_hours = adjusted / cap.hourly_capacity
+                    total_job_hours = co_hours + prod_hours
+
+                    # 타임라인: 일 가용시간 내에서 배치
+                    cursor = machine_time_cursor[wc_id]
+                    start_time = cursor
+                    end_time = cursor + timedelta(hours=total_job_hours)
+
+                    # 일 가용시간 초과 시 → 다음 날로 이동
+                    day_start_hour = 8  # 근무 시작 시각
+                    day_end_hour = day_start_hour + available_hours
+                    if end_time.hour + end_time.minute / 60.0 > day_end_hour or (
+                        end_time.date() > start_time.date()
+                    ):
+                        # 다음 날 시작
+                        next_day = start_time.date() + timedelta(days=1)
+                        start_time = datetime.combine(
+                            next_day, datetime.min.time()
+                        ).replace(hour=day_start_hour)
+                        end_time = start_time + timedelta(hours=total_job_hours)
+
+                    machine_time_cursor[wc_id] = end_time
+
                     lines_data.append({
                         "planning_run_id": self.id,
                         "sequence": seq,
@@ -486,6 +539,8 @@ class PlanningRun(models.Model):
                         "initial_scrap": scrap,
                         "changeover_needed": needs_changeover,
                         "changeover_hours": co_hours,
+                        "start_time": start_time,
+                        "end_time": end_time,
                         "current_stock": product.qty_available,
                         "max_inventory": product.max_inventory_qty,
                     })

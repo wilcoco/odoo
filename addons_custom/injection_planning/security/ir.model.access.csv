@@ -13,3 +13,5 @@ access_line_user,injection.planning.line.user,model_injection_planning_line,grou
 access_line_manager,injection.planning.line.manager,model_injection_planning_line,group_planning_manager,1,1,1,1
 access_wizard_user,injection.generate.mo.wizard.user,model_injection_generate_mo_wizard,group_planning_user,1,1,1,0
 access_wizard_manager,injection.generate.mo.wizard.manager,model_injection_generate_mo_wizard,group_planning_manager,1,1,1,1
+access_import_wizard_user,injection.import.demand.wizard.user,model_injection_import_demand_wizard,group_planning_user,1,1,1,0
+access_import_wizard_manager,injection.import.demand.wizard.manager,model_injection_import_demand_wizard,group_planning_manager,1,1,1,1

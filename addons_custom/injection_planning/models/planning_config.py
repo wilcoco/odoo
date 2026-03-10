@@ -62,6 +62,16 @@ class InjectionPlanningConfig(models.Model):
         string="기본 최소 로트 (개)", default=100,
     )
 
+    # ── 가동 시간 ──
+    daily_operating_hours = fields.Float(
+        string="일 가동시간 (시간)", default=24.0,
+        help="하루 총 가동 가능 시간 (예: 24시간 3교대, 16시간 2교대, 8시간 1교대)",
+    )
+    daily_break_hours = fields.Float(
+        string="일 휴게시간 (시간)", default=1.0,
+        help="하루 총 휴게 시간 (점심/저녁/야간 휴게 합계)",
+    )
+
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )
