@@ -166,6 +166,7 @@ class PlanningRun(models.Model):
     def action_generate_availability(self):
         """계획 기간에 대해 사출기 가동 일정 일괄 생성 (없는 것만)"""
         self.ensure_one()
+        config = self._get_config()
         Avail = self.env["injection.machine.availability"]
         workcenters = self.env["mrp.workcenter"].search([])
         if not workcenters:
@@ -183,8 +184,8 @@ class PlanningRun(models.Model):
                     Avail.create({
                         "workcenter_id": wc.id,
                         "date": current,
-                        "day_shift": True,
-                        "night_shift": True,
+                        "day_shift_hours": config.day_shift_hours or 8.0,
+                        "night_shift_hours": config.night_shift_hours or 8.0,
                     })
                     created += 1
             current += timedelta(days=1)
@@ -511,9 +512,9 @@ class PlanningRun(models.Model):
                 "capability": best_cap,
             })
 
-        # 교대 시간 설정
-        day_shift_h = config.day_shift_hours or 8.0
-        night_shift_h = config.night_shift_hours or 8.0
+        # 기본 교대 시간 (가동일정 미등록 시 사용)
+        default_day_h = config.day_shift_hours or 8.0
+        default_night_h = config.night_shift_hours or 8.0
         day_start = int(config.day_shift_start or 8)
         night_start = int(config.night_shift_start or 20)
 
@@ -528,17 +529,14 @@ class PlanningRun(models.Model):
             avail_map[(av.workcenter_id.id, str(av.date))] = av
 
         def _get_available_hours(wc_id, dt_date):
-            """해당 사출기/날짜의 가용 시간"""
+            """해당 사출기/날짜의 가용 시간 (주간, 야간 각각 반환)"""
             av = avail_map.get((wc_id, str(dt_date)))
             if av:
-                h = 0.0
-                if av.day_shift:
-                    h += day_shift_h
-                if av.night_shift:
-                    h += night_shift_h
-                return h, av.day_shift, av.night_shift
-            # 가동 일정 미등록 시 → 주간+야간 모두 가동
-            return day_shift_h + night_shift_h, True, True
+                dh = av.day_shift_hours or 0.0
+                nh = av.night_shift_hours or 0.0
+                return dh + nh, dh > 0, nh > 0
+            # 가동 일정 미등록 시 → config 기본값 사용
+            return default_day_h + default_night_h, True, True
 
         def _find_next_available(wc_id, from_date):
             """가용한 다음 날짜 찾기 (비가동일 건너뛰기)"""

@@ -9,7 +9,9 @@
                 <field name="workcenter_id"/>
                 <field name="date"/>
                 <filter name="unavailable" string="비가동"
-                        domain="['|', ('day_shift','=',False), ('night_shift','=',False)]"/>
+                        domain="[('available_hours','=',0)]"/>
+                <filter name="partial" string="부분 가동"
+                        domain="['|', ('day_shift_hours','=',0), ('night_shift_hours','=',0), ('available_hours','>',0)]"/>
                 <filter name="breakdown" string="고장"
                         domain="[('unavail_reason','=','breakdown')]"/>
                 <group expand="0" string="그룹">
@@ -28,12 +30,12 @@
         <field name="model">injection.machine.availability</field>
         <field name="arch" type="xml">
             <list editable="bottom"
-                  decoration-danger="day_shift == False and night_shift == False"
-                  decoration-warning="day_shift == False or night_shift == False">
+                  decoration-danger="available_hours == 0"
+                  decoration-warning="day_shift_hours == 0 or night_shift_hours == 0">
                 <field name="workcenter_id"/>
                 <field name="date"/>
-                <field name="day_shift"/>
-                <field name="night_shift"/>
+                <field name="day_shift_hours"/>
+                <field name="night_shift_hours"/>
                 <field name="available_hours"/>
                 <field name="unavail_reason"/>
                 <field name="notes" optional="show"/>
@@ -48,13 +50,13 @@
         <field name="arch" type="xml">
             <form>
                 <group>
-                    <group>
+                    <group string="기본 정보">
                         <field name="workcenter_id"/>
                         <field name="date"/>
                     </group>
-                    <group>
-                        <field name="day_shift"/>
-                        <field name="night_shift"/>
+                    <group string="가용시간">
+                        <field name="day_shift_hours"/>
+                        <field name="night_shift_hours"/>
                         <field name="available_hours"/>
                     </group>
                 </group>

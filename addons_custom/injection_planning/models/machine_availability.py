@@ -11,10 +11,18 @@ class MachineAvailability(models.Model):
         "mrp.workcenter", string="사출기", required=True, index=True,
     )
     date = fields.Date(string="날짜", required=True, index=True)
-    day_shift = fields.Boolean(string="주간 가동", default=True)
-    night_shift = fields.Boolean(string="야간 가동", default=True)
+
+    # 주간/야간 가용시간 (직접 입력)
+    day_shift_hours = fields.Float(
+        string="주간 가용시간 (h)", default=8.0,
+        help="해당 날짜 주간 근무 가용시간. 0이면 주간 비가동.",
+    )
+    night_shift_hours = fields.Float(
+        string="야간 가용시간 (h)", default=8.0,
+        help="해당 날짜 야간 근무 가용시간. 0이면 야간 비가동.",
+    )
     available_hours = fields.Float(
-        string="가용 시간 (h)", compute="_compute_available_hours", store=True,
+        string="총 가용시간 (h)", compute="_compute_available_hours", store=True,
     )
     unavail_reason = fields.Selection(
         [
@@ -36,18 +44,10 @@ class MachineAvailability(models.Model):
         ),
     ]
 
-    @api.depends("day_shift", "night_shift")
+    @api.depends("day_shift_hours", "night_shift_hours")
     def _compute_available_hours(self):
-        config = self.env["injection.planning.config"].search([], limit=1)
-        dh = config.day_shift_hours if config else 8.0
-        nh = config.night_shift_hours if config else 8.0
         for rec in self:
-            hours = 0.0
-            if rec.day_shift:
-                hours += dh
-            if rec.night_shift:
-                hours += nh
-            rec.available_hours = hours
+            rec.available_hours = (rec.day_shift_hours or 0.0) + (rec.night_shift_hours or 0.0)
 
     @api.depends("workcenter_id", "date")
     def _compute_display_name(self):
