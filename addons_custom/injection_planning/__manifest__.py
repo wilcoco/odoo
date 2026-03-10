@@ -20,6 +20,7 @@
         "views/mold_planning_views.xml",
         "views/planning_config_views.xml",
         "views/machine_mold_views.xml",
+        "views/machine_availability_views.xml",
         "views/demand_views.xml",
         "views/planning_run_views.xml",
         "views/planning_line_views.xml",

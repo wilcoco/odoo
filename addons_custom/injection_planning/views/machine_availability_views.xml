@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 검색 -->
+    <record id="view_machine_availability_search" model="ir.ui.view">
+        <field name="name">injection.machine.availability.search</field>
+        <field name="model">injection.machine.availability</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="workcenter_id"/>
+                <field name="date"/>
+                <filter name="unavailable" string="비가동"
+                        domain="['|', ('day_shift','=',False), ('night_shift','=',False)]"/>
+                <filter name="breakdown" string="고장"
+                        domain="[('unavail_reason','=','breakdown')]"/>
+                <group expand="0" string="그룹">
+                    <filter string="사출기" name="group_wc"
+                            context="{'group_by': 'workcenter_id'}"/>
+                    <filter string="날짜" name="group_date"
+                            context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 리스트 (editable) -->
+    <record id="view_machine_availability_list" model="ir.ui.view">
+        <field name="name">injection.machine.availability.list</field>
+        <field name="model">injection.machine.availability</field>
+        <field name="arch" type="xml">
+            <list editable="bottom"
+                  decoration-danger="day_shift == False and night_shift == False"
+                  decoration-warning="day_shift == False or night_shift == False">
+                <field name="workcenter_id"/>
+                <field name="date"/>
+                <field name="day_shift"/>
+                <field name="night_shift"/>
+                <field name="available_hours"/>
+                <field name="unavail_reason"/>
+                <field name="notes" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 폼 -->
+    <record id="view_machine_availability_form" model="ir.ui.view">
+        <field name="name">injection.machine.availability.form</field>
+        <field name="model">injection.machine.availability</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="workcenter_id"/>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="day_shift"/>
+                        <field name="night_shift"/>
+                        <field name="available_hours"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="unavail_reason"/>
+                    <field name="notes"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_machine_availability" model="ir.actions.act_window">
+        <field name="name">사출기 가동 일정</field>
+        <field name="res_model">injection.machine.availability</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_machine_availability_search"/>
+        <field name="context">{'search_default_group_wc': 1}</field>
+    </record>
+</odoo>

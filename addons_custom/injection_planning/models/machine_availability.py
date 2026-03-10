@@ -1,0 +1,57 @@
+from odoo import api, fields, models
+
+
+class MachineAvailability(models.Model):
+    _name = "injection.machine.availability"
+    _description = "사출기 가동 일정"
+    _order = "date, workcenter_id"
+    _rec_name = "display_name"
+
+    workcenter_id = fields.Many2one(
+        "mrp.workcenter", string="사출기", required=True, index=True,
+    )
+    date = fields.Date(string="날짜", required=True, index=True)
+    day_shift = fields.Boolean(string="주간 가동", default=True)
+    night_shift = fields.Boolean(string="야간 가동", default=True)
+    available_hours = fields.Float(
+        string="가용 시간 (h)", compute="_compute_available_hours", store=True,
+    )
+    unavail_reason = fields.Selection(
+        [
+            ("breakdown", "고장"),
+            ("maintenance", "정비"),
+            ("no_order", "주문 없음"),
+            ("holiday", "휴일"),
+            ("other", "기타"),
+        ],
+        string="비가동 사유",
+    )
+    notes = fields.Text(string="비고")
+
+    _sql_constraints = [
+        (
+            "unique_workcenter_date",
+            "UNIQUE(workcenter_id, date)",
+            "같은 사출기/날짜에 중복 일정을 등록할 수 없습니다.",
+        ),
+    ]
+
+    @api.depends("day_shift", "night_shift")
+    def _compute_available_hours(self):
+        config = self.env["injection.planning.config"].search([], limit=1)
+        dh = config.day_shift_hours if config else 8.0
+        nh = config.night_shift_hours if config else 8.0
+        for rec in self:
+            hours = 0.0
+            if rec.day_shift:
+                hours += dh
+            if rec.night_shift:
+                hours += nh
+            rec.available_hours = hours
+
+    @api.depends("workcenter_id", "date")
+    def _compute_display_name(self):
+        for rec in self:
+            wc = rec.workcenter_id.name or ""
+            dt = str(rec.date) if rec.date else ""
+            rec.display_name = f"{wc} / {dt}"

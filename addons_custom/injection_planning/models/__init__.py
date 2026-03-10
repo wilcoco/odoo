@@ -1,6 +1,7 @@
 from . import mold
 from . import planning_config
 from . import machine_mold_capability
+from . import machine_availability
 from . import production_demand
 from . import planning_line
 from . import planning_run

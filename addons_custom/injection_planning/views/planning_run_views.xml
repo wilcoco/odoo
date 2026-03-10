@@ -51,6 +51,9 @@
                     <button name="action_add_manual_demand" string="수동 수요 추가"
                             type="object"
                             invisible="state != 'draft'"/>
+                    <button name="action_generate_availability" string="가동 일정 설정"
+                            type="object"
+                            invisible="state != 'draft'"/>
                     <button name="action_calculate_plan" string="계획 계산"
                             type="object" class="btn-primary"
                             invisible="state != 'draft'"

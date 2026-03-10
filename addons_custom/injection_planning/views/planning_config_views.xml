@@ -38,10 +38,19 @@
                             <field name="planning_horizon"/>
                         </group>
                     </group>
-                    <group string="가동 시간">
+                    <group string="교대 근무">
                         <group>
-                            <field name="daily_operating_hours"/>
-                            <field name="daily_break_hours"/>
+                            <field name="day_shift_hours"/>
+                            <field name="day_shift_start"/>
+                        </group>
+                        <group>
+                            <field name="night_shift_hours"/>
+                            <field name="night_shift_start"/>
+                        </group>
+                    </group>
+                    <group string="안전재고">
+                        <group>
+                            <field name="safety_stock_days"/>
                         </group>
                     </group>
                     <group string="글로벌 기본값">

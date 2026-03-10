@@ -37,6 +37,12 @@
               action="action_machine_mold_capability"
               sequence="20"/>
 
+    <menuitem id="menu_machine_availability"
+              name="사출기 가동 일정"
+              parent="menu_injection_planning_root"
+              action="action_machine_availability"
+              sequence="25"/>
+
     <!-- 설정 -->
     <menuitem id="menu_planning_config_parent"
               name="설정"

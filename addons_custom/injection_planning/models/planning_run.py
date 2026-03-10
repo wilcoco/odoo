@@ -163,6 +163,49 @@ class PlanningRun(models.Model):
             "context": {"default_planning_run_id": self.id},
         }
 
+    def action_generate_availability(self):
+        """계획 기간에 대해 사출기 가동 일정 일괄 생성 (없는 것만)"""
+        self.ensure_one()
+        Avail = self.env["injection.machine.availability"]
+        workcenters = self.env["mrp.workcenter"].search([])
+        if not workcenters:
+            raise models.UserError("등록된 사출기(작업장)가 없습니다.")
+
+        created = 0
+        current = self.plan_date_from
+        while current <= self.plan_date_to:
+            for wc in workcenters:
+                existing = Avail.search([
+                    ("workcenter_id", "=", wc.id),
+                    ("date", "=", current),
+                ], limit=1)
+                if not existing:
+                    Avail.create({
+                        "workcenter_id": wc.id,
+                        "date": current,
+                        "day_shift": True,
+                        "night_shift": True,
+                    })
+                    created += 1
+            current += timedelta(days=1)
+
+        self.message_post(
+            body=f"가동 일정 {created}건 생성 완료 "
+                 f"({len(workcenters)}대 x {(self.plan_date_to - self.plan_date_from).days + 1}일)"
+        )
+        # 가동 일정 리스트 열기
+        return {
+            "type": "ir.actions.act_window",
+            "name": "사출기 가동 일정",
+            "res_model": "injection.machine.availability",
+            "view_mode": "list,form",
+            "domain": [
+                ("date", ">=", str(self.plan_date_from)),
+                ("date", "<=", str(self.plan_date_to)),
+            ],
+            "context": {"search_default_group_wc": 1},
+        }
+
     def _get_config(self):
         config = self.env["injection.planning.config"].search([], limit=1)
         if not config:
@@ -373,13 +416,35 @@ class PlanningRun(models.Model):
         return dict(part_demands)
 
     def _calculate_net_requirements(self, part_demands):
-        """순수요 = 수요 - 현재 재고, 최대 재고 초과분 제외"""
+        """순수요 = 수요 + 안전재고 - 현재 재고, 최대 재고 초과분 제외"""
+        config = self._get_config()
+        safety_days = config.safety_stock_days or 0.0
+
         net = {}
         # 제품별로 재고 한번만 조회
+        # planning_stock_qty > 0 이면 수동 입력값 사용, 아니면 Odoo 자동 재고
         product_ids = set(pid for pid, _ in part_demands.keys())
         products = self.env["product.product"].browse(list(product_ids))
-        stock_map = {p.id: p.qty_available for p in products}
+        stock_map = {
+            p.id: p.planning_stock_qty if p.planning_stock_qty > 0 else p.qty_available
+            for p in products
+        }
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
+
+        # 안전재고 계산: 제품별 일평균 수요 × safety_stock_days
+        product_daily_avg = defaultdict(float)
+        product_dates = defaultdict(set)
+        for (pid, date_str), qty in part_demands.items():
+            product_daily_avg[pid] += qty
+            product_dates[pid].add(date_str)
+        for pid in product_daily_avg:
+            num_days = len(product_dates[pid]) or 1
+            product_daily_avg[pid] = product_daily_avg[pid] / num_days
+
+        safety_stock = {
+            pid: product_daily_avg[pid] * safety_days
+            for pid in product_ids
+        }
 
         # 날짜순으로 누적 처리
         sorted_keys = sorted(part_demands.keys(), key=lambda k: k[1])
@@ -389,10 +454,12 @@ class PlanningRun(models.Model):
             required = part_demands[(pid, date_str)]
             current_stock = stock_map.get(pid, 0) + cumulative_produced[pid]
             max_inv = max_inv_map.get(pid, 0)
+            ss = safety_stock.get(pid, 0)
 
-            shortage = required - current_stock
+            # 필요량 = 수요 + 안전재고 - 현재재고
+            shortage = required + ss - current_stock
             if shortage <= 0:
-                # 재고 충분
+                # 재고 충분 (안전재고 포함)
                 stock_map[pid] = current_stock - required
                 continue
 
@@ -448,15 +515,50 @@ class PlanningRun(models.Model):
                 "capability": best_cap,
             })
 
-        # 일 가용 시간 = 가동시간 - 휴게시간
-        available_hours = (config.daily_operating_hours or 24.0) - (config.daily_break_hours or 0.0)
-        if available_hours <= 0:
-            available_hours = 24.0
+        # 교대 시간 설정
+        day_shift_h = config.day_shift_hours or 8.0
+        night_shift_h = config.night_shift_hours or 8.0
+        day_start = int(config.day_shift_start or 8)
+        night_start = int(config.night_shift_start or 20)
+
+        # 사출기별 가동 일정 조회
+        Avail = self.env["injection.machine.availability"]
+        avail_map = {}  # (wc_id, date) → availability record
+        avail_records = Avail.search([
+            ("date", ">=", str(self.plan_date_from)),
+            ("date", "<=", str(self.plan_date_to)),
+        ])
+        for av in avail_records:
+            avail_map[(av.workcenter_id.id, str(av.date))] = av
+
+        def _get_available_hours(wc_id, dt_date):
+            """해당 사출기/날짜의 가용 시간"""
+            av = avail_map.get((wc_id, str(dt_date)))
+            if av:
+                h = 0.0
+                if av.day_shift:
+                    h += day_shift_h
+                if av.night_shift:
+                    h += night_shift_h
+                return h, av.day_shift, av.night_shift
+            # 가동 일정 미등록 시 → 주간+야간 모두 가동
+            return day_shift_h + night_shift_h, True, True
+
+        def _find_next_available(wc_id, from_date):
+            """가용한 다음 날짜 찾기 (비가동일 건너뛰기)"""
+            check = from_date
+            plan_end = self.plan_date_to
+            while check <= plan_end:
+                avail_h, _, _ = _get_available_hours(wc_id, check)
+                if avail_h > 0:
+                    return check
+                check += timedelta(days=1)
+            return from_date  # 가용일 없으면 원래 날짜 반환
 
         # 사출기별 스케줄링 (같은 금형 연속 배치)
         lines_data = []
-        # 사출기별 시간 커서 (타임라인 계산용)
         machine_time_cursor = {}  # wc_id → datetime
+        machine_day_remaining = {}  # wc_id → 오늘 남은 시간
 
         for wc_id, jobs in machine_jobs.items():
             # 금형별로 그룹핑 후 연속 배치 (교체 최소화)
@@ -465,16 +567,18 @@ class PlanningRun(models.Model):
                 jobs_by_mold[job["capability"].mold_id.id].append(job)
 
             seq = 10
-            # 첫 작업 시작: 계획 시작일 08:00
+            # 첫 작업: 가용한 첫 날 주간 시작
             if wc_id not in machine_time_cursor:
-                start_dt = datetime.strptime(
-                    str(self.plan_date_from), "%Y-%m-%d"
-                ).replace(hour=8)
+                first_date = _find_next_available(wc_id, self.plan_date_from)
+                start_dt = datetime.combine(
+                    first_date, datetime.min.time()
+                ).replace(hour=day_start)
                 machine_time_cursor[wc_id] = start_dt
+                avail_h, _, _ = _get_available_hours(wc_id, first_date)
+                machine_day_remaining[wc_id] = avail_h
 
             for mold_id, mold_jobs in jobs_by_mold.items():
                 mold = Mold.browse(mold_id)
-                # 금형 교체 판단
                 prev_mold = machine_current_mold.get(wc_id)
                 changeover = prev_mold is not None and prev_mold != mold_id
                 machine_current_mold[wc_id] = mold_id
@@ -487,7 +591,7 @@ class PlanningRun(models.Model):
                     dr = cap.defect_rate or config.default_defect_rate
                     adjusted = math.ceil(demand / (1 - dr / 100.0)) if dr < 100 else demand
 
-                    # 초기 불량 (첫 번째 작업 + 금형 교체 시에만)
+                    # 초기 불량
                     needs_changeover = changeover and i == 0
                     scrap = (cap.initial_scrap or config.default_initial_scrap) if needs_changeover else 0
                     adjusted += scrap
@@ -500,31 +604,29 @@ class PlanningRun(models.Model):
 
                     co_hours = mold.changeover_hours or config.default_changeover if needs_changeover else 0.0
 
-                    # 생산 시간 계산
-                    prod_hours = 0.0
-                    if cap.hourly_capacity > 0:
-                        prod_hours = adjusted / cap.hourly_capacity
+                    # 생산 시간
+                    prod_hours = adjusted / cap.hourly_capacity if cap.hourly_capacity > 0 else 0.0
                     total_job_hours = co_hours + prod_hours
 
-                    # 타임라인: 일 가용시간 내에서 배치
+                    # 타임라인: 가동일정 기반 배치
                     cursor = machine_time_cursor[wc_id]
+                    remaining = machine_day_remaining.get(wc_id, 0)
+
+                    # 남은 시간 부족 → 다음 가용일로 이동
+                    if remaining < total_job_hours:
+                        next_date = _find_next_available(
+                            wc_id, cursor.date() + timedelta(days=1)
+                        )
+                        cursor = datetime.combine(
+                            next_date, datetime.min.time()
+                        ).replace(hour=day_start)
+                        avail_h, _, _ = _get_available_hours(wc_id, next_date)
+                        remaining = avail_h
+
                     start_time = cursor
                     end_time = cursor + timedelta(hours=total_job_hours)
-
-                    # 일 가용시간 초과 시 → 다음 날로 이동
-                    day_start_hour = 8  # 근무 시작 시각
-                    day_end_hour = day_start_hour + available_hours
-                    if end_time.hour + end_time.minute / 60.0 > day_end_hour or (
-                        end_time.date() > start_time.date()
-                    ):
-                        # 다음 날 시작
-                        next_day = start_time.date() + timedelta(days=1)
-                        start_time = datetime.combine(
-                            next_day, datetime.min.time()
-                        ).replace(hour=day_start_hour)
-                        end_time = start_time + timedelta(hours=total_job_hours)
-
                     machine_time_cursor[wc_id] = end_time
+                    machine_day_remaining[wc_id] = remaining - total_job_hours
 
                     lines_data.append({
                         "planning_run_id": self.id,
@@ -541,7 +643,7 @@ class PlanningRun(models.Model):
                         "changeover_hours": co_hours,
                         "start_time": start_time,
                         "end_time": end_time,
-                        "current_stock": product.qty_available,
+                        "current_stock": product.planning_stock_qty if product.planning_stock_qty > 0 else product.qty_available,
                         "max_inventory": product.max_inventory_qty,
                     })
                     seq += 10

@@ -62,14 +62,28 @@ class InjectionPlanningConfig(models.Model):
         string="기본 최소 로트 (개)", default=100,
     )
 
-    # ── 가동 시간 ──
-    daily_operating_hours = fields.Float(
-        string="일 가동시간 (시간)", default=24.0,
-        help="하루 총 가동 가능 시간 (예: 24시간 3교대, 16시간 2교대, 8시간 1교대)",
+    # ── 교대/가동 시간 ──
+    day_shift_hours = fields.Float(
+        string="주간 근무시간 (시간)", default=8.0,
+        help="주간 교대 근무 시간 (예: 8시간, 10시간)",
     )
-    daily_break_hours = fields.Float(
-        string="일 휴게시간 (시간)", default=1.0,
-        help="하루 총 휴게 시간 (점심/저녁/야간 휴게 합계)",
+    night_shift_hours = fields.Float(
+        string="야간 근무시간 (시간)", default=8.0,
+        help="야간 교대 근무 시간 (예: 8시간, 10시간)",
+    )
+    day_shift_start = fields.Float(
+        string="주간 시작 시각", default=8.0,
+        help="주간 근무 시작 (예: 8.0 = 오전 8시, 7.5 = 오전 7시 30분)",
+    )
+    night_shift_start = fields.Float(
+        string="야간 시작 시각", default=20.0,
+        help="야간 근무 시작 (예: 20.0 = 오후 8시)",
+    )
+
+    # ── 안전재고 ──
+    safety_stock_days = fields.Float(
+        string="안전재고 (일)", default=3.5,
+        help="안전재고 확보 일수. 일평균 수요 × 이 값 만큼 재고 유지",
     )
 
     company_id = fields.Many2one(
