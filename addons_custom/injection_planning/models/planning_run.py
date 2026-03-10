@@ -422,13 +422,9 @@ class PlanningRun(models.Model):
 
         net = {}
         # 제품별로 재고 한번만 조회
-        # planning_stock_qty > 0 이면 수동 입력값 사용, 아니면 Odoo 자동 재고
         product_ids = set(pid for pid, _ in part_demands.keys())
         products = self.env["product.product"].browse(list(product_ids))
-        stock_map = {
-            p.id: p.planning_stock_qty if p.planning_stock_qty > 0 else p.qty_available
-            for p in products
-        }
+        stock_map = {p.id: p.qty_available for p in products}
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
 
         # 안전재고 계산: 제품별 일평균 수요 × safety_stock_days
@@ -643,7 +639,7 @@ class PlanningRun(models.Model):
                         "changeover_hours": co_hours,
                         "start_time": start_time,
                         "end_time": end_time,
-                        "current_stock": product.planning_stock_qty if product.planning_stock_qty > 0 else product.qty_available,
+                        "current_stock": product.qty_available,
                         "max_inventory": product.max_inventory_qty,
                     })
                     seq += 10
