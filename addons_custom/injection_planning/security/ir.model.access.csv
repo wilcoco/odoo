@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mold_user,injection.mold.user,model_injection_mold,group_planning_user,1,0,0,0
+access_mold_manager,injection.mold.manager,model_injection_mold,group_planning_manager,1,1,1,1
+access_config_user,injection.planning.config.user,model_injection_planning_config,group_planning_user,1,0,0,0
+access_config_manager,injection.planning.config.manager,model_injection_planning_config,group_planning_manager,1,1,1,1
+access_capability_user,injection.machine.mold.capability.user,model_injection_machine_mold_capability,group_planning_user,1,0,0,0
+access_capability_manager,injection.machine.mold.capability.manager,model_injection_machine_mold_capability,group_planning_manager,1,1,1,1
+access_demand_user,injection.production.demand.user,model_injection_production_demand,group_planning_user,1,1,1,0
+access_demand_manager,injection.production.demand.manager,model_injection_production_demand,group_planning_manager,1,1,1,1
+access_run_user,injection.planning.run.user,model_injection_planning_run,group_planning_user,1,1,1,0
+access_run_manager,injection.planning.run.manager,model_injection_planning_run,group_planning_manager,1,1,1,1
+access_line_user,injection.planning.line.user,model_injection_planning_line,group_planning_user,1,1,1,0
+access_line_manager,injection.planning.line.manager,model_injection_planning_line,group_planning_manager,1,1,1,1
+access_wizard_user,injection.generate.mo.wizard.user,model_injection_generate_mo_wizard,group_planning_user,1,1,1,0
+access_wizard_manager,injection.generate.mo.wizard.manager,model_injection_generate_mo_wizard,group_planning_manager,1,1,1,1

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 검색 -->
+    <record id="view_planning_run_search" model="ir.ui.view">
+        <field name="name">injection.planning.run.search</field>
+        <field name="model">injection.planning.run</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="draft" string="초안" domain="[('state','=','draft')]"/>
+                <filter name="review" string="검토중" domain="[('state','=','review')]"/>
+                <filter name="confirmed" string="확정" domain="[('state','=','confirmed')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- 리스트 -->
+    <record id="view_planning_run_list" model="ir.ui.view">
+        <field name="name">injection.planning.run.list</field>
+        <field name="model">injection.planning.run</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="plan_date_from"/>
+                <field name="plan_date_to"/>
+                <field name="total_planned_qty"/>
+                <field name="total_changeovers"/>
+                <field name="mo_count"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('calculating', 'review')"
+                       decoration-success="state in ('confirmed', 'done')"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 폼 -->
+    <record id="view_planning_run_form" model="ir.ui.view">
+        <field name="name">injection.planning.run.form</field>
+        <field name="model">injection.planning.run</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_fetch_demand" string="수요 가져오기"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_add_manual_demand" string="수동 수요 추가"
+                            type="object"
+                            invisible="state != 'draft'"/>
+                    <button name="action_calculate_plan" string="계획 계산"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="계획을 계산하시겠습니까?"/>
+                    <button name="action_confirm_generate_mo" string="확정 (MO 생성)"
+                            type="object" class="btn-success"
+                            invisible="state != 'review'"/>
+                    <button name="action_cancel" string="취소"
+                            type="object"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_draft" string="초안으로"
+                            type="object"
+                            invisible="state not in ('review', 'cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,review,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mos" type="object"
+                                class="oe_stat_button" icon="fa-industry"
+                                invisible="mo_count == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="mo_count"/>
+                                </span>
+                                <span class="o_stat_text">제조 오더</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="plan_date_from"/>
+                            <field name="plan_date_to"/>
+                        </group>
+                        <group>
+                            <field name="total_planned_qty"/>
+                            <field name="total_changeovers"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="계획 라인" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom"
+                                      decoration-warning="changeover_needed == True">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="plan_date"/>
+                                    <field name="workcenter_id"/>
+                                    <field name="mold_id"/>
+                                    <field name="product_id"/>
+                                    <field name="demand_qty"/>
+                                    <field name="planned_qty"/>
+                                    <field name="defect_rate"/>
+                                    <field name="initial_scrap"/>
+                                    <field name="changeover_needed"/>
+                                    <field name="changeover_hours" optional="show"/>
+                                    <field name="production_hours" optional="show"/>
+                                    <field name="total_hours"/>
+                                    <field name="current_stock" optional="hide"/>
+                                    <field name="max_inventory" optional="hide"/>
+                                    <field name="mo_id" optional="hide"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="수요 데이터" name="demands">
+                            <field name="demand_ids">
+                                <list>
+                                    <field name="demand_date"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="demand_type"/>
+                                    <field name="hour"/>
+                                    <field name="source"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_planning_run" model="ir.actions.act_window">
+        <field name="name">계획 실행</field>
+        <field name="res_model">injection.planning.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_planning_run_search"/>
+    </record>
+</odoo>

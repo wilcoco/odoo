@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_planning_form" model="ir.ui.view">
+        <field name="name">product.product.planning.form</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_general']" position="after">
+                <group string="생산계획 변수" name="planning_vars">
+                    <field name="max_inventory_qty"/>
+                    <field name="min_lot_size"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

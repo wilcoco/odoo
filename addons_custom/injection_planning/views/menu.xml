@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 루트 메뉴 -->
+    <menuitem id="menu_injection_planning_root"
+              name="생산계획"
+              web_icon="injection_planning,static/description/icon.png"
+              sequence="25"/>
+
+    <!-- 계획 -->
+    <menuitem id="menu_planning_run"
+              name="계획 실행"
+              parent="menu_injection_planning_root"
+              action="action_planning_run"
+              sequence="10"/>
+
+    <menuitem id="menu_demand"
+              name="수요 데이터"
+              parent="menu_injection_planning_root"
+              action="action_demand"
+              sequence="20"/>
+
+    <!-- 마스터 -->
+    <menuitem id="menu_planning_master"
+              name="마스터 데이터"
+              parent="menu_injection_planning_root"
+              sequence="30"/>
+
+    <menuitem id="menu_mold"
+              name="금형 관리"
+              parent="menu_planning_master"
+              action="action_injection_mold"
+              sequence="10"/>
+
+    <menuitem id="menu_machine_mold"
+              name="사출기-금형 조합"
+              parent="menu_planning_master"
+              action="action_machine_mold_capability"
+              sequence="20"/>
+
+    <!-- 설정 -->
+    <menuitem id="menu_planning_config_parent"
+              name="설정"
+              parent="menu_injection_planning_root"
+              sequence="90"/>
+
+    <menuitem id="menu_planning_config"
+              name="Oracle 연결 / 기본값"
+              parent="menu_planning_config_parent"
+              action="action_planning_config"
+              sequence="10"/>
+</odoo>

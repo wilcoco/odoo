@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_auto_planning" model="ir.cron">
+            <field name="name">사출 생산계획 자동 실행</field>
+            <field name="model_id" ref="model_injection_planning_run"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_auto_planning()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="False"/>
+        </record>
+    </data>
+</odoo>

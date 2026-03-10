@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 검색 -->
+    <record id="view_injection_mold_search" model="ir.ui.view">
+        <field name="name">injection.mold.search</field>
+        <field name="model">injection.mold</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="product_id"/>
+                <filter name="active_molds" string="사용중" domain="[('state','=','active')]"/>
+                <filter name="maintenance" string="정비중" domain="[('state','=','maintenance')]"/>
+                <group expand="0" string="그룹">
+                    <filter string="제품" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="상태" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 리스트 -->
+    <record id="view_injection_mold_list" model="ir.ui.view">
+        <field name="name">injection.mold.list</field>
+        <field name="model">injection.mold</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="cavity_count"/>
+                <field name="changeover_hours"/>
+                <field name="current_shots"/>
+                <field name="guaranteed_shots"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'maintenance'"
+                       decoration-danger="state == 'retired'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 폼 -->
+    <record id="view_injection_mold_form" model="ir.ui.view">
+        <field name="name">injection.mold.form</field>
+        <field name="model">injection.mold</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="active,maintenance,retired"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="기본 정보">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="product_id"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="생산 변수">
+                            <field name="cavity_count"/>
+                            <field name="changeover_hours"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="샷카운트">
+                            <field name="current_shots"/>
+                            <field name="guaranteed_shots"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_injection_mold" model="ir.actions.act_window">
+        <field name="name">금형 관리</field>
+        <field name="res_model">injection.mold</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_injection_mold_search"/>
+        <field name="context">{"search_default_active_molds": 1}</field>
+    </record>
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 리스트 -->
+    <record id="view_machine_mold_list" model="ir.ui.view">
+        <field name="name">injection.machine.mold.capability.list</field>
+        <field name="model">injection.machine.mold.capability</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="workcenter_id"/>
+                <field name="mold_id"/>
+                <field name="product_id"/>
+                <field name="cavity_count"/>
+                <field name="cycle_time"/>
+                <field name="defect_rate"/>
+                <field name="initial_scrap"/>
+                <field name="hourly_capacity"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_machine_mold_capability" model="ir.actions.act_window">
+        <field name="name">사출기-금형 조합</field>
+        <field name="res_model">injection.machine.mold.capability</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>
