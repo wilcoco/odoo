@@ -28,6 +28,7 @@
         "views/menu.xml",
         "wizards/generate_mo_wizard_views.xml",
         "wizards/import_demand_wizard_views.xml",
+        "wizards/generate_demo_wizard_views.xml",
     ],
     "installable": True,
     "application": True,

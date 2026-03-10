@@ -54,4 +54,10 @@
               parent="menu_planning_config_parent"
               action="action_planning_config"
               sequence="10"/>
+
+    <menuitem id="menu_generate_demo"
+              name="샘플 데이터 생성"
+              parent="menu_planning_config_parent"
+              action="action_generate_demo"
+              sequence="90"/>
 </odoo>

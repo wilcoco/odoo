@@ -17,3 +17,5 @@ access_import_wizard_user,injection.import.demand.wizard.user,model_injection_im
 access_import_wizard_manager,injection.import.demand.wizard.manager,model_injection_import_demand_wizard,group_planning_manager,1,1,1,1
 access_availability_user,injection.machine.availability.user,model_injection_machine_availability,group_planning_user,1,1,1,0
 access_availability_manager,injection.machine.availability.manager,model_injection_machine_availability,group_planning_manager,1,1,1,1
+access_demo_wizard_user,injection.generate.demo.wizard.user,model_injection_generate_demo_wizard,group_planning_user,1,1,1,0
+access_demo_wizard_manager,injection.generate.demo.wizard.manager,model_injection_generate_demo_wizard,group_planning_manager,1,1,1,1

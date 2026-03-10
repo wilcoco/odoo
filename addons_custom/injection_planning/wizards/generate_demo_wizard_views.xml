@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_generate_demo_wizard_form" model="ir.ui.view">
+        <field name="name">injection.generate.demo.wizard.form</field>
+        <field name="model">injection.generate.demo.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="plan_start"/>
+                    <field name="plan_days"/>
+                    <field name="create_demand"/>
+                    <field name="create_availability"/>
+                </group>
+                <separator/>
+                <p class="text-muted">
+                    <b>생성 항목:</b><br/>
+                    - 제품 8개 (범퍼, 펜더, 도어트림, 그릴, 콘솔)<br/>
+                    - 사출기 4대 (CC300 x2, CC200 x2)<br/>
+                    - 금형 6개 (제품별 전용/공용)<br/>
+                    - 사출기-금형 조합 8개<br/>
+                    - BOM 8개 (1:1 단순 구조)<br/>
+                    - 계획 설정 (주간8h/야간8h, 안전재고3.5일)<br/>
+                    - 수요 데이터 (일별, 주말 제외)<br/>
+                    - 가동 일정 (주말 비가동, 수요일 정비 포함)
+                </p>
+                <footer>
+                    <button name="action_generate" string="샘플 데이터 생성"
+                            type="object" class="btn-primary"/>
+                    <button string="취소" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_generate_demo" model="ir.actions.act_window">
+        <field name="name">테스트 샘플 데이터 생성</field>
+        <field name="res_model">injection.generate.demo.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
