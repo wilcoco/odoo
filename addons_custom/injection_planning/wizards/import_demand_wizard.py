@@ -87,7 +87,8 @@ class ImportDemandWizard(models.TransientModel):
                     product = self.env["product.product"].create({
                         "name": product_code,
                         "default_code": product_code,
-                        "type": "product",
+                        "type": "consu",
+                        "is_storable": True,
                     })
                     product_cache[product_code] = product
                     created_products.append(product_code)
