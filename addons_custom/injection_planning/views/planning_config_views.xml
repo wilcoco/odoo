@@ -11,6 +11,8 @@
                             <field name="oracle_host"/>
                             <field name="oracle_port"/>
                             <field name="oracle_sid"/>
+                            <field name="oracle_client_path"
+                                   placeholder="/Users/user/instantclient_23_3"/>
                         </group>
                         <group>
                             <field name="oracle_user"/>

@@ -1,7 +1,7 @@
 import math
 import logging
 from collections import defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
 
@@ -88,12 +88,50 @@ class PlanningRun(models.Model):
             _logger.exception("Oracle 수요 조회 실패")
             raise models.UserError(f"Oracle 수요 조회 실패: {e}")
 
-        # 기존 수요 삭제 후 재로드
-        self.demand_ids.unlink()
+        # 기존 Oracle 수요 삭제 후 재로드 (수동 입력은 유지)
+        self.demand_ids.filtered(lambda d: d.source == "oracle").unlink()
 
         if demands:
-            self.env["injection.production.demand"].create(demands)
-            self.message_post(body=f"Oracle에서 {len(demands)}건 수요 데이터를 가져왔습니다.")
+            # 같은 (제품, 날짜) 수요를 합산
+            merged = defaultdict(float)
+            hourly_merged = defaultdict(float)
+            for d in demands:
+                key = (d["product_id"], d["demand_date"], d["demand_type"])
+                if d["demand_type"] == "hourly":
+                    hkey = (d["product_id"], d["demand_date"], d.get("hour", 0))
+                    hourly_merged[hkey] += d["quantity"]
+                else:
+                    merged[key] += d["quantity"]
+
+            create_vals = []
+            for (pid, dd, dtype), qty in merged.items():
+                create_vals.append({
+                    "demand_date": dd,
+                    "product_id": pid,
+                    "quantity": qty,
+                    "demand_type": dtype,
+                    "source": "oracle",
+                    "planning_run_id": self.id,
+                })
+            for (pid, dd, hour), qty in hourly_merged.items():
+                create_vals.append({
+                    "demand_date": dd,
+                    "product_id": pid,
+                    "quantity": qty,
+                    "demand_type": "hourly",
+                    "hour": hour,
+                    "source": "oracle",
+                    "planning_run_id": self.id,
+                })
+
+            self.env["injection.production.demand"].create(create_vals)
+            daily_cnt = len(merged)
+            hourly_cnt = len(hourly_merged)
+            self.message_post(
+                body=f"Oracle에서 수요 데이터를 가져왔습니다. "
+                     f"(일별 {daily_cnt}건, 시간별 {hourly_cnt}건, "
+                     f"총 {sum(d['quantity'] for d in create_vals):.0f}개)"
+            )
         else:
             self.message_post(body="Oracle에서 가져온 수요 데이터가 없습니다.")
 
@@ -120,75 +158,123 @@ class PlanningRun(models.Model):
         return config
 
     def _fetch_from_oracle(self, config):
-        """Oracle DB에서 수요 조회"""
-        try:
-            import oracledb
-        except ImportError:
-            try:
-                import cx_Oracle as oracledb
-            except ImportError:
-                raise models.UserError(
-                    "Oracle 드라이버 미설치. 'pip install oracledb' 실행 필요."
-                )
-
-        dsn = oracledb.makedsn(config.oracle_host, config.oracle_port, sid=config.oracle_sid)
-        conn = oracledb.connect(
-            user=config.oracle_user,
-            password=config.oracle_password,
-            dsn=dsn,
-        )
+        """Oracle DB에서 수요 조회 (피벗 테이블 → 언피벗)"""
+        conn = config._get_oracle_connection()
         demands = []
         try:
             cursor = conn.cursor()
 
-            # 일별 수요 (14일)
-            if config.demand_query_daily:
-                query = config.demand_query_daily
-            else:
-                query = f"""
-                    SELECT PLAN_DATE, PRODUCT_CODE, QTY
-                    FROM {config.daily_table}
-                    WHERE PLAN_DATE BETWEEN :d1 AND :d2
-                """
-            cursor.execute(query, d1=self.plan_date_from, d2=self.plan_date_to)
-            for row in cursor:
-                product = self._find_product_by_code(row[1])
-                if product:
-                    demands.append({
-                        "demand_date": row[0],
-                        "product_id": product.id,
-                        "quantity": float(row[2] or 0),
-                        "demand_type": "daily",
-                        "source": "oracle",
-                        "planning_run_id": self.id,
-                    })
+            # ── T_ZM_PLN2: 일별 수요 (D00~D12, 13일) ──
+            daily_table = config.daily_table or "T_ZM_PLN2"
+            daily_cols = [f"D{i:02d}" for i in range(13)]  # D00~D12
 
-            # 시간별 수요 (3일)
+            if config.demand_query_daily:
+                cursor.execute(config.demand_query_daily)
+            else:
+                col_list = ", ".join(daily_cols)
+                query = f"""
+                    SELECT YMD, ITM, CHASU, LINE, FR, CSRT, ALC, {col_list}
+                    FROM {daily_table}
+                    WHERE YMD >= :d1 AND YMD <= :d2
+                    ORDER BY YMD, ITM
+                """
+                d1 = self.plan_date_from.strftime("%Y%m%d")
+                d2 = self.plan_date_to.strftime("%Y%m%d")
+                cursor.execute(query, d1=d1, d2=d2)
+
+            if not config.demand_query_daily:
+                for row in cursor:
+                    ymd_str = row[0]       # '20250911'
+                    itm = row[1]           # 품번
+                    # row[2]~row[6]: CHASU, LINE, FR, CSRT, ALC (참조 정보)
+                    base_date = datetime.strptime(ymd_str, "%Y%m%d").date()
+
+                    for i, col in enumerate(daily_cols):
+                        qty = row[7 + i] or 0
+                        if qty <= 0:
+                            continue
+                        demand_date = base_date + timedelta(days=i)
+                        # 계획 기간 내만
+                        if demand_date < self.plan_date_from or demand_date > self.plan_date_to:
+                            continue
+                        product = self._find_product_by_code(itm)
+                        if product:
+                            demands.append({
+                                "demand_date": str(demand_date),
+                                "product_id": product.id,
+                                "quantity": float(qty),
+                                "demand_type": "daily",
+                                "source": "oracle",
+                                "planning_run_id": self.id,
+                            })
+
+            # ── T_ZM_PLN1: 시간별 수요 (5일 × 10시간) ──
+            hourly_table = config.hourly_table or "T_ZM_PLN1"
+            # 컬럼 매핑: (컬럼명, day_offset, hour)
+            hourly_col_map = []
+            for day in range(5):
+                # 시간 1~8: D{day}01R ~ D{day}08R
+                for hour in range(1, 9):
+                    col_name = f"D{day:02d}{hour}R"
+                    hourly_col_map.append((col_name, day, hour))
+                # 시간 9: D{day}9R
+                col_name = f"D{day:02d}9R"
+                hourly_col_map.append((col_name, day, 9))
+                # 시간 10: D{day}10R
+                col_name = f"D{day:01d}{day:01d}10R" if day == 0 else f"D{day:02d}10R"
+                # 실제 컬럼명 패턴: D0010R, D0110R, D0210R, D0310R, D0410R
+                col_name = f"D{day:02d}10R"
+                hourly_col_map.append((col_name, day, 10))
+
             hourly_end = min(
-                self.plan_date_from + timedelta(days=3),
+                self.plan_date_from + timedelta(days=5),
                 self.plan_date_to,
             )
+
             if config.demand_query_hourly:
-                query_h = config.demand_query_hourly
+                cursor.execute(config.demand_query_hourly)
             else:
-                query_h = f"""
-                    SELECT PLAN_DATE, PLAN_HOUR, PRODUCT_CODE, QTY
-                    FROM {config.hourly_table}
-                    WHERE PLAN_DATE BETWEEN :d1 AND :d2
+                col_list = ", ".join(c[0] for c in hourly_col_map)
+                query = f"""
+                    SELECT YMD, ITM, CHASU, LINE, FR, CSRT, ALC, {col_list}
+                    FROM {hourly_table}
+                    WHERE YMD >= :d1 AND YMD <= :d2
+                    ORDER BY YMD, ITM
                 """
-            cursor.execute(query_h, d1=self.plan_date_from, d2=hourly_end)
-            for row in cursor:
-                product = self._find_product_by_code(row[2])
-                if product:
-                    demands.append({
-                        "demand_date": row[0],
-                        "product_id": product.id,
-                        "quantity": float(row[3] or 0),
-                        "demand_type": "hourly",
-                        "hour": int(row[1] or 0),
-                        "source": "oracle",
-                        "planning_run_id": self.id,
-                    })
+                d1 = self.plan_date_from.strftime("%Y%m%d")
+                d2 = hourly_end.strftime("%Y%m%d")
+                cursor.execute(query, d1=d1, d2=d2)
+
+            if not config.demand_query_hourly:
+                for row in cursor:
+                    ymd_str = row[0]
+                    itm = row[1]
+                    base_date = datetime.strptime(ymd_str, "%Y%m%d").date()
+
+                    for i, (col_name, day_offset, hour) in enumerate(hourly_col_map):
+                        qty = row[7 + i] or 0
+                        if qty <= 0:
+                            continue
+                        demand_date = base_date + timedelta(days=day_offset)
+                        if demand_date < self.plan_date_from or demand_date > self.plan_date_to:
+                            continue
+                        product = self._find_product_by_code(itm)
+                        if product:
+                            demands.append({
+                                "demand_date": str(demand_date),
+                                "product_id": product.id,
+                                "quantity": float(qty),
+                                "demand_type": "hourly",
+                                "hour": hour,
+                                "source": "oracle",
+                                "planning_run_id": self.id,
+                            })
+
+            _logger.info(
+                "Oracle 수요 조회 완료: 일별 %d건, 시간별 %d건",
+                len([d for d in demands if d["demand_type"] == "daily"]),
+                len([d for d in demands if d["demand_type"] == "hourly"]),
+            )
         finally:
             conn.close()
 
