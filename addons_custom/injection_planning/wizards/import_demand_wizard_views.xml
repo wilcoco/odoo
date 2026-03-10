@@ -10,10 +10,12 @@
                     <field name="file_data" filename="file_name"/>
                     <field name="file_name" invisible="1"/>
                     <field name="replace_oracle"/>
+                    <field name="auto_create_product"/>
                 </group>
                 <p class="text-muted">
                     CSV 파일 형식: demand_date, product_code, quantity, demand_type, hour, source<br/>
-                    로컬 Oracle 추출 스크립트(extract_demand.py)로 생성된 파일을 업로드하세요.
+                    로컬 Oracle 추출 스크립트(extract_demand.py)로 생성된 파일을 업로드하세요.<br/>
+                    '없는 제품 자동 생성' 체크 시, Odoo에 없는 제품 코드가 자동 등록됩니다.
                 </p>
                 <footer>
                     <button name="action_import" string="임포트" type="object" class="btn-primary"/>

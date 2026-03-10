@@ -23,6 +23,11 @@ class ImportDemandWizard(models.TransientModel):
         default=True,
         help="체크하면 기존 Oracle 소스 수요를 삭제 후 교체합니다.",
     )
+    auto_create_product = fields.Boolean(
+        string="없는 제품 자동 생성",
+        default=True,
+        help="체크하면 Odoo에 없는 제품 코드를 자동으로 생성합니다.",
+    )
 
     def action_import(self):
         """CSV 파일에서 수요 데이터 임포트"""
@@ -60,6 +65,7 @@ class ImportDemandWizard(models.TransientModel):
         # CSV 행 파싱
         rows = []
         errors = []
+        created_products = []
         product_cache = {}  # code → product record
         for i, row in enumerate(reader, start=2):
             product_code = (row.get("product_code") or "").strip()
@@ -77,8 +83,17 @@ class ImportDemandWizard(models.TransientModel):
 
             product = product_cache[product_code]
             if not product:
-                errors.append(f"행 {i}: 제품 코드 '{product_code}' 없음")
-                continue
+                if self.auto_create_product:
+                    product = self.env["product.product"].create({
+                        "name": product_code,
+                        "default_code": product_code,
+                        "type": "product",
+                    })
+                    product_cache[product_code] = product
+                    created_products.append(product_code)
+                else:
+                    errors.append(f"행 {i}: 제품 코드 '{product_code}' 없음")
+                    continue
 
             try:
                 qty = float(row.get("quantity", 0))
@@ -114,6 +129,11 @@ class ImportDemandWizard(models.TransientModel):
 
         # 결과 메시지
         msg = f"파일 임포트 완료: {len(rows)}건 수요 생성"
+        if created_products:
+            msg += f"\n\n🆕 {len(created_products)}개 제품 자동 생성: "
+            msg += ", ".join(created_products[:30])
+            if len(created_products) > 30:
+                msg += f" ... 외 {len(created_products) - 30}개"
         if errors:
             msg += f"\n\n⚠ {len(errors)}건 오류:\n" + "\n".join(errors[:20])
             if len(errors) > 20:
