@@ -8,7 +8,6 @@
             <field name="code">model._cron_auto_planning()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
-            <field name="numbercall">-1</field>
             <field name="active" eval="False"/>
         </record>
     </data>
