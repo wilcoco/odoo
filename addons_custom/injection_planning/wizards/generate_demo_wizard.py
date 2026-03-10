@@ -139,7 +139,7 @@ class GenerateDemoWizard(models.TransientModel):
             if existing:
                 wcs |= existing
             else:
-                wcs |= WC.create({"name": name, "code": code, "capacity": 1})
+                wcs |= WC.create({"name": name, "code": code})
         return wcs
 
     # ─────────────────────────────────────────────
