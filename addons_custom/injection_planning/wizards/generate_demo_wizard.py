@@ -37,9 +37,17 @@ class GenerateDemoWizard(models.TransientModel):
         parts = self._create_injection_parts()
         summary.append(f"사출 부품 {len(parts)}개")
 
-        # ── 3. BOM (완제품 → 사출 부품) ──
+        # ── 2-1. 원재료 (수지, 첨가제 등) ──
+        raw_materials = self._create_raw_materials()
+        summary.append(f"원재료 {len(raw_materials)}개")
+
+        # ── 3. BOM 1단계 (완제품 → 사출 부품) ──
         boms = self._create_boms(finished, parts)
-        summary.append(f"BOM {len(boms)}개")
+        summary.append(f"BOM 1단계 {len(boms)}개 (완제품→사출부품)")
+
+        # ── 3-1. BOM 2단계 (사출 부품 → 원재료) ──
+        boms2 = self._create_part_boms(parts, raw_materials)
+        summary.append(f"BOM 2단계 {len(boms2)}개 (사출부품→원재료)")
 
         # ── 4. 사출기 4대 ──
         workcenters = self._create_workcenters()
@@ -154,7 +162,26 @@ class GenerateDemoWizard(models.TransientModel):
         return parts
 
     # ─────────────────────────────────────────────
-    # 3. BOM (완제품 → 사출 부품)
+    # 2-1. 원재료 (수지, 첨가제 등)
+    # ─────────────────────────────────────────────
+    def _create_raw_materials(self):
+        """원재료: 사출 부품 생산에 사용되는 수지/첨가제"""
+        specs = [
+            # (이름, 코드, UoM은 kg 기준)
+            ("PP 수지 (폴리프로필렌)", "RAW-PP-001"),
+            ("ABS 수지", "RAW-ABS-001"),
+            ("PA66-GF30 (유리섬유 강화 나일론)", "RAW-PA66GF-001"),
+            ("POM 수지 (폴리아세탈)", "RAW-POM-001"),
+            ("PC+ABS 수지 (블렌드)", "RAW-PCABS-001"),
+            ("블랙 마스터배치 (착색제)", "RAW-MB-BK01"),
+        ]
+        materials = self.env["product.product"]
+        for name, code in specs:
+            materials |= self._get_or_create_product(name, code, storable=True)
+        return materials
+
+    # ─────────────────────────────────────────────
+    # 3. BOM 1단계 (완제품 → 사출 부품)
     # ─────────────────────────────────────────────
     def _create_boms(self, finished, parts):
         """
@@ -203,6 +230,66 @@ class GenerateDemoWizard(models.TransientModel):
                 created |= BOM.create({
                     "product_tmpl_id": finished_product.product_tmpl_id.id,
                     "product_id": finished_product.id,
+                    "product_qty": 1,
+                    "type": "normal",
+                    "bom_line_ids": bom_lines,
+                })
+        return created
+
+    # ─────────────────────────────────────────────
+    # 3-1. BOM 2단계 (사출 부품 → 원재료)
+    # ─────────────────────────────────────────────
+    def _create_part_boms(self, parts, raw_materials):
+        """
+        사출 부품별 원재료 BOM:
+        프론트 범퍼 쉘   → PP 수지 2.5kg + 마스터배치 0.05kg
+        리어 범퍼 쉘     → PP 수지 2.8kg + 마스터배치 0.06kg
+        범퍼 브라켓      → PA66-GF30 0.35kg
+        도어트림 패널 LH → ABS 수지 1.8kg + 마스터배치 0.04kg
+        도어트림 클립    → POM 수지 0.02kg
+        그릴 프레임      → PC+ABS 1.2kg + 마스터배치 0.03kg
+        """
+        BOM = self.env["mrp.bom"]
+        pp = {p.default_code: p for p in parts}
+        rm = {r.default_code: r for r in raw_materials}
+
+        part_bom_specs = [
+            # (사출부품코드, [(원재료코드, 수량kg), ...])
+            ("INJ-BF-001", [("RAW-PP-001", 2.5), ("RAW-MB-BK01", 0.05)]),
+            ("INJ-BR-001", [("RAW-PP-001", 2.8), ("RAW-MB-BK01", 0.06)]),
+            ("INJ-BK-001", [("RAW-PA66GF-001", 0.35)]),
+            ("INJ-DT-L01", [("RAW-ABS-001", 1.8), ("RAW-MB-BK01", 0.04)]),
+            ("INJ-DC-001", [("RAW-POM-001", 0.02)]),
+            ("INJ-GR-001", [("RAW-PCABS-001", 1.2), ("RAW-MB-BK01", 0.03)]),
+        ]
+
+        created = BOM
+        for part_code, mat_lines in part_bom_specs:
+            part = pp.get(part_code)
+            if not part:
+                continue
+
+            # 기존 BOM 확인
+            existing = BOM.search([
+                ("product_tmpl_id", "=", part.product_tmpl_id.id),
+            ], limit=1)
+            if existing:
+                created |= existing
+                continue
+
+            bom_lines = []
+            for raw_code, qty in mat_lines:
+                raw = rm.get(raw_code)
+                if raw:
+                    bom_lines.append((0, 0, {
+                        "product_id": raw.id,
+                        "product_qty": qty,
+                    }))
+
+            if bom_lines:
+                created |= BOM.create({
+                    "product_tmpl_id": part.product_tmpl_id.id,
+                    "product_id": part.id,
                     "product_qty": 1,
                     "type": "normal",
                     "bom_line_ids": bom_lines,
