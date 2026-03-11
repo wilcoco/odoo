@@ -13,21 +13,24 @@
                         context="{'group_by': 'product_id'}"/>
                 <filter name="group_date" string="날짜별"
                         context="{'group_by': 'plan_date:day'}"/>
+                <separator/>
+                <filter name="shortage_only" string="결품 위기만"
+                        domain="[('shortage_risk', '=', True)]"/>
             </search>
         </field>
     </record>
 
-    <!-- 그래프 뷰 (라인 차트) -->
+    <!-- 그래프 뷰 (라인 차트) - 사출품 기준 -->
     <record id="view_daily_summary_graph" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.graph</field>
         <field name="model">injection.planning.daily.summary</field>
         <field name="arch" type="xml">
             <graph type="line" stacked="0">
                 <field name="plan_date" interval="day"/>
-                <field name="stock_end" type="measure"/>
-                <field name="safety_stock_qty" type="measure"/>
                 <field name="demand_qty" type="measure"/>
                 <field name="planned_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+                <field name="safety_stock_qty" type="measure"/>
             </graph>
         </field>
     </record>
@@ -44,30 +47,32 @@
                 <field name="planned_qty" type="measure"/>
                 <field name="stock_end" type="measure"/>
                 <field name="safety_stock_qty" type="measure"/>
+                <field name="shortage_qty" type="measure"/>
             </pivot>
         </field>
     </record>
 
-    <!-- 리스트 뷰 -->
+    <!-- 리스트 뷰 - 결품 위기 행 강조 -->
     <record id="view_daily_summary_list" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.list</field>
         <field name="model">injection.planning.daily.summary</field>
         <field name="arch" type="xml">
-            <list>
+            <list decoration-danger="shortage_risk == True"
+                  decoration-warning="stock_end &lt; safety_stock_qty * 1.5 and shortage_risk == False">
                 <field name="plan_date"/>
                 <field name="product_id"/>
                 <field name="demand_qty" sum="합계"/>
                 <field name="planned_qty" sum="합계"/>
                 <field name="safety_stock_qty"/>
                 <field name="stock_start"/>
-                <field name="stock_end"
-                       decoration-danger="stock_end &lt; safety_stock_qty"
-                       decoration-success="stock_end &gt;= safety_stock_qty"/>
+                <field name="stock_end"/>
+                <field name="shortage_risk" widget="boolean"/>
+                <field name="shortage_qty"/>
             </list>
         </field>
     </record>
 
-    <!-- 액션 -->
+    <!-- 액션: 제품별 그룹 기본 적용 -->
     <record id="action_daily_summary" model="ir.actions.act_window">
         <field name="name">일별 생산계획 분석</field>
         <field name="res_model">injection.planning.daily.summary</field>

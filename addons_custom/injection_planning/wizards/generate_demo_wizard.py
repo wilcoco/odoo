@@ -29,9 +29,9 @@ class GenerateDemoWizard(models.TransientModel):
         self.ensure_one()
         summary = []
 
-        # ── 1. 완제품 4개 (수요 대상) ──
+        # ── 1. 완제품 6개 (수요 대상, 컬러별) ──
         finished = self._create_finished_products()
-        summary.append(f"완제품 {len(finished)}개")
+        summary.append(f"완제품 {len(finished)}개 (컬러별)")
 
         # ── 2. 사출 부품 6개 (금형으로 생산) ──
         parts = self._create_injection_parts()
@@ -137,17 +137,32 @@ class GenerateDemoWizard(models.TransientModel):
     # 1. 완제품 (수요가 들어오는 대상)
     # ─────────────────────────────────────────────
     def _create_finished_products(self):
-        """완제품: Oracle 수요에서 오는 제품 코드"""
+        """완제품: Oracle 수요에서 오는 제품 코드
+
+        품번 구조: XXXXX-XXXXXYYY
+          - XXXXX-XXXXX = 사출 기준코드 (injection_base_code)
+          - YYY = 도장 컬러코드 (사출과 무관)
+        같은 기준코드 → 같은 사출 부품(BOM) 공유
+        """
         specs = [
-            # (이름, 코드)
-            ("프론트 범퍼 ASSY (SU2)", "86500-BS000EBB"),
-            ("리어 범퍼 ASSY (SU2)", "86600-BS000EBB"),
-            ("도어트림 LH ASSY (SU2)", "86500-BS000SWP"),
-            ("라디에이터 그릴 ASSY (SU2)", "86500-BS020KDG"),
+            # (이름, 코드, 사출기준코드)
+            # ── 프론트 범퍼 (86500-BS000) 컬러 2종 → 같은 사출 BOM ──
+            ("프론트 범퍼 ASSY (에보니블랙)", "86500-BS000EBB", "86500-BS000"),
+            ("프론트 범퍼 ASSY (스노우화이트)", "86500-BS000SWP", "86500-BS000"),
+            # ── 리어 범퍼 (86600-BS000) 컬러 2종 → 같은 사출 BOM ──
+            ("리어 범퍼 ASSY (에보니블랙)", "86600-BS000EBB", "86600-BS000"),
+            ("리어 범퍼 ASSY (카키그린)", "86600-BS000KDG", "86600-BS000"),
+            # ── 도어트림 (82310-BS000) ──
+            ("도어트림 LH ASSY (에보니블랙)", "82310-BS000EBB", "82310-BS000"),
+            # ── 라디에이터 그릴 (86500-BS020) ──
+            ("라디에이터 그릴 ASSY (크롬)", "86500-BS020CRM", "86500-BS020"),
         ]
         products = self.env["product.product"]
-        for name, code in specs:
-            products |= self._get_or_create_product(name, code, storable=True)
+        for name, code, base_code in specs:
+            p = self._get_or_create_product(name, code, storable=True)
+            if p.injection_base_code != base_code:
+                p.injection_base_code = base_code
+            products |= p
         return products
 
     # ─────────────────────────────────────────────
@@ -159,9 +174,10 @@ class GenerateDemoWizard(models.TransientModel):
             # (이름, 코드, 최대재고, 최소로트)
             ("프론트 범퍼 쉘", "INJ-BF-001", 5000, 200),
             ("리어 범퍼 쉘", "INJ-BR-001", 5000, 200),
-            ("범퍼 브라켓 (공용)", "INJ-BK-001", 10000, 500),
+            ("프론트 범퍼 브라켓", "INJ-BK-F01", 10000, 500),
+            ("리어 범퍼 브라켓", "INJ-BK-R01", 10000, 500),
             ("도어트림 패널 LH", "INJ-DT-L01", 4000, 150),
-            ("도어트림 클립 (공용)", "INJ-DC-001", 20000, 1000),
+            ("도어트림 클립", "INJ-DC-001", 20000, 1000),
             ("라디에이터 그릴 프레임", "INJ-GR-001", 3000, 100),
         ]
         parts = self.env["product.product"]
@@ -195,11 +211,13 @@ class GenerateDemoWizard(models.TransientModel):
     # ─────────────────────────────────────────────
     def _create_boms(self, finished, parts):
         """
-        완제품 BOM 전개:
-        프론트 범퍼 ASSY → 프론트 범퍼 쉘 x1 + 범퍼 브라켓 x2
-        리어 범퍼 ASSY   → 리어 범퍼 쉘 x1 + 범퍼 브라켓 x2
-        도어트림 LH ASSY → 도어트림 패널 LH x1 + 도어트림 클립 x4
-        그릴 ASSY        → 그릴 프레임 x1
+        완제품 BOM: 같은 기준코드(앞자리)의 컬러 변종 → 같은 사출 부품
+        86500-BS000EBB (프론트 범퍼 블랙)  → 프론트 쉘 x1 + 프론트 브라켓 x2
+        86500-BS000SWP (프론트 범퍼 화이트) → 프론트 쉘 x1 + 프론트 브라켓 x2  ← 같은 사출품!
+        86600-BS000EBB (리어 범퍼 블랙)    → 리어 쉘 x1 + 리어 브라켓 x2
+        86600-BS000KDG (리어 범퍼 그린)    → 리어 쉘 x1 + 리어 브라켓 x2  ← 같은 사출품!
+        82310-BS000EBB (도어트림)          → 패널 x1 + 클립 x4
+        86500-BS020CRM (그릴)              → 프레임 x1
         """
         BOM = self.env["mrp.bom"]
         fp = {p.default_code: p for p in finished}
@@ -207,10 +225,13 @@ class GenerateDemoWizard(models.TransientModel):
 
         bom_specs = [
             # (완제품코드, [(사출부품코드, 수량), ...])
-            ("86500-BS000EBB", [("INJ-BF-001", 1), ("INJ-BK-001", 2)]),
-            ("86600-BS000EBB", [("INJ-BR-001", 1), ("INJ-BK-001", 2)]),
-            ("86500-BS000SWP", [("INJ-DT-L01", 1), ("INJ-DC-001", 4)]),
-            ("86500-BS020KDG", [("INJ-GR-001", 1)]),
+            # 컬러 다른 제품도 각각 BOM 생성 → 같은 사출 부품
+            ("86500-BS000EBB", [("INJ-BF-001", 1), ("INJ-BK-F01", 2)]),  # 프론트 범퍼 블랙
+            ("86500-BS000SWP", [("INJ-BF-001", 1), ("INJ-BK-F01", 2)]),  # 프론트 범퍼 화이트
+            ("86600-BS000EBB", [("INJ-BR-001", 1), ("INJ-BK-R01", 2)]),  # 리어 범퍼 블랙
+            ("86600-BS000KDG", [("INJ-BR-001", 1), ("INJ-BK-R01", 2)]),  # 리어 범퍼 그린
+            ("82310-BS000EBB", [("INJ-DT-L01", 1), ("INJ-DC-001", 4)]),  # 도어트림
+            ("86500-BS020CRM", [("INJ-GR-001", 1)]),                     # 그릴
         ]
 
         created = BOM
@@ -252,12 +273,13 @@ class GenerateDemoWizard(models.TransientModel):
     def _create_part_boms(self, parts, raw_materials):
         """
         사출 부품별 원재료 BOM:
-        프론트 범퍼 쉘   → PP 수지 2.5kg + 마스터배치 0.05kg
-        리어 범퍼 쉘     → PP 수지 2.8kg + 마스터배치 0.06kg
-        범퍼 브라켓      → PA66-GF30 0.35kg
-        도어트림 패널 LH → ABS 수지 1.8kg + 마스터배치 0.04kg
-        도어트림 클립    → POM 수지 0.02kg
-        그릴 프레임      → PC+ABS 1.2kg + 마스터배치 0.03kg
+        프론트 범퍼 쉘     → PP 수지 2.5kg + 마스터배치 0.05kg
+        리어 범퍼 쉘       → PP 수지 2.8kg + 마스터배치 0.06kg
+        프론트 범퍼 브라켓 → PA66-GF30 0.35kg
+        리어 범퍼 브라켓   → PA66-GF30 0.40kg
+        도어트림 패널 LH   → ABS 수지 1.8kg + 마스터배치 0.04kg
+        도어트림 클립      → POM 수지 0.02kg
+        그릴 프레임        → PC+ABS 1.2kg + 마스터배치 0.03kg
         """
         BOM = self.env["mrp.bom"]
         pp = {p.default_code: p for p in parts}
@@ -267,7 +289,8 @@ class GenerateDemoWizard(models.TransientModel):
             # (사출부품코드, [(원재료코드, 수량kg), ...])
             ("INJ-BF-001", [("RAW-PP-001", 2.5), ("RAW-MB-BK01", 0.05)]),
             ("INJ-BR-001", [("RAW-PP-001", 2.8), ("RAW-MB-BK01", 0.06)]),
-            ("INJ-BK-001", [("RAW-PA66GF-001", 0.35)]),
+            ("INJ-BK-F01", [("RAW-PA66GF-001", 0.35)]),
+            ("INJ-BK-R01", [("RAW-PA66GF-001", 0.40)]),
             ("INJ-DT-L01", [("RAW-ABS-001", 1.8), ("RAW-MB-BK01", 0.04)]),
             ("INJ-DC-001", [("RAW-POM-001", 0.02)]),
             ("INJ-GR-001", [("RAW-PCABS-001", 1.2), ("RAW-MB-BK01", 0.03)]),
@@ -337,7 +360,8 @@ class GenerateDemoWizard(models.TransientModel):
             # (name, code, 사출부품코드, cavity, changeover_h, guaranteed, current)
             ("프론트 범퍼 쉘 금형", "MLD-BF-001", "INJ-BF-001", 1, 2.5, 300000, 45000),
             ("리어 범퍼 쉘 금형", "MLD-BR-001", "INJ-BR-001", 1, 2.5, 300000, 52000),
-            ("범퍼 브라켓 금형", "MLD-BK-001", "INJ-BK-001", 4, 1.5, 250000, 78000),
+            ("프론트 범퍼 브라켓 금형", "MLD-BK-F01", "INJ-BK-F01", 4, 1.5, 250000, 78000),
+            ("리어 범퍼 브라켓 금형", "MLD-BK-R01", "INJ-BK-R01", 4, 1.5, 250000, 65000),
             ("도어트림 패널 금형", "MLD-DT-001", "INJ-DT-L01", 1, 2.0, 200000, 30000),
             ("도어트림 클립 금형", "MLD-DC-001", "INJ-DC-001", 8, 1.0, 300000, 15000),
             ("그릴 프레임 금형", "MLD-GR-001", "INJ-GR-001", 1, 1.5, 200000, 10000),
@@ -370,14 +394,15 @@ class GenerateDemoWizard(models.TransientModel):
 
         specs = [
             # (wc_code, mold_code, cycle_time, defect_rate, initial_scrap)
-            ("INJ-01", "MLD-BF-001", 55.0, 2.0, 15),  # CC300-01 ← 범퍼쉘(전)
-            ("INJ-01", "MLD-BR-001", 58.0, 2.5, 15),  # CC300-01 ← 범퍼쉘(후)
-            ("INJ-02", "MLD-BF-001", 57.0, 2.0, 15),  # CC300-02 ← 범퍼쉘(전)
-            ("INJ-02", "MLD-BK-001", 25.0, 1.5, 10),  # CC300-02 ← 브라켓 (4캐비티)
-            ("INJ-03", "MLD-DT-001", 42.0, 1.8, 10),  # CC200-01 ← 도어트림 패널
-            ("INJ-03", "MLD-DC-001", 18.0, 1.0, 5),   # CC200-01 ← 도어트림 클립 (8캐비티)
-            ("INJ-04", "MLD-GR-001", 38.0, 2.0, 8),   # CC200-02 ← 그릴 프레임
-            ("INJ-04", "MLD-BK-001", 28.0, 1.5, 10),  # CC200-02 ← 브라켓 (백업)
+            ("INJ-01", "MLD-BF-001", 55.0, 2.0, 15),   # CC300-01 ← 프론트 범퍼쉘
+            ("INJ-01", "MLD-BR-001", 58.0, 2.5, 15),   # CC300-01 ← 리어 범퍼쉘
+            ("INJ-02", "MLD-BF-001", 57.0, 2.0, 15),   # CC300-02 ← 프론트 범퍼쉘 (백업)
+            ("INJ-02", "MLD-BK-F01", 25.0, 1.5, 10),   # CC300-02 ← 프론트 브라켓 (4캐비티)
+            ("INJ-02", "MLD-BK-R01", 26.0, 1.5, 10),   # CC300-02 ← 리어 브라켓 (4캐비티)
+            ("INJ-03", "MLD-DT-001", 42.0, 1.8, 10),   # CC200-01 ← 도어트림 패널
+            ("INJ-03", "MLD-DC-001", 18.0, 1.0, 5),    # CC200-01 ← 도어트림 클립 (8캐비티)
+            ("INJ-04", "MLD-GR-001", 38.0, 2.0, 8),    # CC200-02 ← 그릴 프레임
+            ("INJ-04", "MLD-BK-R01", 28.0, 1.5, 10),   # CC200-02 ← 리어 브라켓 (백업)
         ]
         caps = Cap
         for wc_code, mold_code, ct, dr, scrap in specs:
@@ -518,17 +543,20 @@ class GenerateDemoWizard(models.TransientModel):
         part_costs = {
             "INJ-BF-001": 5500.0,   # PP 2.5kg(3,750) + 가공비
             "INJ-BR-001": 6000.0,   # PP 2.8kg(4,200) + 가공비
-            "INJ-BK-001": 2800.0,   # PA66 0.35kg(1,750) + 가공비
+            "INJ-BK-F01": 2800.0,   # PA66 0.35kg(1,750) + 가공비
+            "INJ-BK-R01": 3100.0,   # PA66 0.40kg(2,000) + 가공비
             "INJ-DT-L01": 6500.0,   # ABS 1.8kg(4,500) + 가공비
             "INJ-DC-001": 250.0,    # POM 0.02kg(70) + 가공비
             "INJ-GR-001": 6200.0,   # PCABS 1.2kg(4,560) + 가공비
         }
-        # 완제품 원가 = BOM 구성품 합산
+        # 완제품 원가 = BOM 구성품 합산 (컬러 무관, 사출 원가 동일)
         finished_costs = {
-            "86500-BS000EBB": 11100.0,  # 범퍼쉘(5,500) + 브라켓x2(5,600)
-            "86600-BS000EBB": 11600.0,  # 범퍼쉘(6,000) + 브라켓x2(5,600)
-            "86500-BS000SWP": 7500.0,   # 도어트림(6,500) + 클립x4(1,000)
-            "86500-BS020KDG": 6200.0,   # 그릴(6,200)
+            "86500-BS000EBB": 11100.0,  # 프론트 범퍼: 쉘(5,500) + 프론트브라켓x2(5,600)
+            "86500-BS000SWP": 11100.0,  # 프론트 범퍼: 같은 사출 원가
+            "86600-BS000EBB": 12200.0,  # 리어 범퍼: 쉘(6,000) + 리어브라켓x2(6,200)
+            "86600-BS000KDG": 12200.0,  # 리어 범퍼: 같은 사출 원가
+            "82310-BS000EBB": 7500.0,   # 도어트림: 패널(6,500) + 클립x4(1,000)
+            "86500-BS020CRM": 6200.0,   # 그릴: 프레임(6,200)
         }
 
         all_costs = {**raw_costs, **part_costs, **finished_costs}
@@ -566,7 +594,8 @@ class GenerateDemoWizard(models.TransientModel):
         part_stock = {
             "INJ-BF-001": 300,    # 프론트 범퍼 쉘
             "INJ-BR-001": 250,    # 리어 범퍼 쉘
-            "INJ-BK-001": 800,    # 범퍼 브라켓 (공용)
+            "INJ-BK-F01": 500,    # 프론트 범퍼 브라켓
+            "INJ-BK-R01": 400,    # 리어 범퍼 브라켓
             "INJ-DT-L01": 400,    # 도어트림 패널
             "INJ-DC-001": 1600,   # 도어트림 클립 (공용)
             "INJ-GR-001": 300,    # 그릴 프레임
@@ -624,11 +653,14 @@ class GenerateDemoWizard(models.TransientModel):
         p = {pr.default_code: pr for pr in finished}
 
         # 완제품별 일일 수요 (주말 제외)
+        # 같은 기준코드의 컬러별 수요가 따로 들어옴 → BOM 전개 시 합산됨
         daily_qty = {
-            "86500-BS000EBB": [120, 150, 130, 140, 160, 0, 0],  # 프론트 범퍼 ASSY
-            "86600-BS000EBB": [100, 130, 110, 120, 140, 0, 0],  # 리어 범퍼 ASSY
-            "86500-BS000SWP": [200, 220, 210, 230, 250, 0, 0],  # 도어트림 LH ASSY
-            "86500-BS020KDG": [150, 170, 160, 180, 190, 0, 0],  # 그릴 ASSY
+            "86500-BS000EBB": [80, 100, 90, 95, 110, 0, 0],   # 프론트 범퍼 (에보니블랙)
+            "86500-BS000SWP": [40, 50, 40, 45, 50, 0, 0],     # 프론트 범퍼 (스노우화이트)
+            "86600-BS000EBB": [70, 90, 75, 85, 100, 0, 0],    # 리어 범퍼 (에보니블랙)
+            "86600-BS000KDG": [30, 40, 35, 35, 40, 0, 0],     # 리어 범퍼 (카키그린)
+            "82310-BS000EBB": [200, 220, 210, 230, 250, 0, 0], # 도어트림 LH
+            "86500-BS020CRM": [150, 170, 160, 180, 190, 0, 0], # 그릴
         }
 
         vals_list = []

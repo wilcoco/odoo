@@ -396,7 +396,13 @@ class PlanningRun(models.Model):
         self.state = "review"
 
     def _explode_bom(self):
-        """BOM 전개: 완성품 수요 → 사출 부품별 수요"""
+        """BOM 전개: 완성품 수요 → 사출 부품별 수요
+
+        컬러가 다른 완제품이라도 같은 사출 부품이 BOM에 등록되어 있으므로,
+        BOM 전개 결과 사출 부품 단위로 자연스럽게 수요가 합산됨.
+        예) 86500-BS000EBB 80개 + 86500-BS000SWP 40개
+            → 프론트 범퍼 쉘 120개, 브라켓 240개
+        """
         # {(product_id, date_str): qty}
         part_demands = defaultdict(float)
 
@@ -413,7 +419,7 @@ class PlanningRun(models.Model):
                 demand.state = "planned"
                 continue
 
-            # BOM 라인에서 사출 부품 추출
+            # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
             for line in bom.bom_line_ids:
                 qty_per = line.product_qty / (bom.product_qty or 1)
                 part_demands[(line.product_id.id, str(demand.demand_date))] += (
