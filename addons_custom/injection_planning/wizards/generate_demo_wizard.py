@@ -29,27 +29,35 @@ class GenerateDemoWizard(models.TransientModel):
         self.ensure_one()
         summary = []
 
-        # ── 1. 제품 8개 ──
-        products = self._create_products()
-        summary.append(f"제품 {len(products)}개")
+        # ── 1. 완제품 4개 (수요 대상) ──
+        finished = self._create_finished_products()
+        summary.append(f"완제품 {len(finished)}개")
 
-        # ── 2. 사출기 (작업장) 4대 ──
+        # ── 2. 사출 부품 6개 (금형으로 생산) ──
+        parts = self._create_injection_parts()
+        summary.append(f"사출 부품 {len(parts)}개")
+
+        # ── 3. BOM (완제품 → 사출 부품) ──
+        boms = self._create_boms(finished, parts)
+        summary.append(f"BOM {len(boms)}개")
+
+        # ── 4. 사출기 4대 ──
         workcenters = self._create_workcenters()
         summary.append(f"사출기 {len(workcenters)}대")
 
-        # ── 3. 금형 6개 ──
-        molds = self._create_molds(products)
+        # ── 5. 금형 6개 (사출 부품에 연결) ──
+        molds = self._create_molds(parts)
         summary.append(f"금형 {len(molds)}개")
 
-        # ── 4. 사출기-금형 조합 ──
+        # ── 6. 사출기-금형 조합 ──
         caps = self._create_capabilities(workcenters, molds)
         summary.append(f"사출기-금형 조합 {len(caps)}개")
 
-        # ── 5. 계획 설정 ──
+        # ── 7. 계획 설정 ──
         config = self._create_config()
         summary.append("계획 설정 1개")
 
-        # ── 7. 계획 실행 + 수요 + 가동일정 ──
+        # ── 8. 계획 실행 + 수요 + 가동일정 ──
         if self.create_demand or self.create_availability:
             plan_end = self.plan_start + timedelta(days=self.plan_days - 1)
             run = self.env["injection.planning.run"].create({
@@ -58,8 +66,8 @@ class GenerateDemoWizard(models.TransientModel):
             })
 
             if self.create_demand:
-                demands = self._create_demands(run, products)
-                summary.append(f"수요 {len(demands)}건")
+                demands = self._create_demands(run, finished)
+                summary.append(f"수요 {len(demands)}건 (완제품 기준)")
 
             if self.create_availability:
                 avails = self._create_availability(
@@ -84,42 +92,125 @@ class GenerateDemoWizard(models.TransientModel):
         }
 
     # ─────────────────────────────────────────────
-    # 제품
+    # 헬퍼: 제품 생성/조회
     # ─────────────────────────────────────────────
-    def _create_products(self):
+    def _get_or_create_product(self, name, code, storable=True, max_inv=0, min_lot=0):
         Product = self.env["product.product"]
+        existing = Product.search([("default_code", "=", code)], limit=1)
+        if existing:
+            vals = {}
+            if max_inv:
+                vals["max_inventory_qty"] = max_inv
+            if min_lot:
+                vals["min_lot_size"] = min_lot
+            if vals:
+                existing.write(vals)
+            return existing
+        return Product.create({
+            "name": name,
+            "default_code": code,
+            "type": "consu",
+            "is_storable": storable,
+            "max_inventory_qty": max_inv,
+            "min_lot_size": min_lot,
+        })
+
+    # ─────────────────────────────────────────────
+    # 1. 완제품 (수요가 들어오는 대상)
+    # ─────────────────────────────────────────────
+    def _create_finished_products(self):
+        """완제품: Oracle 수요에서 오는 제품 코드"""
         specs = [
-            ("프론트 범퍼 (SU2-A)", "86500-BS000EBB", 5000, 200),
-            ("리어 범퍼 (SU2-A)", "86600-BS000EBB", 5000, 200),
-            ("펜더 LH (SU2-A)", "86500-BS000ISG", 3000, 150),
-            ("펜더 RH (SU2-A)", "86500-BS000KDG", 3000, 150),
-            ("도어트림 LH (SU2-A)", "86500-BS000SWP", 4000, 100),
-            ("도어트림 RH (SU2-A)", "86500-BS020IEG", 4000, 100),
-            ("라디에이터 그릴 (SU2-A)", "86500-BS020KDG", 3000, 100),
-            ("센터 콘솔 (SU2-A)", "84611-BS000EBB", 2000, 100),
+            # (이름, 코드)
+            ("프론트 범퍼 ASSY (SU2)", "86500-BS000EBB"),
+            ("리어 범퍼 ASSY (SU2)", "86600-BS000EBB"),
+            ("도어트림 LH ASSY (SU2)", "86500-BS000SWP"),
+            ("라디에이터 그릴 ASSY (SU2)", "86500-BS020KDG"),
         ]
-        products = Product
-        for name, code, max_inv, min_lot in specs:
-            existing = Product.search([("default_code", "=", code)], limit=1)
-            if existing:
-                existing.write({
-                    "max_inventory_qty": max_inv,
-                    "min_lot_size": min_lot,
-                })
-                products |= existing
-            else:
-                products |= Product.create({
-                    "name": name,
-                    "default_code": code,
-                    "type": "consu",
-                    "is_storable": True,
-                    "max_inventory_qty": max_inv,
-                    "min_lot_size": min_lot,
-                })
+        products = self.env["product.product"]
+        for name, code in specs:
+            products |= self._get_or_create_product(name, code, storable=True)
         return products
 
     # ─────────────────────────────────────────────
-    # 사출기 (작업장)
+    # 2. 사출 부품 (금형으로 만드는 부품)
+    # ─────────────────────────────────────────────
+    def _create_injection_parts(self):
+        """사출 부품: BOM 구성품, 금형에 연결"""
+        specs = [
+            # (이름, 코드, 최대재고, 최소로트)
+            ("프론트 범퍼 쉘", "INJ-BF-001", 5000, 200),
+            ("리어 범퍼 쉘", "INJ-BR-001", 5000, 200),
+            ("범퍼 브라켓 (공용)", "INJ-BK-001", 10000, 500),
+            ("도어트림 패널 LH", "INJ-DT-L01", 4000, 150),
+            ("도어트림 클립 (공용)", "INJ-DC-001", 20000, 1000),
+            ("라디에이터 그릴 프레임", "INJ-GR-001", 3000, 100),
+        ]
+        parts = self.env["product.product"]
+        for name, code, max_inv, min_lot in specs:
+            parts |= self._get_or_create_product(
+                name, code, storable=True, max_inv=max_inv, min_lot=min_lot
+            )
+        return parts
+
+    # ─────────────────────────────────────────────
+    # 3. BOM (완제품 → 사출 부품)
+    # ─────────────────────────────────────────────
+    def _create_boms(self, finished, parts):
+        """
+        완제품 BOM 전개:
+        프론트 범퍼 ASSY → 프론트 범퍼 쉘 x1 + 범퍼 브라켓 x2
+        리어 범퍼 ASSY   → 리어 범퍼 쉘 x1 + 범퍼 브라켓 x2
+        도어트림 LH ASSY → 도어트림 패널 LH x1 + 도어트림 클립 x4
+        그릴 ASSY        → 그릴 프레임 x1
+        """
+        BOM = self.env["mrp.bom"]
+        fp = {p.default_code: p for p in finished}
+        pp = {p.default_code: p for p in parts}
+
+        bom_specs = [
+            # (완제품코드, [(사출부품코드, 수량), ...])
+            ("86500-BS000EBB", [("INJ-BF-001", 1), ("INJ-BK-001", 2)]),
+            ("86600-BS000EBB", [("INJ-BR-001", 1), ("INJ-BK-001", 2)]),
+            ("86500-BS000SWP", [("INJ-DT-L01", 1), ("INJ-DC-001", 4)]),
+            ("86500-BS020KDG", [("INJ-GR-001", 1)]),
+        ]
+
+        created = BOM
+        for finished_code, lines in bom_specs:
+            finished_product = fp.get(finished_code)
+            if not finished_product:
+                continue
+
+            # 기존 BOM 확인
+            existing = BOM.search([
+                ("product_tmpl_id", "=", finished_product.product_tmpl_id.id),
+            ], limit=1)
+            if existing:
+                created |= existing
+                continue
+
+            bom_lines = []
+            for part_code, qty in lines:
+                part = pp.get(part_code)
+                if part:
+                    bom_lines.append((0, 0, {
+                        "product_id": part.id,
+                        "product_qty": qty,
+                    }))
+
+            if bom_lines:
+                created |= BOM.create({
+                    "product_tmpl_id": finished_product.product_tmpl_id.id,
+                    "product_id": finished_product.id,
+                    "product_qty": 1,
+                    "type": "normal",
+                    "bom_line_ids": bom_lines,
+                })
+        return created
+
+    # ─────────────────────────────────────────────
+    # 4. 사출기 (작업장)
     # ─────────────────────────────────────────────
     def _create_workcenters(self):
         WC = self.env["mrp.workcenter"]
@@ -139,20 +230,20 @@ class GenerateDemoWizard(models.TransientModel):
         return wcs
 
     # ─────────────────────────────────────────────
-    # 금형
+    # 5. 금형 (사출 부품에 연결)
     # ─────────────────────────────────────────────
-    def _create_molds(self, products):
+    def _create_molds(self, parts):
         Mold = self.env["injection.mold"]
-        p = {p.default_code: p for p in products}
+        p = {pp.default_code: pp for pp in parts}
 
         specs = [
-            # (name, code, product_code, cavity, changeover_h, guaranteed, current)
-            ("프론트 범퍼 금형", "MLD-BF-001", "86500-BS000EBB", 1, 2.5, 300000, 45000),
-            ("리어 범퍼 금형", "MLD-BR-001", "86600-BS000EBB", 1, 2.5, 300000, 52000),
-            ("펜더 공용 금형", "MLD-FD-001", "86500-BS000ISG", 2, 2.0, 250000, 78000),
-            ("도어트림 금형", "MLD-DT-001", "86500-BS000SWP", 2, 1.5, 200000, 30000),
-            ("라디에이터 그릴 금형", "MLD-GR-001", "86500-BS020KDG", 1, 1.5, 200000, 15000),
-            ("센터 콘솔 금형", "MLD-CS-001", "84611-BS000EBB", 1, 2.0, 250000, 10000),
+            # (name, code, 사출부품코드, cavity, changeover_h, guaranteed, current)
+            ("프론트 범퍼 쉘 금형", "MLD-BF-001", "INJ-BF-001", 1, 2.5, 300000, 45000),
+            ("리어 범퍼 쉘 금형", "MLD-BR-001", "INJ-BR-001", 1, 2.5, 300000, 52000),
+            ("범퍼 브라켓 금형", "MLD-BK-001", "INJ-BK-001", 4, 1.5, 250000, 78000),
+            ("도어트림 패널 금형", "MLD-DT-001", "INJ-DT-L01", 1, 2.0, 200000, 30000),
+            ("도어트림 클립 금형", "MLD-DC-001", "INJ-DC-001", 8, 1.0, 300000, 15000),
+            ("그릴 프레임 금형", "MLD-GR-001", "INJ-GR-001", 1, 1.5, 200000, 10000),
         ]
         molds = Mold
         for name, code, pcode, cavity, co_h, guaranteed, current in specs:
@@ -173,7 +264,7 @@ class GenerateDemoWizard(models.TransientModel):
         return molds
 
     # ─────────────────────────────────────────────
-    # 사출기-금형 조합
+    # 6. 사출기-금형 조합
     # ─────────────────────────────────────────────
     def _create_capabilities(self, workcenters, molds):
         Cap = self.env["injection.machine.mold.capability"]
@@ -182,14 +273,14 @@ class GenerateDemoWizard(models.TransientModel):
 
         specs = [
             # (wc_code, mold_code, cycle_time, defect_rate, initial_scrap)
-            ("INJ-01", "MLD-BF-001", 55.0, 2.0, 15),  # CC300-01 ← 프론트 범퍼
-            ("INJ-01", "MLD-BR-001", 58.0, 2.5, 15),  # CC300-01 ← 리어 범퍼
-            ("INJ-02", "MLD-BF-001", 57.0, 2.0, 15),  # CC300-02 ← 프론트 범퍼
-            ("INJ-02", "MLD-FD-001", 42.0, 1.8, 10),  # CC300-02 ← 펜더
-            ("INJ-03", "MLD-DT-001", 38.0, 1.5, 10),  # CC200-01 ← 도어트림
-            ("INJ-03", "MLD-GR-001", 35.0, 2.0, 8),   # CC200-01 ← 그릴
-            ("INJ-04", "MLD-CS-001", 45.0, 1.5, 12),  # CC200-02 ← 콘솔
-            ("INJ-04", "MLD-DT-001", 40.0, 1.8, 10),  # CC200-02 ← 도어트림
+            ("INJ-01", "MLD-BF-001", 55.0, 2.0, 15),  # CC300-01 ← 범퍼쉘(전)
+            ("INJ-01", "MLD-BR-001", 58.0, 2.5, 15),  # CC300-01 ← 범퍼쉘(후)
+            ("INJ-02", "MLD-BF-001", 57.0, 2.0, 15),  # CC300-02 ← 범퍼쉘(전)
+            ("INJ-02", "MLD-BK-001", 25.0, 1.5, 10),  # CC300-02 ← 브라켓 (4캐비티)
+            ("INJ-03", "MLD-DT-001", 42.0, 1.8, 10),  # CC200-01 ← 도어트림 패널
+            ("INJ-03", "MLD-DC-001", 18.0, 1.0, 5),   # CC200-01 ← 도어트림 클립 (8캐비티)
+            ("INJ-04", "MLD-GR-001", 38.0, 2.0, 8),   # CC200-02 ← 그릴 프레임
+            ("INJ-04", "MLD-BK-001", 28.0, 1.5, 10),  # CC200-02 ← 브라켓 (백업)
         ]
         caps = Cap
         for wc_code, mold_code, ct, dr, scrap in specs:
@@ -214,28 +305,7 @@ class GenerateDemoWizard(models.TransientModel):
         return caps
 
     # ─────────────────────────────────────────────
-    # BOM (제품 = 사출 부품, 1:1)
-    # ─────────────────────────────────────────────
-    def _create_boms(self, products):
-        BOM = self.env["mrp.bom"]
-        created = BOM
-        for product in products:
-            existing = BOM.search([
-                "|",
-                ("product_id", "=", product.id),
-                ("product_tmpl_id", "=", product.product_tmpl_id.id),
-            ], limit=1)
-            if not existing:
-                created |= BOM.create({
-                    "product_tmpl_id": product.product_tmpl_id.id,
-                    "product_id": product.id,
-                    "product_qty": 1,
-                    "type": "normal",
-                })
-        return created
-
-    # ─────────────────────────────────────────────
-    # 계획 설정
+    # 7. 계획 설정
     # ─────────────────────────────────────────────
     def _create_config(self):
         Config = self.env["injection.planning.config"]
@@ -256,22 +326,18 @@ class GenerateDemoWizard(models.TransientModel):
         })
 
     # ─────────────────────────────────────────────
-    # 수요 데이터 (일별)
+    # 8. 수요 데이터 (완제품 기준)
     # ─────────────────────────────────────────────
-    def _create_demands(self, run, products):
+    def _create_demands(self, run, finished):
         Demand = self.env["injection.production.demand"]
-        p = {pr.default_code: pr for pr in products}
+        p = {pr.default_code: pr for pr in finished}
 
-        # 제품별 일일 수요량 (현실적 수치)
+        # 완제품별 일일 수요 (주말 제외)
         daily_qty = {
-            "86500-BS000EBB": [120, 150, 130, 140, 160, 0, 0],   # 프론트 범퍼 (주말 0)
-            "86600-BS000EBB": [100, 130, 110, 120, 140, 0, 0],   # 리어 범퍼
-            "86500-BS000ISG": [80, 90, 85, 95, 100, 0, 0],       # 펜더 LH
-            "86500-BS000KDG": [80, 90, 85, 95, 100, 0, 0],       # 펜더 RH
-            "86500-BS000SWP": [200, 220, 210, 230, 250, 0, 0],   # 도어트림 LH
-            "86500-BS020IEG": [200, 220, 210, 230, 250, 0, 0],   # 도어트림 RH
-            "86500-BS020KDG": [150, 170, 160, 180, 190, 0, 0],   # 그릴
-            "84611-BS000EBB": [60, 70, 65, 75, 80, 0, 0],        # 콘솔
+            "86500-BS000EBB": [120, 150, 130, 140, 160, 0, 0],  # 프론트 범퍼 ASSY
+            "86600-BS000EBB": [100, 130, 110, 120, 140, 0, 0],  # 리어 범퍼 ASSY
+            "86500-BS000SWP": [200, 220, 210, 230, 250, 0, 0],  # 도어트림 LH ASSY
+            "86500-BS020KDG": [150, 170, 160, 180, 190, 0, 0],  # 그릴 ASSY
         }
 
         vals_list = []
@@ -298,7 +364,7 @@ class GenerateDemoWizard(models.TransientModel):
         return Demand
 
     # ─────────────────────────────────────────────
-    # 가동 일정
+    # 9. 가동 일정
     # ─────────────────────────────────────────────
     def _create_availability(self, config, workcenters, date_from, date_to):
         Avail = self.env["injection.machine.availability"]
@@ -328,7 +394,7 @@ class GenerateDemoWizard(models.TransientModel):
                         "notes": "주말",
                     })
                 elif wc.code == "INJ-03" and weekday == 2:
-                    # CC200-01 수요일 오후 정비 (주간 4시간만)
+                    # CC200-01 수요일 오후 정비
                     vals_list.append({
                         "workcenter_id": wc.id,
                         "date": current,
@@ -338,7 +404,6 @@ class GenerateDemoWizard(models.TransientModel):
                         "notes": "수요일 오후 정기 정비",
                     })
                 else:
-                    # 정상 가동
                     vals_list.append({
                         "workcenter_id": wc.id,
                         "date": current,
