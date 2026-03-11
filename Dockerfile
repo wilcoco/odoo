@@ -11,14 +11,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -d /home/odoo -s /bin/bash odoo
 
 WORKDIR /app
-COPY . /app
 
-# Odoo 파이썬 의존성
+# 의존성 먼저 설치 (레이어 캐싱 → 코드 변경 시 pip install 스킵)
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 시작 스크립트 등록
 COPY start-odoo.sh /usr/local/bin/start-odoo.sh
 RUN chmod +x /usr/local/bin/start-odoo.sh
+
+# 나머지 소스 코드 복사
+COPY . /app
 
 # Data dir + ownership
 RUN mkdir -p /data && chown -R odoo:odoo /app /data /home/odoo
