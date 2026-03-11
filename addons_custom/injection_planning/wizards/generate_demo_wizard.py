@@ -45,11 +45,7 @@ class GenerateDemoWizard(models.TransientModel):
         caps = self._create_capabilities(workcenters, molds)
         summary.append(f"사출기-금형 조합 {len(caps)}개")
 
-        # ── 5. BOM ──
-        boms = self._create_boms(products)
-        summary.append(f"BOM {len(boms)}개")
-
-        # ── 6. 계획 설정 ──
+        # ── 5. 계획 설정 ──
         config = self._create_config()
         summary.append("계획 설정 1개")
 

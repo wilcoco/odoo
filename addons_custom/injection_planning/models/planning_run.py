@@ -400,9 +400,10 @@ class PlanningRun(models.Model):
                 ("product_tmpl_id", "=", demand.product_id.product_tmpl_id.id),
             ], limit=1)
 
-            if not bom:
-                # BOM 없으면 제품 자체가 사출품으로 간주
+            if not bom or not bom.bom_line_ids:
+                # BOM 없거나 라인 없으면 제품 자체가 사출품으로 간주
                 part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                demand.state = "planned"
                 continue
 
             # BOM 라인에서 사출 부품 추출
