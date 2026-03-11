@@ -24,6 +24,7 @@
         "views/demand_views.xml",
         "views/planning_run_views.xml",
         "views/planning_line_views.xml",
+        "views/planning_daily_summary_views.xml",
         "views/product_planning_views.xml",
         "wizards/generate_mo_wizard_views.xml",
         "wizards/import_demand_wizard_views.xml",

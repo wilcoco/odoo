@@ -45,6 +45,10 @@ class PlanningRun(models.Model):
     mo_ids = fields.One2many(
         "mrp.production", "planning_run_id", string="생성된 MO",
     )
+    summary_ids = fields.One2many(
+        "injection.planning.daily.summary", "planning_run_id",
+        string="일별 요약",
+    )
     mo_count = fields.Integer(compute="_compute_stats", store=True)
     total_planned_qty = fields.Float(
         string="총 계획 수량", compute="_compute_stats", store=True,
@@ -386,6 +390,9 @@ class PlanningRun(models.Model):
                      f"총 {sum(d['planned_qty'] for d in lines_data):.0f}개 생산 예정"
             )
 
+        # 5단계: 일별 요약 생성 (차트용)
+        self._generate_daily_summary(part_demands, config)
+
         self.state = "review"
 
     def _explode_bom(self):
@@ -723,6 +730,99 @@ class PlanningRun(models.Model):
             "res_model": "mrp.production",
             "view_mode": "list,form",
             "domain": [("planning_run_id", "=", self.id)],
+        }
+
+    # ─────────────────────────────────────────────
+    # 일별 요약 (차트용)
+    # ─────────────────────────────────────────────
+    def _generate_daily_summary(self, part_demands, config):
+        """제품별 일별 요약 데이터 생성 (재고, 수요, 생산, 안전재고)"""
+        Summary = self.env["injection.planning.daily.summary"]
+        # 기존 요약 삭제
+        self.summary_ids.unlink()
+
+        safety_days = config.safety_stock_days or 0.0
+
+        # 1) BOM 전개된 사출부품 수요: part_demands = {(pid, date_str): qty}
+        # 제품별 일별 소요량
+        demand_by_product_date = defaultdict(lambda: defaultdict(float))
+        for (pid, date_str), qty in part_demands.items():
+            demand_by_product_date[pid][date_str] += qty
+
+        # 2) 계획 라인에서 제품별 일별 생산량
+        planned_by_product_date = defaultdict(lambda: defaultdict(float))
+        for line in self.line_ids:
+            planned_by_product_date[line.product_id.id][
+                str(line.plan_date)
+            ] += line.planned_qty
+
+        # 3) 모든 제품 수집
+        all_pids = set(demand_by_product_date.keys()) | set(
+            planned_by_product_date.keys()
+        )
+        if not all_pids:
+            return
+
+        products = self.env["product.product"].browse(list(all_pids))
+        stock_map = {p.id: p.qty_available for p in products}
+
+        # 4) 전체 날짜 범위
+        all_dates = set()
+        for pid in all_pids:
+            all_dates.update(demand_by_product_date.get(pid, {}).keys())
+            all_dates.update(planned_by_product_date.get(pid, {}).keys())
+        sorted_dates = sorted(all_dates)
+
+        if not sorted_dates:
+            return
+
+        # 5) 안전재고 계산 (제품별)
+        safety_map = {}
+        for pid in all_pids:
+            demands = demand_by_product_date.get(pid, {})
+            if demands:
+                total_demand = sum(demands.values())
+                num_days = len(demands)
+                daily_avg = total_demand / num_days if num_days > 0 else 0
+            else:
+                daily_avg = 0
+            safety_map[pid] = daily_avg * safety_days
+
+        # 6) 일별 누적 재고 계산 + 레코드 생성
+        vals_list = []
+        for pid in all_pids:
+            running_stock = stock_map.get(pid, 0)
+            for date_str in sorted_dates:
+                demand = demand_by_product_date.get(pid, {}).get(date_str, 0)
+                planned = planned_by_product_date.get(pid, {}).get(date_str, 0)
+                stock_start = running_stock
+                stock_end = stock_start + planned - demand
+                running_stock = stock_end
+
+                vals_list.append({
+                    "planning_run_id": self.id,
+                    "product_id": pid,
+                    "plan_date": date_str,
+                    "demand_qty": demand,
+                    "planned_qty": planned,
+                    "safety_stock_qty": safety_map.get(pid, 0),
+                    "stock_start": stock_start,
+                    "stock_end": stock_end,
+                })
+
+        if vals_list:
+            Summary.create(vals_list)
+
+    def action_view_daily_summary(self):
+        """일별 분석 차트 열기"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"일별 분석 - {self.name}",
+            "res_model": "injection.planning.daily.summary",
+            "view_mode": "graph,pivot,list",
+            "domain": [("planning_run_id", "=", self.id)],
+            "context": {"search_default_group_product": 1},
         }
 
     # ─────────────────────────────────────────────

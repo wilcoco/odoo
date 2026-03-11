@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 검색 뷰 -->
+    <record id="view_daily_summary_search" model="ir.ui.view">
+        <field name="name">injection.planning.daily.summary.search</field>
+        <field name="model">injection.planning.daily.summary</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="plan_date"/>
+                <field name="planning_run_id"/>
+                <filter name="group_product" string="제품별"
+                        context="{'group_by': 'product_id'}"/>
+                <filter name="group_date" string="날짜별"
+                        context="{'group_by': 'plan_date:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- 그래프 뷰 (라인 차트) -->
+    <record id="view_daily_summary_graph" model="ir.ui.view">
+        <field name="name">injection.planning.daily.summary.graph</field>
+        <field name="model">injection.planning.daily.summary</field>
+        <field name="arch" type="xml">
+            <graph type="line" stacked="0">
+                <field name="plan_date" interval="day"/>
+                <field name="stock_end" type="measure"/>
+                <field name="safety_stock_qty" type="measure"/>
+                <field name="demand_qty" type="measure"/>
+                <field name="planned_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- 피벗 뷰 -->
+    <record id="view_daily_summary_pivot" model="ir.ui.view">
+        <field name="name">injection.planning.daily.summary.pivot</field>
+        <field name="model">injection.planning.daily.summary</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="product_id" type="row"/>
+                <field name="plan_date" interval="day" type="col"/>
+                <field name="demand_qty" type="measure"/>
+                <field name="planned_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+                <field name="safety_stock_qty" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- 리스트 뷰 -->
+    <record id="view_daily_summary_list" model="ir.ui.view">
+        <field name="name">injection.planning.daily.summary.list</field>
+        <field name="model">injection.planning.daily.summary</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="plan_date"/>
+                <field name="product_id"/>
+                <field name="demand_qty" sum="합계"/>
+                <field name="planned_qty" sum="합계"/>
+                <field name="safety_stock_qty"/>
+                <field name="stock_start"/>
+                <field name="stock_end"
+                       decoration-danger="stock_end &lt; safety_stock_qty"
+                       decoration-success="stock_end &gt;= safety_stock_qty"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_daily_summary" model="ir.actions.act_window">
+        <field name="name">일별 생산계획 분석</field>
+        <field name="res_model">injection.planning.daily.summary</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="search_view_id" ref="view_daily_summary_search"/>
+        <field name="context">{'search_default_group_product': 1}</field>
+    </record>
+</odoo>

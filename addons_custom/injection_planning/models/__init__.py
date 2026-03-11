@@ -5,5 +5,6 @@ from . import machine_availability
 from . import production_demand
 from . import planning_line
 from . import planning_run
+from . import planning_daily_summary
 from . import product_planning
 from . import mrp_production

@@ -82,6 +82,13 @@
                                 <span class="o_stat_text">제조 오더</span>
                             </div>
                         </button>
+                        <button name="action_view_daily_summary" type="object"
+                                class="oe_stat_button" icon="fa-bar-chart"
+                                invisible="state == 'draft'">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">일별 분석</span>
+                            </div>
+                        </button>
                     </div>
                     <group>
                         <group>

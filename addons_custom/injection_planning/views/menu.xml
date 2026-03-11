@@ -19,6 +19,12 @@
               action="action_demand"
               sequence="20"/>
 
+    <menuitem id="menu_daily_summary"
+              name="일별 분석"
+              parent="menu_injection_planning_root"
+              action="action_daily_summary"
+              sequence="15"/>
+
     <!-- 마스터 -->
     <menuitem id="menu_planning_master"
               name="마스터 데이터"
