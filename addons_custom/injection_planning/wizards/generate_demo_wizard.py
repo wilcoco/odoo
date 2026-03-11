@@ -65,7 +65,13 @@ class GenerateDemoWizard(models.TransientModel):
         config = self._create_config()
         summary.append("계획 설정 1개")
 
-        # ── 7-1. 초기 재고 설정 (사출 부품 + 원재료) ──
+        # ── 7-1. 공급업체 + 구매가격 + 제품 원가 설정 ──
+        vendor_cnt = self._create_vendors_and_costs(
+            finished, parts, raw_materials
+        )
+        summary.append(f"공급업체/원가 {vendor_cnt}건")
+
+        # ── 7-2. 초기 재고 설정 (사출 부품 + 원재료) ──
         stock_cnt = self._create_initial_stock(parts, raw_materials)
         summary.append(f"초기 재고 {stock_cnt}건")
 
@@ -417,7 +423,130 @@ class GenerateDemoWizard(models.TransientModel):
         })
 
     # ─────────────────────────────────────────────
-    # 7-1. 초기 재고 (사출 부품 + 원재료)
+    # 7-1. 공급업체 + 구매가격 + 제품 원가
+    # ─────────────────────────────────────────────
+    def _create_vendors_and_costs(self, finished, parts, raw_materials):
+        """
+        공급업체 등록 + 원재료 구매가격(supplierinfo) + 전 제품 원가 설정
+        MO 완료 시 자동 분개에 필요:
+          - 원재료 출고 → standard_price 기준 분개
+          - 완성품 입고 → standard_price 기준 분개
+        """
+        Partner = self.env["res.partner"]
+        SupplierInfo = self.env["product.supplierinfo"]
+        count = 0
+
+        # ── 공급업체 3곳 생성 ──
+        vendor_specs = [
+            {
+                "name": "(주)한국폴리머",
+                "ref": "VND-POLY-001",
+                "company_type": "company",
+                "supplier_rank": 1,
+                "phone": "031-555-1001",
+                "email": "order@koreapoly.co.kr",
+            },
+            {
+                "name": "(주)대한수지",
+                "ref": "VND-RESIN-001",
+                "company_type": "company",
+                "supplier_rank": 1,
+                "phone": "031-555-2002",
+                "email": "sales@dhresin.co.kr",
+            },
+            {
+                "name": "(주)컬러텍",
+                "ref": "VND-COLOR-001",
+                "company_type": "company",
+                "supplier_rank": 1,
+                "phone": "031-555-3003",
+                "email": "info@colortech.co.kr",
+            },
+        ]
+        vendors = {}
+        for spec in vendor_specs:
+            existing = Partner.search([("ref", "=", spec["ref"])], limit=1)
+            if existing:
+                vendors[spec["ref"]] = existing
+            else:
+                vendors[spec["ref"]] = Partner.create(spec)
+                count += 1
+
+        # ── 원재료별 공급업체 + 구매가격 (product.supplierinfo) ──
+        rm = {r.default_code: r for r in raw_materials}
+        supplier_price_specs = [
+            # (원재료코드, 공급업체ref, 구매가격(원/단위), 최소수량, 리드타임)
+            ("RAW-PP-001", "VND-POLY-001", 1500.0, 500, 3),
+            ("RAW-PP-001", "VND-RESIN-001", 1550.0, 1000, 5),   # 대체 공급
+            ("RAW-ABS-001", "VND-POLY-001", 2500.0, 300, 3),
+            ("RAW-PA66GF-001", "VND-RESIN-001", 5000.0, 100, 7),
+            ("RAW-POM-001", "VND-RESIN-001", 3500.0, 50, 5),
+            ("RAW-PCABS-001", "VND-POLY-001", 3800.0, 200, 4),
+            ("RAW-MB-BK01", "VND-COLOR-001", 8000.0, 25, 2),
+        ]
+
+        for raw_code, vendor_ref, price, min_qty, delay in supplier_price_specs:
+            product = rm.get(raw_code)
+            vendor = vendors.get(vendor_ref)
+            if not product or not vendor:
+                continue
+            existing = SupplierInfo.search([
+                ("partner_id", "=", vendor.id),
+                ("product_tmpl_id", "=", product.product_tmpl_id.id),
+            ], limit=1)
+            if not existing:
+                SupplierInfo.create({
+                    "partner_id": vendor.id,
+                    "product_tmpl_id": product.product_tmpl_id.id,
+                    "price": price,
+                    "min_qty": min_qty,
+                    "delay": delay,
+                })
+                count += 1
+
+        # ── 전 제품 원가 (standard_price) 설정 ──
+        # 원재료 원가 = 구매가격 기준
+        raw_costs = {
+            "RAW-PP-001": 1500.0,       # PP ₩1,500/kg
+            "RAW-ABS-001": 2500.0,      # ABS ₩2,500/kg
+            "RAW-PA66GF-001": 5000.0,   # PA66-GF30 ₩5,000/kg
+            "RAW-POM-001": 3500.0,      # POM ₩3,500/kg
+            "RAW-PCABS-001": 3800.0,    # PC+ABS ₩3,800/kg
+            "RAW-MB-BK01": 8000.0,      # 마스터배치 ₩8,000/kg
+        }
+        # 사출 부품 원가 = 원재료비 + 가공비
+        part_costs = {
+            "INJ-BF-001": 5500.0,   # PP 2.5kg(3,750) + 가공비
+            "INJ-BR-001": 6000.0,   # PP 2.8kg(4,200) + 가공비
+            "INJ-BK-001": 2800.0,   # PA66 0.35kg(1,750) + 가공비
+            "INJ-DT-L01": 6500.0,   # ABS 1.8kg(4,500) + 가공비
+            "INJ-DC-001": 250.0,    # POM 0.02kg(70) + 가공비
+            "INJ-GR-001": 6200.0,   # PCABS 1.2kg(4,560) + 가공비
+        }
+        # 완제품 원가 = BOM 구성품 합산
+        finished_costs = {
+            "86500-BS000EBB": 11100.0,  # 범퍼쉘(5,500) + 브라켓x2(5,600)
+            "86600-BS000EBB": 11600.0,  # 범퍼쉘(6,000) + 브라켓x2(5,600)
+            "86500-BS000SWP": 7500.0,   # 도어트림(6,500) + 클립x4(1,000)
+            "86500-BS020KDG": 6200.0,   # 그릴(6,200)
+        }
+
+        all_costs = {**raw_costs, **part_costs, **finished_costs}
+        all_products = {
+            p.default_code: p
+            for p in (finished | parts | raw_materials)
+        }
+
+        for code, cost in all_costs.items():
+            product = all_products.get(code)
+            if product and product.standard_price != cost:
+                product.standard_price = cost
+                count += 1
+
+        return count
+
+    # ─────────────────────────────────────────────
+    # 7-2. 초기 재고 (사출 부품 + 원재료)
     # ─────────────────────────────────────────────
     def _create_initial_stock(self, parts, raw_materials):
         """
