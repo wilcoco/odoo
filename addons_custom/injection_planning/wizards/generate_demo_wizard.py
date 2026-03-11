@@ -65,6 +65,10 @@ class GenerateDemoWizard(models.TransientModel):
         config = self._create_config()
         summary.append("계획 설정 1개")
 
+        # ── 7-1. 초기 재고 설정 (사출 부품 + 원재료) ──
+        stock_cnt = self._create_initial_stock(parts, raw_materials)
+        summary.append(f"초기 재고 {stock_cnt}건")
+
         # ── 8. 계획 실행 + 수요 + 가동일정 ──
         if self.create_demand or self.create_availability:
             plan_end = self.plan_start + timedelta(days=self.plan_days - 1)
@@ -411,6 +415,77 @@ class GenerateDemoWizard(models.TransientModel):
             "night_shift_start": 20.0,
             "safety_stock_days": 3.5,
         })
+
+    # ─────────────────────────────────────────────
+    # 7-1. 초기 재고 (사출 부품 + 원재료)
+    # ─────────────────────────────────────────────
+    def _create_initial_stock(self, parts, raw_materials):
+        """
+        테스트용 초기 재고 설정 (재고 조정 방식)
+        - 사출 부품: 약 2일치 재고
+        - 원재료: 약 5일치 재고 (kg 단위)
+        """
+        Quant = self.env["stock.quant"]
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1,
+        )
+        if not warehouse:
+            return 0
+        stock_location = warehouse.lot_stock_id
+
+        # 사출 부품 초기 재고 (약 2일치)
+        part_stock = {
+            "INJ-BF-001": 300,    # 프론트 범퍼 쉘
+            "INJ-BR-001": 250,    # 리어 범퍼 쉘
+            "INJ-BK-001": 800,    # 범퍼 브라켓 (공용)
+            "INJ-DT-L01": 400,    # 도어트림 패널
+            "INJ-DC-001": 1600,   # 도어트림 클립 (공용)
+            "INJ-GR-001": 300,    # 그릴 프레임
+        }
+
+        # 원재료 초기 재고 (약 5일치, kg)
+        raw_stock = {
+            "RAW-PP-001": 5000.0,     # PP 수지 5톤
+            "RAW-ABS-001": 3000.0,    # ABS 수지 3톤
+            "RAW-PA66GF-001": 500.0,  # PA66-GF30 500kg
+            "RAW-POM-001": 100.0,     # POM 수지 100kg
+            "RAW-PCABS-001": 2000.0,  # PC+ABS 2톤
+            "RAW-MB-BK01": 50.0,      # 마스터배치 50kg
+        }
+
+        all_products = {p.default_code: p for p in (parts | raw_materials)}
+        stock_map = {**part_stock, **raw_stock}
+        count = 0
+
+        for code, qty in stock_map.items():
+            product = all_products.get(code)
+            if not product:
+                continue
+
+            # 기존 재고 확인 (이미 재고가 있으면 건너뛰기)
+            existing = Quant.search([
+                ("product_id", "=", product.id),
+                ("location_id", "=", stock_location.id),
+            ], limit=1)
+            if existing and existing.quantity > 0:
+                continue
+
+            # 재고 조정으로 초기 재고 설정
+            if existing:
+                existing.with_context(inventory_mode=True).write({
+                    "inventory_quantity": qty,
+                })
+                existing.action_apply_inventory()
+            else:
+                quant = Quant.with_context(inventory_mode=True).create({
+                    "product_id": product.id,
+                    "location_id": stock_location.id,
+                    "inventory_quantity": qty,
+                })
+                quant.action_apply_inventory()
+            count += 1
+
+        return count
 
     # ─────────────────────────────────────────────
     # 8. 수요 데이터 (완제품 기준)
