@@ -822,22 +822,17 @@ class PlanningRun(models.Model):
     def action_view_daily_summary(self):
         """일별 분석 차트 열기
 
-        그래프 먼저 열림 + 첫 번째 사출 부품 자동 필터
+        좌측 searchpanel에서 사출 부품 선택
         → 해당 부품의 날짜별 소요량/생산량/재고/안전재고 라인 차트
-        → 검색바에서 다른 사출 부품으로 변경 가능
+        ※ search_default_product_id는 searchpanel과 충돌하므로 사용하지 않음
         """
         self.ensure_one()
-        ctx = {}
-        first = self.summary_ids[:1]
-        if first:
-            ctx["search_default_product_id"] = first.product_id.id
         return {
             "type": "ir.actions.act_window",
             "name": f"일별 분석 - {self.name}",
             "res_model": "injection.planning.daily.summary",
             "view_mode": "graph,list,pivot",
             "domain": [("planning_run_id", "=", self.id)],
-            "context": ctx,
         }
 
     # ─────────────────────────────────────────────

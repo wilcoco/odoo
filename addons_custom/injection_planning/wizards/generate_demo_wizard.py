@@ -93,6 +93,14 @@ class GenerateDemoWizard(models.TransientModel):
                 )
                 summary.append(f"가동 일정 {len(avails)}건")
 
+            # ── 9. 자동 계획 계산 (일별 요약 데이터 생성) ──
+            if self.create_demand and run.demand_ids:
+                run.action_calculate_plan()
+                summary.append(
+                    f"계획 계산 완료 (라인 {len(run.line_ids)}건, "
+                    f"일별 요약 {len(run.summary_ids)}건)"
+                )
+
             summary.append(f"계획 실행 '{run.name}'")
 
         msg = "샘플 데이터 생성 완료:\n" + "\n".join(f"  - {s}" for s in summary)
