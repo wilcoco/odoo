@@ -81,7 +81,7 @@
     <record id="action_daily_summary" model="ir.actions.act_window">
         <field name="name">일별 생산계획 분석</field>
         <field name="res_model">injection.planning.daily.summary</field>
-        <field name="view_mode">list,graph,pivot</field>
+        <field name="view_mode">graph,list,pivot</field>
         <field name="search_view_id" ref="view_daily_summary_search"/>
     </record>
 </odoo>
