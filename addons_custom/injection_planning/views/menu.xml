@@ -22,7 +22,7 @@
     <menuitem id="menu_daily_summary"
               name="일별 분석"
               parent="menu_injection_planning_root"
-              action="action_daily_summary"
+              action="action_daily_chart"
               sequence="15"/>
 
     <!-- 마스터 -->

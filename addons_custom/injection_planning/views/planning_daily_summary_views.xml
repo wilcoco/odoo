@@ -1,6 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 검색 뷰: 좌측 사출 부품 패널 + 결품 위기 필터 -->
+    <!-- ============================================================
+         차트 모델 (injection.planning.daily.chart) — 그래프 전용
+         언피벗 SQL View → metric_type 별 4개 라인 동시 표시
+         ============================================================ -->
+
+    <!-- 차트 검색 뷰 -->
+    <record id="view_daily_chart_search" model="ir.ui.view">
+        <field name="name">injection.planning.daily.chart.search</field>
+        <field name="model">injection.planning.daily.chart</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id" string="사출 부품"/>
+                <field name="planning_run_id"/>
+                <!-- view_types: graph 뷰에서도 searchpanel 표시 (기본은 kanban,list만) -->
+                <searchpanel view_types="graph,list">
+                    <field name="product_id" string="사출 부품"
+                           select="one" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- 차트 그래프 뷰: X축=날짜, groupBy=지표(4종), measure=수량 -->
+    <record id="view_daily_chart_graph" model="ir.ui.view">
+        <field name="name">injection.planning.daily.chart.graph</field>
+        <field name="model">injection.planning.daily.chart</field>
+        <field name="arch" type="xml">
+            <graph type="line" stacked="0">
+                <field name="plan_date" interval="day"/>
+                <field name="metric_type"/>
+                <field name="value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- 차트 리스트 뷰 (보조) -->
+    <record id="view_daily_chart_list" model="ir.ui.view">
+        <field name="name">injection.planning.daily.chart.list</field>
+        <field name="model">injection.planning.daily.chart</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="plan_date"/>
+                <field name="product_id"/>
+                <field name="metric_type"/>
+                <field name="value"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 차트 액션 (메뉴 + 계획 실행 버튼용) -->
+    <record id="action_daily_chart" model="ir.actions.act_window">
+        <field name="name">일별 생산계획 분석</field>
+        <field name="res_model">injection.planning.daily.chart</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="view_daily_chart_search"/>
+    </record>
+
+    <!-- ============================================================
+         요약 모델 (injection.planning.daily.summary) — 리스트/피벗
+         와이드 포맷: 결품 위기 표시, 상세 데이터 확인용
+         ============================================================ -->
+
+    <!-- 요약 검색 뷰 -->
     <record id="view_daily_summary_search" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.search</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -11,26 +73,11 @@
                 <separator/>
                 <filter name="shortage_only" string="결품 위기만"
                         domain="[('shortage_risk', '=', True)]"/>
-                <searchpanel>
+                <searchpanel view_types="list">
                     <field name="product_id" string="사출 부품"
                            select="one" enable_counters="1"/>
                 </searchpanel>
             </search>
-        </field>
-    </record>
-
-    <!-- 그래프: X축=날짜, Y축=소요량/생산량/재고/안전재고 -->
-    <record id="view_daily_summary_graph" model="ir.ui.view">
-        <field name="name">injection.planning.daily.summary.graph</field>
-        <field name="model">injection.planning.daily.summary</field>
-        <field name="arch" type="xml">
-            <graph type="line" stacked="0">
-                <field name="plan_date" interval="day"/>
-                <field name="demand_qty" type="measure"/>
-                <field name="planned_qty" type="measure"/>
-                <field name="stock_end" type="measure"/>
-                <field name="safety_stock_qty" type="measure"/>
-            </graph>
         </field>
     </record>
 
@@ -71,11 +118,11 @@
         </field>
     </record>
 
-    <!-- 액션 -->
+    <!-- 요약 액션 (상세 데이터 열람용) -->
     <record id="action_daily_summary" model="ir.actions.act_window">
-        <field name="name">일별 생산계획 분석</field>
+        <field name="name">일별 분석 상세</field>
         <field name="res_model">injection.planning.daily.summary</field>
-        <field name="view_mode">graph,list,pivot</field>
+        <field name="view_mode">list,pivot</field>
         <field name="search_view_id" ref="view_daily_summary_search"/>
     </record>
 </odoo>

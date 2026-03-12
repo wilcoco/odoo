@@ -822,16 +822,16 @@ class PlanningRun(models.Model):
     def action_view_daily_summary(self):
         """일별 분석 차트 열기
 
-        좌측 searchpanel에서 사출 부품 선택
-        → 해당 부품의 날짜별 소요량/생산량/재고/안전재고 라인 차트
-        ※ search_default_product_id는 searchpanel과 충돌하므로 사용하지 않음
+        차트 모델(SQL View, 언피벗)을 사용하여
+        4개 지표(소요량/생산량/재고/안전재고)를 4개 라인으로 동시 표시.
+        좌측 searchpanel에서 사출 부품 선택.
         """
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
             "name": f"일별 분석 - {self.name}",
-            "res_model": "injection.planning.daily.summary",
-            "view_mode": "graph,list,pivot",
+            "res_model": "injection.planning.daily.chart",
+            "view_mode": "graph,list",
             "domain": [("planning_run_id", "=", self.id)],
         }
 
