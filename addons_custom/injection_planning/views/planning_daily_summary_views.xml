@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 검색 뷰: 제품 필터(도메인) + 결품 위기 필터 -->
+    <!-- 검색 뷰: 좌측 사출 부품 패널 + 결품 위기 필터 -->
     <record id="view_daily_summary_search" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.search</field>
         <field name="model">injection.planning.daily.summary</field>
         <field name="arch" type="xml">
             <search>
-                <field name="product_id" string="사출 부품"
-                       filter_domain="[('product_id', '=', raw_value)]"/>
+                <field name="product_id" string="사출 부품"/>
                 <field name="planning_run_id"/>
                 <separator/>
                 <filter name="shortage_only" string="결품 위기만"
                         domain="[('shortage_risk', '=', True)]"/>
+                <searchpanel>
+                    <field name="product_id" string="사출 부품"
+                           icon="fa-cube" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
 
-    <!-- 그래프: X축=날짜, Y축=소요량/생산량/재고/안전재고 (제품 필터 후 사용) -->
+    <!-- 그래프: X축=날짜, Y축=소요량/생산량/재고/안전재고 -->
     <record id="view_daily_summary_graph" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.graph</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -31,7 +34,7 @@
         </field>
     </record>
 
-    <!-- 피벗 뷰 (제품 × 날짜 교차표) -->
+    <!-- 피벗 뷰 -->
     <record id="view_daily_summary_pivot" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.pivot</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -48,7 +51,7 @@
         </field>
     </record>
 
-    <!-- 리스트 뷰 - 결품 위기 행 빨간색 강조 -->
+    <!-- 리스트 뷰 -->
     <record id="view_daily_summary_list" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.list</field>
         <field name="model">injection.planning.daily.summary</field>
