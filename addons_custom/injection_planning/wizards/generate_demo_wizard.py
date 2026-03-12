@@ -240,13 +240,12 @@ class GenerateDemoWizard(models.TransientModel):
             if not finished_product:
                 continue
 
-            # 기존 BOM 확인
+            # 기존 BOM 삭제 후 재생성 (데이터 갱신 보장)
             existing = BOM.search([
                 ("product_tmpl_id", "=", finished_product.product_tmpl_id.id),
-            ], limit=1)
+            ])
             if existing:
-                created |= existing
-                continue
+                existing.unlink()
 
             bom_lines = []
             for part_code, qty in lines:
@@ -302,13 +301,12 @@ class GenerateDemoWizard(models.TransientModel):
             if not part:
                 continue
 
-            # 기존 BOM 확인
+            # 기존 BOM 삭제 후 재생성 (데이터 갱신 보장)
             existing = BOM.search([
                 ("product_tmpl_id", "=", part.product_tmpl_id.id),
-            ], limit=1)
+            ])
             if existing:
-                created |= existing
-                continue
+                existing.unlink()
 
             bom_lines = []
             for raw_code, qty in mat_lines:
@@ -620,15 +618,12 @@ class GenerateDemoWizard(models.TransientModel):
             if not product:
                 continue
 
-            # 기존 재고 확인 (이미 재고가 있으면 건너뛰기)
+            # 기존 재고 덮어쓰기 (재실행 시에도 항상 설정)
             existing = Quant.search([
                 ("product_id", "=", product.id),
                 ("location_id", "=", stock_location.id),
             ], limit=1)
-            if existing and existing.quantity > 0:
-                continue
 
-            # 재고 조정으로 초기 재고 설정
             if existing:
                 existing.with_context(inventory_mode=True).write({
                     "inventory_quantity": qty,
