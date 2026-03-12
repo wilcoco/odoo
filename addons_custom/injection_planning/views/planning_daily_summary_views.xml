@@ -13,7 +13,7 @@
                         domain="[('shortage_risk', '=', True)]"/>
                 <searchpanel>
                     <field name="product_id" string="사출 부품"
-                           icon="fa-cube" enable_counters="1"/>
+                           select="one" enable_counters="1"/>
                 </searchpanel>
             </search>
         </field>
