@@ -6,21 +6,26 @@
         <field name="model">injection.planning.daily.summary</field>
         <field name="arch" type="xml">
             <search>
-                <field name="product_id"/>
+                <field name="product_id" string="사출 부품"/>
                 <field name="plan_date"/>
                 <field name="planning_run_id"/>
-                <filter name="group_product" string="제품별"
-                        context="{'group_by': 'product_id'}"/>
-                <filter name="group_date" string="날짜별"
-                        context="{'group_by': 'plan_date:day'}"/>
                 <separator/>
                 <filter name="shortage_only" string="결품 위기만"
                         domain="[('shortage_risk', '=', True)]"/>
+                <separator/>
+                <filter name="group_product" string="제품별 그룹"
+                        context="{'group_by': 'product_id'}"/>
+                <filter name="group_date" string="날짜별 그룹"
+                        context="{'group_by': 'plan_date:day'}"/>
             </search>
         </field>
     </record>
 
-    <!-- 그래프 뷰 (라인 차트) - 사출품 기준 -->
+    <!-- ═══════════════════════════════════════════
+         그래프 뷰 (라인 차트)
+         사용법: 검색바에서 사출 부품 선택 → 해당 부품의
+         날짜별 소요량/생산량/재고/안전재고가 한 그래프에 표시
+         ═══════════════════════════════════════════ -->
     <record id="view_daily_summary_graph" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.graph</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -35,7 +40,7 @@
         </field>
     </record>
 
-    <!-- 피벗 뷰 -->
+    <!-- 피벗 뷰 (제품 × 날짜 교차표) -->
     <record id="view_daily_summary_pivot" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.pivot</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -52,7 +57,7 @@
         </field>
     </record>
 
-    <!-- 리스트 뷰 - 결품 위기 행 강조 -->
+    <!-- 리스트 뷰 - 결품 위기 행 빨간색 강조 -->
     <record id="view_daily_summary_list" model="ir.ui.view">
         <field name="name">injection.planning.daily.summary.list</field>
         <field name="model">injection.planning.daily.summary</field>
@@ -72,12 +77,11 @@
         </field>
     </record>
 
-    <!-- 액션: 제품별 그룹 기본 적용 -->
+    <!-- 액션: group_by 없이 열림 → 사용자가 검색바에서 사출 부품 선택 -->
     <record id="action_daily_summary" model="ir.actions.act_window">
         <field name="name">일별 생산계획 분석</field>
         <field name="res_model">injection.planning.daily.summary</field>
-        <field name="view_mode">graph,pivot,list</field>
+        <field name="view_mode">list,graph,pivot</field>
         <field name="search_view_id" ref="view_daily_summary_search"/>
-        <field name="context">{'search_default_group_product': 1}</field>
     </record>
 </odoo>

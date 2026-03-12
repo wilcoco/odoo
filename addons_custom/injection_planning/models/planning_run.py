@@ -820,15 +820,18 @@ class PlanningRun(models.Model):
             Summary.create(vals_list)
 
     def action_view_daily_summary(self):
-        """일별 분석 차트 열기"""
+        """일별 분석 차트 열기
+
+        리스트로 먼저 열림 → 사출 부품 선택 후 그래프 전환 시
+        해당 부품의 날짜별 소요량/생산량/재고/안전재고 라인 차트 표시
+        """
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
             "name": f"일별 분석 - {self.name}",
             "res_model": "injection.planning.daily.summary",
-            "view_mode": "graph,pivot,list",
+            "view_mode": "list,graph,pivot",
             "domain": [("planning_run_id", "=", self.id)],
-            "context": {"search_default_group_product": 1},
         }
 
     # ─────────────────────────────────────────────
