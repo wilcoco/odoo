@@ -435,6 +435,7 @@ class PlanningRun(models.Model):
 
         안전재고 = 해당 날짜로부터 향후 N일(safety_stock_days) 실제 수요 합계.
         우선순위: ① 당일 생산에 부족 없어야 함 ② 향후 3일치 재고 확보.
+        running_stock으로 (생산 + 소비) 모두 정확히 추적.
         """
         config = self._get_config()
         safety_days = int(config.safety_stock_days or 3)
@@ -443,8 +444,10 @@ class PlanningRun(models.Model):
         # 제품별로 재고 한번만 조회
         product_ids = set(pid for pid, _ in part_demands.keys())
         products = self.env["product.product"].browse(list(product_ids))
-        stock_map = {p.id: p.qty_available for p in products}
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
+
+        # running_stock: 생산·소비 모두 반영하는 실시간 재고
+        running_stock = {p.id: p.qty_available for p in products}
 
         # 제품별 날짜→수요 매핑 (향후 N일 참조용)
         product_date_demand = defaultdict(dict)
@@ -457,16 +460,15 @@ class PlanningRun(models.Model):
             dates = sorted(product_date_demand[pid].keys())
             product_sorted_dates[pid] = dates
 
-        # 날짜순으로 누적 처리
+        # 날짜순으로 제품별 처리
         sorted_keys = sorted(part_demands.keys(), key=lambda k: k[1])
-        cumulative_produced = defaultdict(float)
 
         for (pid, date_str) in sorted_keys:
             required = part_demands[(pid, date_str)]
-            current_stock = stock_map.get(pid, 0) + cumulative_produced[pid]
+            current = running_stock.get(pid, 0)
             max_inv = max_inv_map.get(pid, 0)
 
-            # 향후 N일 안전재고: 해당 날짜 다음날부터 N일간 실제 수요 합
+            # 향후 N일 안전재고: 다음날부터 N일간 실제 수요 합
             sorted_dates = product_sorted_dates.get(pid, [])
             try:
                 idx = sorted_dates.index(date_str)
@@ -482,28 +484,37 @@ class PlanningRun(models.Model):
                             future_date, 0
                         )
 
-            # ① 당일 부족분 = 당일 수요 - 현재 재고 (최우선)
-            # ② 안전재고 목표 = 향후 N일 수요 확보
-            target = required + future_demand
-            shortage = target - current_stock
-            if shortage <= 0:
-                # 재고 충분 (당일 + 향후 N일분 모두 충당)
-                stock_map[pid] = current_stock - required
+            # 목표: 당일 소비 후에도 향후 N일 수요를 충당할 재고 확보
+            # 소비 후 재고 = current - required
+            # 필요 재고 = future_demand (향후 N일 수요)
+            after_consume = current - required
+            produce = future_demand - after_consume
+
+            # ① 당일 부족: 소비 후 재고 < 0이면 반드시 생산
+            if after_consume < 0:
+                produce = max(produce, -after_consume)
+
+            # 생산 불필요
+            if produce <= 0:
+                running_stock[pid] = after_consume
                 continue
 
-            # 최대 재고 제한
+            # ② 최대 재고 제한
             if max_inv > 0:
-                available_space = max_inv - current_stock + required
-                shortage = min(shortage, max(available_space, 0))
+                # 생산 후 재고(생산 전 + 생산량 - 소비) ≤ 최대 재고
+                max_produce = max_inv - after_consume
+                if max_produce <= 0:
+                    # 소비 후에도 최대 재고 초과
+                    running_stock[pid] = after_consume
+                    continue
+                produce = min(produce, max_produce)
 
-            # 최소한 당일 부족분은 반드시 생산
-            today_shortage = required - current_stock
-            if shortage < today_shortage:
-                shortage = max(today_shortage, 0)
+            # 당일 부족분은 최대 재고보다 우선
+            if after_consume < 0:
+                produce = max(produce, -after_consume)
 
-            if shortage > 0:
-                net[(pid, date_str)] = shortage
-                cumulative_produced[pid] += shortage
+            net[(pid, date_str)] = produce
+            running_stock[pid] = after_consume + produce
 
         return net
 
