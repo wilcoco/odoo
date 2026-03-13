@@ -15,7 +15,7 @@ class GenerateDemoWizard(models.TransientModel):
         default=fields.Date.today,
     )
     plan_days = fields.Integer(
-        string="계획 기간 (일)", default=7,
+        string="계획 기간 (일)", default=14,
     )
     create_demand = fields.Boolean(
         string="수요 데이터 생성", default=True,
@@ -180,13 +180,14 @@ class GenerateDemoWizard(models.TransientModel):
         """사출 부품: BOM 구성품, 금형에 연결"""
         specs = [
             # (이름, 코드, 최대재고, 최소로트)
-            ("프론트 범퍼 쉘", "INJ-BF-001", 5000, 200),
-            ("리어 범퍼 쉘", "INJ-BR-001", 5000, 200),
-            ("프론트 범퍼 브라켓", "INJ-BK-F01", 10000, 500),
-            ("리어 범퍼 브라켓", "INJ-BK-R01", 10000, 500),
-            ("도어트림 패널 LH", "INJ-DT-L01", 4000, 150),
-            ("도어트림 클립", "INJ-DC-001", 20000, 1000),
-            ("라디에이터 그릴 프레임", "INJ-GR-001", 3000, 100),
+            # 최대재고 ≈ 5일치 수요, 최소로트 = 현실적 배치 단위
+            ("프론트 범퍼 쉘", "INJ-BF-001", 2500, 200),
+            ("리어 범퍼 쉘", "INJ-BR-001", 1500, 200),
+            ("프론트 범퍼 브라켓", "INJ-BK-F01", 5000, 500),
+            ("리어 범퍼 브라켓", "INJ-BK-R01", 3000, 500),
+            ("도어트림 패널 LH", "INJ-DT-L01", 4000, 200),
+            ("도어트림 클립", "INJ-DC-001", 16000, 1000),
+            ("라디에이터 그릴 프레임", "INJ-GR-001", 5000, 200),
         ]
         parts = self.env["product.product"]
         for name, code, max_inv, min_lot in specs:
@@ -598,23 +599,23 @@ class GenerateDemoWizard(models.TransientModel):
 
         # 사출 부품 초기 재고 (약 2일치)
         part_stock = {
-            "INJ-BF-001": 300,    # 프론트 범퍼 쉘
-            "INJ-BR-001": 250,    # 리어 범퍼 쉘
-            "INJ-BK-F01": 500,    # 프론트 범퍼 브라켓
-            "INJ-BK-R01": 400,    # 리어 범퍼 브라켓
-            "INJ-DT-L01": 400,    # 도어트림 패널
-            "INJ-DC-001": 1600,   # 도어트림 클립 (공용)
-            "INJ-GR-001": 300,    # 그릴 프레임
+            "INJ-BF-001": 870,    # 프론트 범퍼 쉘 (수요 ~435/일)
+            "INJ-BR-001": 570,    # 리어 범퍼 쉘 (수요 ~286/일)
+            "INJ-BK-F01": 1740,   # 프론트 범퍼 브라켓 (수요 ~870/일)
+            "INJ-BK-R01": 1140,   # 리어 범퍼 브라켓 (수요 ~572/일)
+            "INJ-DT-L01": 1560,   # 도어트림 패널 (수요 ~780/일)
+            "INJ-DC-001": 6240,   # 도어트림 클립 (수요 ~3120/일)
+            "INJ-GR-001": 2060,   # 그릴 프레임 (수요 ~1032/일)
         }
 
         # 원재료 초기 재고 (약 5일치, kg)
         raw_stock = {
-            "RAW-PP-001": 5000.0,     # PP 수지 5톤
-            "RAW-ABS-001": 3000.0,    # ABS 수지 3톤
-            "RAW-PA66GF-001": 500.0,  # PA66-GF30 500kg
-            "RAW-POM-001": 100.0,     # POM 수지 100kg
-            "RAW-PCABS-001": 2000.0,  # PC+ABS 2톤
-            "RAW-MB-BK01": 50.0,      # 마스터배치 50kg
+            "RAW-PP-001": 10000.0,    # PP 수지 10톤 (일소모 ~1.9톤)
+            "RAW-ABS-001": 7000.0,    # ABS 수지 7톤 (일소모 ~1.4톤)
+            "RAW-PA66GF-001": 2700.0, # PA66-GF30 2.7톤 (일소모 ~530kg)
+            "RAW-POM-001": 350.0,     # POM 수지 350kg (일소모 ~62kg)
+            "RAW-PCABS-001": 6500.0,  # PC+ABS 6.5톤 (일소모 ~1.2톤)
+            "RAW-MB-BK01": 500.0,     # 마스터배치 500kg (일소모 ~100kg)
         }
 
         all_products = {p.default_code: p for p in (parts | raw_materials)}
@@ -655,23 +656,41 @@ class GenerateDemoWizard(models.TransientModel):
         Demand = self.env["injection.production.demand"]
         p = {pr.default_code: pr for pr in finished}
 
-        # 완제품별 일일 수요 (주말 제외)
+        # 완제품별 일일 수요 (주말 제외, 7일 주기로 반복)
         # 같은 기준코드의 컬러별 수요가 따로 들어옴 → BOM 전개 시 합산됨
+        #
+        # 가동률 목표:
+        #   INJ-01 (BF+BR 쉘): 84%  ← 금형 교환 2.5h 포함, 타이트
+        #   INJ-02 (브라켓):   25%  ← 4캐비티 금형으로 빠르게 생산
+        #   INJ-03 (DT+DC):    75%  ← 교환 1h 포함
+        #   INJ-04 (그릴):     68%
         daily_qty = {
-            "86500-BS000EBB": [80, 100, 90, 95, 110, 0, 0],   # 프론트 범퍼 (에보니블랙)
-            "86500-BS000SWP": [40, 50, 40, 45, 50, 0, 0],     # 프론트 범퍼 (스노우화이트)
-            "86600-BS000EBB": [70, 90, 75, 85, 100, 0, 0],    # 리어 범퍼 (에보니블랙)
-            "86600-BS000KDG": [30, 40, 35, 35, 40, 0, 0],     # 리어 범퍼 (카키그린)
-            "82310-BS000EBB": [200, 220, 210, 230, 250, 0, 0], # 도어트림 LH
-            "86500-BS020CRM": [150, 170, 160, 180, 190, 0, 0], # 그릴
+            # ── 프론트 범퍼 (BOM: 쉘 x1 + 브라켓 x2) ──
+            # 합산 ~435/일 → INJ-01에서 6.6h, 브라켓 870/일 → INJ-02에서 1.5h
+            "86500-BS000EBB": [270, 290, 260, 280, 300, 0, 0],   # 에보니블랙 ~280
+            "86500-BS000SWP": [150, 160, 140, 155, 170, 0, 0],   # 스노우화이트 ~155
+            # ── 리어 범퍼 (BOM: 쉘 x1 + 브라켓 x2) ──
+            # 합산 ~286/일 → INJ-01에서 4.6h, 브라켓 572/일 → INJ-02에서 1.0h
+            "86600-BS000EBB": [180, 195, 170, 185, 200, 0, 0],   # 에보니블랙 ~186
+            "86600-BS000KDG": [95, 105, 90, 100, 110, 0, 0],     # 카키그린 ~100
+            # ── 도어트림 (BOM: 패널 x1 + 클립 x4) ──
+            # 패널 ~780/일 → INJ-03에서 9.1h, 클립 3120/일 → INJ-03에서 2.0h
+            "82310-BS000EBB": [750, 800, 720, 780, 850, 0, 0],   # 도어트림 LH ~780
+            # ── 라디에이터 그릴 (BOM: 프레임 x1) ──
+            # ~1032/일 → INJ-04에서 10.9h
+            "86500-BS020CRM": [1000, 1080, 960, 1020, 1100, 0, 0], # 그릴 ~1032
         }
+
+        # 수요 기간 = 계획 기간 + 7일 (안전재고 참조용 향후 수요)
+        # 계획 마지막 날에도 향후 3일 수요가 존재해야 안전재고 계산 가능
+        demand_days = self.plan_days + 7
 
         vals_list = []
         for code, week_qty in daily_qty.items():
             product = p.get(code)
             if not product:
                 continue
-            for day_offset in range(self.plan_days):
+            for day_offset in range(demand_days):
                 d = self.plan_start + timedelta(days=day_offset)
                 qty = week_qty[day_offset % 7]
                 if qty <= 0:
