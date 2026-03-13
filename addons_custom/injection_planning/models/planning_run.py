@@ -431,9 +431,13 @@ class PlanningRun(models.Model):
         return dict(part_demands)
 
     def _calculate_net_requirements(self, part_demands):
-        """순수요 = 수요 + 안전재고 - 현재 재고, 최대 재고 초과분 제외"""
+        """순수요 계산 — 향후 3일치 재고 확보, 당일 부족분 우선
+
+        안전재고 = 해당 날짜로부터 향후 N일(safety_stock_days) 실제 수요 합계.
+        우선순위: ① 당일 생산에 부족 없어야 함 ② 향후 3일치 재고 확보.
+        """
         config = self._get_config()
-        safety_days = config.safety_stock_days or 0.0
+        safety_days = int(config.safety_stock_days or 3)
 
         net = {}
         # 제품별로 재고 한번만 조회
@@ -442,20 +446,16 @@ class PlanningRun(models.Model):
         stock_map = {p.id: p.qty_available for p in products}
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
 
-        # 안전재고 계산: 제품별 일평균 수요 × safety_stock_days
-        product_daily_avg = defaultdict(float)
-        product_dates = defaultdict(set)
+        # 제품별 날짜→수요 매핑 (향후 N일 참조용)
+        product_date_demand = defaultdict(dict)
         for (pid, date_str), qty in part_demands.items():
-            product_daily_avg[pid] += qty
-            product_dates[pid].add(date_str)
-        for pid in product_daily_avg:
-            num_days = len(product_dates[pid]) or 1
-            product_daily_avg[pid] = product_daily_avg[pid] / num_days
+            product_date_demand[pid][date_str] = qty
 
-        safety_stock = {
-            pid: product_daily_avg[pid] * safety_days
-            for pid in product_ids
-        }
+        # 제품별 전체 날짜 정렬
+        product_sorted_dates = {}
+        for pid in product_ids:
+            dates = sorted(product_date_demand[pid].keys())
+            product_sorted_dates[pid] = dates
 
         # 날짜순으로 누적 처리
         sorted_keys = sorted(part_demands.keys(), key=lambda k: k[1])
@@ -465,19 +465,41 @@ class PlanningRun(models.Model):
             required = part_demands[(pid, date_str)]
             current_stock = stock_map.get(pid, 0) + cumulative_produced[pid]
             max_inv = max_inv_map.get(pid, 0)
-            ss = safety_stock.get(pid, 0)
 
-            # 필요량 = 수요 + 안전재고 - 현재재고
-            shortage = required + ss - current_stock
+            # 향후 N일 안전재고: 해당 날짜 다음날부터 N일간 실제 수요 합
+            sorted_dates = product_sorted_dates.get(pid, [])
+            try:
+                idx = sorted_dates.index(date_str)
+            except ValueError:
+                idx = -1
+            future_demand = 0.0
+            if idx >= 0:
+                for fi in range(1, safety_days + 1):
+                    future_idx = idx + fi
+                    if future_idx < len(sorted_dates):
+                        future_date = sorted_dates[future_idx]
+                        future_demand += product_date_demand[pid].get(
+                            future_date, 0
+                        )
+
+            # ① 당일 부족분 = 당일 수요 - 현재 재고 (최우선)
+            # ② 안전재고 목표 = 향후 N일 수요 확보
+            target = required + future_demand
+            shortage = target - current_stock
             if shortage <= 0:
-                # 재고 충분 (안전재고 포함)
+                # 재고 충분 (당일 + 향후 N일분 모두 충당)
                 stock_map[pid] = current_stock - required
                 continue
 
             # 최대 재고 제한
             if max_inv > 0:
-                available_space = max_inv - current_stock
+                available_space = max_inv - current_stock + required
                 shortage = min(shortage, max(available_space, 0))
+
+            # 최소한 당일 부족분은 반드시 생산
+            today_shortage = required - current_stock
+            if shortage < today_shortage:
+                shortage = max(today_shortage, 0)
 
             if shortage > 0:
                 net[(pid, date_str)] = shortage
@@ -486,9 +508,17 @@ class PlanningRun(models.Model):
         return net
 
     def _schedule(self, net_demands, config):
-        """사출기 배정 + 수량 조정 + 금형 교체 최소화 스케줄링"""
+        """사출기 배정 + 수량 조정 + 금형 교체 최소화 스케줄링
+
+        금형 교환 최소화 전략:
+        1) 각 사출기의 전날 장착 금형(last_mold_id)을 가동일정에서 조회
+        2) 작업 순서 결정: 전날 금형과 같은 작업 우선 → 금형별 그룹핑
+        3) 그룹 내 작업은 연속 배치하여 교환 없이 처리
+        4) 스케줄 종료 시 가동일정에 마지막 금형 기록 (다음 계획용)
+        """
         Capability = self.env["injection.machine.mold.capability"]
         Mold = self.env["injection.mold"]
+        Avail = self.env["injection.machine.availability"]
 
         capabilities = Capability.search([("active", "=", True)])
         if not capabilities:
@@ -502,13 +532,12 @@ class PlanningRun(models.Model):
             if cap.product_id:
                 product_caps[cap.product_id.id].append(cap)
 
-        # 사출기별 현재 금형 추적 (교체 판단용)
-        machine_current_mold = {}
-
         # 사출기별 작업 수집
         machine_jobs = defaultdict(list)
 
-        for (pid, date_str), demand_qty in sorted(net_demands.items(), key=lambda x: x[1]):
+        for (pid, date_str), demand_qty in sorted(
+            net_demands.items(), key=lambda x: x[1]
+        ):
             caps = product_caps.get(pid, [])
             if not caps:
                 _logger.warning(
@@ -530,10 +559,8 @@ class PlanningRun(models.Model):
         default_day_h = config.day_shift_hours or 8.0
         default_night_h = config.night_shift_hours or 8.0
         day_start = int(config.day_shift_start or 8)
-        night_start = int(config.night_shift_start or 20)
 
         # 사출기별 가동 일정 조회
-        Avail = self.env["injection.machine.availability"]
         avail_map = {}  # (wc_id, date) → availability record
         avail_records = Avail.search([
             ("date", ">=", str(self.plan_date_from)),
@@ -542,14 +569,21 @@ class PlanningRun(models.Model):
         for av in avail_records:
             avail_map[(av.workcenter_id.id, str(av.date))] = av
 
+        # 전날 가동일정에서 사출기별 현재 장착 금형 조회
+        prev_date = self.plan_date_from - timedelta(days=1)
+        prev_avails = Avail.search([("date", "=", str(prev_date))])
+        machine_current_mold = {}
+        for av in prev_avails:
+            if av.last_mold_id:
+                machine_current_mold[av.workcenter_id.id] = av.last_mold_id.id
+
         def _get_available_hours(wc_id, dt_date):
-            """해당 사출기/날짜의 가용 시간 (주간, 야간 각각 반환)"""
+            """해당 사출기/날짜의 가용 시간"""
             av = avail_map.get((wc_id, str(dt_date)))
             if av:
                 dh = av.day_shift_hours or 0.0
                 nh = av.night_shift_hours or 0.0
                 return dh + nh, dh > 0, nh > 0
-            # 가동 일정 미등록 시 → config 기본값 사용
             return default_day_h + default_night_h, True, True
 
         def _find_next_available(wc_id, from_date):
@@ -561,18 +595,45 @@ class PlanningRun(models.Model):
                 if avail_h > 0:
                     return check
                 check += timedelta(days=1)
-            return from_date  # 가용일 없으면 원래 날짜 반환
+            return from_date
 
-        # 사출기별 스케줄링 (같은 금형 연속 배치)
+        def _order_mold_groups(jobs_by_mold, prev_mold_id):
+            """금형 교환 최소화를 위한 그룹 정렬
+
+            전략: 전날 금형과 같은 그룹을 맨 앞에 배치.
+            나머지는 작업량이 많은 순서로 배치하여
+            큰 작업을 먼저 처리 (교환 후 오래 사용).
+            """
+            ordered = []
+            rest = []
+            for mold_id, mold_jobs in jobs_by_mold.items():
+                if mold_id == prev_mold_id:
+                    # 전날 금형 → 교환 불필요, 최우선
+                    ordered.insert(0, (mold_id, mold_jobs))
+                else:
+                    total_demand = sum(j["demand_qty"] for j in mold_jobs)
+                    rest.append((mold_id, mold_jobs, total_demand))
+            # 나머지: 작업량 많은 순 (교환 후 오래 쓰는 금형 우선)
+            rest.sort(key=lambda x: -x[2])
+            for mold_id, mold_jobs, _ in rest:
+                ordered.append((mold_id, mold_jobs))
+            return ordered
+
+        # 사출기별 스케줄링
         lines_data = []
-        machine_time_cursor = {}  # wc_id → datetime
-        machine_day_remaining = {}  # wc_id → 오늘 남은 시간
+        machine_time_cursor = {}
+        machine_day_remaining = {}
+        total_changeovers = 0
 
         for wc_id, jobs in machine_jobs.items():
-            # 금형별로 그룹핑 후 연속 배치 (교체 최소화)
+            # 금형별로 그룹핑
             jobs_by_mold = defaultdict(list)
             for job in jobs:
                 jobs_by_mold[job["capability"].mold_id.id].append(job)
+
+            # 전날 장착 금형 기반 정렬 (교환 최소화)
+            prev_mold_id = machine_current_mold.get(wc_id)
+            ordered_groups = _order_mold_groups(jobs_by_mold, prev_mold_id)
 
             seq = 10
             # 첫 작업: 가용한 첫 날 주간 시작
@@ -585,11 +646,19 @@ class PlanningRun(models.Model):
                 avail_h, _, _ = _get_available_hours(wc_id, first_date)
                 machine_day_remaining[wc_id] = avail_h
 
-            for mold_id, mold_jobs in jobs_by_mold.items():
+            for mold_id, mold_jobs in ordered_groups:
                 mold = Mold.browse(mold_id)
-                prev_mold = machine_current_mold.get(wc_id)
-                changeover = prev_mold is not None and prev_mold != mold_id
-                machine_current_mold[wc_id] = mold_id
+                # 금형 교환 판단: 현재 장착 금형과 다른 경우
+                changeover = (
+                    prev_mold_id is not None and prev_mold_id != mold_id
+                )
+                if changeover:
+                    total_changeovers += 1
+                # 이 그룹 처리 후 현재 금형 업데이트
+                prev_mold_id = mold_id
+
+                # 금형 그룹 내 작업을 날짜순 정렬
+                mold_jobs.sort(key=lambda j: j["date_str"])
 
                 for i, job in enumerate(mold_jobs):
                     cap = job["capability"]
@@ -597,23 +666,43 @@ class PlanningRun(models.Model):
 
                     # 불량율 반영
                     dr = cap.defect_rate or config.default_defect_rate
-                    adjusted = math.ceil(demand / (1 - dr / 100.0)) if dr < 100 else demand
+                    adjusted = (
+                        math.ceil(demand / (1 - dr / 100.0))
+                        if dr < 100
+                        else demand
+                    )
 
-                    # 초기 불량
+                    # 초기 불량 (그룹 첫 작업 + 금형 교환 시)
                     needs_changeover = changeover and i == 0
-                    scrap = (cap.initial_scrap or config.default_initial_scrap) if needs_changeover else 0
+                    scrap = (
+                        (cap.initial_scrap or config.default_initial_scrap)
+                        if needs_changeover
+                        else 0
+                    )
                     adjusted += scrap
 
                     # 최소 로트
-                    product = self.env["product.product"].browse(job["product_id"])
-                    min_lot = product.min_lot_size or config.default_min_lot_size
+                    product = self.env["product.product"].browse(
+                        job["product_id"]
+                    )
+                    min_lot = (
+                        product.min_lot_size or config.default_min_lot_size
+                    )
                     if min_lot > 0 and adjusted < min_lot:
                         adjusted = min_lot
 
-                    co_hours = mold.changeover_hours or config.default_changeover if needs_changeover else 0.0
+                    co_hours = (
+                        mold.changeover_hours or config.default_changeover
+                        if needs_changeover
+                        else 0.0
+                    )
 
                     # 생산 시간
-                    prod_hours = adjusted / cap.hourly_capacity if cap.hourly_capacity > 0 else 0.0
+                    prod_hours = (
+                        adjusted / cap.hourly_capacity
+                        if cap.hourly_capacity > 0
+                        else 0.0
+                    )
                     total_job_hours = co_hours + prod_hours
 
                     # 타임라인: 가동일정 기반 배치
@@ -628,7 +717,9 @@ class PlanningRun(models.Model):
                         cursor = datetime.combine(
                             next_date, datetime.min.time()
                         ).replace(hour=day_start)
-                        avail_h, _, _ = _get_available_hours(wc_id, next_date)
+                        avail_h, _, _ = _get_available_hours(
+                            wc_id, next_date
+                        )
                         remaining = avail_h
 
                     start_time = cursor
@@ -655,6 +746,30 @@ class PlanningRun(models.Model):
                         "max_inventory": product.max_inventory_qty,
                     })
                     seq += 10
+
+            # 스케줄 종료 후 마지막 금형 기록
+            machine_current_mold[wc_id] = prev_mold_id
+
+        # 가동일정에 마지막 금형 기록 (다음 계획 시 참조)
+        last_plan_date = str(self.plan_date_to)
+        for wc_id, last_mold_id in machine_current_mold.items():
+            if not last_mold_id:
+                continue
+            av = avail_map.get((wc_id, last_plan_date))
+            if av:
+                av.last_mold_id = last_mold_id
+            else:
+                # 해당 날짜 가동일정 없으면 생성
+                Avail.create({
+                    "workcenter_id": wc_id,
+                    "date": last_plan_date,
+                    "last_mold_id": last_mold_id,
+                })
+
+        if total_changeovers:
+            _logger.info(
+                "스케줄링 완료: 총 금형 교환 %d회", total_changeovers
+            )
 
         return lines_data
 
@@ -782,28 +897,32 @@ class PlanningRun(models.Model):
         if not sorted_dates:
             return
 
-        # 5) 안전재고 계산 (제품별)
-        safety_map = {}
-        for pid in all_pids:
+        # 5) 안전재고 계산: 각 날짜에서 향후 N일 실제 수요 합
+        safety_days = int(config.safety_stock_days or 3)
+
+        def _calc_future_demand(pid, date_idx):
+            """해당 날짜 다음날부터 N일간 실제 수요 합계"""
+            future = 0.0
             demands = demand_by_product_date.get(pid, {})
-            if demands:
-                total_demand = sum(demands.values())
-                num_days = len(demands)
-                daily_avg = total_demand / num_days if num_days > 0 else 0
-            else:
-                daily_avg = 0
-            safety_map[pid] = daily_avg * safety_days
+            for fi in range(1, safety_days + 1):
+                fi_idx = date_idx + fi
+                if fi_idx < len(sorted_dates):
+                    future += demands.get(sorted_dates[fi_idx], 0)
+            return future
 
         # 6) 일별 누적 재고 계산 + 레코드 생성
         vals_list = []
         for pid in all_pids:
             running_stock = stock_map.get(pid, 0)
-            for date_str in sorted_dates:
+            for date_idx, date_str in enumerate(sorted_dates):
                 demand = demand_by_product_date.get(pid, {}).get(date_str, 0)
                 planned = planned_by_product_date.get(pid, {}).get(date_str, 0)
                 stock_start = running_stock
                 stock_end = stock_start + planned - demand
                 running_stock = stock_end
+
+                # 향후 N일 수요 = 이 날짜에서 확보해야 할 안전재고
+                safety_qty = _calc_future_demand(pid, date_idx)
 
                 vals_list.append({
                     "planning_run_id": self.id,
@@ -811,7 +930,7 @@ class PlanningRun(models.Model):
                     "plan_date": date_str,
                     "demand_qty": demand,
                     "planned_qty": planned,
-                    "safety_stock_qty": safety_map.get(pid, 0),
+                    "safety_stock_qty": safety_qty,
                     "stock_start": stock_start,
                     "stock_end": stock_end,
                 })

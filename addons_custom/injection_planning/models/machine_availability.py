@@ -24,6 +24,12 @@ class MachineAvailability(models.Model):
     available_hours = fields.Float(
         string="총 가용시간 (h)", compute="_compute_available_hours", store=True,
     )
+    last_mold_id = fields.Many2one(
+        "injection.mold", string="현재 장착 금형",
+        help="전일 기준 이 사출기에 장착되어 있는 금형. "
+             "스케줄링 시 금형 교환 여부 판단에 사용.",
+    )
+
     unavail_reason = fields.Selection(
         [
             ("breakdown", "고장"),

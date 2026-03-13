@@ -37,6 +37,7 @@
                 <field name="day_shift_hours"/>
                 <field name="night_shift_hours"/>
                 <field name="available_hours"/>
+                <field name="last_mold_id" optional="show"/>
                 <field name="unavail_reason"/>
                 <field name="notes" optional="show"/>
             </list>
@@ -61,6 +62,7 @@
                     </group>
                 </group>
                 <group>
+                    <field name="last_mold_id"/>
                     <field name="unavail_reason"/>
                     <field name="notes"/>
                 </group>

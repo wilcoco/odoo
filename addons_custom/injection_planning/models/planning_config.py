@@ -82,8 +82,9 @@ class InjectionPlanningConfig(models.Model):
 
     # ── 안전재고 ──
     safety_stock_days = fields.Float(
-        string="안전재고 (일)", default=3.5,
-        help="안전재고 확보 일수. 일평균 수요 × 이 값 만큼 재고 유지",
+        string="안전재고 (일)", default=3,
+        help="안전재고 확보 일수. 각 날짜로부터 향후 N일간 실제 수요를 "
+             "충당할 수 있는 재고 수준 유지. 당일 생산 부족 없음 최우선.",
     )
 
     company_id = fields.Many2one(

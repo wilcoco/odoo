@@ -19,7 +19,7 @@ class PlanningDailySummary(models.Model):
     # ── 수량 ──
     demand_qty = fields.Float(string="소요량", help="BOM 전개 후 사출 부품 일일 소요량")
     planned_qty = fields.Float(string="생산량", help="해당일 생산 계획량 합계")
-    safety_stock_qty = fields.Float(string="안전재고", help="일평균수요 x 안전재고일수")
+    safety_stock_qty = fields.Float(string="안전재고", help="해당 날짜로부터 향후 N일간 실제 수요 합계")
 
     # ── 재고 ──
     stock_start = fields.Float(string="시작 재고", help="해당일 시작 시점 예상 재고")

@@ -450,7 +450,7 @@ class GenerateDemoWizard(models.TransientModel):
             "night_shift_hours": 8.0,
             "day_shift_start": 8.0,
             "night_shift_start": 20.0,
-            "safety_stock_days": 3.5,
+            "safety_stock_days": 3,
         })
 
     # ─────────────────────────────────────────────
