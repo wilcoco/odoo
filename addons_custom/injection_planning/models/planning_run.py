@@ -452,6 +452,12 @@ class PlanningRun(models.Model):
         # running_stock: 생산·소비 모두 반영하는 실시간 재고
         running_stock = {p.id: p.qty_available for p in products}
 
+        for p in products:
+            _logger.info(
+                "[순수요] 제품 %s (id=%s): qty_available=%.1f, max_inv=%.1f",
+                p.default_code, p.id, p.qty_available, max_inv_map.get(p.id, 0),
+            )
+
         # 제품별 일일 풀 캐퍼 계산 (최적 사출기-금형 조합 기준)
         Capability = self.env["injection.machine.mold.capability"]
         capabilities = Capability.search([("active", "=", True)])
