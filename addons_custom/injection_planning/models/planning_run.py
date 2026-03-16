@@ -431,10 +431,13 @@ class PlanningRun(models.Model):
         return dict(part_demands)
 
     def _calculate_net_requirements(self, part_demands):
-        """순수요 계산 — 향후 3일치 재고 확보, 당일 부족분 우선
+        """순수요 계산 — 풀 캐퍼 생산, 향후 3일치 안전재고
 
-        안전재고 = 해당 날짜로부터 향후 N일(safety_stock_days) 실제 수요 합계.
-        우선순위: ① 당일 생산에 부족 없어야 함 ② 향후 3일치 재고 확보.
+        생산 원칙:
+        ① 생산이 필요한 날은 해당 제품 기계의 풀 캐퍼(일 가용시간)로 생산
+        ② 당일 부족 없어야 함 (최우선)
+        ③ 향후 N일 수요를 충당할 안전재고 확보
+        ④ 최대 재고 초과 방지
         running_stock으로 (생산 + 소비) 모두 정확히 추적.
         """
         config = self._get_config()
@@ -448,6 +451,18 @@ class PlanningRun(models.Model):
 
         # running_stock: 생산·소비 모두 반영하는 실시간 재고
         running_stock = {p.id: p.qty_available for p in products}
+
+        # 제품별 일일 풀 캐퍼 계산 (최적 사출기-금형 조합 기준)
+        Capability = self.env["injection.machine.mold.capability"]
+        capabilities = Capability.search([("active", "=", True)])
+        daily_hours = (config.day_shift_hours or 8) + (config.night_shift_hours or 8)
+
+        product_daily_cap = {}
+        for pid in product_ids:
+            caps = [c for c in capabilities if c.product_id.id == pid]
+            if caps:
+                best = max(caps, key=lambda c: c.hourly_capacity)
+                product_daily_cap[pid] = best.hourly_capacity * daily_hours
 
         # 제품별 날짜→수요 매핑 (향후 N일 참조용)
         product_date_demand = defaultdict(dict)
@@ -489,28 +504,25 @@ class PlanningRun(models.Model):
                         )
 
             # 목표: 당일 소비 후에도 향후 N일 수요를 충당할 재고 확보
-            # 소비 후 재고 = current - required
-            # 필요 재고 = future_demand (향후 N일 수요)
             after_consume = current - required
-            produce = future_demand - after_consume
+            need = future_demand - after_consume
 
             # ① 당일 부족: 소비 후 재고 < 0이면 반드시 생산
             if after_consume < 0:
-                produce = max(produce, -after_consume)
+                need = max(need, -after_consume)
 
             # 생산 불필요
-            if produce <= 0:
+            if need <= 0:
                 running_stock[pid] = after_consume
                 continue
 
-            # ② 최대 재고 제한
+            # ② 풀 캐퍼로 생산 (생산하는 날은 기계 전체 가동)
+            daily_cap = product_daily_cap.get(pid, 0)
+            produce = daily_cap if daily_cap > 0 else need
+
+            # ③ 최대 재고 제한
             if max_inv > 0:
-                # 생산 후 재고(생산 전 + 생산량 - 소비) ≤ 최대 재고
                 max_produce = max_inv - after_consume
-                if max_produce <= 0:
-                    # 소비 후에도 최대 재고 초과
-                    running_stock[pid] = after_consume
-                    continue
                 produce = min(produce, max_produce)
 
             # 당일 부족분은 최대 재고보다 우선
