@@ -375,20 +375,23 @@ class GenerateDemoWizard(models.TransientModel):
         ]
         molds = Mold
         for name, code, pcode, cavity, co_h, guaranteed, current in specs:
+            product = p.get(pcode)
+            vals = {
+                "name": name,
+                "code": code,
+                "product_id": product.id if product else False,
+                "cavity_count": cavity,
+                "changeover_hours": co_h,
+                "guaranteed_shots": guaranteed,
+                "current_shots": current,
+            }
             existing = Mold.search([("code", "=", code)], limit=1)
             if existing:
+                # 항상 최신 값으로 업데이트 (product_id 누락 방지)
+                existing.write(vals)
                 molds |= existing
             else:
-                product = p.get(pcode)
-                molds |= Mold.create({
-                    "name": name,
-                    "code": code,
-                    "product_id": product.id if product else False,
-                    "cavity_count": cavity,
-                    "changeover_hours": co_h,
-                    "guaranteed_shots": guaranteed,
-                    "current_shots": current,
-                })
+                molds |= Mold.create(vals)
         return molds
 
     # ─────────────────────────────────────────────
@@ -417,20 +420,23 @@ class GenerateDemoWizard(models.TransientModel):
             m = md.get(mold_code)
             if not w or not m:
                 continue
+            vals = {
+                "workcenter_id": w.id,
+                "mold_id": m.id,
+                "cycle_time": ct,
+                "defect_rate": dr,
+                "initial_scrap": scrap,
+            }
             existing = Cap.search([
                 ("workcenter_id", "=", w.id),
                 ("mold_id", "=", m.id),
             ], limit=1)
             if existing:
+                # 항상 최신 값으로 업데이트 (stored related 필드 재계산 유도)
+                existing.write(vals)
                 caps |= existing
             else:
-                caps |= Cap.create({
-                    "workcenter_id": w.id,
-                    "mold_id": m.id,
-                    "cycle_time": ct,
-                    "defect_rate": dr,
-                    "initial_scrap": scrap,
-                })
+                caps |= Cap.create(vals)
         return caps
 
     # ─────────────────────────────────────────────
