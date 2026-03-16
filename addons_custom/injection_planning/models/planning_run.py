@@ -463,12 +463,24 @@ class PlanningRun(models.Model):
         capabilities = Capability.search([("active", "=", True)])
         daily_hours = (config.day_shift_hours or 8) + (config.night_shift_hours or 8)
 
+        # capability → product 매핑: related 필드 대신 mold_id.product_id 직접 참조
         product_daily_cap = {}
         for pid in product_ids:
-            caps = [c for c in capabilities if c.product_id.id == pid]
+            caps = [
+                c for c in capabilities
+                if (c.product_id.id == pid) or (c.mold_id.product_id.id == pid)
+            ]
             if caps:
                 best = max(caps, key=lambda c: c.hourly_capacity)
                 product_daily_cap[pid] = best.hourly_capacity * daily_hours
+                _logger.info(
+                    "[순수요] 제품 id=%s: daily_cap=%.1f (hourly=%.1f × %dh)",
+                    pid, product_daily_cap[pid], best.hourly_capacity, daily_hours,
+                )
+            else:
+                _logger.warning(
+                    "[순수요] 제품 id=%s: capability 없음! 풀캐퍼 계산 불가", pid,
+                )
 
         # 제품별 날짜→수요 매핑 (향후 N일 참조용)
         product_date_demand = defaultdict(dict)
@@ -519,12 +531,24 @@ class PlanningRun(models.Model):
 
             # 생산 불필요
             if need <= 0:
+                _logger.info(
+                    "[순수요] SKIP pid=%s %s: current=%.1f req=%.1f "
+                    "after=%.1f future=%.1f need=%.1f",
+                    pid, date_str, current, required,
+                    after_consume, future_demand, need,
+                )
                 running_stock[pid] = after_consume
                 continue
 
             # ② 풀 캐퍼로 생산 (생산하는 날은 기계 전체 가동)
             daily_cap = product_daily_cap.get(pid, 0)
             produce = daily_cap if daily_cap > 0 else need
+            _logger.info(
+                "[순수요] PRODUCE pid=%s %s: current=%.1f req=%.1f "
+                "after=%.1f future=%.1f need=%.1f → produce=%.1f (cap=%.1f)",
+                pid, date_str, current, required,
+                after_consume, future_demand, need, produce, daily_cap,
+            )
 
             # ③ 최대 재고 제한
             if max_inv > 0:
@@ -559,11 +583,16 @@ class PlanningRun(models.Model):
                 "사출기-금형 조합 설정이 없습니다. 먼저 조합을 등록하세요."
             )
 
-        # 제품 → 가능한 조합 매핑
+        # 제품 → 가능한 조합 매핑 (related 필드 + mold 직접 참조 양쪽 모두)
         product_caps = defaultdict(list)
         for cap in capabilities:
-            if cap.product_id:
-                product_caps[cap.product_id.id].append(cap)
+            pid = cap.product_id.id or cap.mold_id.product_id.id
+            if pid:
+                product_caps[pid].append(cap)
+        _logger.info(
+            "[스케줄] product_caps 매핑: %s",
+            {pid: len(caps) for pid, caps in product_caps.items()},
+        )
 
         # 사출기별 작업 수집
         machine_jobs = defaultdict(list)
