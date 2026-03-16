@@ -608,14 +608,14 @@ class GenerateDemoWizard(models.TransientModel):
             "INJ-GR-001": 2060,   # 그릴 프레임 (수요 ~1032/일)
         }
 
-        # 원재료 초기 재고 (약 5일치, kg)
+        # 원재료 초기 재고 (약 12일치, kg) — 계획기간(10근무일) 충분히 커버
         raw_stock = {
-            "RAW-PP-001": 10000.0,    # PP 수지 10톤 (일소모 ~1.9톤)
-            "RAW-ABS-001": 7000.0,    # ABS 수지 7톤 (일소모 ~1.4톤)
-            "RAW-PA66GF-001": 2700.0, # PA66-GF30 2.7톤 (일소모 ~530kg)
-            "RAW-POM-001": 350.0,     # POM 수지 350kg (일소모 ~62kg)
-            "RAW-PCABS-001": 6500.0,  # PC+ABS 6.5톤 (일소모 ~1.2톤)
-            "RAW-MB-BK01": 500.0,     # 마스터배치 500kg (일소모 ~100kg)
+            "RAW-PP-001": 24000.0,    # PP 수지 24톤 (일소모 ~1.9톤)
+            "RAW-ABS-001": 17000.0,   # ABS 수지 17톤 (일소모 ~1.4톤)
+            "RAW-PA66GF-001": 6500.0, # PA66-GF30 6.5톤 (일소모 ~530kg)
+            "RAW-POM-001": 800.0,     # POM 수지 800kg (일소모 ~62kg)
+            "RAW-PCABS-001": 15000.0, # PC+ABS 15톤 (일소모 ~1.2톤)
+            "RAW-MB-BK01": 1300.0,    # 마스터배치 1.3톤 (일소모 ~100kg)
         }
 
         all_products = {p.default_code: p for p in (parts | raw_materials)}
