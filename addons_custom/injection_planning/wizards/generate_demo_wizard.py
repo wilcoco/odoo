@@ -627,8 +627,8 @@ class GenerateDemoWizard(models.TransientModel):
             if not product:
                 continue
 
-            # 기존 재고 quant 있으면 목표 수량으로 덮어쓰기
-            # (기존 재고 + 샘플 재고 = 최종 재고가 되도록)
+            # 기존 재고 quant 있으면 목표 수량으로 리셋
+            # (샘플 재생성 시 항상 동일한 초기 재고로 설정)
             existing = Quant.search([
                 ("product_id", "=", product.id),
                 ("location_id", "=", stock_location.id),
@@ -636,7 +636,7 @@ class GenerateDemoWizard(models.TransientModel):
 
             if existing:
                 existing.with_context(inventory_mode=True).write({
-                    "inventory_quantity": existing.quantity + qty,
+                    "inventory_quantity": qty,   # 누적이 아닌 고정값
                 })
                 existing.action_apply_inventory()
             else:
