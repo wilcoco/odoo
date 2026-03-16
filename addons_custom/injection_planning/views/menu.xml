@@ -13,6 +13,12 @@
               action="action_planning_run"
               sequence="10"/>
 
+    <menuitem id="menu_machine_production_report"
+              name="사출기 생산 계획"
+              parent="menu_injection_planning_root"
+              action="action_machine_production_report"
+              sequence="12"/>
+
     <menuitem id="menu_demand"
               name="수요 데이터"
               parent="menu_injection_planning_root"
