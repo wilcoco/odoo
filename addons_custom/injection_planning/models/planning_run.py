@@ -460,10 +460,14 @@ class PlanningRun(models.Model):
             dates = sorted(product_date_demand[pid].keys())
             product_sorted_dates[pid] = dates
 
-        # 날짜순으로 제품별 처리
+        # 계획 기간 내 날짜만 생산 (기간 외 수요는 안전재고 참조용)
+        plan_end_str = str(self.plan_date_to)
         sorted_keys = sorted(part_demands.keys(), key=lambda k: k[1])
 
         for (pid, date_str) in sorted_keys:
+            # 계획 기간 밖의 수요는 건너뜀 (안전재고 참조로만 사용)
+            if date_str > plan_end_str:
+                continue
             required = part_demands[(pid, date_str)]
             current = running_stock.get(pid, 0)
             max_inv = max_inv_map.get(pid, 0)
@@ -898,12 +902,15 @@ class PlanningRun(models.Model):
         products = self.env["product.product"].browse(list(all_pids))
         stock_map = {p.id: p.qty_available for p in products}
 
-        # 4) 전체 날짜 범위
-        all_dates = set()
-        for pid in all_pids:
-            all_dates.update(demand_by_product_date.get(pid, {}).keys())
-            all_dates.update(planned_by_product_date.get(pid, {}).keys())
-        sorted_dates = sorted(all_dates)
+        # 4) 계획 기간 전체 날짜 (주말 포함, 재고 연속 추적)
+        from datetime import date as date_cls
+        plan_from = self.plan_date_from
+        plan_to = self.plan_date_to
+        sorted_dates = []
+        d = plan_from
+        while d <= plan_to:
+            sorted_dates.append(str(d))
+            d += timedelta(days=1)
 
         if not sorted_dates:
             return
@@ -911,14 +918,39 @@ class PlanningRun(models.Model):
         # 5) 안전재고 계산: 각 날짜에서 향후 N일 실제 수요 합
         safety_days = int(config.safety_stock_days or 3)
 
-        def _calc_future_demand(pid, date_idx):
-            """해당 날짜 다음날부터 N일간 실제 수요 합계"""
+        # 수요가 있는 날짜만 모아서 향후 N근무일 참조용으로 사용
+        # (주말 건너뛰기: 수요 있는 날짜만 카운트)
+        all_demand_dates = set()
+        for pid in all_pids:
+            all_demand_dates.update(demand_by_product_date.get(pid, {}).keys())
+            all_demand_dates.update(planned_by_product_date.get(pid, {}).keys())
+        # 계획 기간 밖 수요도 포함 (안전재고 참조용)
+        demand_sorted = sorted(all_demand_dates)
+
+        def _calc_future_demand(pid, date_str):
+            """해당 날짜 다음 근무일부터 N근무일간 실제 수요 합계"""
             future = 0.0
             demands = demand_by_product_date.get(pid, {})
-            for fi in range(1, safety_days + 1):
-                fi_idx = date_idx + fi
-                if fi_idx < len(sorted_dates):
-                    future += demands.get(sorted_dates[fi_idx], 0)
+            try:
+                idx = demand_sorted.index(date_str)
+            except ValueError:
+                # 주말 등 수요 없는 날: 다음 수요일부터 참조
+                idx = -1
+                for i, ds in enumerate(demand_sorted):
+                    if ds > date_str:
+                        idx = i - 1
+                        break
+            if idx < 0:
+                idx = -1
+            count = 0
+            fi = 1
+            while count < safety_days:
+                fi_idx = idx + fi
+                if fi_idx >= len(demand_sorted):
+                    break
+                future += demands.get(demand_sorted[fi_idx], 0)
+                fi += 1
+                count += 1
             return future
 
         # 6) 일별 누적 재고 계산 + 레코드 생성
@@ -932,8 +964,8 @@ class PlanningRun(models.Model):
                 stock_end = stock_start + planned - demand
                 running_stock = stock_end
 
-                # 향후 N일 수요 = 이 날짜에서 확보해야 할 안전재고
-                safety_qty = _calc_future_demand(pid, date_idx)
+                # 향후 N근무일 수요 = 이 날짜에서 확보해야 할 안전재고
+                safety_qty = _calc_future_demand(pid, date_str)
 
                 vals_list.append({
                     "planning_run_id": self.id,
