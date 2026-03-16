@@ -627,24 +627,25 @@ class GenerateDemoWizard(models.TransientModel):
             if not product:
                 continue
 
-            # 기존 모든 재고 quant 삭제 후 재생성 (MO 완료 등으로 누적된 재고 초기화)
-            all_quants = Quant.with_context(inventory_mode=True).search([
+            # 기존 재고 quant 있으면 목표 수량으로 덮어쓰기
+            # (기존 재고 + 샘플 재고 = 최종 재고가 되도록)
+            existing = Quant.search([
                 ("product_id", "=", product.id),
                 ("location_id", "=", stock_location.id),
-            ])
-            if all_quants:
-                all_quants.with_context(inventory_mode=True).write({
-                    "quantity": 0,
-                    "inventory_quantity": 0,
-                })
-                all_quants.with_context(inventory_mode=True).unlink()
+            ], limit=1)
 
-            quant = Quant.with_context(inventory_mode=True).create({
-                "product_id": product.id,
-                "location_id": stock_location.id,
-                "inventory_quantity": qty,
-            })
-            quant.action_apply_inventory()
+            if existing:
+                existing.with_context(inventory_mode=True).write({
+                    "inventory_quantity": existing.quantity + qty,
+                })
+                existing.action_apply_inventory()
+            else:
+                quant = Quant.with_context(inventory_mode=True).create({
+                    "product_id": product.id,
+                    "location_id": stock_location.id,
+                    "inventory_quantity": qty,
+                })
+                quant.action_apply_inventory()
             count += 1
 
         return count
