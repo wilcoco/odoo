@@ -1,7 +1,7 @@
 # 사출 생산계획 시스템 기술 명세서
 
 > Odoo 18 Community 모듈 `injection_planning`
-> 마지막 갱신: 2026-03-18
+> 마지막 갱신: 2026-03-18 (v2 — 정수올림, 교체횟수 필드, capability 폴백 반영)
 
 ---
 
@@ -21,7 +21,7 @@
 | `injection.mold` | 금형 | `product_id`(생산 제품), `cavity_count`, `changeover_hours` |
 | `injection.machine.mold.capability` | 사출기-금형 조합 | `workcenter_id`, `mold_id`, `cycle_time`(초), `defect_rate`(%), `initial_scrap`(개) |
 | `injection.machine.availability` | 사출기 가동 일정 | `workcenter_id`, `date`, `day_shift_hours`, `night_shift_hours`, `last_mold_id` |
-| `injection.planning.config` | 글로벌 설정 | 안전재고일수, 교대시간, 기본불량율, Oracle 연결 등 |
+| `injection.planning.config` | 글로벌 설정 | `safety_stock_days`, 교대시간, 기본불량율, Oracle 연결 등 |
 | `product.product` (확장) | 제품 | `max_inventory_qty`, `min_lot_size` |
 
 ### 2.2 핵심 계산 필드
@@ -37,7 +37,7 @@ daily_capacity = hourly_capacity × (day_shift_hours + night_shift_hours)
 |---|---|
 | `injection.planning.run` | 계획 실행 (1회 = 1 레코드) |
 | `injection.production.demand` | 수요 데이터 (완성품 × 날짜 × 수량) |
-| `injection.planning.line` | 계획 라인 (사출기 × 날짜 × 제품 × 수량) |
+| `injection.planning.line` | 계획 라인 (사출기 × 날짜 × 제품 × 수량, `changeover_count` 0/1 피벗합계용) |
 | `injection.planning.daily.summary` | 일별 요약 (차트용, 재고/수요/생산/안전재고) |
 
 ---
@@ -294,7 +294,15 @@ Oracle 수요 조회 → 계획 계산 → MO 생성 → 완료
 - **1레벨 BOM 전개**: 사출 부품 → 원소재 전개는 미포함 (원소재 부족 미검증)
 - **재작업/반품 미반영**: MO 완료 후 재고 변동은 다음 계획에 반영
 
-### 10.2 정수계획(IP)으로 전환 시 구조
+### 10.2 코드 수정 시 주의사항
+
+- **capability.product_id**: `related="mold_id.product_id"` (stored)가 갱신 안 될 수 있으므로, 코드에서 `cap.product_id.id or cap.mold_id.product_id.id`로 폴백 참조 필수
+- **stock.quant**: Odoo에서 직접 삭제 불가 → 재고 초기화 시 수량 덮어쓰기 방식 사용
+- **생산수량 정수**: `math.ceil()` 올림 처리 — 사출은 소수점 생산 불가
+- **수요 기간**: `plan_days + safety_stock_days` 이상의 수요 제공 필요 (마지막 날 안전재고 계산용)
+- **이전 MO 누적 재고**: MO 완료 시 사출 부품 재고가 누적되므로, 다음 계획 시 `qty_available`이 높아 생산 0이 나올 수 있음 (정상 동작)
+
+### 10.3 정수계획(IP)으로 전환 시 구조
 
 ```
 목적함수: min(금형교환횟수 × 교환비용 + 재고보유비용)
