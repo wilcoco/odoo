@@ -559,6 +559,9 @@ class PlanningRun(models.Model):
             if after_consume < 0:
                 produce = max(produce, -after_consume)
 
+            # 사출 생산은 정수 단위 (올림)
+            produce = math.ceil(produce)
+
             net[(pid, date_str)] = produce
             running_stock[pid] = after_consume + produce
 

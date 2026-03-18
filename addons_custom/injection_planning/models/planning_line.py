@@ -32,6 +32,11 @@ class PlanningLine(models.Model):
 
     # ── 금형 교체 ──
     changeover_needed = fields.Boolean(string="금형 교체 필요")
+    changeover_count = fields.Integer(
+        string="교체 횟수",
+        compute="_compute_changeover_count", store=True,
+        help="금형 교체 필요 시 1, 아니면 0 (피벗 합계용)",
+    )
     changeover_hours = fields.Float(string="교체 시간 (h)")
 
     # ── 시간 ──
@@ -56,6 +61,11 @@ class PlanningLine(models.Model):
         string="상태",
         default="draft",
     )
+
+    @api.depends("changeover_needed")
+    def _compute_changeover_count(self):
+        for rec in self:
+            rec.changeover_count = 1 if rec.changeover_needed else 0
 
     @api.depends("planned_qty", "changeover_hours", "changeover_needed")
     def _compute_hours(self):

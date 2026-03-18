@@ -48,6 +48,7 @@
                 <field name="demand_qty" sum="합계"/>
                 <field name="planned_qty" sum="합계"/>
                 <field name="changeover_needed"/>
+                <field name="changeover_count" sum="합계"/>
                 <field name="changeover_hours" sum="합계"/>
                 <field name="production_hours" sum="합계"/>
                 <field name="total_hours" sum="합계"/>
@@ -68,6 +69,7 @@
                 <field name="workcenter_id" type="row"/>
                 <field name="product_id" type="col"/>
                 <field name="planned_qty" type="measure"/>
+                <field name="changeover_count" type="measure"/>
             </pivot>
         </field>
     </record>
