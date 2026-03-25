@@ -37,6 +37,9 @@
                             <field name="auto_generate_mo"/>
                             <field name="planning_horizon"/>
                         </group>
+                        <group>
+                            <field name="mo_split_mode"/>
+                        </group>
                     </group>
                     <group string="교대 근무">
                         <group>

@@ -87,6 +87,18 @@ class InjectionPlanningConfig(models.Model):
              "충당할 수 있는 재고 수준 유지. 당일 생산 부족 없음 최우선.",
     )
 
+    # ── MO 분할 ──
+    mo_split_mode = fields.Selection(
+        [
+            ("none", "분할 안함 (일별 단일 MO)"),
+            ("shift", "교대별 분할 (주간/야간)"),
+        ],
+        string="MO 분할 방식",
+        default="none",
+        help="교대별 분할: 생산이 교대를 넘어가면 별도 MO 생성. "
+             "실시간 재고 추적과 교대별 실적 관리에 유용.",
+    )
+
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )

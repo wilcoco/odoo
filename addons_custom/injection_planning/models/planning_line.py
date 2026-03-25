@@ -48,6 +48,11 @@ class PlanningLine(models.Model):
     )
     start_time = fields.Datetime(string="시작 예정")
     end_time = fields.Datetime(string="종료 예정")
+    shift = fields.Selection(
+        [("day", "주간"), ("night", "야간")],
+        string="교대",
+        help="MO 분할 시 교대 구분",
+    )
 
     # ── 재고 ──
     current_stock = fields.Float(string="현재 재고")

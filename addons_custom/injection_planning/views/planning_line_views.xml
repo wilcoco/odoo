@@ -8,6 +8,7 @@
             <list decoration-warning="changeover_needed == True">
                 <field name="planning_run_id"/>
                 <field name="plan_date"/>
+                <field name="shift" optional="show"/>
                 <field name="workcenter_id"/>
                 <field name="mold_id"/>
                 <field name="product_id"/>
@@ -42,6 +43,7 @@
                   default_group_by="plan_date">
                 <field name="planning_run_id" column_invisible="1"/>
                 <field name="plan_date"/>
+                <field name="shift" optional="show"/>
                 <field name="workcenter_id"/>
                 <field name="mold_id"/>
                 <field name="product_id"/>
@@ -90,9 +92,16 @@
                         string="금형교환 건만"
                         domain="[('changeover_needed', '=', True)]"/>
                 <separator/>
+                <filter name="shift_day" string="주간"
+                        domain="[('shift', '=', 'day')]"/>
+                <filter name="shift_night" string="야간"
+                        domain="[('shift', '=', 'night')]"/>
+                <separator/>
                 <group expand="0" string="그룹">
                     <filter name="group_date" string="날짜"
                             context="{'group_by': 'plan_date'}"/>
+                    <filter name="group_shift" string="교대"
+                            context="{'group_by': 'shift'}"/>
                     <filter name="group_machine" string="사출기"
                             context="{'group_by': 'workcenter_id'}"/>
                     <filter name="group_product" string="제품"

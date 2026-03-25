@@ -624,6 +624,24 @@ class PlanningRun(models.Model):
         default_day_h = config.day_shift_hours or 8.0
         default_night_h = config.night_shift_hours or 8.0
         day_start = int(config.day_shift_start or 8)
+        night_start = int(config.night_shift_start or 20)
+        mo_split_mode = config.mo_split_mode or "none"
+
+        def _get_shift(dt):
+            """시간대로 교대 구분"""
+            hour = dt.hour
+            if day_start <= hour < night_start:
+                return "day"
+            return "night"
+
+        def _get_shift_end(dt, shift):
+            """해당 교대의 종료 시각"""
+            if shift == "day":
+                return dt.replace(hour=night_start, minute=0, second=0, microsecond=0)
+            else:
+                # 야간: 다음날 주간 시작
+                next_day = dt.date() + timedelta(days=1)
+                return datetime.combine(next_day, datetime.min.time()).replace(hour=day_start)
 
         # 사출기별 가동 일정 조회
         avail_map = {}  # (wc_id, date) → availability record
@@ -792,25 +810,84 @@ class PlanningRun(models.Model):
                     machine_time_cursor[wc_id] = end_time
                     machine_day_remaining[wc_id] = remaining - total_job_hours
 
-                    lines_data.append({
-                        "planning_run_id": self.id,
-                        "sequence": seq,
-                        "plan_date": job["date_str"],
-                        "workcenter_id": wc_id,
-                        "mold_id": mold_id,
-                        "product_id": job["product_id"],
-                        "demand_qty": demand,
-                        "planned_qty": adjusted,
-                        "defect_rate": dr,
-                        "initial_scrap": scrap,
-                        "changeover_needed": needs_changeover,
-                        "changeover_hours": co_hours,
-                        "start_time": start_time,
-                        "end_time": end_time,
-                        "current_stock": product.qty_available,
-                        "max_inventory": product.max_inventory_qty,
-                    })
-                    seq += 10
+                    # MO 분할 모드에 따라 라인 생성
+                    if mo_split_mode == "shift" and cap.hourly_capacity > 0:
+                        # 교대별 분할: 교대 경계에서 라인 분리
+                        remaining_qty = adjusted
+                        remaining_demand = demand
+                        seg_start = start_time
+                        is_first_seg = True
+
+                        while remaining_qty > 0 and seg_start < end_time:
+                            current_shift = _get_shift(seg_start)
+                            shift_end = _get_shift_end(seg_start, current_shift)
+
+                            # 이 교대에서 생산 가능한 시간
+                            seg_end = min(end_time, shift_end)
+                            seg_hours = (seg_end - seg_start).total_seconds() / 3600.0
+
+                            # 교체 시간은 첫 세그먼트에서만 차감
+                            if is_first_seg and co_hours > 0:
+                                seg_prod_hours = max(0, seg_hours - co_hours)
+                            else:
+                                seg_prod_hours = seg_hours
+
+                            # 이 세그먼트 생산량
+                            seg_qty = math.ceil(seg_prod_hours * cap.hourly_capacity)
+                            seg_qty = min(seg_qty, remaining_qty)
+
+                            if seg_qty > 0:
+                                # 수요는 비례 배분
+                                seg_demand = round(
+                                    remaining_demand * seg_qty / remaining_qty, 2
+                                ) if remaining_qty > 0 else 0
+
+                                lines_data.append({
+                                    "planning_run_id": self.id,
+                                    "sequence": seq,
+                                    "plan_date": job["date_str"],
+                                    "workcenter_id": wc_id,
+                                    "mold_id": mold_id,
+                                    "product_id": job["product_id"],
+                                    "demand_qty": seg_demand,
+                                    "planned_qty": seg_qty,
+                                    "defect_rate": dr,
+                                    "initial_scrap": scrap if is_first_seg else 0,
+                                    "changeover_needed": needs_changeover if is_first_seg else False,
+                                    "changeover_hours": co_hours if is_first_seg else 0.0,
+                                    "start_time": seg_start,
+                                    "end_time": seg_end,
+                                    "shift": current_shift,
+                                    "current_stock": product.qty_available,
+                                    "max_inventory": product.max_inventory_qty,
+                                })
+                                seq += 10
+                                remaining_qty -= seg_qty
+                                remaining_demand -= seg_demand
+
+                            seg_start = seg_end
+                            is_first_seg = False
+                    else:
+                        # 분할 없음: 기존 방식
+                        lines_data.append({
+                            "planning_run_id": self.id,
+                            "sequence": seq,
+                            "plan_date": job["date_str"],
+                            "workcenter_id": wc_id,
+                            "mold_id": mold_id,
+                            "product_id": job["product_id"],
+                            "demand_qty": demand,
+                            "planned_qty": adjusted,
+                            "defect_rate": dr,
+                            "initial_scrap": scrap,
+                            "changeover_needed": needs_changeover,
+                            "changeover_hours": co_hours,
+                            "start_time": start_time,
+                            "end_time": end_time,
+                            "current_stock": product.qty_available,
+                            "max_inventory": product.max_inventory_qty,
+                        })
+                        seq += 10
 
             # 스케줄 종료 후 마지막 금형 기록
             machine_current_mold[wc_id] = prev_mold_id
