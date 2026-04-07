@@ -43,6 +43,7 @@
         "views/portal_templates.xml",
         # Wizards
         "wizards/purchase_reject_wizard_views.xml",
+        "wizards/generate_outsource_demo_wizard_views.xml",
     ],
     "demo": [
         "data/demo/res_partner_demo.xml",

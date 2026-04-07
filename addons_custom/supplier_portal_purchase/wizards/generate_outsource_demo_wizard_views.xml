@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 외주 샘플 데이터 생성 위자드 폼 -->
+    <record id="generate_outsource_demo_wizard_form" model="ir.ui.view">
+        <field name="name">supplier.generate.outsource.demo.wizard.form</field>
+        <field name="model">supplier.generate.outsource.demo.wizard</field>
+        <field name="arch" type="xml">
+            <form string="외주 샘플 데이터 생성">
+                <group>
+                    <p class="alert alert-info" role="alert">
+                        이 위자드는 외주 부품 테스트를 위한 샘플 데이터를 생성합니다:
+                        <ul>
+                            <li>협력사 3개 (한국브라켓, 대한하우징, 삼성캡)</li>
+                            <li>외주 부품 6개</li>
+                            <li>기존 BOM에 외주 부품 추가</li>
+                            <li>자동 발주 설정 활성화</li>
+                        </ul>
+                        <strong>주의:</strong> 먼저 "사출 계획 > 샘플 데이터 생성"을 실행해야 합니다.
+                    </p>
+                </group>
+                <group>
+                    <field name="add_to_existing_bom"/>
+                </group>
+                <footer>
+                    <button string="생성" type="object" name="action_generate"
+                            class="btn-primary"/>
+                    <button string="취소" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 외주 샘플 데이터 생성 액션 -->
+    <record id="action_generate_outsource_demo_wizard" model="ir.actions.act_window">
+        <field name="name">외주 샘플 데이터 생성</field>
+        <field name="res_model">supplier.generate.outsource.demo.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 메뉴에 추가 -->
+    <menuitem id="menu_generate_outsource_demo"
+              name="외주 샘플 데이터 생성"
+              parent="menu_outsource_master"
+              action="action_generate_outsource_demo_wizard"
+              sequence="99"/>
+
+</odoo>

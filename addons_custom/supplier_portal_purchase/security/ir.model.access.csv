@@ -9,3 +9,4 @@ access_portal_notification_user,supplier.portal.notification.user,model_supplier
 access_portal_notification_manager,supplier.portal.notification.manager,model_supplier_portal_notification,purchase.group_purchase_manager,1,1,1,1
 access_portal_notification_portal,supplier.portal.notification.portal,model_supplier_portal_notification,base.group_portal,1,1,0,0
 access_reject_wizard,purchase.order.reject.wizard,model_purchase_order_reject_wizard,purchase.group_purchase_user,1,1,1,1
+access_outsource_demo_wizard,supplier.generate.outsource.demo.wizard,model_supplier_generate_outsource_demo_wizard,purchase.group_purchase_manager,1,1,1,1
