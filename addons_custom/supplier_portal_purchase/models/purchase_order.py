@@ -80,9 +80,10 @@ class PurchaseOrder(models.Model):
                     max_impact = "critical"
                     break
                 elif line_resp.line_status in ("date_diff", "both_diff"):
-                    # 납기 차이 일수 확인
+                    # 납기 차이 일수 확인 (requested_date는 Datetime, confirmed_date는 Date)
                     if line_resp.confirmed_date and line_resp.requested_date:
-                        diff = (line_resp.confirmed_date - line_resp.requested_date).days
+                        req_date = line_resp.requested_date.date()
+                        diff = (line_resp.confirmed_date - req_date).days
                         if diff > 1:
                             max_impact = "critical"
                         elif diff > 0 and max_impact != "critical":

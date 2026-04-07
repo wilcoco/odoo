@@ -100,7 +100,7 @@ class PurchaseOrderLineResponse(models.Model):
         string="요청 수량",
         related="order_line_id.product_qty",
     )
-    requested_date = fields.Date(
+    requested_date = fields.Datetime(
         string="요청 납기",
         related="order_line_id.date_planned",
     )
@@ -143,8 +143,10 @@ class PurchaseOrderLineResponse(models.Model):
                 line.line_status = "ok"
             else:
                 qty_diff = abs(line.requested_qty - line.confirmed_qty) > 0.01
-                date_diff = line.requested_date and line.confirmed_date and \
-                            line.requested_date != line.confirmed_date
+                # requested_date는 Datetime, confirmed_date는 Date → date()로 비교
+                req_date = line.requested_date.date() if line.requested_date else None
+                conf_date = line.confirmed_date
+                date_diff = req_date and conf_date and req_date != conf_date
 
                 if qty_diff and date_diff:
                     line.line_status = "both_diff"
