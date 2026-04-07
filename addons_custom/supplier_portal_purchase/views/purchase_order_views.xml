@@ -111,12 +111,13 @@
                 <filter name="impact_critical" string="생산 영향 (위험)"
                         domain="[('production_impact', '=', 'critical')]"/>
             </filter>
-            <group name="groupby" position="inside">
+            <!-- Group By 필터 추가 (representative 그룹 필터 뒤에) -->
+            <filter name="representative" position="after">
                 <filter string="포탈 상태" name="group_portal_state"
                         context="{'group_by': 'portal_state'}"/>
                 <filter string="생산 영향도" name="group_production_impact"
                         context="{'group_by': 'production_impact'}"/>
-            </group>
+            </filter>
         </field>
     </record>
 
