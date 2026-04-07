@@ -111,7 +111,7 @@
                 <filter name="impact_critical" string="생산 영향 (위험)"
                         domain="[('production_impact', '=', 'critical')]"/>
             </filter>
-            <group expand="0" string="Group By" position="inside">
+            <group name="groupby" position="inside">
                 <filter string="포탈 상태" name="group_portal_state"
                         context="{'group_by': 'portal_state'}"/>
                 <filter string="생산 영향도" name="group_production_impact"

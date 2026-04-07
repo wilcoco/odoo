@@ -47,7 +47,7 @@
                 <filter name="outsourced" string="외주 부품"
                         domain="[('is_outsourced', '=', True)]"/>
             </filter>
-            <group expand="0" string="Group By" position="inside">
+            <group name="groupby" position="inside">
                 <filter string="협력사" name="group_outsource_partner"
                         context="{'group_by': 'outsource_partner_id'}"/>
             </group>
