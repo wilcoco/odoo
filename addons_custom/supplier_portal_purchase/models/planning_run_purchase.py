@@ -35,9 +35,9 @@ class InjectionPlanningRun(models.Model):
             )
             run.outsource_line_count = len(outsource_lines)
 
-    def action_confirm(self):
-        """생산계획 확정 시 외주 발주 자동 생성"""
-        res = super().action_confirm()
+    def generate_manufacturing_orders(self):
+        """MO 생성 후 외주 발주 자동 생성"""
+        res = super().generate_manufacturing_orders()
 
         config = self._get_config()
         if config.auto_generate_po:
