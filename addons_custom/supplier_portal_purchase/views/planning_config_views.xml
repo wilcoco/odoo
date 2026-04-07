@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 생산계획 설정 폼 확장 - 외주 관리 탭 -->
+    <record id="injection_planning_config_form_outsource" model="ir.ui.view">
+        <field name="name">injection.planning.config.form.outsource</field>
+        <field name="model">injection.planning.config</field>
+        <field name="inherit_id" ref="injection_planning.injection_planning_config_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="외주 관리" name="outsource">
+                        <group>
+                            <group string="자동 발주 설정">
+                                <field name="auto_generate_po"/>
+                                <field name="outsource_buffer_days"/>
+                                <field name="default_buyer_id"/>
+                            </group>
+                            <group string="포탈 설정">
+                                <field name="portal_base_url"
+                                       placeholder="https://your-odoo.com"/>
+                                <field name="po_reminder_days"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="알림 설정">
+                                <field name="notify_production_impact"/>
+                                <field name="production_manager_id"
+                                       invisible="not notify_production_impact"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- 생산계획 실행 폼 확장 - 외주 발주 버튼 -->
+    <record id="injection_planning_run_form_outsource" model="ir.ui.view">
+        <field name="name">injection.planning.run.form.outsource</field>
+        <field name="model">injection.planning.run</field>
+        <field name="inherit_id" ref="injection_planning.injection_planning_run_form_view"/>
+        <field name="arch" type="xml">
+            <!-- 외주 발주 버튼 추가 -->
+            <xpath expr="//button[@name='action_generate_mo']" position="after">
+                <button name="action_generate_purchase_orders"
+                        string="외주 발주 생성" type="object"
+                        class="btn-secondary"
+                        invisible="state not in ('review', 'confirmed')"
+                        confirm="외주 부품에 대한 발주서를 생성하시겠습니까?"/>
+                <button name="action_view_purchase_orders"
+                        string="발주서 보기" type="object"
+                        class="btn-link"
+                        invisible="purchase_order_count == 0"/>
+            </xpath>
+
+            <!-- 외주 통계 표시 -->
+            <xpath expr="//field[@name='mo_count']" position="after">
+                <field name="outsource_line_count"/>
+                <field name="purchase_order_count"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

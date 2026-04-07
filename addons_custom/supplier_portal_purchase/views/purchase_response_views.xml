@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 협력사 응답 폼 뷰 -->
+    <record id="purchase_order_response_form_view" model="ir.ui.view">
+        <field name="name">purchase.order.response.form</field>
+        <field name="model">purchase.order.response</field>
+        <field name="arch" type="xml">
+            <form string="협력사 응답">
+                <header>
+                    <field name="review_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="응답 정보">
+                            <field name="purchase_order_id"/>
+                            <field name="partner_id"/>
+                            <field name="response_type"/>
+                            <field name="response_date"/>
+                        </group>
+                        <group string="검토 정보">
+                            <field name="review_state"/>
+                            <field name="reviewed_by"/>
+                            <field name="reviewed_date"/>
+                            <field name="reject_reason"
+                                   invisible="review_state != 'rejected'"/>
+                        </group>
+                    </group>
+                    <group string="비고">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="품목별 응답">
+                            <field name="line_response_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="requested_qty"/>
+                                    <field name="confirmed_qty"/>
+                                    <field name="requested_date"/>
+                                    <field name="confirmed_date"/>
+                                    <field name="line_status"
+                                           decoration-success="line_status == 'ok'"
+                                           decoration-warning="line_status in ('qty_diff', 'date_diff')"
+                                           decoration-danger="line_status in ('both_diff', 'reject')"/>
+                                    <field name="is_approved"/>
+                                    <field name="line_note"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 협력사 응답 목록 뷰 -->
+    <record id="purchase_order_response_tree_view" model="ir.ui.view">
+        <field name="name">purchase.order.response.tree</field>
+        <field name="model">purchase.order.response</field>
+        <field name="arch" type="xml">
+            <tree string="협력사 응답">
+                <field name="purchase_order_id"/>
+                <field name="partner_id"/>
+                <field name="response_type"/>
+                <field name="response_date"/>
+                <field name="review_state"
+                       decoration-info="review_state == 'pending'"
+                       decoration-success="review_state == 'approved'"
+                       decoration-danger="review_state == 'rejected'"/>
+                <field name="reviewed_by"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- 협력사 응답 검색 뷰 -->
+    <record id="purchase_order_response_search_view" model="ir.ui.view">
+        <field name="name">purchase.order.response.search</field>
+        <field name="model">purchase.order.response</field>
+        <field name="arch" type="xml">
+            <search string="협력사 응답 검색">
+                <field name="purchase_order_id"/>
+                <field name="partner_id"/>
+                <filter name="pending" string="검토 대기"
+                        domain="[('review_state', '=', 'pending')]"/>
+                <filter name="approved" string="승인됨"
+                        domain="[('review_state', '=', 'approved')]"/>
+                <filter name="rejected" string="반려됨"
+                        domain="[('review_state', '=', 'rejected')]"/>
+                <separator/>
+                <filter name="full_accept" string="전체 승인"
+                        domain="[('response_type', '=', 'full_accept')]"/>
+                <filter name="partial_accept" string="조건부 승인"
+                        domain="[('response_type', '=', 'partial_accept')]"/>
+                <filter name="reject" string="납품 불가"
+                        domain="[('response_type', '=', 'reject')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="협력사" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="응답 유형" name="group_response_type"
+                            context="{'group_by': 'response_type'}"/>
+                    <filter string="검토 상태" name="group_review_state"
+                            context="{'group_by': 'review_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 협력사 응답 액션 -->
+    <record id="action_purchase_order_response" model="ir.actions.act_window">
+        <field name="name">협력사 응답</field>
+        <field name="res_model">purchase.order.response</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                협력사 응답이 없습니다
+            </p>
+        </field>
+    </record>
+
+    <!-- 응답 반려 위자드 -->
+    <record id="purchase_order_reject_wizard_form" model="ir.ui.view">
+        <field name="name">purchase.order.reject.wizard.form</field>
+        <field name="model">purchase.order.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="응답 반려">
+                <group>
+                    <field name="purchase_order_id" readonly="1"/>
+                    <field name="reject_reason" required="1"
+                           placeholder="반려 사유를 입력해 주세요. 협력사에게 전달됩니다."/>
+                </group>
+                <footer>
+                    <button string="반려" type="object" name="action_reject"
+                            class="btn-primary"/>
+                    <button string="취소" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

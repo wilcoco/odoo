@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 협력사 1: (주)한국브라켓 -->
+        <record id="partner_supplier_hanbracket" model="res.partner">
+            <field name="name">(주)한국브라켓</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="is_supplier_portal">True</field>
+            <field name="supplier_portal_token">demo_token_hanbracket_2026</field>
+            <field name="portal_language">ko_KR</field>
+            <field name="email">contact@hanbracket.co.kr</field>
+            <field name="portal_notify_email">park@hanbracket.co.kr</field>
+            <field name="phone">02-1234-5678</field>
+            <field name="street">서울시 금천구 가산디지털1로 100</field>
+            <field name="city">서울</field>
+            <field name="country_id" ref="base.kr"/>
+        </record>
+
+        <!-- 협력사 1 담당자 -->
+        <record id="partner_contact_park" model="res.partner">
+            <field name="name">박협력</field>
+            <field name="parent_id" ref="partner_supplier_hanbracket"/>
+            <field name="type">contact</field>
+            <field name="function">영업담당</field>
+            <field name="email">park@hanbracket.co.kr</field>
+            <field name="phone">010-1234-5678</field>
+        </record>
+
+        <!-- 협력사 2: 대한하우징(주) -->
+        <record id="partner_supplier_dhhousing" model="res.partner">
+            <field name="name">대한하우징(주)</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="is_supplier_portal">True</field>
+            <field name="supplier_portal_token">demo_token_dhhousing_2026</field>
+            <field name="portal_language">ko_KR</field>
+            <field name="email">contact@dhhousing.co.kr</field>
+            <field name="portal_notify_email">lee@dhhousing.co.kr</field>
+            <field name="phone">031-9876-5432</field>
+            <field name="street">경기도 화성시 동탄산단로 200</field>
+            <field name="city">화성</field>
+            <field name="country_id" ref="base.kr"/>
+        </record>
+
+        <!-- 협력사 2 담당자 -->
+        <record id="partner_contact_lee" model="res.partner">
+            <field name="name">이공급</field>
+            <field name="parent_id" ref="partner_supplier_dhhousing"/>
+            <field name="type">contact</field>
+            <field name="function">영업과장</field>
+            <field name="email">lee@dhhousing.co.kr</field>
+            <field name="phone">010-9876-5432</field>
+        </record>
+
+        <!-- 협력사 3: 삼성캡(주) -->
+        <record id="partner_supplier_sscap" model="res.partner">
+            <field name="name">삼성캡(주)</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="is_supplier_portal">True</field>
+            <field name="supplier_portal_token">demo_token_sscap_2026</field>
+            <field name="portal_language">ko_KR</field>
+            <field name="email">contact@sscap.co.kr</field>
+            <field name="portal_notify_email">kim@sscap.co.kr</field>
+            <field name="phone">032-5555-6666</field>
+            <field name="street">인천시 남동구 논현로 300</field>
+            <field name="city">인천</field>
+            <field name="country_id" ref="base.kr"/>
+        </record>
+
+        <!-- 협력사 3 담당자 -->
+        <record id="partner_contact_kim" model="res.partner">
+            <field name="name">김납품</field>
+            <field name="parent_id" ref="partner_supplier_sscap"/>
+            <field name="type">contact</field>
+            <field name="function">영업부장</field>
+            <field name="email">kim@sscap.co.kr</field>
+            <field name="phone">010-5555-6666</field>
+        </record>
+
+    </data>
+</odoo>

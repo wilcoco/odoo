@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 제품 폼 뷰 확장 - 외주 탭 추가 -->
+    <record id="product_template_form_view_outsource" model="ir.ui.view">
+        <field name="name">product.template.form.outsource</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <page name="inventory" position="after">
+                <page string="외주 관리" name="outsource">
+                    <group>
+                        <group string="외주 설정">
+                            <field name="is_outsourced"/>
+                            <field name="outsource_partner_id"
+                                   invisible="not is_outsourced"/>
+                            <field name="outsource_leadtime"
+                                   invisible="not is_outsourced"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <!-- 제품 목록에 외주 컬럼 추가 -->
+    <record id="product_template_tree_view_outsource" model="ir.ui.view">
+        <field name="name">product.template.tree.outsource</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="type" position="after">
+                <field name="is_outsourced" optional="hide"/>
+                <field name="outsource_partner_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- 외주 부품 전용 검색 뷰 -->
+    <record id="product_template_search_outsource" model="ir.ui.view">
+        <field name="name">product.template.search.outsource</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="consumable" position="after">
+                <separator/>
+                <filter name="outsourced" string="외주 부품"
+                        domain="[('is_outsourced', '=', True)]"/>
+            </filter>
+            <group expand="0" string="Group By" position="inside">
+                <filter string="협력사" name="group_outsource_partner"
+                        context="{'group_by': 'outsource_partner_id'}"/>
+            </group>
+        </field>
+    </record>
+
+    <!-- 외주 부품 목록 액션 -->
+    <record id="action_product_outsource" model="ir.actions.act_window">
+        <field name="name">외주 부품</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_outsourced', '=', True)]</field>
+        <field name="context">{'default_is_outsourced': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                외주 부품을 등록하세요
+            </p>
+            <p>
+                외부 협력사에서 조달하는 부품을 관리합니다.
+            </p>
+        </field>
+    </record>
+
+</odoo>

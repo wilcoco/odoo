@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 협력사 폼 뷰 확장 -->
+    <record id="res_partner_form_view_supplier_portal" model="ir.ui.view">
+        <field name="name">res.partner.form.supplier.portal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <page name="sales_purchases" position="after">
+                <page string="협력사 포탈" name="supplier_portal"
+                      invisible="not supplier">
+                    <group>
+                        <group string="포탈 설정">
+                            <field name="is_supplier_portal"/>
+                            <field name="portal_language"
+                                   invisible="not is_supplier_portal"/>
+                            <field name="portal_notify_email"
+                                   invisible="not is_supplier_portal"/>
+                        </group>
+                        <group string="포탈 접근" invisible="not is_supplier_portal">
+                            <field name="supplier_portal_token" readonly="1"/>
+                            <button name="action_generate_portal_token"
+                                    string="토큰 생성" type="object"
+                                    class="btn-secondary"
+                                    invisible="supplier_portal_token"/>
+                            <button name="action_generate_portal_token"
+                                    string="토큰 재생성" type="object"
+                                    class="btn-link"
+                                    invisible="not supplier_portal_token"
+                                    confirm="기존 토큰이 무효화됩니다. 재생성하시겠습니까?"/>
+                        </group>
+                    </group>
+                    <group string="통계" invisible="not is_supplier_portal">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button name="action_view_supplier_pos"
+                                        type="object" class="btn btn-outline-primary">
+                                    <span class="fa fa-file-text me-1"/>
+                                    발주 <field name="supplier_po_count" class="badge"/>건
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="badge bg-danger">
+                                    응답 대기: <field name="supplier_pending_count"/>건
+                                </span>
+                            </div>
+                        </div>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <!-- 협력사 목록에 포탈 컬럼 추가 -->
+    <record id="res_partner_tree_view_supplier_portal" model="ir.ui.view">
+        <field name="name">res.partner.tree.supplier.portal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <field name="email" position="after">
+                <field name="is_supplier_portal" optional="hide"/>
+                <field name="supplier_pending_count" optional="hide" string="응답대기"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- 협력사 검색 뷰 확장 -->
+    <record id="res_partner_search_supplier_portal" model="ir.ui.view">
+        <field name="name">res.partner.search.supplier.portal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <filter name="supplier" position="after">
+                <filter name="supplier_portal" string="포탈 협력사"
+                        domain="[('is_supplier_portal', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- 협력사 포탈 목록 액션 -->
+    <record id="action_partner_supplier_portal" model="ir.actions.act_window">
+        <field name="name">협력사 관리</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_supplier_portal', '=', True)]</field>
+        <field name="context">{'default_is_supplier_portal': True, 'default_supplier': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                협력사를 등록하세요
+            </p>
+            <p>
+                포탈을 통해 발주를 확인하고 응답할 수 있는 협력사를 관리합니다.
+            </p>
+        </field>
+    </record>
+
+</odoo>

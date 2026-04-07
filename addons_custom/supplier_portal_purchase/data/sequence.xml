@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 외주 발주 시퀀스는 purchase 모듈의 기본 시퀀스 사용 -->
+        <!-- 필요시 별도 시퀀스 추가 가능 -->
+
+    </data>
+</odoo>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- 외주 관리 카테고리 -->
+        <record id="module_category_outsource" model="ir.module.category">
+            <field name="name">외주 관리</field>
+            <field name="description">외주 자동발주 및 협력사 포탈 관리</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- 외주 관리자 그룹 -->
+        <record id="group_outsource_manager" model="res.groups">
+            <field name="name">외주 관리자</field>
+            <field name="category_id" ref="module_category_outsource"/>
+            <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_manager'))]"/>
+            <field name="comment">외주 발주 전체 관리, 설정, 협력사 관리 권한</field>
+        </record>
+
+        <!-- 외주 담당자 그룹 -->
+        <record id="group_outsource_user" model="res.groups">
+            <field name="name">외주 담당자</field>
+            <field name="category_id" ref="module_category_outsource"/>
+            <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_user'))]"/>
+            <field name="comment">외주 발주 조회, 응답 승인/반려 권한</field>
+        </record>
+
+    </data>
+
+    <data noupdate="1">
+
+        <!-- 협력사는 자사 PO만 조회 가능 -->
+        <record id="rule_portal_partner_own_po" model="ir.rule">
+            <field name="name">Portal: 자사 발주만 조회</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="domain_force">[('partner_id', '=', user.partner_id.commercial_partner_id.id)]</field>
+            <field name="perm_read">1</field>
+            <field name="perm_write">0</field>
+            <field name="perm_create">0</field>
+            <field name="perm_unlink">0</field>
+        </record>
+
+        <!-- 협력사는 자사 알림만 조회 가능 -->
+        <record id="rule_portal_partner_own_notification" model="ir.rule">
+            <field name="name">Portal: 자사 알림만 조회</field>
+            <field name="model_id" ref="model_supplier_portal_notification"/>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="domain_force">[('partner_id', '=', user.partner_id.commercial_partner_id.id)]</field>
+            <field name="perm_read">1</field>
+            <field name="perm_write">1</field>
+            <field name="perm_create">0</field>
+            <field name="perm_unlink">0</field>
+        </record>
+
+        <!-- 내부 사용자는 자신에게 할당된 알림만 -->
+        <record id="rule_user_own_notification" model="ir.rule">
+            <field name="name">User: 자신의 알림만 조회</field>
+            <field name="model_id" ref="model_supplier_portal_notification"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">['|', ('user_id', '=', user.id), ('user_id', '=', False)]</field>
+            <field name="perm_read">1</field>
+            <field name="perm_write">1</field>
+            <field name="perm_create">1</field>
+            <field name="perm_unlink">0</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 응답 반려 위자드 액션 -->
+    <record id="action_purchase_reject_wizard" model="ir.actions.act_window">
+        <field name="name">응답 반려</field>
+        <field name="res_model">purchase.order.reject.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

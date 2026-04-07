@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 외주 부품 1: 프론트 브라켓 A -->
+        <record id="product_out_brk_001" model="product.product">
+            <field name="name">프론트 브라켓 A</field>
+            <field name="default_code">OUT-BRK-001</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="outsource_leadtime">3</field>
+            <field name="standard_price">1200</field>
+            <field name="list_price">1500</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 외주 부품 2: 리어 브라켓 B -->
+        <record id="product_out_brk_002" model="product.product">
+            <field name="name">리어 브라켓 B</field>
+            <field name="default_code">OUT-BRK-002</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="outsource_leadtime">3</field>
+            <field name="standard_price">1500</field>
+            <field name="list_price">1800</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 외주 부품 3: 메인 하우징 -->
+        <record id="product_out_hsg_001" model="product.product">
+            <field name="name">메인 하우징</field>
+            <field name="default_code">OUT-HSG-001</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_dhhousing"/>
+            <field name="outsource_leadtime">5</field>
+            <field name="standard_price">2500</field>
+            <field name="list_price">3000</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 외주 부품 4: 서브 하우징 -->
+        <record id="product_out_hsg_002" model="product.product">
+            <field name="name">서브 하우징</field>
+            <field name="default_code">OUT-HSG-002</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_dhhousing"/>
+            <field name="outsource_leadtime">4</field>
+            <field name="standard_price">1800</field>
+            <field name="list_price">2200</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 외주 부품 5: 엔드캡 A -->
+        <record id="product_out_cap_001" model="product.product">
+            <field name="name">엔드캡 A</field>
+            <field name="default_code">OUT-CAP-001</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_sscap"/>
+            <field name="outsource_leadtime">2</field>
+            <field name="standard_price">750</field>
+            <field name="list_price">900</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 외주 부품 6: 엔드캡 B -->
+        <record id="product_out_cap_002" model="product.product">
+            <field name="name">엔드캡 B</field>
+            <field name="default_code">OUT-CAP-002</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="is_outsourced">True</field>
+            <field name="outsource_partner_id" ref="partner_supplier_sscap"/>
+            <field name="outsource_leadtime">2</field>
+            <field name="standard_price">800</field>
+            <field name="list_price">950</field>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- 공급업체 가격 정보 -->
+        <record id="supplierinfo_brk_001" model="product.supplierinfo">
+            <field name="partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="product_tmpl_id" ref="product_out_brk_001" eval="obj().env.ref('supplier_portal_purchase.product_out_brk_001').product_tmpl_id.id"/>
+            <field name="price">1200</field>
+            <field name="min_qty">100</field>
+            <field name="delay">3</field>
+        </record>
+
+        <record id="supplierinfo_brk_002" model="product.supplierinfo">
+            <field name="partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="product_tmpl_id" ref="product_out_brk_002" eval="obj().env.ref('supplier_portal_purchase.product_out_brk_002').product_tmpl_id.id"/>
+            <field name="price">1500</field>
+            <field name="min_qty">100</field>
+            <field name="delay">3</field>
+        </record>
+
+        <record id="supplierinfo_hsg_001" model="product.supplierinfo">
+            <field name="partner_id" ref="partner_supplier_dhhousing"/>
+            <field name="product_tmpl_id" ref="product_out_hsg_001" eval="obj().env.ref('supplier_portal_purchase.product_out_hsg_001').product_tmpl_id.id"/>
+            <field name="price">2500</field>
+            <field name="min_qty">50</field>
+            <field name="delay">5</field>
+        </record>
+
+        <record id="supplierinfo_cap_001" model="product.supplierinfo">
+            <field name="partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_tmpl_id" ref="product_out_cap_001" eval="obj().env.ref('supplier_portal_purchase.product_out_cap_001').product_tmpl_id.id"/>
+            <field name="price">750</field>
+            <field name="min_qty">200</field>
+            <field name="delay">2</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 포탈 레이아웃 -->
+    <template id="portal_layout" name="Supplier Portal Layout">
+        <t t-call="website.layout">
+            <div class="container py-4">
+                <!-- 헤더 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2>
+                                <i class="fa fa-industry me-2"/>
+                                협력사 포탈 - <t t-esc="partner.name"/>
+                            </h2>
+                            <a t-attf-href="/supplier/portal?token=#{token}" class="btn btn-outline-secondary">
+                                <i class="fa fa-sign-out me-1"/> 로그아웃
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 네비게이션 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <nav class="nav nav-pills">
+                            <a class="nav-link" t-attf-href="/supplier/portal?token=#{token}">
+                                <i class="fa fa-dashboard me-1"/> 대시보드
+                            </a>
+                            <a class="nav-link" t-attf-href="/supplier/po/list?token=#{token}">
+                                <i class="fa fa-file-text me-1"/> 발주 목록
+                            </a>
+                            <a class="nav-link" t-attf-href="/supplier/delivery?token=#{token}">
+                                <i class="fa fa-truck me-1"/> 납품 현황
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- 본문 -->
+                <t t-raw="0"/>
+            </div>
+        </t>
+    </template>
+
+    <!-- 접근 거부 페이지 -->
+    <template id="portal_access_denied" name="Portal Access Denied">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <i class="fa fa-lock fa-5x text-danger mb-4"/>
+                        <h2>접근이 거부되었습니다</h2>
+                        <p class="text-muted"><t t-esc="error"/></p>
+                        <p>유효한 접근 토큰이 필요합니다. 담당자에게 문의해 주세요.</p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 대시보드 -->
+    <template id="portal_dashboard" name="Supplier Portal Dashboard">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <!-- 알림 -->
+            <t t-if="unread_count > 0">
+                <div class="alert alert-warning mb-4">
+                    <i class="fa fa-bell me-2"/>
+                    <strong><t t-esc="unread_count"/>건</strong>의 새로운 알림이 있습니다.
+                </div>
+            </t>
+
+            <div class="row">
+                <!-- 발주 현황 -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="fa fa-list me-2"/> 발주 현황
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="text-danger">
+                                        <i class="fa fa-circle me-1"/> 응답 필요
+                                    </span>
+                                    <span class="badge bg-danger"><t t-esc="po_stats['new']"/></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="text-warning">
+                                        <i class="fa fa-circle me-1"/> 검토중
+                                    </span>
+                                    <span class="badge bg-warning"><t t-esc="po_stats['responded']"/></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="text-info">
+                                        <i class="fa fa-circle me-1"/> 반려됨
+                                    </span>
+                                    <span class="badge bg-info"><t t-esc="po_stats['rejected']"/></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="text-success">
+                                        <i class="fa fa-circle me-1"/> 확정완료
+                                    </span>
+                                    <span class="badge bg-success"><t t-esc="po_stats['approved']"/></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="text-secondary">
+                                        <i class="fa fa-circle me-1"/> 납품완료
+                                    </span>
+                                    <span class="badge bg-secondary"><t t-esc="po_stats['done']"/></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer">
+                            <a t-attf-href="/supplier/po/list?token=#{token}" class="btn btn-sm btn-primary w-100">
+                                전체 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 금주 납품 일정 -->
+                <div class="col-md-8 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="fa fa-calendar me-2"/> 금주 납품 일정
+                        </div>
+                        <div class="card-body">
+                            <t t-if="upcoming_pos">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>납기일</th>
+                                            <th>발주번호</th>
+                                            <th>품목</th>
+                                            <th>상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="upcoming_pos" t-as="po">
+                                            <tr>
+                                                <td><t t-esc="po.date_planned" t-options="{'widget': 'date'}"/></td>
+                                                <td>
+                                                    <a t-attf-href="/supplier/po/#{po.id}?token=#{token}">
+                                                        <t t-esc="po.name"/>
+                                                    </a>
+                                                </td>
+                                                <td><t t-esc="len(po.order_line)"/>개 품목</td>
+                                                <td>
+                                                    <t t-if="po.portal_state == 'approved'">
+                                                        <span class="badge bg-success">확정</span>
+                                                    </t>
+                                                    <t t-elif="po.portal_state == 'responded'">
+                                                        <span class="badge bg-warning">검토중</span>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted text-center py-4">금주 납품 일정이 없습니다.</p>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 바로가기 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=new"
+                                       class="btn btn-outline-danger btn-lg w-100 mb-2">
+                                        <i class="fa fa-exclamation-circle fa-2x d-block mb-2"/>
+                                        응답 필요 (<t t-esc="po_stats['new']"/>)
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a t-attf-href="/supplier/po/list?token=#{token}"
+                                       class="btn btn-outline-primary btn-lg w-100 mb-2">
+                                        <i class="fa fa-file-text fa-2x d-block mb-2"/>
+                                        발주 목록
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a t-attf-href="/supplier/delivery?token=#{token}"
+                                       class="btn btn-outline-success btn-lg w-100 mb-2">
+                                        <i class="fa fa-truck fa-2x d-block mb-2"/>
+                                        납품 현황
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="#" class="btn btn-outline-secondary btn-lg w-100 mb-2">
+                                        <i class="fa fa-cog fa-2x d-block mb-2"/>
+                                        설정
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 발주 목록 -->
+    <template id="portal_po_list" name="Supplier Portal PO List">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fa fa-file-text me-2"/> 발주 목록</span>
+                    <!-- 필터 -->
+                    <div class="btn-group btn-group-sm">
+                        <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=all"
+                           t-attf-class="btn btn-outline-secondary #{state_filter == 'all' and 'active' or ''}">
+                            전체
+                        </a>
+                        <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=new"
+                           t-attf-class="btn btn-outline-danger #{state_filter == 'new' and 'active' or ''}">
+                            응답필요
+                        </a>
+                        <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=responded"
+                           t-attf-class="btn btn-outline-warning #{state_filter == 'responded' and 'active' or ''}">
+                            검토중
+                        </a>
+                        <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=approved"
+                           t-attf-class="btn btn-outline-success #{state_filter == 'approved' and 'active' or ''}">
+                            확정
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <t t-if="orders">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>상태</th>
+                                    <th>발주번호</th>
+                                    <th>발주일</th>
+                                    <th>요청납기</th>
+                                    <th>품목수</th>
+                                    <th class="text-end">금액</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="orders" t-as="po">
+                                    <tr>
+                                        <td>
+                                            <t t-if="po.portal_state == 'new'">
+                                                <span class="badge bg-danger">응답필요</span>
+                                            </t>
+                                            <t t-elif="po.portal_state == 'responded'">
+                                                <span class="badge bg-warning">검토중</span>
+                                            </t>
+                                            <t t-elif="po.portal_state == 'rejected'">
+                                                <span class="badge bg-info">반려됨</span>
+                                            </t>
+                                            <t t-elif="po.portal_state == 'approved'">
+                                                <span class="badge bg-success">확정</span>
+                                            </t>
+                                            <t t-elif="po.portal_state == 'done'">
+                                                <span class="badge bg-secondary">완료</span>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <a t-attf-href="/supplier/po/#{po.id}?token=#{token}">
+                                                <t t-esc="po.name"/>
+                                            </a>
+                                        </td>
+                                        <td><t t-esc="po.date_order" t-options="{'widget': 'date'}"/></td>
+                                        <td><t t-esc="po.date_planned" t-options="{'widget': 'date'}"/></td>
+                                        <td><t t-esc="len(po.order_line)"/></td>
+                                        <td class="text-end">
+                                            <t t-esc="po.amount_total" t-options="{'widget': 'monetary', 'display_currency': po.currency_id}"/>
+                                        </td>
+                                        <td>
+                                            <a t-attf-href="/supplier/po/#{po.id}?token=#{token}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <t t-if="po.portal_state in ('new', 'rejected')">응답</t>
+                                                <t t-else="">확인</t>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-inbox fa-3x mb-3 d-block"/>
+                            발주 내역이 없습니다.
+                        </div>
+                    </t>
+                </div>
+
+                <!-- 페이징 -->
+                <t t-if="total_pages > 1">
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                <t t-foreach="range(1, total_pages + 1)" t-as="p">
+                                    <li t-attf-class="page-item #{p == page and 'active' or ''}">
+                                        <a class="page-link"
+                                           t-attf-href="/supplier/po/list?token=#{token}&amp;state=#{state_filter}&amp;page=#{p}">
+                                            <t t-esc="p"/>
+                                        </a>
+                                    </li>
+                                </t>
+                            </ul>
+                        </nav>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- 발주 상세 -->
+    <template id="portal_po_detail" name="Supplier Portal PO Detail">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <!-- 성공 메시지 -->
+            <t t-if="request.params.get('success')">
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="fa fa-check-circle me-2"/>
+                    응답이 성공적으로 제출되었습니다.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"/>
+                </div>
+            </t>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fa fa-file-text me-2"/>
+                        발주 상세 - <t t-esc="order.name"/>
+                    </span>
+                    <t t-if="order.portal_state == 'new'">
+                        <span class="badge bg-danger">응답 필요</span>
+                    </t>
+                    <t t-elif="order.portal_state == 'responded'">
+                        <span class="badge bg-warning">검토중</span>
+                    </t>
+                    <t t-elif="order.portal_state == 'rejected'">
+                        <span class="badge bg-info">반려됨</span>
+                    </t>
+                    <t t-elif="order.portal_state == 'approved'">
+                        <span class="badge bg-success">확정</span>
+                    </t>
+                    <t t-elif="order.portal_state == 'done'">
+                        <span class="badge bg-secondary">완료</span>
+                    </t>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>발주번호:</strong> <t t-esc="order.name"/>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>발주일:</strong> <t t-esc="order.date_order" t-options="{'widget': 'date'}"/>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>요청납기:</strong> <t t-esc="order.date_planned" t-options="{'widget': 'date'}"/>
+                        </div>
+                    </div>
+
+                    <!-- 반려 사유 -->
+                    <t t-if="reject_reason">
+                        <div class="alert alert-warning">
+                            <h6><i class="fa fa-exclamation-triangle me-2"/> 반려 사유</h6>
+                            <p class="mb-0"><t t-esc="reject_reason"/></p>
+                            <small class="text-muted">위 사유를 확인하시고 재응답해 주세요.</small>
+                        </div>
+                    </t>
+
+                    <!-- 발주 품목 -->
+                    <h6 class="mt-4 mb-3">발주 품목</h6>
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>품목코드</th>
+                                <th>품목명</th>
+                                <th class="text-end">요청수량</th>
+                                <th class="text-end">단가</th>
+                                <th class="text-end">금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="order.order_line" t-as="line">
+                                <tr>
+                                    <td><t t-esc="line.product_id.default_code or '-'"/></td>
+                                    <td><t t-esc="line.product_id.name"/></td>
+                                    <td class="text-end"><t t-esc="int(line.product_qty)"/></td>
+                                    <td class="text-end">
+                                        <t t-esc="line.price_unit" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="line.price_subtotal" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>합계</strong></td>
+                                <td class="text-end">
+                                    <strong>
+                                        <t t-esc="order.amount_total" t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                    </strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 응답 폼 -->
+            <t t-if="can_respond">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-reply me-2"/> 응답 입력
+                    </div>
+                    <div class="card-body">
+                        <form t-attf-action="/supplier/po/#{order.id}/respond?token=#{token}" method="post">
+                            <!-- 응답 유형 -->
+                            <div class="mb-4">
+                                <label class="form-label"><strong>응답 유형</strong></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="response_type"
+                                           value="full_accept" id="type_full" checked="checked"
+                                           onchange="toggleResponseForm(this.value)"/>
+                                    <label class="form-check-label" for="type_full">
+                                        <strong>전체 승인</strong> - 요청대로 납품 가능
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="response_type"
+                                           value="partial_accept" id="type_partial"
+                                           onchange="toggleResponseForm(this.value)"/>
+                                    <label class="form-check-label" for="type_partial">
+                                        <strong>조건부 승인</strong> - 수량 또는 납기 조정 필요
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="response_type"
+                                           value="reject" id="type_reject"
+                                           onchange="toggleResponseForm(this.value)"/>
+                                    <label class="form-check-label" for="type_reject">
+                                        <strong>납품 불가</strong> - 사유 입력 필수
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- 품목별 입력 (조건부 승인 시만 표시) -->
+                            <div id="line_inputs" style="display: none;">
+                                <h6 class="mb-3">품목별 확정 정보</h6>
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>품목</th>
+                                            <th>요청수량</th>
+                                            <th>확정수량</th>
+                                            <th>요청납기</th>
+                                            <th>확정납기</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="order.order_line" t-as="line">
+                                            <tr>
+                                                <td>
+                                                    <t t-esc="line.product_id.default_code or ''"/>
+                                                    <t t-esc="line.product_id.name"/>
+                                                </td>
+                                                <td class="text-end"><t t-esc="int(line.product_qty)"/></td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm"
+                                                           t-attf-name="qty_#{line.id}"
+                                                           t-att-value="int(line.product_qty)"
+                                                           min="0" step="1"/>
+                                                </td>
+                                                <td>
+                                                    <t t-esc="line.date_planned" t-options="{'widget': 'date'}"/>
+                                                </td>
+                                                <td>
+                                                    <input type="date" class="form-control form-control-sm"
+                                                           t-attf-name="date_#{line.id}"
+                                                           t-att-value="line.date_planned and str(line.date_planned.date()) or ''"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 비고 -->
+                            <div class="mb-4">
+                                <label class="form-label">비고 (선택)</label>
+                                <textarea name="note" class="form-control" rows="3"
+                                          placeholder="추가 의견이 있으시면 입력해 주세요."/>
+                            </div>
+
+                            <!-- 버튼 -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <a t-attf-href="/supplier/po/list?token=#{token}" class="btn btn-secondary">
+                                    목록으로
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-paper-plane me-1"/> 응답 제출
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </t>
+
+            <!-- 응답 완료 상태 -->
+            <t t-if="not can_respond">
+                <div class="card">
+                    <div class="card-body text-center py-4">
+                        <t t-if="order.portal_state == 'responded'">
+                            <i class="fa fa-clock-o fa-3x text-warning mb-3"/>
+                            <h5>응답이 제출되었습니다</h5>
+                            <p class="text-muted">구매담당자의 검토를 기다리고 있습니다.</p>
+                        </t>
+                        <t t-elif="order.portal_state == 'approved'">
+                            <i class="fa fa-check-circle fa-3x text-success mb-3"/>
+                            <h5>발주가 확정되었습니다</h5>
+                            <p class="text-muted">확정된 납기에 맞춰 납품해 주세요.</p>
+                        </t>
+                        <t t-elif="order.portal_state == 'done'">
+                            <i class="fa fa-truck fa-3x text-secondary mb-3"/>
+                            <h5>납품이 완료되었습니다</h5>
+                            <p class="text-muted">감사합니다.</p>
+                        </t>
+                        <a t-attf-href="/supplier/po/list?token=#{token}" class="btn btn-outline-primary">
+                            목록으로 돌아가기
+                        </a>
+                    </div>
+                </div>
+            </t>
+
+            <script>
+                function toggleResponseForm(value) {
+                    var lineInputs = document.getElementById('line_inputs');
+                    if (value === 'partial_accept') {
+                        lineInputs.style.display = 'block';
+                    } else {
+                        lineInputs.style.display = 'none';
+                    }
+                }
+            </script>
+        </t>
+    </template>
+
+    <!-- 납품 현황 -->
+    <template id="portal_delivery" name="Supplier Portal Delivery">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="row">
+                <!-- 납품 예정 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="fa fa-calendar me-2"/> 납품 예정
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="upcoming">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>납기일</th>
+                                            <th>발주번호</th>
+                                            <th>품목수</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="upcoming" t-as="po">
+                                            <tr>
+                                                <td><t t-esc="po.date_planned" t-options="{'widget': 'date'}"/></td>
+                                                <td>
+                                                    <a t-attf-href="/supplier/po/#{po.id}?token=#{token}">
+                                                        <t t-esc="po.name"/>
+                                                    </a>
+                                                </td>
+                                                <td><t t-esc="len(po.order_line)"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted text-center py-4">납품 예정 건이 없습니다.</p>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 납품 완료 -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="fa fa-check-circle me-2"/> 최근 납품 완료
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="completed">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>납품일</th>
+                                            <th>발주번호</th>
+                                            <th>품목수</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="completed" t-as="po">
+                                            <tr>
+                                                <td><t t-esc="po.date_planned" t-options="{'widget': 'date'}"/></td>
+                                                <td>
+                                                    <a t-attf-href="/supplier/po/#{po.id}?token=#{token}">
+                                                        <t t-esc="po.name"/>
+                                                    </a>
+                                                </td>
+                                                <td><t t-esc="len(po.order_line)"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted text-center py-4">최근 납품 완료 건이 없습니다.</p>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

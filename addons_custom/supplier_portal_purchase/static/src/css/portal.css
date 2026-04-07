@@ -1,0 +1,100 @@
+/* 협력사 포탈 스타일 */
+
+/* 대시보드 카드 */
+.supplier-portal .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.supplier-portal .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+
+/* 상태 배지 */
+.badge-portal-new {
+    background-color: #dc3545;
+}
+
+.badge-portal-responded {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-portal-approved {
+    background-color: #198754;
+}
+
+.badge-portal-rejected {
+    background-color: #0dcaf0;
+    color: #212529;
+}
+
+.badge-portal-done {
+    background-color: #6c757d;
+}
+
+/* 알림 카운터 */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* 테이블 */
+.supplier-portal table {
+    margin-bottom: 0;
+}
+
+.supplier-portal th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 버튼 */
+.supplier-portal .btn-action {
+    min-width: 80px;
+}
+
+/* 응답 폼 */
+.response-form .form-check {
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.response-form .form-check:hover {
+    background-color: #f8f9fa;
+}
+
+.response-form .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+}
+
+/* 영향도 표시 */
+.impact-ok {
+    color: #198754;
+}
+
+.impact-warning {
+    color: #ffc107;
+}
+
+.impact-critical {
+    color: #dc3545;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .supplier-portal .card-body {
+        padding: 1rem;
+    }
+
+    .supplier-portal table {
+        font-size: 0.875rem;
+    }
+}
