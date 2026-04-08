@@ -111,6 +111,8 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
             ("서브 하우징", "OUT-HSG-002", "대한하우징(주)", 1800, 4),
             ("엔드캡 A", "OUT-CAP-001", "삼성캡(주)", 750, 2),
             ("엔드캡 B", "OUT-CAP-002", "삼성캡(주)", 800, 2),
+            # 테스트용: 삼성캡에서 조달하는 브라켓
+            ("사이드 브라켓 C", "OUT-BRK-003", "삼성캡(주)", 900, 2),
         ]
 
         for name, code, partner_name, price, leadtime in specs:
@@ -174,8 +176,10 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         # 완제품 BOM에 외주 부품 추가 (수요 데이터가 완제품 기준)
         # (완제품 코드 패턴, [(외주부품코드, 수량), ...])
         bom_outsource_specs = [
-            # 프론트 범퍼 (86500-BS000*) → 브라켓 + 캡
-            ("86500-BS000", [("OUT-BRK-001", 2), ("OUT-CAP-001", 4)]),
+            # 프론트 범퍼 스노우화이트 (86500-BS000SWP) → 삼성캡 브라켓 + 캡 (테스트용)
+            ("86500-BS000SWP", [("OUT-BRK-003", 2), ("OUT-CAP-001", 2)]),
+            # 프론트 범퍼 에보니블랙 (86500-BS000EBB) → 한국브라켓 + 캡
+            ("86500-BS000EBB", [("OUT-BRK-001", 2), ("OUT-CAP-001", 4)]),
             # 리어 범퍼 (86600-BS000*) → 브라켓 + 하우징 + 캡
             ("86600-BS000", [("OUT-BRK-002", 2), ("OUT-HSG-001", 1), ("OUT-CAP-002", 2)]),
             # 도어트림 (82310-BS000*) → 하우징
