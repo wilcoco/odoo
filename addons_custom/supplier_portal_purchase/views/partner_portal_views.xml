@@ -83,7 +83,7 @@
     <record id="action_partner_supplier_portal" model="ir.actions.act_window">
         <field name="name">협력사 관리</field>
         <field name="res_model">res.partner</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('is_supplier_portal', '=', True)]</field>
         <field name="context">{'default_is_supplier_portal': True, 'default_supplier_rank': 1}</field>
         <field name="help" type="html">

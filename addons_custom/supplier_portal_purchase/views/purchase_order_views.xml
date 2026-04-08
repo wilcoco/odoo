@@ -114,7 +114,7 @@
     <record id="action_purchase_order_outsource" model="ir.actions.act_window">
         <field name="name">외주 발주 관리</field>
         <field name="res_model">purchase.order</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="view_mode">list,form,pivot,graph</field>
         <field name="domain">[('auto_generated', '=', True)]</field>
         <field name="context">{
             'search_default_portal_new': 1,
@@ -134,7 +134,7 @@
     <record id="action_purchase_order_pending_approval" model="ir.actions.act_window">
         <field name="name">승인 대기</field>
         <field name="res_model">purchase.order</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[
             ('auto_generated', '=', True),
             ('portal_state', '=', 'responded'),

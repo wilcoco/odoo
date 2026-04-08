@@ -58,7 +58,7 @@
     <record id="action_product_outsource" model="ir.actions.act_window">
         <field name="name">외주 부품</field>
         <field name="res_model">product.template</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('is_outsourced', '=', True)]</field>
         <field name="context">{'default_is_outsourced': True}</field>
         <field name="help" type="html">

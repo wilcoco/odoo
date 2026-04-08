@@ -184,7 +184,7 @@ class InjectionPlanningRun(models.Model):
             "type": "ir.actions.act_window",
             "name": _("자동 생성 발주"),
             "res_model": "purchase.order",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("planning_run_id", "=", self.id)],
             "context": {"default_planning_run_id": self.id},
         }

@@ -69,7 +69,7 @@ class ResPartner(models.Model):
             "type": "ir.actions.act_window",
             "name": f"{self.name} 발주 목록",
             "res_model": "purchase.order",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [
                 ("partner_id", "=", self.id),
                 ("auto_generated", "=", True),
