@@ -113,7 +113,8 @@ class GenerateDemoWizard(models.TransientModel):
                 "title": "샘플 데이터 생성 완료",
                 "message": ", ".join(summary),
                 "type": "success",
-                "sticky": True,
+                "sticky": False,
+                "next": {"type": "ir.actions.act_window_close"},
             },
         }
 
