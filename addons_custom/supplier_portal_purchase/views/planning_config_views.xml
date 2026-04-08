@@ -8,29 +8,22 @@
         <field name="inherit_id" ref="injection_planning.view_planning_config_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
-                <notebook>
-                    <page string="외주 관리" name="outsource">
-                        <group>
-                            <group string="자동 발주 설정">
-                                <field name="auto_generate_po"/>
-                                <field name="outsource_buffer_days"/>
-                                <field name="default_buyer_id"/>
-                            </group>
-                            <group string="포탈 설정">
-                                <field name="portal_base_url"
-                                       placeholder="https://your-odoo.com"/>
-                                <field name="po_reminder_days"/>
-                            </group>
-                        </group>
-                        <group>
-                            <group string="알림 설정">
-                                <field name="notify_production_impact"/>
-                                <field name="production_manager_id"
-                                       invisible="not notify_production_impact"/>
-                            </group>
-                        </group>
-                    </page>
-                </notebook>
+                <separator string="외주 자동발주 설정"/>
+                <group>
+                    <group>
+                        <field name="auto_generate_po"/>
+                        <field name="outsource_buffer_days"/>
+                        <field name="default_buyer_id"/>
+                    </group>
+                    <group>
+                        <field name="portal_base_url"
+                               placeholder="https://your-odoo.com"/>
+                        <field name="po_reminder_days"/>
+                        <field name="notify_production_impact"/>
+                        <field name="production_manager_id"
+                               invisible="not notify_production_impact"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>
