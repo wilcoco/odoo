@@ -6,7 +6,7 @@
         <field name="name">purchase.order.line.response.tree</field>
         <field name="model">purchase.order.line.response</field>
         <field name="arch" type="xml">
-            <tree string="품목별 응답" editable="bottom">
+            <list string="품목별 응답" editable="bottom">
                 <field name="product_id" readonly="1"/>
                 <field name="requested_qty" readonly="1"/>
                 <field name="confirmed_qty"/>
@@ -18,7 +18,7 @@
                        decoration-danger="line_status in ('both_diff', 'reject')"/>
                 <field name="is_approved"/>
                 <field name="line_note"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -65,7 +65,7 @@
         <field name="name">purchase.order.response.tree</field>
         <field name="model">purchase.order.response</field>
         <field name="arch" type="xml">
-            <tree string="협력사 응답">
+            <list string="협력사 응답">
                 <field name="purchase_order_id"/>
                 <field name="partner_id"/>
                 <field name="response_type"/>
@@ -75,7 +75,7 @@
                        decoration-success="review_state == 'approved'"
                        decoration-danger="review_state == 'rejected'"/>
                 <field name="reviewed_by"/>
-            </tree>
+            </list>
         </field>
     </record>
 

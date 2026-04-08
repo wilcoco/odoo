@@ -33,7 +33,7 @@
         <field name="name">supplier.portal.notification.tree</field>
         <field name="model">supplier.portal.notification</field>
         <field name="arch" type="xml">
-            <tree string="포탈 알림">
+            <list string="포탈 알림">
                 <field name="create_date"/>
                 <field name="notification_type"/>
                 <field name="partner_id"/>
@@ -43,7 +43,7 @@
                 <field name="is_read"
                        decoration-danger="is_read == False"
                        decoration-success="is_read == True"/>
-            </tree>
+            </list>
         </field>
     </record>
 
