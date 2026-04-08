@@ -5,7 +5,7 @@
     <record id="injection_planning_config_form_outsource" model="ir.ui.view">
         <field name="name">injection.planning.config.form.outsource</field>
         <field name="model">injection.planning.config</field>
-        <field name="inherit_id" ref="injection_planning.injection_planning_config_form_view"/>
+        <field name="inherit_id" ref="injection_planning.view_planning_config_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
                 <notebook>
@@ -39,10 +39,10 @@
     <record id="injection_planning_run_form_outsource" model="ir.ui.view">
         <field name="name">injection.planning.run.form.outsource</field>
         <field name="model">injection.planning.run</field>
-        <field name="inherit_id" ref="injection_planning.injection_planning_run_form_view"/>
+        <field name="inherit_id" ref="injection_planning.view_planning_run_form"/>
         <field name="arch" type="xml">
             <!-- 외주 발주 버튼 추가 -->
-            <xpath expr="//button[@name='action_generate_mo']" position="after">
+            <xpath expr="//button[@name='action_confirm_generate_mo']" position="after">
                 <button name="action_generate_purchase_orders"
                         string="외주 발주 생성" type="object"
                         class="btn-secondary"
@@ -54,10 +54,18 @@
                         invisible="purchase_order_count == 0"/>
             </xpath>
 
-            <!-- 외주 통계 표시 -->
-            <xpath expr="//field[@name='mo_count']" position="after">
-                <field name="outsource_line_count"/>
-                <field name="purchase_order_count"/>
+            <!-- 외주 통계 표시 (버튼 박스에 추가) -->
+            <xpath expr="//button[@name='action_view_mos']" position="after">
+                <button name="action_view_purchase_orders" type="object"
+                        class="oe_stat_button" icon="fa-shopping-cart"
+                        invisible="purchase_order_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="purchase_order_count"/>
+                        </span>
+                        <span class="o_stat_text">외주 발주</span>
+                    </div>
+                </button>
             </xpath>
         </field>
     </record>
