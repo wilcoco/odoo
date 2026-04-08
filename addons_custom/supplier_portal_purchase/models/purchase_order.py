@@ -195,11 +195,11 @@ class PurchaseOrder(models.Model):
 
 
 class PurchaseOrderLine(models.Model):
-    """발주 라인에 생산계획 라인 연결"""
+    """발주 라인에 수요 데이터 연결"""
     _inherit = "purchase.order.line"
 
-    planning_line_id = fields.Many2one(
-        "injection.planning.line",
-        string="계획 라인",
+    demand_id = fields.Many2one(
+        "injection.production.demand",
+        string="수요 데이터",
         readonly=True,
     )

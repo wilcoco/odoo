@@ -172,63 +172,56 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         out_map = {p.default_code: p for p in outsource_products}
 
         # BOM별 외주 부품 추가 스펙
-        # 사출 부품(INJ-*) BOM에 외주 부품 추가 (생산계획 라인이 사출 부품 기준)
-        # (사출 부품 코드, [(외주부품코드, 수량), ...])
+        # 완제품 BOM에 외주 부품 추가 (수요 데이터가 완제품 기준)
+        # (완제품 코드 패턴, [(외주부품코드, 수량), ...])
         bom_outsource_specs = [
-            # 프론트 범퍼 쉘 → 브라켓 + 캡
-            ("INJ-BF-001", [("OUT-BRK-001", 2), ("OUT-CAP-001", 4)]),
-            # 리어 범퍼 쉘 → 브라켓 + 하우징 + 캡
-            ("INJ-BR-001", [("OUT-BRK-002", 2), ("OUT-HSG-001", 1), ("OUT-CAP-002", 2)]),
-            # 도어트림 패널 → 하우징
-            ("INJ-DT-L01", [("OUT-HSG-002", 2)]),
-            # 라디에이터 그릴 → 캡
-            ("INJ-GR-001", [("OUT-CAP-001", 2)]),
+            # 프론트 범퍼 (86500-BS000*) → 브라켓 + 캡
+            ("86500-BS000", [("OUT-BRK-001", 2), ("OUT-CAP-001", 4)]),
+            # 리어 범퍼 (86600-BS000*) → 브라켓 + 하우징 + 캡
+            ("86600-BS000", [("OUT-BRK-002", 2), ("OUT-HSG-001", 1), ("OUT-CAP-002", 2)]),
+            # 도어트림 (82310-BS000*) → 하우징
+            ("82310-BS000", [("OUT-HSG-002", 2)]),
+            # 그릴 (86500-BS020*) → 캡
+            ("86500-BS020", [("OUT-CAP-001", 2)]),
         ]
 
         added_count = 0
 
-        for product_code, outsource_lines in bom_outsource_specs:
-            # 해당 사출 부품 찾기
-            product = Product.search([
-                ("default_code", "=", product_code),
-            ], limit=1)
+        for code_pattern, outsource_lines in bom_outsource_specs:
+            # 해당 패턴의 완제품 찾기
+            products = Product.search([
+                ("default_code", "=like", f"{code_pattern}%"),
+            ])
 
-            if not product:
-                continue
-
-            # BOM 찾기 (없으면 생성)
-            bom = BOM.search([
-                "|",
-                ("product_id", "=", product.id),
-                ("product_tmpl_id", "=", product.product_tmpl_id.id),
-            ], limit=1)
-
-            if not bom:
-                # 사출 부품 BOM 생성
-                bom = BOM.create({
-                    "product_tmpl_id": product.product_tmpl_id.id,
-                    "product_qty": 1,
-                    "type": "normal",
-                })
-
-            for out_code, qty in outsource_lines:
-                out_product = out_map.get(out_code)
-                if not out_product:
-                    continue
-
-                # 이미 있는지 확인
-                existing_line = BOMLine.search([
-                    ("bom_id", "=", bom.id),
-                    ("product_id", "=", out_product.id),
+            for product in products:
+                # BOM 찾기
+                bom = BOM.search([
+                    "|",
+                    ("product_id", "=", product.id),
+                    ("product_tmpl_id", "=", product.product_tmpl_id.id),
                 ], limit=1)
 
-                if not existing_line:
-                    BOMLine.create({
-                        "bom_id": bom.id,
-                        "product_id": out_product.id,
-                        "product_qty": qty,
-                    })
-                    added_count += 1
+                if not bom:
+                    continue
+
+                for out_code, qty in outsource_lines:
+                    out_product = out_map.get(out_code)
+                    if not out_product:
+                        continue
+
+                    # 이미 있는지 확인
+                    existing_line = BOMLine.search([
+                        ("bom_id", "=", bom.id),
+                        ("product_id", "=", out_product.id),
+                    ], limit=1)
+
+                    if not existing_line:
+                        BOMLine.create({
+                            "bom_id": bom.id,
+                            "product_id": out_product.id,
+                            "product_qty": qty,
+                        })
+                        added_count += 1
 
         return added_count
 

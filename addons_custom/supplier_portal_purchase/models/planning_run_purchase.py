@@ -77,50 +77,43 @@ class InjectionPlanningRun(models.Model):
             )
 
     def _extract_outsource_demands(self):
-        """생산계획 라인과 BOM에서 외주 품목 수요 추출"""
+        """완제품 수요의 BOM에서 외주 품목 수요 추출"""
         demands = []
         config = self._get_config()
         buffer_days = config.outsource_buffer_days or 1
 
-        for line in self.line_ids:
-            product = line.product_id
+        # 완제품 수요 데이터에서 외주 부품 추출
+        for demand in self.demand_ids.filtered(lambda d: d.state in ("draft", "planned")):
+            product = demand.product_id  # 완제품
+            demand_date = demand.demand_date
+            demand_qty = demand.quantity
 
-            # 1. 계획 라인 제품 자체가 외주인 경우
-            if product.is_outsourced and product.outsource_partner_id:
-                required_date = line.planned_date - timedelta(
-                    days=(product.outsource_leadtime or 3) + buffer_days
-                )
-                demands.append({
-                    "product_id": product.id,
-                    "partner_id": product.outsource_partner_id.id,
-                    "qty": line.planned_qty,
-                    "required_date": required_date,
-                    "planning_line_id": line.id,
-                })
-
-            # 2. BOM 구성품 중 외주 품목 확인
+            # 완제품 BOM 찾기
             bom = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", product.id),
                 ("product_tmpl_id", "=", product.product_tmpl_id.id),
             ], limit=1)
 
-            if bom:
-                for bom_line in bom.bom_line_ids:
-                    component = bom_line.product_id
-                    if component.is_outsourced and component.outsource_partner_id:
-                        qty_per = bom_line.product_qty / (bom.product_qty or 1)
-                        total_qty = line.planned_qty * qty_per
-                        required_date = line.planned_date - timedelta(
-                            days=(component.outsource_leadtime or 3) + buffer_days
-                        )
-                        demands.append({
-                            "product_id": component.id,
-                            "partner_id": component.outsource_partner_id.id,
-                            "qty": total_qty,
-                            "required_date": required_date,
-                            "planning_line_id": line.id,
-                        })
+            if not bom:
+                continue
+
+            # BOM 구성품 중 외주 품목 확인
+            for bom_line in bom.bom_line_ids:
+                component = bom_line.product_id
+                if component.is_outsourced and component.outsource_partner_id:
+                    qty_per = bom_line.product_qty / (bom.product_qty or 1)
+                    total_qty = demand_qty * qty_per
+                    required_date = demand_date - timedelta(
+                        days=(component.outsource_leadtime or 3) + buffer_days
+                    )
+                    demands.append({
+                        "product_id": component.id,
+                        "partner_id": component.outsource_partner_id.id,
+                        "qty": total_qty,
+                        "required_date": required_date,
+                        "demand_id": demand.id,
+                    })
 
         # 같은 협력사, 같은 제품, 같은 납기일 수요 합산
         merged = {}
@@ -169,7 +162,7 @@ class InjectionPlanningRun(models.Model):
                 "product_qty": demand["qty"],
                 "price_unit": price,
                 "date_planned": demand["required_date"],
-                "planning_line_id": demand.get("planning_line_id"),
+                "demand_id": demand.get("demand_id"),
             })
 
         # 협력사에게 알림
