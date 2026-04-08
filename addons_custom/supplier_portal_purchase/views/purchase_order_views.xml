@@ -51,18 +51,7 @@
             <page name="purchase_delivery_invoice" position="after">
                 <page string="협력사 응답" name="supplier_response"
                       invisible="not auto_generated">
-                    <field name="response_ids" readonly="1">
-                        <tree>
-                            <field name="response_date"/>
-                            <field name="response_type"/>
-                            <field name="review_state"
-                                   decoration-info="review_state == 'pending'"
-                                   decoration-success="review_state == 'approved'"
-                                   decoration-danger="review_state == 'rejected'"/>
-                            <field name="reviewed_by"/>
-                            <field name="note"/>
-                        </tree>
-                    </field>
+                    <field name="response_ids" readonly="1"/>
                 </page>
             </page>
         </field>
