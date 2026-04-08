@@ -5,6 +5,9 @@
         <field name="model">injection.planning.config</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button string="저장" type="object" name="action_save_config" class="btn-primary"/>
+                </header>
                 <sheet>
                     <group string="Oracle 연결 정보">
                         <group>
@@ -71,10 +74,19 @@
         </field>
     </record>
 
+    <!-- 서버 액션: 싱글톤 설정 열기 -->
+    <record id="action_planning_config_server" model="ir.actions.server">
+        <field name="name">생산계획 설정</field>
+        <field name="model_id" ref="model_injection_planning_config"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_config()</field>
+    </record>
+
     <record id="action_planning_config" model="ir.actions.act_window">
         <field name="name">Oracle 연결 설정</field>
         <field name="res_model">injection.planning.config</field>
         <field name="view_mode">form</field>
-        <field name="target">inline</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'edit'}</field>
     </record>
 </odoo>

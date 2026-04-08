@@ -64,7 +64,7 @@
     <menuitem id="menu_planning_config"
               name="Oracle 연결 / 기본값"
               parent="menu_planning_config_parent"
-              action="action_planning_config"
+              action="action_planning_config_server"
               sequence="10"/>
 
     <menuitem id="menu_generate_demo"

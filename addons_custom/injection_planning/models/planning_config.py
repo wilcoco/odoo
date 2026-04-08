@@ -1,6 +1,6 @@
 import logging
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -132,6 +132,36 @@ class InjectionPlanningConfig(models.Model):
             password=self.oracle_password,
             dsn=dsn,
         )
+
+    def action_save_config(self):
+        """설정 저장 (명시적 저장 버튼용)"""
+        # 레코드가 이미 저장되어 있으므로 알림만 표시
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "저장 완료",
+                "message": "설정이 저장되었습니다.",
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    @api.model
+    def action_open_config(self):
+        """싱글톤 설정 레코드 열기 (없으면 생성)"""
+        config = self.search([], limit=1)
+        if not config:
+            config = self.create({})
+        return {
+            "type": "ir.actions.act_window",
+            "name": "생산계획 설정",
+            "res_model": self._name,
+            "res_id": config.id,
+            "view_mode": "form",
+            "target": "current",
+            "context": {"form_view_initial_mode": "edit"},
+        }
 
     def action_test_oracle_connection(self):
         """Oracle 연결 테스트"""
