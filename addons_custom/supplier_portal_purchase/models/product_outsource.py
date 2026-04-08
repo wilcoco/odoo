@@ -1,9 +1,9 @@
 from odoo import api, fields, models
 
 
-class ProductTemplate(models.Model):
-    """제품 템플릿에 외주 정보 추가"""
-    _inherit = "product.template"
+class ProductProduct(models.Model):
+    """제품에 외주 정보 추가 (실제 저장)"""
+    _inherit = "product.product"
 
     is_outsourced = fields.Boolean(
         string="외주 부품",
@@ -23,26 +23,40 @@ class ProductTemplate(models.Model):
     )
 
 
-class ProductProduct(models.Model):
-    """제품 변형에 외주 정보 추가 (템플릿에서 상속)"""
-    _inherit = "product.product"
+class ProductTemplate(models.Model):
+    """제품 템플릿에 외주 정보 추가 (뷰용 - 저장 안함)"""
+    _inherit = "product.template"
 
     is_outsourced = fields.Boolean(
         string="외주 부품",
-        related="product_tmpl_id.is_outsourced",
-        store=True,
-        readonly=False,
+        compute="_compute_outsource_fields",
+        inverse="_inverse_outsource_fields",
     )
     outsource_partner_id = fields.Many2one(
         "res.partner",
         string="기본 협력사",
-        related="product_tmpl_id.outsource_partner_id",
-        store=True,
-        readonly=False,
+        compute="_compute_outsource_fields",
+        inverse="_inverse_outsource_fields",
     )
     outsource_leadtime = fields.Integer(
         string="외주 리드타임 (일)",
-        related="product_tmpl_id.outsource_leadtime",
-        store=True,
-        readonly=False,
+        compute="_compute_outsource_fields",
+        inverse="_inverse_outsource_fields",
     )
+
+    @api.depends("product_variant_ids.is_outsourced")
+    def _compute_outsource_fields(self):
+        for tmpl in self:
+            variant = tmpl.product_variant_ids[:1]
+            tmpl.is_outsourced = variant.is_outsourced if variant else False
+            tmpl.outsource_partner_id = variant.outsource_partner_id if variant else False
+            tmpl.outsource_leadtime = variant.outsource_leadtime if variant else 3
+
+    def _inverse_outsource_fields(self):
+        for tmpl in self:
+            for variant in tmpl.product_variant_ids:
+                variant.write({
+                    "is_outsourced": tmpl.is_outsourced,
+                    "outsource_partner_id": tmpl.outsource_partner_id.id if tmpl.outsource_partner_id else False,
+                    "outsource_leadtime": tmpl.outsource_leadtime,
+                })
