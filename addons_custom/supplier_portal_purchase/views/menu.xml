@@ -7,6 +7,19 @@
               parent="purchase.menu_purchase_root"
               sequence="20"/>
 
+    <!-- 외주 조달 계획 -->
+    <menuitem id="menu_outsource_planning"
+              name="외주 조달 계획"
+              parent="menu_outsource_root"
+              action="action_outsource_planning_run"
+              sequence="5"/>
+
+    <menuitem id="menu_outsource_daily_analysis"
+              name="외주 일별 분석"
+              parent="menu_outsource_root"
+              action="action_outsource_daily_summary"
+              sequence="7"/>
+
     <!-- 외주 발주 -->
     <menuitem id="menu_outsource_purchase_orders"
               name="외주 발주 관리"

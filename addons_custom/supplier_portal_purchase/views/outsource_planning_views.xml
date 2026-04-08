@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         외주 조달 계획 실행
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="outsource_planning_run_form" model="ir.ui.view">
+        <field name="name">outsource.planning.run.form</field>
+        <field name="model">outsource.planning.run</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_load_demands" string="수요 로드"
+                            type="object" class="btn-secondary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_calculate" string="계산 실행"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_generate_purchase_orders" string="발주 생성"
+                            type="object" class="btn-success"
+                            invisible="state not in ('review', 'confirmed')"
+                            confirm="외주 부품에 대한 발주서를 생성하시겠습니까?"/>
+                    <button name="action_confirm" string="확정"
+                            type="object" class="btn-primary"
+                            invisible="state != 'review'"/>
+                    <button name="action_done" string="완료"
+                            type="object" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" string="취소"
+                            type="object" invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_draft" string="초안으로"
+                            type="object" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,review,confirmed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_purchase_orders" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="po_count == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="po_count"/>
+                                </span>
+                                <span class="o_stat_text">발주</span>
+                            </div>
+                        </button>
+                        <button name="action_view_daily_chart" type="object"
+                                class="oe_stat_button" icon="fa-bar-chart">
+                            <span class="o_stat_text">일별 분석</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="계획 기간">
+                            <field name="plan_date_from"/>
+                            <field name="plan_date_to"/>
+                        </group>
+                        <group string="통계">
+                            <field name="total_outsource_products"/>
+                            <field name="total_order_qty"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="조달 계획" name="planning_lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="demand_date"/>
+                                    <field name="demand_qty"/>
+                                    <field name="order_date"/>
+                                    <field name="order_qty"/>
+                                    <field name="leadtime"/>
+                                    <field name="current_stock"/>
+                                    <field name="safety_stock_qty"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="수요 데이터" name="demands">
+                            <field name="demand_ids" readonly="1">
+                                <list>
+                                    <field name="demand_date"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="일별 요약" name="daily_summary">
+                            <field name="summary_ids" readonly="1">
+                                <list>
+                                    <field name="plan_date"/>
+                                    <field name="product_id"/>
+                                    <field name="demand_qty"/>
+                                    <field name="incoming_qty"/>
+                                    <field name="stock_start"/>
+                                    <field name="stock_end"/>
+                                    <field name="safety_stock_qty"/>
+                                    <field name="shortage_risk"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes" placeholder="비고..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="outsource_planning_run_list" model="ir.ui.view">
+        <field name="name">outsource.planning.run.list</field>
+        <field name="model">outsource.planning.run</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="plan_date_from"/>
+                <field name="plan_date_to"/>
+                <field name="total_outsource_products"/>
+                <field name="total_order_qty"/>
+                <field name="po_count"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'review'"
+                       decoration-success="state in ('confirmed', 'done')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="outsource_planning_run_search" model="ir.ui.view">
+        <field name="name">outsource.planning.run.search</field>
+        <field name="model">outsource.planning.run</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="draft" string="초안" domain="[('state', '=', 'draft')]"/>
+                <filter name="review" string="검토" domain="[('state', '=', 'review')]"/>
+                <filter name="confirmed" string="확정" domain="[('state', '=', 'confirmed')]"/>
+                <separator/>
+                <group expand="0" string="그룹">
+                    <filter string="상태" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="시작일" name="group_date" context="{'group_by': 'plan_date_from'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_outsource_planning_run" model="ir.actions.act_window">
+        <field name="name">외주 조달 계획</field>
+        <field name="res_model">outsource.planning.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                외주 조달 계획을 생성하세요
+            </p>
+            <p>
+                완제품 수요를 기반으로 외주 부품 조달 계획을 수립합니다.
+            </p>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         외주 일별 요약 (차트)
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="outsource_daily_summary_list" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.list</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="plan_date"/>
+                <field name="product_id"/>
+                <field name="demand_qty"/>
+                <field name="incoming_qty"/>
+                <field name="stock_start"/>
+                <field name="stock_end"/>
+                <field name="safety_stock_qty"/>
+                <field name="shortage_risk" widget="boolean"/>
+                <field name="shortage_qty"
+                       decoration-danger="shortage_qty &lt; 0"
+                       decoration-success="shortage_qty >= 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="outsource_daily_summary_graph" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.graph</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <graph string="외주 부품 일별 분석" type="line" stacked="0">
+                <field name="plan_date" type="row"/>
+                <field name="demand_qty" type="measure"/>
+                <field name="incoming_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+                <field name="safety_stock_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="outsource_daily_summary_pivot" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.pivot</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <pivot string="외주 부품 일별 분석">
+                <field name="product_id" type="row"/>
+                <field name="plan_date" type="col"/>
+                <field name="demand_qty" type="measure"/>
+                <field name="incoming_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="outsource_daily_summary_search" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.search</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="plan_date"/>
+                <filter name="shortage" string="결품 위기"
+                        domain="[('shortage_risk', '=', True)]"/>
+                <separator/>
+                <group expand="0" string="그룹">
+                    <filter string="품목" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="날짜" name="group_date" context="{'group_by': 'plan_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_outsource_daily_summary" model="ir.actions.act_window">
+        <field name="name">외주 부품 일별 분석</field>
+        <field name="res_model">outsource.daily.summary</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                외주 조달 계획을 먼저 실행하세요
+            </p>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         외주 계획 라인
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="outsource_planning_line_list" model="ir.ui.view">
+        <field name="name">outsource.planning.line.list</field>
+        <field name="model">outsource.planning.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="planning_run_id"/>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="demand_date"/>
+                <field name="demand_qty"/>
+                <field name="order_date"/>
+                <field name="order_qty"/>
+                <field name="current_stock"/>
+                <field name="safety_stock_qty"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="outsource_planning_line_search" model="ir.ui.view">
+        <field name="name">outsource.planning.line.search</field>
+        <field name="model">outsource.planning.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="demand_date"/>
+                <group expand="0" string="그룹">
+                    <filter string="품목" name="group_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="협력사" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="필요일" name="group_date" context="{'group_by': 'demand_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_outsource_planning_line" model="ir.actions.act_window">
+        <field name="name">외주 조달 계획 상세</field>
+        <field name="res_model">outsource.planning.line</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

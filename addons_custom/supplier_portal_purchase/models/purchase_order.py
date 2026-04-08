@@ -11,6 +11,11 @@ class PurchaseOrder(models.Model):
         string="연결된 생산계획",
         readonly=True,
     )
+    outsource_planning_run_id = fields.Many2one(
+        "outsource.planning.run",
+        string="연결된 외주계획",
+        readonly=True,
+    )
     auto_generated = fields.Boolean(
         string="자동 생성",
         default=False,

@@ -2,8 +2,13 @@
 <odoo>
     <data noupdate="1">
 
-        <!-- 외주 발주 시퀀스는 purchase 모듈의 기본 시퀀스 사용 -->
-        <!-- 필요시 별도 시퀀스 추가 가능 -->
+        <!-- 외주 조달 계획 시퀀스 -->
+        <record id="seq_outsource_planning_run" model="ir.sequence">
+            <field name="name">외주 조달 계획</field>
+            <field name="code">outsource.planning.run</field>
+            <field name="prefix">OUT/%(year)s/</field>
+            <field name="padding">4</field>
+        </record>
 
     </data>
 </odoo>
