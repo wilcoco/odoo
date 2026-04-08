@@ -222,13 +222,15 @@ class OutsourcePlanningRun(models.Model):
         # 품목별 일별 데이터 집계
         product_daily = defaultdict(lambda: defaultdict(lambda: {
             "demand_qty": 0,
-            "order_qty": 0,
+            "incoming_qty": 0,
         }))
 
         for line in self.line_ids:
             key = line.product_id.id
+            # 소요량: 필요일에 소비
             product_daily[key][line.demand_date]["demand_qty"] += line.demand_qty
-            product_daily[key][line.order_date]["order_qty"] += line.order_qty
+            # 입고량: 필요일에 도착 (발주일 + 리드타임 = 필요일)
+            product_daily[key][line.demand_date]["incoming_qty"] += line.order_qty
 
         # 요약 레코드 생성
         for product_id, daily_data in product_daily.items():
@@ -238,7 +240,7 @@ class OutsourcePlanningRun(models.Model):
             for plan_date in sorted(daily_data.keys()):
                 data = daily_data[plan_date]
                 demand_qty = data["demand_qty"]
-                incoming_qty = data["order_qty"]
+                incoming_qty = data["incoming_qty"]
 
                 # 안전재고 (향후 N일 수요)
                 safety_stock = sum(
