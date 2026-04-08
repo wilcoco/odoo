@@ -17,7 +17,7 @@
     <menuitem id="menu_outsource_daily_analysis"
               name="외주 일별 분석"
               parent="menu_outsource_root"
-              action="action_outsource_daily_summary"
+              action="action_outsource_daily_chart"
               sequence="7"/>
 
     <!-- 외주 발주 -->

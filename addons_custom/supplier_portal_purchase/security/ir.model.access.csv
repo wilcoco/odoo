@@ -16,3 +16,5 @@ access_outsource_planning_line_user,outsource.planning.line.user,model_outsource
 access_outsource_planning_line_manager,outsource.planning.line.manager,model_outsource_planning_line,purchase.group_purchase_manager,1,1,1,1
 access_outsource_daily_summary_user,outsource.daily.summary.user,model_outsource_daily_summary,purchase.group_purchase_user,1,0,0,0
 access_outsource_daily_summary_manager,outsource.daily.summary.manager,model_outsource_daily_summary,purchase.group_purchase_manager,1,1,1,1
+access_outsource_daily_chart_user,outsource.daily.chart.user,model_outsource_daily_chart,purchase.group_purchase_user,1,0,0,0
+access_outsource_daily_chart_manager,outsource.daily.chart.manager,model_outsource_daily_chart,purchase.group_purchase_manager,1,1,1,1

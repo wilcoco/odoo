@@ -379,8 +379,8 @@ class OutsourcePlanningRun(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": _("외주 부품 일별 분석"),
-            "res_model": "outsource.daily.summary",
-            "view_mode": "graph,pivot,list",
+            "res_model": "outsource.daily.chart",
+            "view_mode": "graph,list",
             "domain": [("planning_run_id", "=", self.id)],
             "context": {"default_planning_run_id": self.id},
         }

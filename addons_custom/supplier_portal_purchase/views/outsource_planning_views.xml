@@ -166,84 +166,128 @@
     </record>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         외주 일별 요약 (차트)
+         차트 모델 (outsource.daily.chart) — 그래프 전용
+         언피벗 SQL View → metric_type 별 4개 라인 동시 표시
          ═══════════════════════════════════════════════════════════════ -->
 
-    <record id="outsource_daily_summary_list" model="ir.ui.view">
-        <field name="name">outsource.daily.summary.list</field>
-        <field name="model">outsource.daily.summary</field>
+    <!-- 차트 검색 뷰 -->
+    <record id="outsource_daily_chart_search" model="ir.ui.view">
+        <field name="name">outsource.daily.chart.search</field>
+        <field name="model">outsource.daily.chart</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="plan_date"/>
-                <field name="product_id"/>
-                <field name="demand_qty"/>
-                <field name="incoming_qty"/>
-                <field name="stock_start"/>
-                <field name="stock_end"/>
-                <field name="safety_stock_qty"/>
-                <field name="shortage_risk" widget="boolean"/>
-                <field name="shortage_qty"
-                       decoration-danger="shortage_qty &lt; 0"
-                       decoration-success="shortage_qty >= 0"/>
-            </list>
+            <search>
+                <field name="product_id" string="외주 부품"/>
+                <field name="planning_run_id"/>
+                <searchpanel view_types="graph,list">
+                    <field name="product_id" string="외주 부품"
+                           select="one" enable_counters="1"/>
+                </searchpanel>
+            </search>
         </field>
     </record>
 
-    <record id="outsource_daily_summary_graph" model="ir.ui.view">
-        <field name="name">outsource.daily.summary.graph</field>
-        <field name="model">outsource.daily.summary</field>
+    <!-- 차트 그래프 뷰: X축=날짜, groupBy=지표(4종), measure=수량 -->
+    <record id="outsource_daily_chart_graph" model="ir.ui.view">
+        <field name="name">outsource.daily.chart.graph</field>
+        <field name="model">outsource.daily.chart</field>
         <field name="arch" type="xml">
-            <graph string="외주 부품 일별 분석" type="line" stacked="0">
-                <field name="plan_date" type="row"/>
-                <field name="demand_qty" type="measure"/>
-                <field name="incoming_qty" type="measure"/>
-                <field name="stock_end" type="measure"/>
-                <field name="safety_stock_qty" type="measure"/>
+            <graph type="line" stacked="0">
+                <field name="plan_date" interval="day"/>
+                <field name="metric_type"/>
+                <field name="value" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <record id="outsource_daily_summary_pivot" model="ir.ui.view">
-        <field name="name">outsource.daily.summary.pivot</field>
-        <field name="model">outsource.daily.summary</field>
+    <!-- 차트 리스트 뷰 (보조) -->
+    <record id="outsource_daily_chart_list" model="ir.ui.view">
+        <field name="name">outsource.daily.chart.list</field>
+        <field name="model">outsource.daily.chart</field>
         <field name="arch" type="xml">
-            <pivot string="외주 부품 일별 분석">
-                <field name="product_id" type="row"/>
-                <field name="plan_date" type="col"/>
-                <field name="demand_qty" type="measure"/>
-                <field name="incoming_qty" type="measure"/>
-                <field name="stock_end" type="measure"/>
-            </pivot>
+            <list>
+                <field name="plan_date"/>
+                <field name="product_id"/>
+                <field name="metric_type"/>
+                <field name="value"/>
+            </list>
         </field>
     </record>
 
+    <!-- 차트 액션 (메뉴 + 계획 실행 버튼용) -->
+    <record id="action_outsource_daily_chart" model="ir.actions.act_window">
+        <field name="name">외주 부품 일별 분석</field>
+        <field name="res_model">outsource.daily.chart</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="outsource_daily_chart_search"/>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         요약 모델 (outsource.daily.summary) — 리스트/피벗
+         와이드 포맷: 결품 위기 표시, 상세 데이터 확인용
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- 요약 검색 뷰 -->
     <record id="outsource_daily_summary_search" model="ir.ui.view">
         <field name="name">outsource.daily.summary.search</field>
         <field name="model">outsource.daily.summary</field>
         <field name="arch" type="xml">
             <search>
-                <field name="product_id"/>
-                <field name="plan_date"/>
-                <filter name="shortage" string="결품 위기"
-                        domain="[('shortage_risk', '=', True)]"/>
+                <field name="product_id" string="외주 부품"/>
+                <field name="planning_run_id"/>
                 <separator/>
-                <group expand="0" string="그룹">
-                    <filter string="품목" name="group_product" context="{'group_by': 'product_id'}"/>
-                    <filter string="날짜" name="group_date" context="{'group_by': 'plan_date'}"/>
-                </group>
+                <filter name="shortage_only" string="결품 위기만"
+                        domain="[('shortage_risk', '=', True)]"/>
+                <searchpanel view_types="list">
+                    <field name="product_id" string="외주 부품"
+                           select="one" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
 
-    <record id="action_outsource_daily_summary" model="ir.actions.act_window">
-        <field name="name">외주 부품 일별 분석</field>
-        <field name="res_model">outsource.daily.summary</field>
-        <field name="view_mode">graph,pivot,list</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                외주 조달 계획을 먼저 실행하세요
-            </p>
+    <!-- 피벗 뷰 -->
+    <record id="outsource_daily_summary_pivot" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.pivot</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="product_id" type="row"/>
+                <field name="plan_date" interval="day" type="col"/>
+                <field name="demand_qty" type="measure"/>
+                <field name="incoming_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+                <field name="safety_stock_qty" type="measure"/>
+                <field name="shortage_qty" type="measure"/>
+            </pivot>
         </field>
+    </record>
+
+    <!-- 리스트 뷰 -->
+    <record id="outsource_daily_summary_list" model="ir.ui.view">
+        <field name="name">outsource.daily.summary.list</field>
+        <field name="model">outsource.daily.summary</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="shortage_risk == True"
+                  decoration-warning="stock_end &lt; safety_stock_qty * 1.5 and shortage_risk == False">
+                <field name="plan_date"/>
+                <field name="product_id"/>
+                <field name="demand_qty" sum="합계"/>
+                <field name="incoming_qty" sum="합계"/>
+                <field name="safety_stock_qty"/>
+                <field name="stock_start"/>
+                <field name="stock_end"/>
+                <field name="shortage_risk" widget="boolean"/>
+                <field name="shortage_qty"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 요약 액션 (상세 데이터 열람용) -->
+    <record id="action_outsource_daily_summary" model="ir.actions.act_window">
+        <field name="name">외주 일별 분석 상세</field>
+        <field name="res_model">outsource.daily.summary</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="search_view_id" ref="outsource_daily_summary_search"/>
     </record>
 
     <!-- ═══════════════════════════════════════════════════════════════
