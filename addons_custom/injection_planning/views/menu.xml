@@ -62,9 +62,9 @@
               sequence="90"/>
 
     <menuitem id="menu_planning_config"
-              name="Oracle 연결 / 기본값"
+              name="생산계획 설정"
               parent="menu_planning_config_parent"
-              action="action_planning_config_server"
+              action="action_planning_config"
               sequence="10"/>
 
     <menuitem id="menu_generate_demo"

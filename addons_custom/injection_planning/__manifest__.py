@@ -17,6 +17,7 @@
         "security/ir.model.access.csv",
         "data/sequence.xml",
         "data/cron.xml",
+        "data/default_config.xml",
         "views/mold_planning_views.xml",
         "views/planning_config_views.xml",
         "views/machine_mold_views.xml",

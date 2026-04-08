@@ -83,8 +83,9 @@
     </record>
 
     <record id="action_planning_config" model="ir.actions.act_window">
-        <field name="name">Oracle 연결 설정</field>
+        <field name="name">생산계획 설정</field>
         <field name="res_model">injection.planning.config</field>
+        <field name="res_id" ref="default_planning_config"/>
         <field name="view_mode">form</field>
         <field name="target">current</field>
         <field name="context">{'form_view_initial_mode': 'edit'}</field>

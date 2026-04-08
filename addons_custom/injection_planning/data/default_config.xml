@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 기본 설정 레코드 (싱글톤) -->
+        <record id="default_planning_config" model="injection.planning.config">
+            <field name="oracle_host">localhost</field>
+            <field name="oracle_port">1521</field>
+            <field name="oracle_sid">orcl</field>
+            <field name="planning_horizon">14</field>
+            <field name="safety_stock_days">3</field>
+            <field name="day_shift_hours">8.0</field>
+            <field name="night_shift_hours">8.0</field>
+            <field name="day_shift_start">8.0</field>
+            <field name="night_shift_start">20.0</field>
+        </record>
+    </data>
+</odoo>
