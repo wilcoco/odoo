@@ -40,6 +40,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         msg = "외주 샘플 데이터 생성 완료:\n" + "\n".join(f"  - {s}" for s in summary)
         _logger.info(msg)
 
+        # 알림 표시 후 창 닫기
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -47,7 +48,8 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "title": "외주 샘플 데이터 생성 완료",
                 "message": ", ".join(summary),
                 "type": "success",
-                "sticky": True,
+                "sticky": False,
+                "next": {"type": "ir.actions.act_window_close"},
             },
         }
 
