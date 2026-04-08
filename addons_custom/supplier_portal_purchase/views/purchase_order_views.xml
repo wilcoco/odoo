@@ -27,9 +27,9 @@
                         invisible="portal_state != 'approved'"/>
             </button>
 
-            <!-- 포탈 정보 그룹 추가 -->
-            <group name="note_group" position="before">
-                <group string="외주 발주 정보" invisible="not auto_generated">
+            <!-- 포탈 정보 그룹 추가 (Other Information 탭 내 other_info 그룹 앞에) -->
+            <group name="other_info" position="before">
+                <group string="외주 발주 정보" invisible="not auto_generated" colspan="2">
                     <group>
                         <field name="auto_generated" readonly="1"/>
                         <field name="planning_run_id" readonly="1"/>
