@@ -31,17 +31,20 @@ class ProductTemplate(models.Model):
         string="외주 부품",
         compute="_compute_outsource_fields",
         inverse="_inverse_outsource_fields",
+        store=True,
     )
     outsource_partner_id = fields.Many2one(
         "res.partner",
         string="기본 협력사",
         compute="_compute_outsource_fields",
         inverse="_inverse_outsource_fields",
+        store=True,
     )
     outsource_leadtime = fields.Integer(
         string="외주 리드타임 (일)",
         compute="_compute_outsource_fields",
         inverse="_inverse_outsource_fields",
+        store=True,
     )
 
     @api.depends("product_variant_ids.is_outsourced")
