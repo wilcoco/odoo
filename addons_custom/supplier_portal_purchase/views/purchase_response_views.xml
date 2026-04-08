@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- 품목별 응답 트리 뷰 (line_response_ids용) -->
+    <record id="purchase_order_line_response_tree_view" model="ir.ui.view">
+        <field name="name">purchase.order.line.response.tree</field>
+        <field name="model">purchase.order.line.response</field>
+        <field name="arch" type="xml">
+            <tree string="품목별 응답" editable="bottom">
+                <field name="product_id" readonly="1"/>
+                <field name="requested_qty" readonly="1"/>
+                <field name="confirmed_qty"/>
+                <field name="requested_date" readonly="1"/>
+                <field name="confirmed_date"/>
+                <field name="line_status" readonly="1"
+                       decoration-success="line_status == 'ok'"
+                       decoration-warning="line_status in ('qty_diff', 'date_diff')"
+                       decoration-danger="line_status in ('both_diff', 'reject')"/>
+                <field name="is_approved"/>
+                <field name="line_note"/>
+            </tree>
+        </field>
+    </record>
+
     <!-- 협력사 응답 폼 뷰 -->
     <record id="purchase_order_response_form_view" model="ir.ui.view">
         <field name="name">purchase.order.response.form</field>
@@ -31,21 +52,7 @@
                     </group>
                     <notebook>
                         <page string="품목별 응답">
-                            <field name="line_response_ids">
-                                <tree editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="requested_qty"/>
-                                    <field name="confirmed_qty"/>
-                                    <field name="requested_date"/>
-                                    <field name="confirmed_date"/>
-                                    <field name="line_status"
-                                           decoration-success="line_status == 'ok'"
-                                           decoration-warning="line_status in ('qty_diff', 'date_diff')"
-                                           decoration-danger="line_status in ('both_diff', 'reject')"/>
-                                    <field name="is_approved"/>
-                                    <field name="line_note"/>
-                                </tree>
-                            </field>
+                            <field name="line_response_ids" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
