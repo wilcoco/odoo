@@ -110,11 +110,6 @@ class PurchaseOrder(models.Model):
         if self.portal_state != "responded":
             raise UserError(_("응답 완료 상태의 발주만 승인할 수 있습니다."))
 
-        self.portal_state = "approved"
-
-        # 협력사에게 승인 알림
-        self._create_portal_notification("approved", partner=self.partner_id)
-
         # PO Line에 확정 수량/납기 반영
         if self.latest_response_id:
             for line_resp in self.latest_response_id.line_response_ids:
@@ -124,7 +119,16 @@ class PurchaseOrder(models.Model):
                         "date_planned": line_resp.confirmed_date,
                     })
 
-        self.message_post(body=_("협력사 응답이 승인되었습니다."))
+        # 발주 확정 (입고 대기 생성)
+        if self.state in ("draft", "sent"):
+            self.button_confirm()
+
+        self.portal_state = "approved"
+
+        # 협력사에게 승인 알림
+        self._create_portal_notification("approved", partner=self.partner_id)
+
+        self.message_post(body=_("협력사 응답이 승인되었습니다. 입고 대기가 생성되었습니다."))
         return True
 
     def action_reject_response(self):
