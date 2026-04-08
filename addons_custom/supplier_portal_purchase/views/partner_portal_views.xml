@@ -9,7 +9,7 @@
         <field name="arch" type="xml">
             <page name="sales_purchases" position="after">
                 <page string="협력사 포탈" name="supplier_portal"
-                      invisible="not supplier">
+                      invisible="supplier_rank == 0">
                     <group>
                         <group string="포탈 설정">
                             <field name="is_supplier_portal"/>
@@ -71,9 +71,10 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_res_partner_filter"/>
         <field name="arch" type="xml">
-            <filter name="supplier" position="after">
+            <filter name="inactive" position="before">
                 <filter name="supplier_portal" string="포탈 협력사"
                         domain="[('is_supplier_portal', '=', True)]"/>
+                <separator/>
             </filter>
         </field>
     </record>
@@ -84,7 +85,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('is_supplier_portal', '=', True)]</field>
-        <field name="context">{'default_is_supplier_portal': True, 'default_supplier': True}</field>
+        <field name="context">{'default_is_supplier_portal': True, 'default_supplier_rank': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 협력사를 등록하세요
