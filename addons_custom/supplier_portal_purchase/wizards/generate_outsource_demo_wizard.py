@@ -122,7 +122,8 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
             vals = {
                 "name": name,
                 "default_code": code,
-                "type": "product",  # 저장가능 제품 (재고 추적)
+                "type": "consu",
+                "is_storable": True,  # Odoo 18: consu + is_storable = 저장가능 제품
                 "is_outsourced": True,
                 "outsource_partner_id": partner.id if partner else False,
                 "outsource_leadtime": leadtime,
