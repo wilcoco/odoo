@@ -14,6 +14,11 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         string="기존 BOM에 외주 부품 추가",
         default=True,
     )
+    create_test_product = fields.Boolean(
+        string="테스트용 신규 제품 생성",
+        default=False,
+        help="새로운 완제품 + 외주부품 + BOM + 수요 데이터 생성",
+    )
 
     def action_generate(self):
         """외주 샘플 데이터 생성"""
@@ -33,7 +38,12 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
             bom_lines = self._add_outsource_to_boms(outsource_products)
             summary.append(f"BOM 라인 {bom_lines}개 추가")
 
-        # 4. 계획 설정 업데이트 (자동 발주 활성화)
+        # 4. 테스트용 신규 제품 생성
+        if self.create_test_product:
+            test_result = self._create_test_product_set(partners)
+            summary.append(test_result)
+
+        # 5. 계획 설정 업데이트 (자동 발주 활성화)
         self._update_config()
         summary.append("외주 자동발주 설정 활성화")
 
@@ -244,3 +254,97 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "auto_generate_po": True,
                 "outsource_buffer_days": 1,
             })
+
+    def _create_test_product_set(self, partners):
+        """테스트용 완제품 + 외주부품 + BOM + 수요 생성"""
+        from datetime import date, timedelta
+
+        Product = self.env["product.product"]
+        BOM = self.env["mrp.bom"]
+        BOMLine = self.env["mrp.bom.line"]
+        Demand = self.env["injection.production.demand"]
+
+        # 협력사 매핑
+        partner_map = {p.name: p for p in partners}
+        samsung_cap = partner_map.get("삼성캡(주)")
+
+        # 1. 테스트용 외주 부품 생성
+        test_outsource = Product.search([("default_code", "=", "TEST-OUT-001")], limit=1)
+        if not test_outsource:
+            test_outsource = Product.create({
+                "name": "테스트 외주부품 A",
+                "default_code": "TEST-OUT-001",
+                "type": "consu",
+                "is_storable": True,
+                "is_outsourced": True,
+                "outsource_partner_id": samsung_cap.id if samsung_cap else False,
+                "outsource_leadtime": 3,
+                "standard_price": 500,
+                "list_price": 600,
+            })
+        else:
+            test_outsource.write({
+                "is_outsourced": True,
+                "outsource_partner_id": samsung_cap.id if samsung_cap else False,
+                "outsource_leadtime": 3,
+            })
+
+        # 공급업체 가격 정보
+        if samsung_cap:
+            self._create_supplierinfo(test_outsource, samsung_cap, 500, 3)
+
+        # 2. 테스트용 완제품 생성
+        test_finished = Product.search([("default_code", "=", "TEST-ASSY-001")], limit=1)
+        if not test_finished:
+            test_finished = Product.create({
+                "name": "테스트 조립품 A",
+                "default_code": "TEST-ASSY-001",
+                "type": "consu",
+                "is_storable": True,
+                "standard_price": 2000,
+                "list_price": 2500,
+            })
+
+        # 3. BOM 생성 (완제품 → 외주부품)
+        existing_bom = BOM.search([
+            "|",
+            ("product_id", "=", test_finished.id),
+            ("product_tmpl_id", "=", test_finished.product_tmpl_id.id),
+        ], limit=1)
+
+        if existing_bom:
+            existing_bom.unlink()
+
+        test_bom = BOM.create({
+            "product_tmpl_id": test_finished.product_tmpl_id.id,
+            "product_qty": 1,
+            "type": "normal",
+        })
+
+        # BOM 라인: 외주부품 2개 소요
+        BOMLine.create({
+            "bom_id": test_bom.id,
+            "product_id": test_outsource.id,
+            "product_qty": 2,
+        })
+
+        # 4. 수요 데이터 생성 (향후 7일간)
+        today = date.today()
+        for i in range(7):
+            demand_date = today + timedelta(days=i + 1)
+            existing_demand = Demand.search([
+                ("product_id", "=", test_finished.id),
+                ("demand_date", "=", demand_date),
+            ], limit=1)
+
+            if not existing_demand:
+                Demand.create({
+                    "product_id": test_finished.id,
+                    "demand_date": demand_date,
+                    "quantity": 100,  # 하루 100개 수요
+                    "demand_type": "daily",
+                    "source": "manual",
+                    "state": "draft",
+                })
+
+        return f"테스트 제품 생성: {test_finished.default_code} (외주부품: {test_outsource.default_code})"

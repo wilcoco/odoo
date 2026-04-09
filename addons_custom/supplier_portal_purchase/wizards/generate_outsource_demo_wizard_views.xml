@@ -21,6 +21,18 @@
                 </group>
                 <group>
                     <field name="add_to_existing_bom"/>
+                    <field name="create_test_product"/>
+                </group>
+                <group invisible="not create_test_product">
+                    <p class="alert alert-warning" role="alert">
+                        <strong>테스트용 신규 제품 생성:</strong>
+                        <ul>
+                            <li>완제품: TEST-ASSY-001 (테스트 조립품 A)</li>
+                            <li>외주부품: TEST-OUT-001 (삼성캡에서 조달)</li>
+                            <li>BOM: 완제품 1개당 외주부품 2개 소요</li>
+                            <li>수요: 향후 7일간 일 100개</li>
+                        </ul>
+                    </p>
                 </group>
                 <footer>
                     <button string="생성" type="object" name="action_generate"
