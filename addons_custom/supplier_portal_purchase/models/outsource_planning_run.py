@@ -216,38 +216,38 @@ class OutsourcePlanningRun(models.Model):
                 })
 
     def _create_daily_summary(self, safety_days):
-        """일별 요약 생성 (차트용)"""
+        """일별 요약 생성 (차트용) - MRP 스타일 계산"""
         Summary = self.env["outsource.daily.summary"]
 
-        # 품목별 일별 데이터 집계
-        product_daily = defaultdict(lambda: defaultdict(lambda: {
-            "demand_qty": 0,
-            "incoming_qty": 0,
-        }))
+        # 품목별 일별 소요량 집계
+        product_daily = defaultdict(lambda: defaultdict(float))
 
         for line in self.line_ids:
             key = line.product_id.id
-            # 소요량: 필요일에 소비
-            product_daily[key][line.demand_date]["demand_qty"] += line.demand_qty
-            # 입고량: 필요일에 도착 (발주일 + 리드타임 = 필요일)
-            product_daily[key][line.demand_date]["incoming_qty"] += line.order_qty
+            product_daily[key][line.demand_date] += line.demand_qty
 
-        # 요약 레코드 생성
-        for product_id, daily_data in product_daily.items():
+        # 요약 레코드 생성 (MRP 스타일)
+        for product_id, daily_demands in product_daily.items():
             product = self.env["product.product"].browse(product_id)
             stock = product.qty_available  # 시작 재고
 
-            for plan_date in sorted(daily_data.keys()):
-                data = daily_data[plan_date]
-                demand_qty = data["demand_qty"]
-                incoming_qty = data["incoming_qty"]
+            for plan_date in sorted(daily_demands.keys()):
+                demand_qty = daily_demands[plan_date]
 
                 # 안전재고 (향후 N일 수요)
                 safety_stock = sum(
-                    daily_data[d]["demand_qty"]
-                    for d in daily_data
+                    daily_demands[d]
+                    for d in daily_demands
                     if plan_date <= d <= plan_date + timedelta(days=safety_days)
                 )
+
+                # 입고량 계산: 재고가 안전재고 이하로 떨어지면 발주
+                projected_stock = stock - demand_qty
+                if projected_stock < safety_stock:
+                    # 안전재고 수준까지 채우는 입고량
+                    incoming_qty = safety_stock - projected_stock
+                else:
+                    incoming_qty = 0
 
                 stock_end = stock + incoming_qty - demand_qty
 
@@ -261,6 +261,9 @@ class OutsourcePlanningRun(models.Model):
                     "stock_start": stock,
                     "stock_end": stock_end,
                 })
+
+                # 다음 날 시작재고 = 오늘 종료재고
+                stock = stock_end
 
                 stock = stock_end
 
