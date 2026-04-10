@@ -50,8 +50,12 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
 
         # 5. 다단계 공급망 테스트 데이터
         if self.create_supply_chain:
-            chain_result = self._create_supply_chain_test(partners)
-            summary.append(chain_result)
+            try:
+                chain_result = self._create_supply_chain_test(partners)
+                summary.append(chain_result)
+            except Exception as e:
+                _logger.exception("공급망 테스트 데이터 생성 실패")
+                summary.append(f"공급망 테스트 실패: {e}")
 
         # 6. 계획 설정 업데이트 (자동 발주 활성화)
         self._update_config()
