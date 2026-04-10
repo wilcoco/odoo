@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 루트 메뉴 (제조 하위) -->
+    <menuitem id="menu_production_planning_root"
+              name="생산 계획"
+              parent="mrp.menu_mrp_root"
+              sequence="5"/>
+
+    <!-- 수요 관리 -->
+    <menuitem id="menu_production_demand"
+              name="생산 수요"
+              parent="menu_production_planning_root"
+              action="action_production_demand"
+              sequence="10"/>
+
+</odoo>

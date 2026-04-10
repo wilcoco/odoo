@@ -1,15 +1,30 @@
 from odoo import fields, models
 
 
-class InjectionPlanningConfig(models.Model):
-    """생산계획 설정에 외주 관련 설정 추가"""
-    _inherit = "injection.planning.config"
+class OutsourcePlanningConfig(models.Model):
+    """외주 조달 계획 설정"""
+    _name = "outsource.planning.config"
+    _description = "외주 조달 설정"
+
+    name = fields.Char(
+        string="설정명",
+        default="기본 설정",
+        required=True,
+    )
+    active = fields.Boolean(default=True)
+
+    # 재고 설정
+    safety_stock_days = fields.Integer(
+        string="안전재고 일수",
+        default=3,
+        help="N일치 수요를 안전재고로 유지",
+    )
 
     # 외주 발주 설정
     auto_generate_po = fields.Boolean(
         string="자동 발주 생성",
         default=False,
-        help="생산계획 확정 시 외주 품목에 대해 자동으로 발주서 생성",
+        help="외주 조달 계획 확정 시 자동으로 발주서 생성",
     )
     outsource_buffer_days = fields.Integer(
         string="외주 납기 버퍼 (일)",
@@ -43,4 +58,9 @@ class InjectionPlanningConfig(models.Model):
         "res.users",
         string="생산 관리자",
         help="생산 영향 알림을 받을 담당자",
+    )
+
+    company_id = fields.Many2one(
+        "res.company",
+        default=lambda self: self.env.company,
     )

@@ -37,9 +37,9 @@ class OutsourcePlanningRun(models.Model):
         tracking=True,
     )
 
-    # 수요 데이터 (injection.production.demand 재사용)
+    # 수요 데이터 (production.demand 사용)
     demand_ids = fields.Many2many(
-        "injection.production.demand",
+        "production.demand",
         "outsource_planning_demand_rel",
         "planning_id",
         "demand_id",
@@ -89,23 +89,26 @@ class OutsourcePlanningRun(models.Model):
 
     def _get_config(self):
         """설정 레코드 조회"""
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env["outsource.planning.config"].search([], limit=1)
         if not config:
-            raise models.UserError(_("생산계획 설정이 없습니다."))
+            # 기본 설정 자동 생성
+            config = self.env["outsource.planning.config"].create({
+                "name": "기본 설정",
+            })
         return config
 
     # ─────────────────────────────────────────────
-    # 수요 데이터 로드 (injection.production.demand 연결)
+    # 수요 데이터 로드 (production.demand 사용)
     # ─────────────────────────────────────────────
     def action_load_demands(self):
         """기간 내 수요 데이터 로드"""
         self.ensure_one()
-        Demand = self.env["injection.production.demand"]
+        Demand = self.env["production.demand"]
 
         demands = Demand.search([
             ("demand_date", ">=", self.plan_date_from),
             ("demand_date", "<=", self.plan_date_to),
-            ("state", "in", ("draft", "planned")),
+            ("state", "in", ("draft", "confirmed")),
         ])
 
         self.demand_ids = [(6, 0, demands.ids)]

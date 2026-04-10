@@ -6,11 +6,6 @@ class PurchaseOrder(models.Model):
     """발주서에 포탈 관련 필드 추가"""
     _inherit = "purchase.order"
 
-    planning_run_id = fields.Many2one(
-        "injection.planning.run",
-        string="연결된 생산계획",
-        readonly=True,
-    )
     outsource_planning_run_id = fields.Many2one(
         "outsource.planning.run",
         string="연결된 외주계획",
@@ -178,7 +173,7 @@ class PurchaseOrder(models.Model):
     @api.model
     def _cron_send_reminder_notifications(self):
         """미응답 발주에 대해 리마인더 알림 생성 (Cron)"""
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env["outsource.planning.config"].search([], limit=1)
         reminder_days = config.po_reminder_days if config else 2
 
         # 납기 D-N일 이내 미응답 발주 조회
@@ -216,7 +211,7 @@ class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
     demand_id = fields.Many2one(
-        "injection.production.demand",
+        "production.demand",
         string="수요 데이터",
         readonly=True,
     )

@@ -1,53 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- 생산계획 설정 폼 확장 - 외주 관리 탭 -->
-    <record id="injection_planning_config_form_outsource" model="ir.ui.view">
-        <field name="name">injection.planning.config.form.outsource</field>
-        <field name="model">injection.planning.config</field>
-        <field name="inherit_id" ref="injection_planning.view_planning_config_form"/>
+    <!-- 외주 조달 설정 폼 -->
+    <record id="outsource_planning_config_form" model="ir.ui.view">
+        <field name="name">outsource.planning.config.form</field>
+        <field name="model">outsource.planning.config</field>
         <field name="arch" type="xml">
-            <xpath expr="//sheet" position="inside">
-                <separator string="외주 자동발주 설정"/>
-                <group>
+            <form string="외주 조달 설정">
+                <sheet>
                     <group>
-                        <field name="auto_generate_po"/>
-                        <field name="outsource_buffer_days"/>
-                        <field name="default_buyer_id"/>
+                        <field name="name"/>
+                        <field name="active" invisible="1"/>
                     </group>
-                    <group>
-                        <field name="portal_base_url"
-                               placeholder="https://your-odoo.com"/>
-                        <field name="po_reminder_days"/>
-                        <field name="notify_production_impact"/>
-                        <field name="production_manager_id"
-                               invisible="not notify_production_impact"/>
+                    <group string="재고 설정">
+                        <group>
+                            <field name="safety_stock_days"/>
+                        </group>
                     </group>
-                </group>
-            </xpath>
+                    <group string="자동발주 설정">
+                        <group>
+                            <field name="auto_generate_po"/>
+                            <field name="outsource_buffer_days"/>
+                            <field name="default_buyer_id"/>
+                        </group>
+                        <group>
+                            <field name="portal_base_url"
+                                   placeholder="https://your-odoo.com"/>
+                            <field name="po_reminder_days"/>
+                        </group>
+                    </group>
+                    <group string="알림 설정">
+                        <group>
+                            <field name="notify_production_impact"/>
+                            <field name="production_manager_id"
+                                   invisible="not notify_production_impact"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 
-    <!-- 생산계획 실행 폼 확장 - 외주 발주 통계 (조회용) -->
-    <record id="injection_planning_run_form_outsource" model="ir.ui.view">
-        <field name="name">injection.planning.run.form.outsource</field>
-        <field name="model">injection.planning.run</field>
-        <field name="inherit_id" ref="injection_planning.view_planning_run_form"/>
+    <!-- 외주 조달 설정 목록 -->
+    <record id="outsource_planning_config_list" model="ir.ui.view">
+        <field name="name">outsource.planning.config.list</field>
+        <field name="model">outsource.planning.config</field>
         <field name="arch" type="xml">
-            <!-- 외주 발주 통계 (조회용, 기존 연결된 발주가 있을 때만 표시) -->
-            <xpath expr="//button[@name='action_view_mos']" position="after">
-                <button name="action_view_purchase_orders" type="object"
-                        class="oe_stat_button" icon="fa-shopping-cart"
-                        invisible="purchase_order_count == 0">
-                    <div class="o_field_widget o_stat_info">
-                        <span class="o_stat_value">
-                            <field name="purchase_order_count"/>
-                        </span>
-                        <span class="o_stat_text">연결 발주</span>
-                    </div>
-                </button>
-            </xpath>
+            <list>
+                <field name="name"/>
+                <field name="safety_stock_days"/>
+                <field name="auto_generate_po"/>
+                <field name="default_buyer_id"/>
+            </list>
         </field>
+    </record>
+
+    <!-- 외주 조달 설정 액션 -->
+    <record id="action_outsource_planning_config" model="ir.actions.act_window">
+        <field name="name">외주 조달 설정</field>
+        <field name="res_model">outsource.planning.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
     </record>
 
 </odoo>

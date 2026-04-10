@@ -17,7 +17,7 @@
     "license": "LGPL-3",
     "author": "DevSanx",
     "depends": [
-        "injection_planning",
+        "production_planning",
         "purchase",
         "stock",
         "portal",

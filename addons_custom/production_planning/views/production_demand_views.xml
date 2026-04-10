@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 수요 목록 뷰 -->
+    <record id="production_demand_list" model="ir.ui.view">
+        <field name="name">production.demand.list</field>
+        <field name="model">production.demand</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state=='cancelled'" decoration-success="state=='done'">
+                <field name="demand_date"/>
+                <field name="product_id"/>
+                <field name="quantity" sum="합계"/>
+                <field name="demand_type"/>
+                <field name="source"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='draft'"
+                       decoration-primary="state=='confirmed'"
+                       decoration-success="state=='done'"
+                       decoration-danger="state=='cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 수요 폼 뷰 -->
+    <record id="production_demand_form" model="ir.ui.view">
+        <field name="name">production.demand.form</field>
+        <field name="model">production.demand</field>
+        <field name="arch" type="xml">
+            <form string="생산 수요">
+                <header>
+                    <button name="action_confirm" type="object" string="확정"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_done" type="object" string="완료"
+                            class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_draft" type="object" string="초안으로"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="수요 정보">
+                            <field name="demand_date"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                        </group>
+                        <group string="분류">
+                            <field name="demand_type"/>
+                            <field name="hour" invisible="demand_type != 'hourly'"/>
+                            <field name="source"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="비고..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 검색 뷰 -->
+    <record id="production_demand_search" model="ir.ui.view">
+        <field name="name">production.demand.search</field>
+        <field name="model">production.demand</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="demand_date"/>
+                <separator/>
+                <filter name="draft" string="초안" domain="[('state','=','draft')]"/>
+                <filter name="confirmed" string="확정" domain="[('state','=','confirmed')]"/>
+                <filter name="done" string="완료" domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="today" string="오늘"
+                        domain="[('demand_date','=',context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="this_week" string="이번주"
+                        domain="[
+                            ('demand_date','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                            ('demand_date','&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))
+                        ]"/>
+                <filter name="next_week" string="다음주"
+                        domain="[
+                            ('demand_date','&gt;=', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d')),
+                            ('demand_date','&lt;=', (context_today() + datetime.timedelta(days=13-context_today().weekday())).strftime('%Y-%m-%d'))
+                        ]"/>
+                <separator/>
+                <filter name="oracle" string="Oracle" domain="[('source','=','oracle')]"/>
+                <filter name="manual" string="수동입력" domain="[('source','=','manual')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_date" string="수요일별" context="{'group_by':'demand_date'}"/>
+                    <filter name="group_product" string="제품별" context="{'group_by':'product_id'}"/>
+                    <filter name="group_state" string="상태별" context="{'group_by':'state'}"/>
+                    <filter name="group_source" string="소스별" context="{'group_by':'source'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_production_demand" model="ir.actions.act_window">
+        <field name="name">생산 수요</field>
+        <field name="res_model">production.demand</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_draft': 1, 'search_default_confirmed': 1}</field>
+    </record>
+
+</odoo>

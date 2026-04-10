@@ -57,6 +57,12 @@
               action="action_partner_supplier_portal"
               sequence="20"/>
 
+    <menuitem id="menu_outsource_planning_config"
+              name="외주 조달 설정"
+              parent="menu_outsource_master"
+              action="action_outsource_planning_config"
+              sequence="30"/>
+
     <!-- 알림 -->
     <menuitem id="menu_outsource_notifications"
               name="포탈 알림"

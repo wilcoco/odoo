@@ -251,7 +251,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
 
     def _update_config(self):
         """계획 설정에서 자동 발주 활성화"""
-        Config = self.env["injection.planning.config"]
+        Config = self.env["outsource.planning.config"]
         config = Config.search([], limit=1)
 
         if config:
@@ -273,10 +273,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         Product = self.env["product.product"]
         BOM = self.env["mrp.bom"]
         BOMLine = self.env["mrp.bom.line"]
-
-        # injection.production.demand가 있으면 사용
-        has_demand = "injection.production.demand" in self.env
-        Demand = self.env["injection.production.demand"] if has_demand else None
+        Demand = self.env["production.demand"]
 
         # 유니크 코드 생성 (타임스탬프 기반)
         suffix = str(int(time.time()))[-6:]  # 마지막 6자리
@@ -329,20 +326,19 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         })
 
         # 4. 수요 데이터 생성 (향후 7일간)
-        if Demand:
-            today = date.today()
-            demand_vals = []
-            for i in range(7):
-                demand_date = today + timedelta(days=i + 1)
-                demand_vals.append({
-                    "product_id": test_finished.id,
-                    "demand_date": demand_date,
-                    "quantity": 100,  # 하루 100개 수요
-                    "demand_type": "daily",
-                    "source": "manual",
-                    "state": "draft",
-                })
-            Demand.create(demand_vals)
+        today = date.today()
+        demand_vals = []
+        for i in range(7):
+            demand_date = today + timedelta(days=i + 1)
+            demand_vals.append({
+                "product_id": test_finished.id,
+                "demand_date": demand_date,
+                "quantity": 100,  # 하루 100개 수요
+                "demand_type": "daily",
+                "source": "manual",
+                "state": "draft",
+            })
+        Demand.create(demand_vals)
 
         _logger.info(
             "테스트 데이터 생성: 완제품=%s, 외주부품=%s, 협력사=%s",
@@ -369,10 +365,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         BOMLine = self.env["mrp.bom.line"]
         Route = self.env["supply.chain.route"]
         Tier = self.env["supply.chain.tier"]
-
-        # injection.production.demand가 있으면 사용
-        has_demand = "injection.production.demand" in self.env
-        Demand = self.env["injection.production.demand"] if has_demand else None
+        Demand = self.env["production.demand"]
 
         # 유니크 코드
         suffix = str(int(time.time()))[-6:]
@@ -486,20 +479,19 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         })
 
         # 8. 수요 데이터 생성 (10일 후부터 - 리드타임 고려)
-        if Demand:
-            today = date.today()
-            demand_vals = []
-            for i in range(5):
-                demand_date = today + timedelta(days=10 + i)
-                demand_vals.append({
-                    "product_id": test_finished.id,
-                    "demand_date": demand_date,
-                    "quantity": 50,
-                    "demand_type": "daily",
-                    "source": "manual",
-                    "state": "draft",
-                })
-            Demand.create(demand_vals)
+        today = date.today()
+        demand_vals = []
+        for i in range(5):
+            demand_date = today + timedelta(days=10 + i)
+            demand_vals.append({
+                "product_id": test_finished.id,
+                "demand_date": demand_date,
+                "quantity": 50,
+                "demand_type": "daily",
+                "source": "manual",
+                "state": "draft",
+            })
+        Demand.create(demand_vals)
 
         _logger.info(
             "공급망 테스트 데이터 생성: 경로=%s\n"
