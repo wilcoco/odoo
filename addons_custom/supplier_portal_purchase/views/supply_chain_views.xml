@@ -56,14 +56,18 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="name" readonly="1"/>
                                     <field name="supplier_id"/>
+                                    <field name="tier_type"/>
+                                    <field name="output_product_id"/>
                                     <field name="leadtime"/>
                                     <field name="delivers_to" readonly="1"/>
                                     <field name="cumulative_leadtime" readonly="1"/>
                                 </list>
                             </field>
                             <div class="alert alert-info" role="alert">
-                                <strong>순서 안내:</strong>
-                                1차 = 원자재/1차 가공업체, 마지막 = 최종 납품업체 (우리회사에 납품)
+                                <strong>공급 흐름:</strong>
+                                1차(생산): 원자재 → 부품A 생산 →
+                                2차(조립): 부품A + 자체부품 → 조립품 생산 →
+                                우리회사 납품
                             </div>
                         </page>
                         <page string="비고" name="notes">
@@ -127,16 +131,29 @@
             <form string="공급 단계">
                 <sheet>
                     <group>
-                        <group>
+                        <group string="기본 정보">
                             <field name="route_id"/>
                             <field name="sequence"/>
                             <field name="supplier_id"/>
+                            <field name="tier_type"/>
                         </group>
-                        <group>
+                        <group string="리드타임">
                             <field name="leadtime"/>
                             <field name="delivers_to" readonly="1"/>
                             <field name="next_supplier_id" readonly="1"/>
                             <field name="cumulative_leadtime" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="부품 정보">
+                        <group>
+                            <field name="input_product_ids" widget="many2many_tags"
+                                   placeholder="이전 단계에서 받는 부품"/>
+                            <field name="additional_component_ids" widget="many2many_tags"
+                                   placeholder="이 단계에서 추가 조달하는 부품"/>
+                        </group>
+                        <group>
+                            <field name="output_product_id"
+                                   placeholder="생산/조립 결과물"/>
                         </group>
                     </group>
                 </sheet>

@@ -106,6 +106,39 @@ class SupplyChainTier(models.Model):
         required=True,
         help="이 단계에서 다음 단계(또는 우리회사)까지 소요 기간",
     )
+
+    # 단계 유형 및 생산/조립 정보
+    tier_type = fields.Selection(
+        [
+            ("produce", "생산"),
+            ("assemble", "조립"),
+            ("deliver", "납품만"),
+        ],
+        string="단계 유형",
+        default="produce",
+        help="생산: 원자재→부품, 조립: 부품+자체부품→조립품, 납품만: 단순 전달",
+    )
+    output_product_id = fields.Many2one(
+        "product.product",
+        string="산출 부품",
+        help="이 단계에서 생산/조립되는 부품",
+    )
+    input_product_ids = fields.Many2many(
+        "product.product",
+        "supply_tier_input_product_rel",
+        "tier_id",
+        "product_id",
+        string="입고 부품",
+        help="이전 단계에서 받는 부품들",
+    )
+    additional_component_ids = fields.Many2many(
+        "product.product",
+        "supply_tier_additional_product_rel",
+        "tier_id",
+        "product_id",
+        string="추가 자재",
+        help="이 단계에서 자체 조달하는 추가 부품들",
+    )
     delivers_to = fields.Selection(
         [
             ("next_tier", "다음 단계"),

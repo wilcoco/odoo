@@ -351,7 +351,10 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         """다단계 공급망 테스트 데이터 생성
 
         공급 구조:
-        소재공업(1차, 5일) → 삼성캡(2차, 3일) → 우리회사
+        1차 소재공업(생산): 원자재 → 중간부품A 생산 (5일)
+        2차 삼성캡(조립): 중간부품A + 자체캡 → 최종외주품 조립 (3일)
+        → 우리회사 납품
+
         총 리드타임: 8일
         """
         from datetime import date, timedelta
@@ -366,13 +369,14 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
 
         # 유니크 코드
         suffix = str(int(time.time()))[-6:]
-        out_code = f"SCM-OUT-{suffix}"
-        assy_code = f"SCM-ASSY-{suffix}"
+        mid_code = f"SCM-MID-{suffix}"   # 1차에서 생산하는 중간부품
+        cap_code = f"SCM-CAP-{suffix}"   # 삼성캡 자체 부품
+        out_code = f"SCM-OUT-{suffix}"   # 최종 외주품 (2차에서 조립)
+        assy_code = f"SCM-ASSY-{suffix}"  # 우리 완제품
 
         # 협력사 매핑
         partner_map = {p.name: p for p in partners}
         samsung_cap = partner_map.get("삼성캡(주)")
-        hanbracket = partner_map.get("(주)한국브라켓")
 
         # 1차 공급업체 (소재공업) 생성
         sojae = self.env["res.partner"].search([("name", "=", "소재공업(주)")], limit=1)
@@ -386,9 +390,29 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "supplier_rank": 1,
             })
 
-        # 외주 부품 생성 (2차 공급업체가 납품)
-        test_outsource = Product.create({
-            "name": f"공급망테스트 외주부품 {suffix}",
+        # 1. 중간부품 생성 (1차 소재공업에서 생산)
+        mid_product = Product.create({
+            "name": f"중간부품A {suffix}",
+            "default_code": mid_code,
+            "type": "consu",
+            "is_storable": True,
+            "standard_price": 500,
+            "list_price": 600,
+        })
+
+        # 2. 삼성캡 자체 부품 생성
+        cap_product = Product.create({
+            "name": f"삼성캡 자체캡 {suffix}",
+            "default_code": cap_code,
+            "type": "consu",
+            "is_storable": True,
+            "standard_price": 300,
+            "list_price": 350,
+        })
+
+        # 3. 최종 외주품 생성 (2차 삼성캡에서 조립, 우리에게 납품)
+        final_outsource = Product.create({
+            "name": f"조립외주품 {suffix}",
             "default_code": out_code,
             "type": "consu",
             "is_storable": True,
@@ -401,11 +425,11 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
 
         # 공급업체 가격 정보
         if samsung_cap:
-            self._create_supplierinfo(test_outsource, samsung_cap, 1500, 3)
+            self._create_supplierinfo(final_outsource, samsung_cap, 1500, 3)
 
-        # 완제품 생성
+        # 4. 우리 완제품 생성
         test_finished = Product.create({
-            "name": f"공급망테스트 조립품 {suffix}",
+            "name": f"완제품 {suffix}",
             "default_code": assy_code,
             "type": "consu",
             "is_storable": True,
@@ -413,7 +437,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
             "list_price": 6000,
         })
 
-        # BOM 생성
+        # 5. BOM 생성 (완제품 → 최종외주품)
         test_bom = BOM.create({
             "product_tmpl_id": test_finished.product_tmpl_id.id,
             "product_qty": 1,
@@ -421,33 +445,40 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         })
         BOMLine.create({
             "bom_id": test_bom.id,
-            "product_id": test_outsource.id,
+            "product_id": final_outsource.id,
             "product_qty": 3,
         })
 
-        # 공급 경로 생성
+        # 6. 공급 경로 생성
         route = Route.create({
             "name": f"공급망테스트 경로 {suffix}",
-            "product_id": test_outsource.id,
+            "product_id": final_outsource.id,
         })
 
-        # 공급 단계 생성
-        # 1차: 소재공업 → 삼성캡 (5일)
+        # 7. 공급 단계 생성 (부품 흐름 포함)
+        # 1차: 소재공업 - 원자재로 중간부품A 생산 → 삼성캡으로 납품
         Tier.create({
             "route_id": route.id,
             "sequence": 1,
             "supplier_id": sojae.id,
             "leadtime": 5,
+            "tier_type": "produce",
+            "output_product_id": mid_product.id,
         })
-        # 2차: 삼성캡 → 우리회사 (3일)
+
+        # 2차: 삼성캡 - 중간부품A + 자체캡 → 최종외주품 조립 → 우리회사 납품
         Tier.create({
             "route_id": route.id,
             "sequence": 2,
             "supplier_id": samsung_cap.id if samsung_cap else sojae.id,
             "leadtime": 3,
+            "tier_type": "assemble",
+            "input_product_ids": [(6, 0, [mid_product.id])],
+            "additional_component_ids": [(6, 0, [cap_product.id])],
+            "output_product_id": final_outsource.id,
         })
 
-        # 수요 데이터 생성 (10일 후부터 - 리드타임 고려)
+        # 8. 수요 데이터 생성 (10일 후부터 - 리드타임 고려)
         today = date.today()
         demand_vals = []
         for i in range(5):
@@ -463,8 +494,14 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         Demand.create(demand_vals)
 
         _logger.info(
-            "공급망 테스트 데이터 생성: 경로=%s, 소재공업→삼성캡→우리회사",
-            route.name
+            "공급망 테스트 데이터 생성: 경로=%s\n"
+            "  1차 소재공업(생산): → %s\n"
+            "  2차 삼성캡(조립): %s + %s → %s → 우리회사",
+            route.name, mid_code, mid_code, cap_code, out_code
         )
 
-        return f"공급망 테스트: {assy_code} (소재공업 5일→삼성캡 3일→우리회사, 총 8일)"
+        return (
+            f"공급망 테스트: {assy_code}\n"
+            f"  1차 소재공업(생산): → {mid_code} (5일)\n"
+            f"  2차 삼성캡(조립): {mid_code} + {cap_code} → {out_code} (3일)"
+        )
