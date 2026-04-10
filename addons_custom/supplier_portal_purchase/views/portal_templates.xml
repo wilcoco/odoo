@@ -30,8 +30,14 @@
                             <a class="nav-link" t-attf-href="/supplier/po/list?token=#{token}">
                                 <i class="fa fa-file-text me-1"/> 발주 목록
                             </a>
+                            <a class="nav-link" t-attf-href="/supplier/supply-chain?token=#{token}">
+                                <i class="fa fa-sitemap me-1"/> 공급망
+                            </a>
                             <a class="nav-link" t-attf-href="/supplier/delivery?token=#{token}">
                                 <i class="fa fa-truck me-1"/> 납품 현황
+                            </a>
+                            <a class="nav-link" t-attf-href="/supplier/inventory?token=#{token}">
+                                <i class="fa fa-cubes me-1"/> 재고 현황
                             </a>
                         </nav>
                     </div>
@@ -633,6 +639,307 @@
                             </t>
                         </div>
                     </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 공급망 현황                                                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <template id="portal_supply_chain" name="Supplier Portal Supply Chain">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa fa-sitemap me-2"/> 내 공급망 현황
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        나와 관련된 공급망 주문의 현황입니다.
+                        상위 업체에서 입고되면 "입고 확인"을, 하위로 출하하면 "출하 처리"를 해주세요.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 처리 필요 건 -->
+            <t t-if="pending_actions">
+                <div class="card mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fa fa-exclamation-triangle me-2"/> 처리 필요 (<t t-esc="len(pending_actions)"/>건)
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>품목</th>
+                                    <th>상태</th>
+                                    <th>예상일</th>
+                                    <th>발주번호</th>
+                                    <th>조치</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="pending_actions" t-as="status">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="status.chain_order_id.product_id.default_code"/>
+                                            <small class="text-muted d-block">
+                                                <t t-esc="status.chain_order_id.product_id.name"/>
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <t t-if="status.state == 'notified'">
+                                                <span class="badge bg-info">확정 필요</span>
+                                            </t>
+                                            <t t-elif="status.state == 'confirmed'">
+                                                <span class="badge bg-primary">출하 필요</span>
+                                            </t>
+                                            <t t-elif="status.state == 'shipped'">
+                                                <span class="badge bg-success">완료 확인</span>
+                                            </t>
+                                        </td>
+                                        <td><t t-esc="status.expected_date"/></td>
+                                        <td>
+                                            <t t-esc="status.chain_order_id.purchase_order_id.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="status.state == 'notified'">
+                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/confirm?token=#{token}"
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fa fa-check"/> 확정
+                                                </a>
+                                            </t>
+                                            <t t-elif="status.state == 'confirmed'">
+                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/ship?token=#{token}"
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fa fa-truck"/> 출하
+                                                </a>
+                                            </t>
+                                            <t t-elif="status.state == 'shipped'">
+                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/complete?token=#{token}"
+                                                   class="btn btn-sm btn-success">
+                                                    <i class="fa fa-check-circle"/> 완료
+                                                </a>
+                                            </t>
+                                            <a t-attf-href="/supplier/supply-chain/#{status.id}/issue?token=#{token}"
+                                               class="btn btn-sm btn-outline-danger ms-1"
+                                               title="이슈 보고">
+                                                <i class="fa fa-exclamation"/>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+
+            <!-- 전체 현황 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <span><i class="fa fa-list me-2"/> 전체 현황</span>
+                    <div class="btn-group btn-group-sm">
+                        <a t-attf-href="/supplier/supply-chain?token=#{token}&amp;filter=all"
+                           t-attf-class="btn btn-outline-secondary #{filter == 'all' and 'active'}">전체</a>
+                        <a t-attf-href="/supplier/supply-chain?token=#{token}&amp;filter=active"
+                           t-attf-class="btn btn-outline-secondary #{filter == 'active' and 'active'}">진행중</a>
+                        <a t-attf-href="/supplier/supply-chain?token=#{token}&amp;filter=completed"
+                           t-attf-class="btn btn-outline-secondary #{filter == 'completed' and 'active'}">완료</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <t t-if="all_statuses">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>품목</th>
+                                    <th>공급 단계</th>
+                                    <th>상태</th>
+                                    <th>예상일</th>
+                                    <th>실제일</th>
+                                    <th>납품처</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="all_statuses" t-as="status">
+                                    <tr t-attf-class="#{status.state == 'issue' and 'table-danger' or (status.state == 'completed' and 'table-success' or '')}">
+                                        <td>
+                                            <t t-esc="status.chain_order_id.product_id.default_code"/>
+                                        </td>
+                                        <td><t t-esc="status.tier_id.name"/></td>
+                                        <td>
+                                            <t t-if="status.state == 'pending'">
+                                                <span class="badge bg-secondary">대기</span>
+                                            </t>
+                                            <t t-elif="status.state == 'notified'">
+                                                <span class="badge bg-info">알림받음</span>
+                                            </t>
+                                            <t t-elif="status.state == 'confirmed'">
+                                                <span class="badge bg-primary">확정</span>
+                                            </t>
+                                            <t t-elif="status.state == 'shipped'">
+                                                <span class="badge bg-warning">출하</span>
+                                            </t>
+                                            <t t-elif="status.state == 'completed'">
+                                                <span class="badge bg-success">완료</span>
+                                            </t>
+                                            <t t-elif="status.state == 'issue'">
+                                                <span class="badge bg-danger">이슈</span>
+                                            </t>
+                                        </td>
+                                        <td><t t-esc="status.expected_date"/></td>
+                                        <td><t t-esc="status.actual_date or '-'"/></td>
+                                        <td>
+                                            <t t-if="status.delivers_to == 'company'">
+                                                <span class="text-primary">→ 발주처</span>
+                                            </t>
+                                            <t t-else="">
+                                                → <t t-esc="status.next_supplier_id.name or '다음단계'"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-sitemap fa-3x mb-3 d-block"/>
+                            공급망 현황이 없습니다.
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 공급망 이슈 보고 폼 -->
+    <template id="portal_supply_chain_issue" name="Supply Chain Issue Form">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <i class="fa fa-exclamation-triangle me-2"/> 이슈 보고
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>품목:</strong> <t t-esc="status.chain_order_id.product_id.display_name"/><br/>
+                        <strong>단계:</strong> <t t-esc="status.tier_id.name"/><br/>
+                        <strong>예상일:</strong> <t t-esc="status.expected_date"/>
+                    </div>
+                    <form t-attf-action="/supplier/supply-chain/#{status.id}/issue/submit?token=#{token}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">이슈 내용</label>
+                            <textarea name="issue_note" class="form-control" rows="4" required=""
+                                      placeholder="발생한 문제를 상세히 설명해 주세요..."/>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a t-attf-href="/supplier/supply-chain?token=#{token}" class="btn btn-secondary">취소</a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fa fa-exclamation-triangle me-1"/> 이슈 보고
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 재고 현황                                                         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <template id="portal_inventory" name="Supplier Portal Inventory">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa fa-cubes me-2"/> 재고 현황
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        현재 보유 재고와 입출고 예정을 확인할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 재고 요약 -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fa fa-cubes fa-2x text-primary mb-2"/>
+                            <h4><t t-esc="inventory_summary.get('total_products', 0)"/></h4>
+                            <small class="text-muted">관리 품목 수</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fa fa-arrow-down fa-2x text-success mb-2"/>
+                            <h4><t t-esc="inventory_summary.get('incoming_count', 0)"/></h4>
+                            <small class="text-muted">입고 예정</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fa fa-arrow-up fa-2x text-warning mb-2"/>
+                            <h4><t t-esc="inventory_summary.get('outgoing_count', 0)"/></h4>
+                            <small class="text-muted">출고 예정</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 품목별 재고 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-list me-2"/> 품목별 현황
+                </div>
+                <div class="card-body p-0">
+                    <t t-if="inventory_items">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>품목코드</th>
+                                    <th>품목명</th>
+                                    <th class="text-end">현재고</th>
+                                    <th class="text-end">입고예정</th>
+                                    <th class="text-end">출고예정</th>
+                                    <th class="text-end">가용재고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="inventory_items" t-as="item">
+                                    <tr t-attf-class="#{item.get('available', 0) &lt; 0 and 'table-danger' or ''}">
+                                        <td><t t-esc="item.get('code', '-')"/></td>
+                                        <td><t t-esc="item.get('name')"/></td>
+                                        <td class="text-end"><t t-esc="item.get('qty_on_hand', 0)"/></td>
+                                        <td class="text-end text-success">
+                                            +<t t-esc="item.get('incoming', 0)"/>
+                                        </td>
+                                        <td class="text-end text-warning">
+                                            -<t t-esc="item.get('outgoing', 0)"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong t-attf-class="#{item.get('available', 0) &lt; 0 and 'text-danger' or 'text-success'}">
+                                                <t t-esc="item.get('available', 0)"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-cubes fa-3x mb-3 d-block"/>
+                            재고 정보가 없습니다.
+                        </div>
+                    </t>
                 </div>
             </div>
         </t>

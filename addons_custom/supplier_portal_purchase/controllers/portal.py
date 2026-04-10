@@ -304,3 +304,227 @@ class SupplierPortalController(http.Controller):
             "upcoming": upcoming,
             "completed": completed,
         })
+
+    # ─────────────────────────────────────────────
+    # 공급망 현황
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/supply-chain", type="http", auth="public", website=True)
+    def supply_chain_status(self, token=None, filter="active", **kwargs):
+        """공급망 현황"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+
+        # 내가 담당하는 공급망 상태 조회
+        domain = [("supplier_id", "=", partner.id)]
+
+        if filter == "active":
+            domain.append(("state", "not in", ["completed", "issue"]))
+        elif filter == "completed":
+            domain.append(("state", "=", "completed"))
+
+        all_statuses = Status.search(domain, order="expected_date asc")
+
+        # 처리 필요 건 (알림받음, 확정, 출하 상태)
+        pending_actions = Status.search([
+            ("supplier_id", "=", partner.id),
+            ("state", "in", ["notified", "confirmed", "shipped"]),
+        ], order="expected_date asc")
+
+        return request.render("supplier_portal_purchase.portal_supply_chain", {
+            "partner": partner,
+            "token": token,
+            "filter": filter,
+            "all_statuses": all_statuses,
+            "pending_actions": pending_actions,
+        })
+
+    @http.route("/supplier/supply-chain/<int:status_id>/confirm", type="http",
+                auth="public", website=True)
+    def supply_chain_confirm(self, status_id, token=None, **kwargs):
+        """공급망 단계 확정"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+        status = Status.browse(status_id)
+
+        if status.exists() and status.supplier_id.id == partner.id:
+            status.action_confirm()
+
+        return request.redirect(f"/supplier/supply-chain?token={token}")
+
+    @http.route("/supplier/supply-chain/<int:status_id>/ship", type="http",
+                auth="public", website=True)
+    def supply_chain_ship(self, status_id, token=None, **kwargs):
+        """공급망 단계 출하"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+        status = Status.browse(status_id)
+
+        if status.exists() and status.supplier_id.id == partner.id:
+            status.action_ship()
+            # 다음 단계에 알림 (있으면)
+            if status.next_tier_id:
+                next_status = Status.search([
+                    ("chain_order_id", "=", status.chain_order_id.id),
+                    ("tier_id", "=", status.next_tier_id.id),
+                ], limit=1)
+                if next_status and next_status.state == "pending":
+                    next_status.action_notify()
+
+        return request.redirect(f"/supplier/supply-chain?token={token}")
+
+    @http.route("/supplier/supply-chain/<int:status_id>/complete", type="http",
+                auth="public", website=True)
+    def supply_chain_complete(self, status_id, token=None, **kwargs):
+        """공급망 단계 완료"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+        status = Status.browse(status_id)
+
+        if status.exists() and status.supplier_id.id == partner.id:
+            status.action_complete()
+
+        return request.redirect(f"/supplier/supply-chain?token={token}")
+
+    @http.route("/supplier/supply-chain/<int:status_id>/issue", type="http",
+                auth="public", website=True)
+    def supply_chain_issue_form(self, status_id, token=None, **kwargs):
+        """공급망 이슈 보고 폼"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+        status = Status.browse(status_id)
+
+        if not status.exists() or status.supplier_id.id != partner.id:
+            return request.redirect(f"/supplier/supply-chain?token={token}")
+
+        return request.render("supplier_portal_purchase.portal_supply_chain_issue", {
+            "partner": partner,
+            "token": token,
+            "status": status,
+        })
+
+    @http.route("/supplier/supply-chain/<int:status_id>/issue/submit", type="http",
+                auth="public", website=True, methods=["POST"], csrf=False)
+    def supply_chain_issue_submit(self, status_id, token=None, **post):
+        """공급망 이슈 보고 제출"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Status = request.env["supply.chain.order.status"].sudo()
+        status = Status.browse(status_id)
+
+        if status.exists() and status.supplier_id.id == partner.id:
+            status.write({
+                "state": "issue",
+                "issue_note": post.get("issue_note", ""),
+            })
+            status.action_report_issue()
+
+        return request.redirect(f"/supplier/supply-chain?token={token}")
+
+    # ─────────────────────────────────────────────
+    # 재고 현황
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/inventory", type="http", auth="public", website=True)
+    def inventory_status(self, token=None, **kwargs):
+        """재고 현황 (협력사 관점)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        # 협력사가 납품하는 제품 목록
+        Product = request.env["product.product"].sudo()
+        products = Product.search([
+            ("is_outsourced", "=", True),
+            ("outsource_partner_id", "=", partner.id),
+        ])
+
+        # 공급망에서 내가 담당하는 제품
+        Status = request.env["supply.chain.order.status"].sudo()
+        chain_statuses = Status.search([
+            ("supplier_id", "=", partner.id),
+            ("state", "not in", ["completed", "issue"]),
+        ])
+        chain_products = chain_statuses.mapped("chain_order_id.product_id")
+        products |= chain_products
+
+        # 재고 정보 집계
+        inventory_items = []
+        incoming_count = 0
+        outgoing_count = 0
+
+        for product in products:
+            # 입고 예정 (상위 업체에서 나에게)
+            incoming = Status.search_count([
+                ("next_supplier_id", "=", partner.id),
+                ("chain_order_id.product_id", "=", product.id),
+                ("state", "in", ["confirmed", "shipped"]),
+            ])
+
+            # 출고 예정 (내가 하위로)
+            outgoing = Status.search_count([
+                ("supplier_id", "=", partner.id),
+                ("chain_order_id.product_id", "=", product.id),
+                ("state", "in", ["notified", "confirmed"]),
+            ])
+
+            incoming_count += incoming
+            outgoing_count += outgoing
+
+            inventory_items.append({
+                "code": product.default_code or "-",
+                "name": product.name,
+                "qty_on_hand": 0,  # 협력사 재고는 Odoo에서 관리 안함
+                "incoming": incoming,
+                "outgoing": outgoing,
+                "available": incoming - outgoing,
+            })
+
+        inventory_summary = {
+            "total_products": len(products),
+            "incoming_count": incoming_count,
+            "outgoing_count": outgoing_count,
+        }
+
+        return request.render("supplier_portal_purchase.portal_inventory", {
+            "partner": partner,
+            "token": token,
+            "inventory_items": inventory_items,
+            "inventory_summary": inventory_summary,
+        })
