@@ -25,13 +25,14 @@
                 </group>
                 <group invisible="not create_test_product">
                     <p class="alert alert-warning" role="alert">
-                        <strong>테스트용 신규 제품 생성:</strong>
+                        <strong>테스트용 신규 제품 생성 (매번 새 품번):</strong>
                         <ul>
-                            <li>완제품: TEST-ASSY-001 (테스트 조립품 A)</li>
-                            <li>외주부품: TEST-OUT-001 (삼성캡에서 조달)</li>
+                            <li>완제품: TEST-ASSY-XXXXXX (새 품번)</li>
+                            <li>외주부품: TEST-OUT-XXXXXX (삼성캡에서 조달, 리드타임 3일)</li>
                             <li>BOM: 완제품 1개당 외주부품 2개 소요</li>
-                            <li>수요: 향후 7일간 일 100개</li>
+                            <li>수요: 내일부터 7일간 일 100개</li>
                         </ul>
+                        <strong>테스트 절차:</strong> 외주 조달 계획 생성 → 수요 로드 → 계산 → 발주 생성
                     </p>
                 </group>
                 <footer>
