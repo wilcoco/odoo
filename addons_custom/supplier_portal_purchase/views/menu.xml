@@ -64,4 +64,28 @@
               action="action_supplier_portal_notification"
               sequence="40"/>
 
+    <!-- 다단계 공급망 -->
+    <menuitem id="menu_supply_chain"
+              name="공급망 관리"
+              parent="menu_outsource_root"
+              sequence="50"/>
+
+    <menuitem id="menu_supply_chain_dashboard"
+              name="공급망 대시보드"
+              parent="menu_supply_chain"
+              action="supply_chain_dashboard_action"
+              sequence="5"/>
+
+    <menuitem id="menu_supply_chain_order"
+              name="공급망 추적"
+              parent="menu_supply_chain"
+              action="action_supply_chain_order"
+              sequence="10"/>
+
+    <menuitem id="menu_supply_chain_route"
+              name="공급 경로 설정"
+              parent="menu_supply_chain"
+              action="action_supply_chain_route"
+              sequence="20"/>
+
 </odoo>

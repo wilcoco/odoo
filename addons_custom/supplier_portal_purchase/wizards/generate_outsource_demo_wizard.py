@@ -19,6 +19,11 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         default=False,
         help="새로운 완제품 + 외주부품 + BOM + 수요 데이터 생성",
     )
+    create_supply_chain = fields.Boolean(
+        string="다단계 공급망 테스트",
+        default=False,
+        help="2단계 공급망 (1차→2차→우리회사) 테스트 데이터 생성",
+    )
 
     def action_generate(self):
         """외주 샘플 데이터 생성"""
@@ -43,7 +48,12 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
             test_result = self._create_test_product_set(partners)
             summary.append(test_result)
 
-        # 5. 계획 설정 업데이트 (자동 발주 활성화)
+        # 5. 다단계 공급망 테스트 데이터
+        if self.create_supply_chain:
+            chain_result = self._create_supply_chain_test(partners)
+            summary.append(chain_result)
+
+        # 6. 계획 설정 업데이트 (자동 발주 활성화)
         self._update_config()
         summary.append("외주 자동발주 설정 활성화")
 
@@ -336,3 +346,125 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
         )
 
         return f"테스트 제품: {assy_code} → 외주부품: {out_code} (삼성캡, 일 100개×7일)"
+
+    def _create_supply_chain_test(self, partners):
+        """다단계 공급망 테스트 데이터 생성
+
+        공급 구조:
+        소재공업(1차, 5일) → 삼성캡(2차, 3일) → 우리회사
+        총 리드타임: 8일
+        """
+        from datetime import date, timedelta
+        import time
+
+        Product = self.env["product.product"]
+        BOM = self.env["mrp.bom"]
+        BOMLine = self.env["mrp.bom.line"]
+        Demand = self.env["injection.production.demand"]
+        Route = self.env["supply.chain.route"]
+        Tier = self.env["supply.chain.tier"]
+
+        # 유니크 코드
+        suffix = str(int(time.time()))[-6:]
+        out_code = f"SCM-OUT-{suffix}"
+        assy_code = f"SCM-ASSY-{suffix}"
+
+        # 협력사 매핑
+        partner_map = {p.name: p for p in partners}
+        samsung_cap = partner_map.get("삼성캡(주)")
+        hanbracket = partner_map.get("(주)한국브라켓")
+
+        # 1차 공급업체 (소재공업) 생성
+        sojae = self.env["res.partner"].search([("name", "=", "소재공업(주)")], limit=1)
+        if not sojae:
+            sojae = self.env["res.partner"].create({
+                "name": "소재공업(주)",
+                "email": "contact@sojae.co.kr",
+                "phone": "031-111-2222",
+                "is_supplier_portal": True,
+                "supplier_portal_token": f"demo_token_sojae_{suffix}",
+                "supplier_rank": 1,
+            })
+
+        # 외주 부품 생성 (2차 공급업체가 납품)
+        test_outsource = Product.create({
+            "name": f"공급망테스트 외주부품 {suffix}",
+            "default_code": out_code,
+            "type": "consu",
+            "is_storable": True,
+            "is_outsourced": True,
+            "outsource_partner_id": samsung_cap.id if samsung_cap else False,
+            "outsource_leadtime": 8,  # 총 리드타임
+            "standard_price": 1500,
+            "list_price": 1800,
+        })
+
+        # 공급업체 가격 정보
+        if samsung_cap:
+            self._create_supplierinfo(test_outsource, samsung_cap, 1500, 3)
+
+        # 완제품 생성
+        test_finished = Product.create({
+            "name": f"공급망테스트 조립품 {suffix}",
+            "default_code": assy_code,
+            "type": "consu",
+            "is_storable": True,
+            "standard_price": 5000,
+            "list_price": 6000,
+        })
+
+        # BOM 생성
+        test_bom = BOM.create({
+            "product_tmpl_id": test_finished.product_tmpl_id.id,
+            "product_qty": 1,
+            "type": "normal",
+        })
+        BOMLine.create({
+            "bom_id": test_bom.id,
+            "product_id": test_outsource.id,
+            "product_qty": 3,
+        })
+
+        # 공급 경로 생성
+        route = Route.create({
+            "name": f"공급망테스트 경로 {suffix}",
+            "product_id": test_outsource.id,
+        })
+
+        # 공급 단계 생성
+        # 1차: 소재공업 → 삼성캡 (5일)
+        Tier.create({
+            "route_id": route.id,
+            "sequence": 1,
+            "supplier_id": sojae.id,
+            "leadtime": 5,
+        })
+        # 2차: 삼성캡 → 우리회사 (3일)
+        Tier.create({
+            "route_id": route.id,
+            "sequence": 2,
+            "supplier_id": samsung_cap.id if samsung_cap else sojae.id,
+            "leadtime": 3,
+        })
+
+        # 수요 데이터 생성 (10일 후부터 - 리드타임 고려)
+        today = date.today()
+        demand_vals = []
+        for i in range(5):
+            demand_date = today + timedelta(days=10 + i)
+            demand_vals.append({
+                "product_id": test_finished.id,
+                "demand_date": demand_date,
+                "quantity": 50,
+                "demand_type": "daily",
+                "source": "manual",
+                "state": "draft",
+            })
+        Demand.create(demand_vals)
+
+        _logger.info(
+            "공급망 테스트 데이터 생성: 경로=%s, 소재공업→삼성캡→우리회사",
+            route.name
+        )
+
+        return f"공급망 테스트: {assy_code} (소재공업 5일→삼성캡 3일→우리회사, 총 8일)"

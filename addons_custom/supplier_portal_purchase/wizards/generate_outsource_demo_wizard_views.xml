@@ -22,6 +22,7 @@
                 <group>
                     <field name="add_to_existing_bom"/>
                     <field name="create_test_product"/>
+                    <field name="create_supply_chain"/>
                 </group>
                 <group invisible="not create_test_product">
                     <p class="alert alert-warning" role="alert">
@@ -33,6 +34,18 @@
                             <li>수요: 내일부터 7일간 일 100개</li>
                         </ul>
                         <strong>테스트 절차:</strong> 외주 조달 계획 생성 → 수요 로드 → 계산 → 발주 생성
+                    </p>
+                </group>
+                <group invisible="not create_supply_chain">
+                    <p class="alert alert-secondary" role="alert">
+                        <strong>다단계 공급망 테스트:</strong>
+                        <ul>
+                            <li>1차 공급업체: 소재공업 (리드타임 5일)</li>
+                            <li>2차 공급업체: 삼성캡 (리드타임 3일)</li>
+                            <li>총 리드타임: 8일</li>
+                            <li>공급 흐름: 소재공업 → 삼성캡 → 우리회사</li>
+                        </ul>
+                        <strong>확인:</strong> 구매 > 외주 관리 > 공급망 관리 > 공급 경로 설정
                     </p>
                 </group>
                 <footer>

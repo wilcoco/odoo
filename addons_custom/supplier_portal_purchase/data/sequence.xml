@@ -10,5 +10,13 @@
             <field name="padding">4</field>
         </record>
 
+        <!-- 공급망 발주 추적 시퀀스 -->
+        <record id="seq_supply_chain_order" model="ir.sequence">
+            <field name="name">공급망 발주 추적</field>
+            <field name="code">supply.chain.order</field>
+            <field name="prefix">SCO/%(year)s/</field>
+            <field name="padding">4</field>
+        </record>
+
     </data>
 </odoo>

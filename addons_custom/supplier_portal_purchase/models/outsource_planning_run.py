@@ -357,10 +357,37 @@ class OutsourcePlanningRun(models.Model):
                 "date_planned": line.demand_date,
             })
 
+            # 공급망 경로가 있으면 추적 레코드 생성
+            self._create_supply_chain_order(po, product, line.demand_date)
+
         # 협력사 알림
         po._create_portal_notification("new_po", partner=po.partner_id)
 
         return po
+
+    def _create_supply_chain_order(self, po, product, required_date):
+        """공급망 경로가 있는 제품에 대해 추적 레코드 생성"""
+        Route = self.env["supply.chain.route"]
+        ChainOrder = self.env["supply.chain.order"]
+
+        # 해당 제품의 공급 경로 조회
+        route = Route.search([
+            ("product_id", "=", product.id),
+            ("active", "=", True),
+        ], limit=1)
+
+        if not route:
+            return  # 공급 경로 없으면 건너뜀
+
+        # 공급망 발주 추적 생성
+        chain_order = ChainOrder.create({
+            "purchase_order_id": po.id,
+            "route_id": route.id,
+            "required_date": required_date,
+        })
+
+        # 단계별 상태 초기화 및 날짜 계산
+        chain_order._init_tier_status_with_dates(required_date)
 
     # ─────────────────────────────────────────────
     # 상태 변경

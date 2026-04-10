@@ -9,3 +9,4 @@ from . import outsource_planning_line  # Before run (defines comodel)
 from . import outsource_daily_summary  # Before run (defines comodel)
 from . import outsource_daily_chart    # SQL View for chart
 from . import outsource_planning_run
+from . import supply_chain  # Multi-tier supply chain

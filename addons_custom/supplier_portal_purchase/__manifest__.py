@@ -39,6 +39,7 @@
         "views/notification_views.xml",
         "views/planning_config_views.xml",
         "views/outsource_planning_views.xml",
+        "views/supply_chain_views.xml",
         "views/menu.xml",
         # Portal Templates
         "views/portal_templates.xml",

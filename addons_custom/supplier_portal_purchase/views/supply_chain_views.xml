@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 공급 경로 (Supply Chain Route)                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supply_chain_route_tree" model="ir.ui.view">
+        <field name="name">supply.chain.route.tree</field>
+        <field name="model">supply.chain.route</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="tier_count"/>
+                <field name="total_leadtime"/>
+                <field name="final_supplier_id"/>
+                <field name="active" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="supply_chain_route_form" model="ir.ui.view">
+        <field name="name">supply.chain.route.form</field>
+        <field name="model">supply.chain.route</field>
+        <field name="arch" type="xml">
+            <form string="공급 경로">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tiers" type="object"
+                                class="oe_stat_button" icon="fa-sitemap">
+                            <field name="tier_count" widget="statinfo" string="공급 단계"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="보관됨" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="경로명"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="total_leadtime"/>
+                            <field name="final_supplier_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="공급 단계" name="tiers">
+                            <field name="tier_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="supplier_id"/>
+                                    <field name="leadtime"/>
+                                    <field name="delivers_to" readonly="1"/>
+                                    <field name="cumulative_leadtime" readonly="1"/>
+                                </tree>
+                            </field>
+                            <div class="alert alert-info" role="alert">
+                                <strong>순서 안내:</strong>
+                                1차 = 원자재/1차 가공업체, 마지막 = 최종 납품업체 (우리회사에 납품)
+                            </div>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes" placeholder="메모..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="supply_chain_route_search" model="ir.ui.view">
+        <field name="name">supply.chain.route.search</field>
+        <field name="model">supply.chain.route</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="final_supplier_id"/>
+                <filter name="active" string="활성" domain="[('active','=',True)]"/>
+                <filter name="inactive" string="보관됨" domain="[('active','=',False)]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_product" string="제품별" context="{'group_by':'product_id'}"/>
+                    <filter name="group_supplier" string="최종납품업체별" context="{'group_by':'final_supplier_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_supply_chain_route" model="ir.actions.act_window">
+        <field name="name">공급 경로</field>
+        <field name="res_model">supply.chain.route</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 공급 단계 (Supply Chain Tier)                                     -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supply_chain_tier_tree" model="ir.ui.view">
+        <field name="name">supply.chain.tier.tree</field>
+        <field name="model">supply.chain.tier</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="route_id"/>
+                <field name="sequence"/>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="leadtime"/>
+                <field name="delivers_to"/>
+                <field name="cumulative_leadtime"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="supply_chain_tier_form" model="ir.ui.view">
+        <field name="name">supply.chain.tier.form</field>
+        <field name="model">supply.chain.tier</field>
+        <field name="arch" type="xml">
+            <form string="공급 단계">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="route_id"/>
+                            <field name="sequence"/>
+                            <field name="supplier_id"/>
+                        </group>
+                        <group>
+                            <field name="leadtime"/>
+                            <field name="delivers_to" readonly="1"/>
+                            <field name="next_supplier_id" readonly="1"/>
+                            <field name="cumulative_leadtime" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 공급망 발주 추적 (Supply Chain Order)                              -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supply_chain_order_tree" model="ir.ui.view">
+        <field name="name">supply.chain.order.tree</field>
+        <field name="model">supply.chain.order</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state=='issue'" decoration-success="state=='completed'">
+                <field name="name"/>
+                <field name="purchase_order_id"/>
+                <field name="product_id"/>
+                <field name="route_id"/>
+                <field name="required_date"/>
+                <field name="progress_percent" widget="progressbar"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='pending'"
+                       decoration-warning="state=='in_progress'"
+                       decoration-success="state=='completed'"
+                       decoration-danger="state=='issue'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="supply_chain_order_form" model="ir.ui.view">
+        <field name="name">supply.chain.order.form</field>
+        <field name="model">supply.chain.order</field>
+        <field name="arch" type="xml">
+            <form string="공급망 발주 추적">
+                <header>
+                    <button name="action_init_tier_status" type="object"
+                            string="단계 초기화" class="btn-primary"
+                            invisible="tier_status_ids"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="purchase_order_id"/>
+                            <field name="route_id"/>
+                            <field name="product_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="required_date"/>
+                            <field name="state" widget="badge"/>
+                            <field name="progress_percent" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="공급망 현황" name="status">
+                            <field name="tier_status_ids">
+                                <tree decoration-success="state=='completed'"
+                                      decoration-danger="state=='issue'"
+                                      decoration-warning="state in ('notified','confirmed','shipped')">
+                                    <field name="sequence"/>
+                                    <field name="tier_id"/>
+                                    <field name="supplier_id"/>
+                                    <field name="delivers_to"/>
+                                    <field name="next_supplier_id"/>
+                                    <field name="expected_date"/>
+                                    <field name="actual_date"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_notify" type="object" string="알림"
+                                            icon="fa-bell" invisible="state != 'pending'"/>
+                                    <button name="action_confirm" type="object" string="확정"
+                                            icon="fa-check" invisible="state != 'notified'"/>
+                                    <button name="action_ship" type="object" string="출하"
+                                            icon="fa-truck" invisible="state != 'confirmed'"/>
+                                    <button name="action_complete" type="object" string="완료"
+                                            icon="fa-check-circle" invisible="state != 'shipped'"/>
+                                    <button name="action_report_issue" type="object" string="이슈"
+                                            icon="fa-exclamation-triangle"
+                                            invisible="state in ('completed','issue')"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes" placeholder="메모..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="supply_chain_order_search" model="ir.ui.view">
+        <field name="name">supply.chain.order.search</field>
+        <field name="model">supply.chain.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="purchase_order_id"/>
+                <field name="product_id"/>
+                <filter name="pending" string="대기" domain="[('state','=','pending')]"/>
+                <filter name="in_progress" string="진행중" domain="[('state','=','in_progress')]"/>
+                <filter name="completed" string="완료" domain="[('state','=','completed')]"/>
+                <filter name="issue" string="이슈" domain="[('state','=','issue')]"/>
+                <separator/>
+                <filter name="today" string="오늘 납기" domain="[('required_date','=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="this_week" string="이번주 납기" domain="[
+                    ('required_date','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                    ('required_date','&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))
+                ]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_state" string="상태별" context="{'group_by':'state'}"/>
+                    <filter name="group_product" string="제품별" context="{'group_by':'product_id'}"/>
+                    <filter name="group_date" string="납기별" context="{'group_by':'required_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_supply_chain_order" model="ir.actions.act_window">
+        <field name="name">공급망 추적</field>
+        <field name="res_model">supply.chain.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_in_progress': 1}</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 공급망 대시보드                                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supply_chain_dashboard_action" model="ir.actions.act_window">
+        <field name="name">공급망 대시보드</field>
+        <field name="res_model">supply.chain.order</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="supply_chain_order_kanban" model="ir.ui.view">
+        <field name="name">supply.chain.order.kanban</field>
+        <field name="model">supply.chain.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="purchase_order_id"/>
+                <field name="product_id"/>
+                <field name="required_date"/>
+                <field name="state"/>
+                <field name="progress_percent"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <strong><field name="name"/></strong>
+                            <div><field name="product_id"/></div>
+                            <div class="text-muted">
+                                <field name="purchase_order_id"/>
+                            </div>
+                            <div>
+                                납기: <field name="required_date"/>
+                            </div>
+                            <field name="progress_percent" widget="progressbar"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>

@@ -18,3 +18,13 @@ access_outsource_daily_summary_user,outsource.daily.summary.user,model_outsource
 access_outsource_daily_summary_manager,outsource.daily.summary.manager,model_outsource_daily_summary,purchase.group_purchase_manager,1,1,1,1
 access_outsource_daily_chart_user,outsource.daily.chart.user,model_outsource_daily_chart,purchase.group_purchase_user,1,0,0,0
 access_outsource_daily_chart_manager,outsource.daily.chart.manager,model_outsource_daily_chart,purchase.group_purchase_manager,1,1,1,1
+access_supply_chain_route_user,supply.chain.route.user,model_supply_chain_route,purchase.group_purchase_user,1,0,0,0
+access_supply_chain_route_manager,supply.chain.route.manager,model_supply_chain_route,purchase.group_purchase_manager,1,1,1,1
+access_supply_chain_tier_user,supply.chain.tier.user,model_supply_chain_tier,purchase.group_purchase_user,1,0,0,0
+access_supply_chain_tier_manager,supply.chain.tier.manager,model_supply_chain_tier,purchase.group_purchase_manager,1,1,1,1
+access_supply_chain_order_user,supply.chain.order.user,model_supply_chain_order,purchase.group_purchase_user,1,1,0,0
+access_supply_chain_order_manager,supply.chain.order.manager,model_supply_chain_order,purchase.group_purchase_manager,1,1,1,1
+access_supply_chain_order_portal,supply.chain.order.portal,model_supply_chain_order,base.group_portal,1,0,0,0
+access_supply_chain_order_status_user,supply.chain.order.status.user,model_supply_chain_order_status,purchase.group_purchase_user,1,1,0,0
+access_supply_chain_order_status_manager,supply.chain.order.status.manager,model_supply_chain_order_status,purchase.group_purchase_manager,1,1,1,1
+access_supply_chain_order_status_portal,supply.chain.order.status.portal,model_supply_chain_order_status,base.group_portal,1,1,0,0
