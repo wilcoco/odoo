@@ -662,7 +662,7 @@ class GenerateDemoWizard(models.TransientModel):
     # 8. 수요 데이터 (완제품 기준)
     # ─────────────────────────────────────────────
     def _create_demands(self, run, finished):
-        Demand = self.env["injection.production.demand"]
+        Demand = self.env["production.demand"]
         p = {pr.default_code: pr for pr in finished}
 
         # 완제품별 일일 수요 (주말 제외, 7일 주기로 반복)
@@ -710,11 +710,12 @@ class GenerateDemoWizard(models.TransientModel):
                     "quantity": qty,
                     "demand_type": "daily",
                     "source": "manual",
-                    "planning_run_id": run.id,
                 })
 
         if vals_list:
-            return Demand.create(vals_list)
+            demands = Demand.create(vals_list)
+            run.demand_ids = [(6, 0, demands.ids)]
+            return demands
         return Demand
 
     # ─────────────────────────────────────────────

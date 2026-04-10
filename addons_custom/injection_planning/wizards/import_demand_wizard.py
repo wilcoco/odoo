@@ -116,7 +116,6 @@ class ImportDemandWizard(models.TransientModel):
                 "demand_type": demand_type,
                 "hour": hour,
                 "source": "oracle",  # 파일이지만 Oracle 원천 데이터
-                "planning_run_id": self.planning_run_id.id,
             })
 
         if not rows and errors:
@@ -124,9 +123,11 @@ class ImportDemandWizard(models.TransientModel):
                 "임포트할 데이터가 없습니다.\n\n" + "\n".join(errors[:20])
             )
 
-        # 수요 레코드 생성
+        # 수요 레코드 생성 및 계획에 연결
         if rows:
-            self.env["injection.production.demand"].create(rows)
+            new_demands = self.env["production.demand"].create(rows)
+            # 기존 수요에 추가 (replace_oracle인 경우 위에서 이미 삭제됨)
+            self.planning_run_id.demand_ids = [(4, d.id) for d in new_demands]
 
         # 결과 메시지
         msg = f"파일 임포트 완료: {len(rows)}건 수요 생성"

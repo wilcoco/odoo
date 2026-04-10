@@ -6,11 +6,10 @@
     "license": "LGPL-3",
     "author": "DevSanx",
     "depends": [
-        "base",
+        "production_planning",
         "mail",
         "mrp",
         "stock",
-        "product",
     ],
     "data": [
         "security/security.xml",

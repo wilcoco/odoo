@@ -36,8 +36,12 @@ class PlanningRun(models.Model):
         default="draft",
         tracking=True,
     )
-    demand_ids = fields.One2many(
-        "injection.production.demand", "planning_run_id", string="수요 데이터",
+    demand_ids = fields.Many2many(
+        "production.demand",
+        "injection_planning_demand_rel",
+        "planning_id",
+        "demand_id",
+        string="수요 데이터",
     )
     line_ids = fields.One2many(
         "injection.planning.line", "planning_run_id", string="계획 라인",
@@ -125,10 +129,10 @@ class PlanningRun(models.Model):
                     "demand_type": "hourly",
                     "hour": hour,
                     "source": "oracle",
-                    "planning_run_id": self.id,
                 })
 
-            self.env["injection.production.demand"].create(create_vals)
+            new_demands = self.env["production.demand"].create(create_vals)
+            self.demand_ids = [(6, 0, new_demands.ids)]
             daily_cnt = len(merged)
             hourly_cnt = len(hourly_merged)
             self.message_post(
@@ -145,11 +149,10 @@ class PlanningRun(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "수요 추가",
-            "res_model": "injection.production.demand",
+            "res_model": "production.demand",
             "view_mode": "form",
             "target": "new",
             "context": {
-                "default_planning_run_id": self.id,
                 "default_source": "manual",
                 "default_demand_date": str(self.plan_date_from),
             },

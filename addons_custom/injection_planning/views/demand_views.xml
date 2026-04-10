@@ -1,71 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 검색 -->
-    <record id="view_demand_search" model="ir.ui.view">
-        <field name="name">injection.production.demand.search</field>
-        <field name="model">injection.production.demand</field>
-        <field name="arch" type="xml">
-            <search>
-                <field name="product_id"/>
-                <field name="demand_date"/>
-                <filter name="daily" string="일별" domain="[('demand_type','=','daily')]"/>
-                <filter name="hourly" string="시간별" domain="[('demand_type','=','hourly')]"/>
-                <filter name="oracle" string="Oracle" domain="[('source','=','oracle')]"/>
-                <filter name="manual" string="수동" domain="[('source','=','manual')]"/>
-                <group expand="0" string="그룹">
-                    <filter string="날짜" name="group_date" context="{'group_by': 'demand_date'}"/>
-                    <filter string="제품" name="group_product" context="{'group_by': 'product_id'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
+    <!--
+        수요 데이터는 production_planning 모듈의 production.demand 사용
+        여기서는 사출 계획용 액션만 정의 (기본 필터 적용)
+    -->
 
-    <!-- 리스트 -->
-    <record id="view_demand_list" model="ir.ui.view">
-        <field name="name">injection.production.demand.list</field>
-        <field name="model">injection.production.demand</field>
-        <field name="arch" type="xml">
-            <list editable="bottom">
-                <field name="demand_date"/>
-                <field name="product_id"/>
-                <field name="quantity"/>
-                <field name="demand_type"/>
-                <field name="hour" optional="hide"/>
-                <field name="source"/>
-                <field name="state" widget="badge"/>
-                <field name="planning_run_id" optional="hide"/>
-            </list>
-        </field>
-    </record>
-
-    <!-- 폼 -->
-    <record id="view_demand_form" model="ir.ui.view">
-        <field name="name">injection.production.demand.form</field>
-        <field name="model">injection.production.demand</field>
-        <field name="arch" type="xml">
-            <form>
-                <group>
-                    <group>
-                        <field name="demand_date"/>
-                        <field name="product_id"/>
-                        <field name="quantity"/>
-                    </group>
-                    <group>
-                        <field name="demand_type"/>
-                        <field name="hour" invisible="demand_type != 'hourly'"/>
-                        <field name="source"/>
-                        <field name="planning_run_id"/>
-                    </group>
-                </group>
-            </form>
-        </field>
-    </record>
-
-    <!-- 액션 -->
+    <!-- 사출 계획용 수요 액션 (production.demand 재사용) -->
     <record id="action_demand" model="ir.actions.act_window">
         <field name="name">수요 데이터</field>
-        <field name="res_model">injection.production.demand</field>
+        <field name="res_model">production.demand</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_demand_search"/>
+        <field name="context">{'search_default_draft': 1, 'search_default_confirmed': 1}</field>
     </record>
+
 </odoo>
