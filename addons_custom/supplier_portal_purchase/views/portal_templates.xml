@@ -28,7 +28,13 @@
                                 <i class="fa fa-dashboard me-1"/> 대시보드
                             </a>
                             <a class="nav-link" t-attf-href="/supplier/po/list?token=#{token}">
-                                <i class="fa fa-file-text me-1"/> 발주 목록
+                                <i class="fa fa-file-text me-1"/> 우리회사 발주
+                            </a>
+                            <a class="nav-link" t-attf-href="/supplier/orders?token=#{token}">
+                                <i class="fa fa-paper-plane me-1"/> 발주 관리
+                            </a>
+                            <a class="nav-link" t-attf-href="/supplier/incoming-orders?token=#{token}">
+                                <i class="fa fa-inbox me-1"/> 수주 관리
                             </a>
                             <a class="nav-link" t-attf-href="/supplier/supply-chain?token=#{token}">
                                 <i class="fa fa-sitemap me-1"/> 공급망
@@ -36,8 +42,8 @@
                             <a class="nav-link" t-attf-href="/supplier/delivery?token=#{token}">
                                 <i class="fa fa-truck me-1"/> 납품 현황
                             </a>
-                            <a class="nav-link" t-attf-href="/supplier/inventory?token=#{token}">
-                                <i class="fa fa-cubes me-1"/> 재고 현황
+                            <a class="nav-link" t-attf-href="/supplier/my-inventory?token=#{token}">
+                                <i class="fa fa-cubes me-1"/> 내 재고
                             </a>
                         </nav>
                     </div>

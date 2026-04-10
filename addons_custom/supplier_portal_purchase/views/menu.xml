@@ -94,4 +94,22 @@
               action="action_supply_chain_route"
               sequence="20"/>
 
+    <!-- 협력사 간 거래 -->
+    <menuitem id="menu_supplier_transaction"
+              name="협력사 간 거래"
+              parent="menu_outsource_root"
+              sequence="55"/>
+
+    <menuitem id="menu_supplier_order"
+              name="협력사 간 발주"
+              parent="menu_supplier_transaction"
+              action="action_supplier_order"
+              sequence="10"/>
+
+    <menuitem id="menu_supplier_inventory"
+              name="협력사 재고"
+              parent="menu_supplier_transaction"
+              action="action_supplier_inventory"
+              sequence="20"/>
+
 </odoo>

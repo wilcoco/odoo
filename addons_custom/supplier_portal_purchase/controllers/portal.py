@@ -528,3 +528,314 @@ class SupplierPortalController(http.Controller):
             "inventory_items": inventory_items,
             "inventory_summary": inventory_summary,
         })
+
+    # ─────────────────────────────────────────────
+    # 협력사 간 발주 (발주 관리 - 내가 발주한 것)
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/orders", type="http", auth="public", website=True)
+    def my_orders(self, token=None, state=None, page=1, **kwargs):
+        """내가 발주한 주문 목록 (발주 관리)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+
+        domain = [("buyer_partner_id", "=", partner.id)]
+        if state and state != "all":
+            domain.append(("state", "=", state))
+
+        page = int(page)
+        per_page = 10
+        total = Order.search_count(domain)
+        offset = (page - 1) * per_page
+
+        orders = Order.search(
+            domain,
+            order="create_date desc",
+            limit=per_page,
+            offset=offset,
+        )
+
+        return request.render("supplier_portal_purchase.portal_my_orders", {
+            "partner": partner,
+            "token": token,
+            "orders": orders,
+            "state_filter": state or "all",
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page,
+        })
+
+    @http.route("/supplier/orders/new", type="http", auth="public", website=True)
+    def new_order_form(self, token=None, **kwargs):
+        """새 발주 작성 폼"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        # 발주 가능한 공급업체 목록
+        suppliers = request.env["res.partner"].sudo().search([
+            ("is_supplier_portal", "=", True),
+            ("id", "!=", partner.id),
+        ])
+
+        # 제품 목록
+        products = request.env["product.product"].sudo().search([
+            ("is_outsourced", "=", True),
+        ])
+
+        return request.render("supplier_portal_purchase.portal_new_order", {
+            "partner": partner,
+            "token": token,
+            "suppliers": suppliers,
+            "products": products,
+        })
+
+    @http.route("/supplier/orders/create", type="http", auth="public",
+                website=True, methods=["POST"], csrf=False)
+    def create_order(self, token=None, **post):
+        """새 발주 생성"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+
+        seller_id = int(post.get("seller_id", 0))
+        product_id = int(post.get("product_id", 0))
+        quantity = float(post.get("quantity", 0))
+        date_required = post.get("date_required")
+
+        if not all([seller_id, product_id, quantity, date_required]):
+            return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
+
+        order = Order.create({
+            "buyer_partner_id": partner.id,
+            "seller_partner_id": seller_id,
+            "product_id": product_id,
+            "quantity": quantity,
+            "date_required": date_required,
+            "notes": post.get("notes", ""),
+        })
+
+        # 자동 전송
+        order.action_send()
+
+        return request.redirect(f"/supplier/orders?token={token}&success=1")
+
+    @http.route("/supplier/orders/<int:order_id>", type="http", auth="public", website=True)
+    def order_detail(self, order_id, token=None, **kwargs):
+        """발주 상세 (내가 발주한 것)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+        order = Order.browse(order_id)
+
+        if not order.exists() or order.buyer_partner_id.id != partner.id:
+            return request.redirect(f"/supplier/orders?token={token}&error=access_denied")
+
+        return request.render("supplier_portal_purchase.portal_order_detail", {
+            "partner": partner,
+            "token": token,
+            "order": order,
+            "is_buyer": True,
+        })
+
+    @http.route("/supplier/orders/<int:order_id>/receive", type="http",
+                auth="public", website=True)
+    def order_receive(self, order_id, token=None, **kwargs):
+        """입고 확인 (발주자)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+        order = Order.browse(order_id)
+
+        if order.exists() and order.buyer_partner_id.id == partner.id:
+            order.action_receive()
+
+        return request.redirect(f"/supplier/orders/{order_id}?token={token}")
+
+    # ─────────────────────────────────────────────
+    # 협력사 간 수주 (수주 관리 - 내가 받은 발주)
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/incoming-orders", type="http", auth="public", website=True)
+    def incoming_orders(self, token=None, state=None, page=1, **kwargs):
+        """내가 받은 발주 목록 (수주 관리)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+
+        domain = [("seller_partner_id", "=", partner.id)]
+        if state and state != "all":
+            domain.append(("state", "=", state))
+
+        page = int(page)
+        per_page = 10
+        total = Order.search_count(domain)
+        offset = (page - 1) * per_page
+
+        orders = Order.search(
+            domain,
+            order="create_date desc",
+            limit=per_page,
+            offset=offset,
+        )
+
+        return request.render("supplier_portal_purchase.portal_incoming_orders", {
+            "partner": partner,
+            "token": token,
+            "orders": orders,
+            "state_filter": state or "all",
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": (total + per_page - 1) // per_page,
+        })
+
+    @http.route("/supplier/incoming-orders/<int:order_id>", type="http",
+                auth="public", website=True)
+    def incoming_order_detail(self, order_id, token=None, **kwargs):
+        """수주 상세 (내가 받은 발주)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+        order = Order.browse(order_id)
+
+        if not order.exists() or order.seller_partner_id.id != partner.id:
+            return request.redirect(f"/supplier/incoming-orders?token={token}&error=access_denied")
+
+        return request.render("supplier_portal_purchase.portal_order_detail", {
+            "partner": partner,
+            "token": token,
+            "order": order,
+            "is_buyer": False,
+        })
+
+    @http.route("/supplier/incoming-orders/<int:order_id>/confirm", type="http",
+                auth="public", website=True)
+    def incoming_order_confirm(self, order_id, token=None, **kwargs):
+        """수주 확정 (공급자)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+        order = Order.browse(order_id)
+
+        if order.exists() and order.seller_partner_id.id == partner.id:
+            order.action_confirm()
+
+        return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
+
+    @http.route("/supplier/incoming-orders/<int:order_id>/ship", type="http",
+                auth="public", website=True)
+    def incoming_order_ship(self, order_id, token=None, **kwargs):
+        """출하 처리 (공급자)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+        order = Order.browse(order_id)
+
+        if order.exists() and order.seller_partner_id.id == partner.id:
+            order.action_ship()
+
+        return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
+
+    # ─────────────────────────────────────────────
+    # 협력사 자체 재고 관리
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/my-inventory", type="http", auth="public", website=True)
+    def my_inventory(self, token=None, **kwargs):
+        """내 재고 현황"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Inventory = request.env["supplier.inventory"].sudo()
+        inventory_items = Inventory.search([
+            ("partner_id", "=", partner.id),
+        ])
+
+        return request.render("supplier_portal_purchase.portal_my_inventory", {
+            "partner": partner,
+            "token": token,
+            "inventory_items": inventory_items,
+        })
+
+    @http.route("/supplier/my-inventory/update", type="http", auth="public",
+                website=True, methods=["POST"], csrf=False)
+    def update_my_inventory(self, token=None, **post):
+        """재고 수량 업데이트"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Inventory = request.env["supplier.inventory"].sudo()
+
+        product_id = int(post.get("product_id", 0))
+        quantity = float(post.get("quantity", 0))
+
+        if product_id:
+            inv = Inventory.search([
+                ("partner_id", "=", partner.id),
+                ("product_id", "=", product_id),
+            ], limit=1)
+
+            if inv:
+                inv.write({
+                    "quantity": quantity,
+                    "last_updated": fields.Datetime.now(),
+                })
+            else:
+                Inventory.create({
+                    "partner_id": partner.id,
+                    "product_id": product_id,
+                    "quantity": quantity,
+                })
+
+        return request.redirect(f"/supplier/my-inventory?token={token}")

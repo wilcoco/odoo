@@ -40,9 +40,11 @@
         "views/planning_config_views.xml",
         "views/outsource_planning_views.xml",
         "views/supply_chain_views.xml",
+        "views/supplier_order_views.xml",
         "views/menu.xml",
         # Portal Templates
         "views/portal_templates.xml",
+        "views/portal_supplier_order_templates.xml",
         # Wizards
         "wizards/purchase_reject_wizard_views.xml",
         "wizards/generate_outsource_demo_wizard_views.xml",

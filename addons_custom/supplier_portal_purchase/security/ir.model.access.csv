@@ -30,3 +30,9 @@ access_supply_chain_order_status_manager,supply.chain.order.status.manager,model
 access_supply_chain_order_status_portal,supply.chain.order.status.portal,model_supply_chain_order_status,base.group_portal,1,1,0,0
 access_outsource_planning_config_user,outsource.planning.config.user,model_outsource_planning_config,purchase.group_purchase_user,1,0,0,0
 access_outsource_planning_config_manager,outsource.planning.config.manager,model_outsource_planning_config,purchase.group_purchase_manager,1,1,1,1
+access_supplier_order_user,supplier.order.user,model_supplier_order,purchase.group_purchase_user,1,1,0,0
+access_supplier_order_manager,supplier.order.manager,model_supplier_order,purchase.group_purchase_manager,1,1,1,1
+access_supplier_order_portal,supplier.order.portal,model_supplier_order,base.group_portal,1,1,1,0
+access_supplier_inventory_user,supplier.inventory.user,model_supplier_inventory,purchase.group_purchase_user,1,1,0,0
+access_supplier_inventory_manager,supplier.inventory.manager,model_supplier_inventory,purchase.group_purchase_manager,1,1,1,1
+access_supplier_inventory_portal,supplier.inventory.portal,model_supplier_inventory,base.group_portal,1,1,1,0

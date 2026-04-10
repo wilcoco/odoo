@@ -18,5 +18,13 @@
             <field name="padding">4</field>
         </record>
 
+        <!-- 협력사 간 발주 시퀀스 -->
+        <record id="seq_supplier_order" model="ir.sequence">
+            <field name="name">협력사 간 발주</field>
+            <field name="code">supplier.order</field>
+            <field name="prefix">SPO/%(year)s/</field>
+            <field name="padding">4</field>
+        </record>
+
     </data>
 </odoo>

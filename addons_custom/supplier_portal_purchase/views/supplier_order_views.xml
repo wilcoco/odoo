@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 협력사 간 발주 (Supplier Order)                                   -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supplier_order_list" model="ir.ui.view">
+        <field name="name">supplier.order.list</field>
+        <field name="model">supplier.order</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state=='sent'"
+                  decoration-warning="state=='confirmed'"
+                  decoration-success="state=='received'"
+                  decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="buyer_partner_id"/>
+                <field name="seller_partner_id"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <field name="date_order"/>
+                <field name="date_required"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='sent'"
+                       decoration-warning="state in ('confirmed','shipped')"
+                       decoration-success="state=='received'"
+                       decoration-danger="state=='cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="supplier_order_form" model="ir.ui.view">
+        <field name="name">supplier.order.form</field>
+        <field name="model">supplier.order</field>
+        <field name="arch" type="xml">
+            <form string="협력사 발주">
+                <header>
+                    <button name="action_send" type="object" string="발주 전송"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_confirm" type="object" string="확정"
+                            class="btn-primary" invisible="state != 'sent'"/>
+                    <button name="action_ship" type="object" string="출하"
+                            class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_receive" type="object" string="입고 확인"
+                            class="btn-success" invisible="state != 'shipped'"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state in ('received','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,sent,confirmed,shipped,received"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="발주 정보">
+                            <field name="buyer_partner_id"/>
+                            <field name="seller_partner_id"/>
+                            <field name="chain_order_id" readonly="1"/>
+                        </group>
+                        <group string="제품/수량">
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="price_unit"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="날짜">
+                            <field name="date_order"/>
+                            <field name="date_required"/>
+                            <field name="date_confirmed" readonly="1"/>
+                            <field name="date_shipped" readonly="1"/>
+                            <field name="date_received" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="비고..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="supplier_order_search" model="ir.ui.view">
+        <field name="name">supplier.order.search</field>
+        <field name="model">supplier.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="buyer_partner_id"/>
+                <field name="seller_partner_id"/>
+                <field name="product_id"/>
+                <separator/>
+                <filter name="draft" string="초안" domain="[('state','=','draft')]"/>
+                <filter name="sent" string="발주완료" domain="[('state','=','sent')]"/>
+                <filter name="confirmed" string="확정" domain="[('state','=','confirmed')]"/>
+                <filter name="shipped" string="출하" domain="[('state','=','shipped')]"/>
+                <filter name="received" string="입고완료" domain="[('state','=','received')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_buyer" string="발주업체별" context="{'group_by':'buyer_partner_id'}"/>
+                    <filter name="group_seller" string="공급업체별" context="{'group_by':'seller_partner_id'}"/>
+                    <filter name="group_state" string="상태별" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_supplier_order" model="ir.actions.act_window">
+        <field name="name">협력사 간 발주</field>
+        <field name="res_model">supplier.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 협력사 재고                                                       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <record id="supplier_inventory_list" model="ir.ui.view">
+        <field name="name">supplier.inventory.list</field>
+        <field name="model">supplier.inventory</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <field name="last_updated" readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_supplier_inventory" model="ir.actions.act_window">
+        <field name="name">협력사 재고</field>
+        <field name="res_model">supplier.inventory</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

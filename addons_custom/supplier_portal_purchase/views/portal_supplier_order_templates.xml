@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 발주 관리 (내가 발주한 것)                                        -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- 발주 목록 -->
+    <template id="portal_my_orders" name="Portal - My Orders">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa fa-paper-plane me-2"/> 발주 관리</h2>
+                <a t-attf-href="/supplier/orders/new?token=#{token}" class="btn btn-primary">
+                    <i class="fa fa-plus me-1"/> 새 발주
+                </a>
+            </div>
+
+            <!-- 필터 -->
+            <div class="card mb-4">
+                <div class="card-body py-2">
+                    <div class="btn-group" role="group">
+                        <a t-attf-href="/supplier/orders?token=#{token}"
+                           t-attf-class="btn btn-outline-secondary #{state_filter == 'all' and 'active' or ''}">
+                            전체
+                        </a>
+                        <a t-attf-href="/supplier/orders?token=#{token}&amp;state=sent"
+                           t-attf-class="btn btn-outline-info #{state_filter == 'sent' and 'active' or ''}">
+                            발주완료
+                        </a>
+                        <a t-attf-href="/supplier/orders?token=#{token}&amp;state=confirmed"
+                           t-attf-class="btn btn-outline-warning #{state_filter == 'confirmed' and 'active' or ''}">
+                            확정
+                        </a>
+                        <a t-attf-href="/supplier/orders?token=#{token}&amp;state=shipped"
+                           t-attf-class="btn btn-outline-primary #{state_filter == 'shipped' and 'active' or ''}">
+                            출하
+                        </a>
+                        <a t-attf-href="/supplier/orders?token=#{token}&amp;state=received"
+                           t-attf-class="btn btn-outline-success #{state_filter == 'received' and 'active' or ''}">
+                            입고완료
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 목록 -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <t t-if="orders">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>발주번호</th>
+                                    <th>공급업체</th>
+                                    <th>제품</th>
+                                    <th class="text-end">수량</th>
+                                    <th>납기일</th>
+                                    <th>상태</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="orders" t-as="order">
+                                    <tr>
+                                        <td>
+                                            <a t-attf-href="/supplier/orders/#{order.id}?token=#{token}">
+                                                <t t-esc="order.name"/>
+                                            </a>
+                                        </td>
+                                        <td><t t-esc="order.seller_partner_id.name"/></td>
+                                        <td>
+                                            <t t-esc="order.product_id.default_code or ''"/>
+                                            <t t-esc="order.product_id.name"/>
+                                        </td>
+                                        <td class="text-end"><t t-esc="int(order.quantity)"/></td>
+                                        <td><t t-esc="order.date_required" t-options="{'widget': 'date'}"/></td>
+                                        <td>
+                                            <t t-if="order.state == 'draft'">
+                                                <span class="badge bg-secondary">초안</span>
+                                            </t>
+                                            <t t-elif="order.state == 'sent'">
+                                                <span class="badge bg-info">발주완료</span>
+                                            </t>
+                                            <t t-elif="order.state == 'confirmed'">
+                                                <span class="badge bg-warning">확정</span>
+                                            </t>
+                                            <t t-elif="order.state == 'shipped'">
+                                                <span class="badge bg-primary">출하</span>
+                                            </t>
+                                            <t t-elif="order.state == 'received'">
+                                                <span class="badge bg-success">입고완료</span>
+                                            </t>
+                                            <t t-elif="order.state == 'cancelled'">
+                                                <span class="badge bg-danger">취소</span>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <a t-attf-href="/supplier/orders/#{order.id}?token=#{token}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                상세
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-inbox fa-3x mb-3 d-block"/>
+                            발주 내역이 없습니다.
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 새 발주 폼 -->
+    <template id="portal_new_order" name="Portal - New Order">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <h2 class="mb-4"><i class="fa fa-plus me-2"/> 새 발주 작성</h2>
+
+            <div class="card">
+                <div class="card-body">
+                    <form t-attf-action="/supplier/orders/create?token=#{token}" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">공급업체 <span class="text-danger">*</span></label>
+                                <select name="seller_id" class="form-select" required="required">
+                                    <option value="">선택하세요</option>
+                                    <t t-foreach="suppliers" t-as="supplier">
+                                        <option t-att-value="supplier.id">
+                                            <t t-esc="supplier.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">제품 <span class="text-danger">*</span></label>
+                                <select name="product_id" class="form-select" required="required">
+                                    <option value="">선택하세요</option>
+                                    <t t-foreach="products" t-as="product">
+                                        <option t-att-value="product.id">
+                                            [<t t-esc="product.default_code or '-'"/>]
+                                            <t t-esc="product.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">수량 <span class="text-danger">*</span></label>
+                                <input type="number" name="quantity" class="form-control"
+                                       required="required" min="1" step="1"/>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">납기일 <span class="text-danger">*</span></label>
+                                <input type="date" name="date_required" class="form-control"
+                                       required="required"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">비고</label>
+                            <textarea name="notes" class="form-control" rows="3"/>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-paper-plane me-1"/> 발주 전송
+                            </button>
+                            <a t-attf-href="/supplier/orders?token=#{token}" class="btn btn-secondary">
+                                취소
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 발주/수주 상세 (공통) -->
+    <template id="portal_order_detail" name="Portal - Order Detail">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <t t-if="is_buyer">
+                        <i class="fa fa-paper-plane me-2"/> 발주 상세
+                    </t>
+                    <t t-else="">
+                        <i class="fa fa-inbox me-2"/> 수주 상세
+                    </t>
+                </h2>
+                <a t-attf-href="/supplier/#{is_buyer and 'orders' or 'incoming-orders'}?token=#{token}"
+                   class="btn btn-outline-secondary">
+                    <i class="fa fa-arrow-left me-1"/> 목록으로
+                </a>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- 기본 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <span class="h5 mb-0"><t t-esc="order.name"/></span>
+                            <t t-if="order.state == 'draft'">
+                                <span class="badge bg-secondary float-end">초안</span>
+                            </t>
+                            <t t-elif="order.state == 'sent'">
+                                <span class="badge bg-info float-end">발주완료</span>
+                            </t>
+                            <t t-elif="order.state == 'confirmed'">
+                                <span class="badge bg-warning float-end">확정</span>
+                            </t>
+                            <t t-elif="order.state == 'shipped'">
+                                <span class="badge bg-primary float-end">출하</span>
+                            </t>
+                            <t t-elif="order.state == 'received'">
+                                <span class="badge bg-success float-end">입고완료</span>
+                            </t>
+                            <t t-elif="order.state == 'cancelled'">
+                                <span class="badge bg-danger float-end">취소</span>
+                            </t>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <dl>
+                                        <dt>발주업체</dt>
+                                        <dd><t t-esc="order.buyer_partner_id.name"/></dd>
+                                        <dt>공급업체</dt>
+                                        <dd><t t-esc="order.seller_partner_id.name"/></dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <dl>
+                                        <dt>발주일</dt>
+                                        <dd><t t-esc="order.date_order" t-options="{'widget': 'date'}"/></dd>
+                                        <dt>납기일</dt>
+                                        <dd><strong><t t-esc="order.date_required" t-options="{'widget': 'date'}"/></strong></dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 제품 정보 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fa fa-cube me-2"/> 제품 정보
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-bordered mb-0">
+                                <tr>
+                                    <th width="30%">제품코드</th>
+                                    <td><t t-esc="order.product_id.default_code or '-'"/></td>
+                                </tr>
+                                <tr>
+                                    <th>제품명</th>
+                                    <td><t t-esc="order.product_id.name"/></td>
+                                </tr>
+                                <tr>
+                                    <th>수량</th>
+                                    <td><strong><t t-esc="int(order.quantity)"/></strong></td>
+                                </tr>
+                                <t t-if="order.price_unit">
+                                    <tr>
+                                        <th>단가</th>
+                                        <td><t t-esc="order.price_unit" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                    </tr>
+                                </t>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 비고 -->
+                    <t t-if="order.notes">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fa fa-sticky-note me-2"/> 비고
+                            </div>
+                            <div class="card-body">
+                                <t t-esc="order.notes"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- 액션 버튼 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fa fa-tasks me-2"/> 액션
+                        </div>
+                        <div class="card-body">
+                            <!-- 발주자 (buyer) 액션 -->
+                            <t t-if="is_buyer">
+                                <t t-if="order.state == 'shipped'">
+                                    <a t-attf-href="/supplier/orders/#{order.id}/receive?token=#{token}"
+                                       class="btn btn-success w-100 mb-2">
+                                        <i class="fa fa-check me-1"/> 입고 확인
+                                    </a>
+                                </t>
+                                <t t-else="">
+                                    <p class="text-muted mb-0">
+                                        <t t-if="order.state == 'sent'">
+                                            공급업체의 확정을 기다리는 중입니다.
+                                        </t>
+                                        <t t-elif="order.state == 'confirmed'">
+                                            공급업체가 확정하였습니다. 출하를 기다리는 중입니다.
+                                        </t>
+                                        <t t-elif="order.state == 'received'">
+                                            입고가 완료되었습니다.
+                                        </t>
+                                    </p>
+                                </t>
+                            </t>
+
+                            <!-- 공급자 (seller) 액션 -->
+                            <t t-if="not is_buyer">
+                                <t t-if="order.state == 'sent'">
+                                    <a t-attf-href="/supplier/incoming-orders/#{order.id}/confirm?token=#{token}"
+                                       class="btn btn-warning w-100 mb-2">
+                                        <i class="fa fa-check me-1"/> 확정
+                                    </a>
+                                </t>
+                                <t t-elif="order.state == 'confirmed'">
+                                    <a t-attf-href="/supplier/incoming-orders/#{order.id}/ship?token=#{token}"
+                                       class="btn btn-primary w-100 mb-2">
+                                        <i class="fa fa-truck me-1"/> 출하
+                                    </a>
+                                </t>
+                                <t t-else="">
+                                    <p class="text-muted mb-0">
+                                        <t t-if="order.state == 'shipped'">
+                                            출하 완료. 발주업체의 입고 확인을 기다리는 중입니다.
+                                        </t>
+                                        <t t-elif="order.state == 'received'">
+                                            거래가 완료되었습니다.
+                                        </t>
+                                    </p>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- 진행 이력 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-history me-2"/> 진행 이력
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <t t-if="order.date_order">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check-circle text-success me-2"/>
+                                        <strong>발주:</strong>
+                                        <t t-esc="order.date_order" t-options="{'widget': 'date'}"/>
+                                    </li>
+                                </t>
+                                <t t-if="order.date_confirmed">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check-circle text-warning me-2"/>
+                                        <strong>확정:</strong>
+                                        <t t-esc="order.date_confirmed" t-options="{'widget': 'date'}"/>
+                                    </li>
+                                </t>
+                                <t t-if="order.date_shipped">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check-circle text-primary me-2"/>
+                                        <strong>출하:</strong>
+                                        <t t-esc="order.date_shipped" t-options="{'widget': 'date'}"/>
+                                    </li>
+                                </t>
+                                <t t-if="order.date_received">
+                                    <li class="mb-2">
+                                        <i class="fa fa-check-circle text-success me-2"/>
+                                        <strong>입고:</strong>
+                                        <t t-esc="order.date_received" t-options="{'widget': 'date'}"/>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 수주 관리 (내가 받은 발주)                                         -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- 수주 목록 -->
+    <template id="portal_incoming_orders" name="Portal - Incoming Orders">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <h2 class="mb-4"><i class="fa fa-inbox me-2"/> 수주 관리</h2>
+
+            <!-- 필터 -->
+            <div class="card mb-4">
+                <div class="card-body py-2">
+                    <div class="btn-group" role="group">
+                        <a t-attf-href="/supplier/incoming-orders?token=#{token}"
+                           t-attf-class="btn btn-outline-secondary #{state_filter == 'all' and 'active' or ''}">
+                            전체
+                        </a>
+                        <a t-attf-href="/supplier/incoming-orders?token=#{token}&amp;state=sent"
+                           t-attf-class="btn btn-outline-info #{state_filter == 'sent' and 'active' or ''}">
+                            신규
+                        </a>
+                        <a t-attf-href="/supplier/incoming-orders?token=#{token}&amp;state=confirmed"
+                           t-attf-class="btn btn-outline-warning #{state_filter == 'confirmed' and 'active' or ''}">
+                            확정
+                        </a>
+                        <a t-attf-href="/supplier/incoming-orders?token=#{token}&amp;state=shipped"
+                           t-attf-class="btn btn-outline-primary #{state_filter == 'shipped' and 'active' or ''}">
+                            출하완료
+                        </a>
+                        <a t-attf-href="/supplier/incoming-orders?token=#{token}&amp;state=received"
+                           t-attf-class="btn btn-outline-success #{state_filter == 'received' and 'active' or ''}">
+                            거래완료
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 목록 -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <t t-if="orders">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>발주번호</th>
+                                    <th>발주업체</th>
+                                    <th>제품</th>
+                                    <th class="text-end">수량</th>
+                                    <th>납기일</th>
+                                    <th>상태</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="orders" t-as="order">
+                                    <tr t-attf-class="#{order.state == 'sent' and 'table-info' or ''}">
+                                        <td>
+                                            <a t-attf-href="/supplier/incoming-orders/#{order.id}?token=#{token}">
+                                                <t t-esc="order.name"/>
+                                            </a>
+                                        </td>
+                                        <td><t t-esc="order.buyer_partner_id.name"/></td>
+                                        <td>
+                                            <t t-esc="order.product_id.default_code or ''"/>
+                                            <t t-esc="order.product_id.name"/>
+                                        </td>
+                                        <td class="text-end"><t t-esc="int(order.quantity)"/></td>
+                                        <td><t t-esc="order.date_required" t-options="{'widget': 'date'}"/></td>
+                                        <td>
+                                            <t t-if="order.state == 'sent'">
+                                                <span class="badge bg-info">신규</span>
+                                            </t>
+                                            <t t-elif="order.state == 'confirmed'">
+                                                <span class="badge bg-warning">확정</span>
+                                            </t>
+                                            <t t-elif="order.state == 'shipped'">
+                                                <span class="badge bg-primary">출하완료</span>
+                                            </t>
+                                            <t t-elif="order.state == 'received'">
+                                                <span class="badge bg-success">거래완료</span>
+                                            </t>
+                                            <t t-elif="order.state == 'cancelled'">
+                                                <span class="badge bg-danger">취소</span>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <t t-if="order.state == 'sent'">
+                                                <a t-attf-href="/supplier/incoming-orders/#{order.id}/confirm?token=#{token}"
+                                                   class="btn btn-sm btn-warning">
+                                                    확정
+                                                </a>
+                                            </t>
+                                            <t t-elif="order.state == 'confirmed'">
+                                                <a t-attf-href="/supplier/incoming-orders/#{order.id}/ship?token=#{token}"
+                                                   class="btn btn-sm btn-primary">
+                                                    출하
+                                                </a>
+                                            </t>
+                                            <t t-else="">
+                                                <a t-attf-href="/supplier/incoming-orders/#{order.id}?token=#{token}"
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    상세
+                                                </a>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-inbox fa-3x mb-3 d-block"/>
+                            수주 내역이 없습니다.
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 내 재고 관리                                                      -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <template id="portal_my_inventory" name="Portal - My Inventory">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <h2 class="mb-4"><i class="fa fa-cubes me-2"/> 내 재고 관리</h2>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <t t-if="inventory_items">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>품목코드</th>
+                                    <th>품목명</th>
+                                    <th class="text-end">재고수량</th>
+                                    <th>최종 수정</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="inventory_items" t-as="item">
+                                    <tr>
+                                        <td><t t-esc="item.product_id.default_code or '-'"/></td>
+                                        <td><t t-esc="item.product_id.name"/></td>
+                                        <td class="text-end">
+                                            <strong><t t-esc="int(item.quantity)"/></strong>
+                                        </td>
+                                        <td>
+                                            <t t-esc="item.last_updated" t-options="{'widget': 'datetime', 'format': 'yyyy-MM-dd HH:mm'}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa fa-cubes fa-3x mb-3 d-block"/>
+                            등록된 재고 정보가 없습니다.
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
