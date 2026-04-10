@@ -54,7 +54,7 @@ class PlanningRun(models.Model):
         string="일별 요약",
     )
     mo_count = fields.Integer(compute="_compute_stats", store=True)
-    total_planned_qty = fields.Float(
+    total_confirmed_qty = fields.Float(
         string="총 계획 수량", compute="_compute_stats", store=True,
     )
     total_changeovers = fields.Integer(
@@ -65,11 +65,11 @@ class PlanningRun(models.Model):
         "res.company", default=lambda self: self.env.company,
     )
 
-    @api.depends("line_ids", "line_ids.planned_qty", "line_ids.changeover_needed", "mo_ids")
+    @api.depends("line_ids", "line_ids.confirmed_qty", "line_ids.changeover_needed", "mo_ids")
     def _compute_stats(self):
         for rec in self:
             rec.mo_count = len(rec.mo_ids)
-            rec.total_planned_qty = sum(rec.line_ids.mapped("planned_qty"))
+            rec.total_confirmed_qty = sum(rec.line_ids.mapped("confirmed_qty"))
             rec.total_changeovers = len(rec.line_ids.filtered("changeover_needed"))
 
     @api.model_create_multi
@@ -390,7 +390,7 @@ class PlanningRun(models.Model):
             self.env["injection.planning.line"].create(lines_data)
             self.message_post(
                 body=f"계획 계산 완료: {len(lines_data)}건 라인, "
-                     f"총 {sum(d['planned_qty'] for d in lines_data):.0f}개 생산 예정"
+                     f"총 {sum(d['confirmed_qty'] for d in lines_data):.0f}개 생산 예정"
             )
 
         # 5단계: 일별 요약 생성 (차트용)
@@ -419,7 +419,7 @@ class PlanningRun(models.Model):
             if not bom or not bom.bom_line_ids:
                 # BOM 없거나 라인 없으면 제품 자체가 사출품으로 간주
                 part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
-                demand.state = "planned"
+                demand.state = "confirmed"
                 continue
 
             # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
@@ -429,7 +429,7 @@ class PlanningRun(models.Model):
                     demand.quantity * qty_per
                 )
 
-            demand.state = "planned"
+            demand.state = "confirmed"
 
         return dict(part_demands)
 
@@ -853,7 +853,7 @@ class PlanningRun(models.Model):
                                     "mold_id": mold_id,
                                     "product_id": job["product_id"],
                                     "demand_qty": seg_demand,
-                                    "planned_qty": seg_qty,
+                                    "confirmed_qty": seg_qty,
                                     "defect_rate": dr,
                                     "initial_scrap": scrap if is_first_seg else 0,
                                     "changeover_needed": needs_changeover if is_first_seg else False,
@@ -880,7 +880,7 @@ class PlanningRun(models.Model):
                             "mold_id": mold_id,
                             "product_id": job["product_id"],
                             "demand_qty": demand,
-                            "planned_qty": adjusted,
+                            "confirmed_qty": adjusted,
                             "defect_rate": dr,
                             "initial_scrap": scrap,
                             "changeover_needed": needs_changeover,
@@ -948,7 +948,7 @@ class PlanningRun(models.Model):
 
             mo_vals = {
                 "product_id": line.product_id.id,
-                "product_qty": line.planned_qty,
+                "product_qty": line.confirmed_qty,
                 "bom_id": bom.id if bom else False,
                 "date_start": line.start_time or fields.Datetime.now(),
                 "planning_run_id": self.id,
@@ -961,12 +961,12 @@ class PlanningRun(models.Model):
                 created_mos |= mo
                 _logger.info(
                     "MO %s 생성: %s x %s",
-                    mo.name, line.product_id.display_name, line.planned_qty,
+                    mo.name, line.product_id.display_name, line.confirmed_qty,
                 )
             except Exception:
                 _logger.exception(
                     "MO 생성 실패: product=%s, qty=%s",
-                    line.product_id.display_name, line.planned_qty,
+                    line.product_id.display_name, line.confirmed_qty,
                 )
 
         self.state = "confirmed"
@@ -1016,15 +1016,15 @@ class PlanningRun(models.Model):
             demand_by_product_date[pid][date_str] += qty
 
         # 2) 계획 라인에서 제품별 일별 생산량
-        planned_by_product_date = defaultdict(lambda: defaultdict(float))
+        confirmed_by_product_date = defaultdict(lambda: defaultdict(float))
         for line in self.line_ids:
-            planned_by_product_date[line.product_id.id][
+            confirmed_by_product_date[line.product_id.id][
                 str(line.plan_date)
-            ] += line.planned_qty
+            ] += line.confirmed_qty
 
         # 3) 모든 제품 수집
         all_pids = set(demand_by_product_date.keys()) | set(
-            planned_by_product_date.keys()
+            confirmed_by_product_date.keys()
         )
         if not all_pids:
             return
@@ -1053,7 +1053,7 @@ class PlanningRun(models.Model):
         all_demand_dates = set()
         for pid in all_pids:
             all_demand_dates.update(demand_by_product_date.get(pid, {}).keys())
-            all_demand_dates.update(planned_by_product_date.get(pid, {}).keys())
+            all_demand_dates.update(confirmed_by_product_date.get(pid, {}).keys())
         # 계획 기간 밖 수요도 포함 (안전재고 참조용)
         demand_sorted = sorted(all_demand_dates)
 
@@ -1089,9 +1089,9 @@ class PlanningRun(models.Model):
             running_stock = stock_map.get(pid, 0)
             for date_idx, date_str in enumerate(sorted_dates):
                 demand = demand_by_product_date.get(pid, {}).get(date_str, 0)
-                planned = planned_by_product_date.get(pid, {}).get(date_str, 0)
+                confirmed = confirmed_by_product_date.get(pid, {}).get(date_str, 0)
                 stock_start = running_stock
-                stock_end = stock_start + planned - demand
+                stock_end = stock_start + confirmed - demand
                 running_stock = stock_end
 
                 # 향후 N근무일 수요 = 이 날짜에서 확보해야 할 안전재고
@@ -1102,7 +1102,7 @@ class PlanningRun(models.Model):
                     "product_id": pid,
                     "plan_date": date_str,
                     "demand_qty": demand,
-                    "planned_qty": planned,
+                    "confirmed_qty": confirmed,
                     "safety_stock_qty": safety_qty,
                     "stock_start": stock_start,
                     "stock_end": stock_end,
