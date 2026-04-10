@@ -42,13 +42,17 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_fetch_demand" string="수요 가져오기"
+                    <button name="action_load_demands" string="수요 로드"
                             type="object" class="btn-primary"
-                            invisible="state != 'draft'"/>
-                    <button name="action_import_demand_file" string="파일 업로드 (CSV)"
+                            invisible="state != 'draft'"
+                            help="기존 생산 수요 데이터 로드"/>
+                    <button name="action_fetch_demand" string="Oracle 연동"
                             type="object"
                             invisible="state != 'draft'"/>
-                    <button name="action_add_manual_demand" string="수동 수요 추가"
+                    <button name="action_import_demand_file" string="CSV 업로드"
+                            type="object"
+                            invisible="state != 'draft'"/>
+                    <button name="action_add_manual_demand" string="수동 추가"
                             type="object"
                             invisible="state != 'draft'"/>
                     <button name="action_generate_availability" string="가동 일정 설정"

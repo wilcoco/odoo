@@ -83,8 +83,23 @@ class PlanningRun(models.Model):
         return super().create(vals_list)
 
     # ─────────────────────────────────────────────
-    # Oracle 수요 가져오기
+    # 수요 데이터 로드
     # ─────────────────────────────────────────────
+    def action_load_demands(self):
+        """기존 production.demand에서 기간 내 수요 로드"""
+        self.ensure_one()
+        Demand = self.env["production.demand"]
+
+        demands = Demand.search([
+            ("demand_date", ">=", self.plan_date_from),
+            ("demand_date", "<=", self.plan_date_to),
+            ("state", "in", ("draft", "confirmed")),
+        ])
+
+        self.demand_ids = [(6, 0, demands.ids)]
+        self.message_post(body=_("수요 데이터 %d건 로드") % len(demands))
+        return True
+
     def action_fetch_demand(self):
         """Oracle에서 수요 데이터 로드"""
         self.ensure_one()
@@ -96,8 +111,8 @@ class PlanningRun(models.Model):
             _logger.exception("Oracle 수요 조회 실패")
             raise models.UserError(f"Oracle 수요 조회 실패: {e}")
 
-        # 기존 Oracle 수요 삭제 후 재로드 (수동 입력은 유지)
-        self.demand_ids.filtered(lambda d: d.source == "oracle").unlink()
+        # 기존 Oracle 수요는 연결 해제 (삭제하지 않음)
+        self.demand_ids = [(5, 0, 0)]
 
         if demands:
             # 같은 (제품, 날짜) 수요를 합산
@@ -119,7 +134,6 @@ class PlanningRun(models.Model):
                     "quantity": qty,
                     "demand_type": dtype,
                     "source": "oracle",
-                    "planning_run_id": self.id,
                 })
             for (pid, dd, hour), qty in hourly_merged.items():
                 create_vals.append({
