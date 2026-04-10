@@ -32,7 +32,7 @@
                 <group string="외주 발주 정보" invisible="not auto_generated" colspan="2">
                     <group>
                         <field name="auto_generated" readonly="1"/>
-                        <field name="planning_run_id" readonly="1"/>
+                        <field name="outsource_planning_run_id" readonly="1"/>
                         <field name="buyer_id"/>
                     </group>
                     <group>
