@@ -185,18 +185,26 @@ class PurchaseOrder(models.Model):
         from datetime import timedelta
         target_date = fields.Date.today() + timedelta(days=reminder_days)
 
+        # date_planned는 PO Line에 있으므로 서브쿼리로 최소 납기일 확인
         pending_pos = self.search([
             ("auto_generated", "=", True),
             ("portal_state", "=", "new"),
-            ("date_planned", "<=", target_date),
         ])
 
-        for po in pending_pos:
+        # 납기일 기준 필터링
+        urgent_pos = pending_pos.filtered(
+            lambda po: po.order_line and min(
+                (l.date_planned.date() if l.date_planned else fields.Date.today())
+                for l in po.order_line
+            ) <= target_date
+        )
+
+        for po in urgent_pos:
             # 이미 오늘 리마인더 보냈는지 확인
             existing = self.env["supplier.portal.notification"].search([
                 ("purchase_order_id", "=", po.id),
                 ("notification_type", "=", "confirm_request"),
-                ("create_date", ">=", fields.Date.today()),
+                ("create_date", ">=", fields.Datetime.to_datetime(fields.Date.today())),
             ], limit=1)
 
             if not existing:

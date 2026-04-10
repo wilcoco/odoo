@@ -145,6 +145,27 @@ class OutsourcePlanningRun(models.Model):
         self.message_post(body=_("외주 조달 계획 계산 완료: %d개 품목") % self.total_outsource_products)
         return True
 
+    def _get_confirmed_incoming(self, product_id):
+        """기존 확정된 PO에서 입고예정 수량 조회"""
+        # 구조: {date: qty}
+        incoming = defaultdict(float)
+
+        # 확정된 PO (purchase 상태) 중 해당 제품 라인 조회
+        po_lines = self.env["purchase.order.line"].search([
+            ("product_id", "=", product_id),
+            ("order_id.state", "=", "purchase"),  # 확정된 PO만
+            ("date_planned", ">=", self.plan_date_from),
+            ("date_planned", "<=", self.plan_date_to),
+        ])
+
+        for line in po_lines:
+            # date_planned은 Datetime, date로 변환
+            planned_date = line.date_planned.date() if line.date_planned else None
+            if planned_date:
+                incoming[planned_date] += line.product_qty
+
+        return incoming
+
     def _extract_outsource_demands(self):
         """완제품 수요에서 외주 부품 일별 수요 추출"""
         # 구조: {(product_id, date): qty}
@@ -176,7 +197,7 @@ class OutsourcePlanningRun(models.Model):
         return demands
 
     def _create_planning_lines(self, outsource_demands, safety_days):
-        """외주 부품별 계획 라인 생성"""
+        """외주 부품별 계획 라인 생성 (MRP 롤링 계산)"""
         PlanningLine = self.env["outsource.planning.line"]
         Product = self.env["product.product"]
 
@@ -190,18 +211,28 @@ class OutsourcePlanningRun(models.Model):
             partner = product.outsource_partner_id
             leadtime = product.outsource_leadtime or 3
 
-            # 현재 재고
-            current_stock = product.qty_available
+            # 초기 재고 (롤링 계산용)
+            rolling_stock = product.qty_available
+
+            # 기존 확정된 입고예정 조회 (확정된 PO 라인)
+            confirmed_incoming = self._get_confirmed_incoming(product_id)
 
             for demand_date, demand_qty in sorted(date_demands.items()):
                 # 발주일 = 필요일 - 리드타임
                 order_date = demand_date - timedelta(days=leadtime)
 
-                # 안전재고 계산 (향후 N일 수요 합계)
+                # 해당일 기존 입고예정
+                existing_incoming = confirmed_incoming.get(demand_date, 0)
+
+                # 안전재고 계산 (내일부터 N일간 수요 - 오늘 제외)
                 safety_stock = sum(
                     q for d, q in date_demands.items()
-                    if demand_date <= d <= demand_date + timedelta(days=safety_days)
+                    if demand_date < d <= demand_date + timedelta(days=safety_days)
                 )
+
+                # 순소요량 계산: 소요량 + 안전재고 - 현재고 - 기존입고
+                net_demand = demand_qty + safety_stock - rolling_stock - existing_incoming
+                order_qty = max(0, net_demand)
 
                 PlanningLine.create({
                     "planning_run_id": self.id,
@@ -212,42 +243,39 @@ class OutsourcePlanningRun(models.Model):
                     "order_date": order_date,
                     "leadtime": leadtime,
                     "safety_stock_qty": safety_stock,
-                    "current_stock": current_stock,
+                    "current_stock": rolling_stock,
+                    "incoming_qty": existing_incoming,
+                    "order_qty": order_qty,  # computed 필드 오버라이드
                 })
 
+                # 다음 날 재고 = 현재고 + 입고(기존+신규) - 소요량
+                rolling_stock = rolling_stock + existing_incoming + order_qty - demand_qty
+
     def _create_daily_summary(self, safety_days):
-        """일별 요약 생성 (차트용) - MRP 스타일 계산"""
+        """일별 요약 생성 (차트용) - 계획 라인 기반"""
         Summary = self.env["outsource.daily.summary"]
 
-        # 품목별 일별 소요량 집계
-        product_daily = defaultdict(lambda: defaultdict(float))
+        # 품목별 일별 소요량 및 발주량 집계 (planning line 기반)
+        product_daily_demand = defaultdict(lambda: defaultdict(float))
+        product_daily_order = defaultdict(lambda: defaultdict(float))
+        product_daily_safety = defaultdict(lambda: defaultdict(float))
 
         for line in self.line_ids:
-            key = line.product_id.id
-            product_daily[key][line.demand_date] += line.demand_qty
+            pid = line.product_id.id
+            product_daily_demand[pid][line.demand_date] += line.demand_qty
+            product_daily_order[pid][line.demand_date] += line.order_qty
+            product_daily_safety[pid][line.demand_date] = line.safety_stock_qty
 
-        # 요약 레코드 생성 (MRP 스타일)
-        for product_id, daily_demands in product_daily.items():
+        # 요약 레코드 생성 (계획 라인과 동일한 값 사용)
+        for product_id, daily_demands in product_daily_demand.items():
             product = self.env["product.product"].browse(product_id)
             stock = product.qty_available  # 시작 재고
 
             for plan_date in sorted(daily_demands.keys()):
                 demand_qty = daily_demands[plan_date]
-
-                # 안전재고 (향후 N일 수요)
-                safety_stock = sum(
-                    daily_demands[d]
-                    for d in daily_demands
-                    if plan_date <= d <= plan_date + timedelta(days=safety_days)
-                )
-
-                # 입고량 계산: 재고가 안전재고 이하로 떨어지면 발주
-                projected_stock = stock - demand_qty
-                if projected_stock < safety_stock:
-                    # 안전재고 수준까지 채우는 입고량
-                    incoming_qty = safety_stock - projected_stock
-                else:
-                    incoming_qty = 0
+                # 계획 라인의 발주량을 입고예정으로 사용
+                incoming_qty = product_daily_order[product_id].get(plan_date, 0)
+                safety_stock = product_daily_safety[product_id].get(plan_date, 0)
 
                 stock_end = stock + incoming_qty - demand_qty
 
@@ -263,8 +291,6 @@ class OutsourcePlanningRun(models.Model):
                 })
 
                 # 다음 날 시작재고 = 오늘 종료재고
-                stock = stock_end
-
                 stock = stock_end
 
     # ─────────────────────────────────────────────

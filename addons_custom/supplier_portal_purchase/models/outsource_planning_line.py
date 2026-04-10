@@ -29,10 +29,7 @@ class OutsourcePlanningLine(models.Model):
     order_date = fields.Date(string="발주일", help="필요일 - 리드타임")
     order_qty = fields.Float(
         string="발주량",
-        compute="_compute_order_qty",
-        store=True,
-        readonly=False,
-        help="순소요량 (소요량 - 현재고 - 입고예정)",
+        help="순소요량 (소요량 + 안전재고 - 현재고 - 입고예정)",
     )
     leadtime = fields.Integer(string="리드타임 (일)", default=3)
 
@@ -51,18 +48,6 @@ class OutsourcePlanningLine(models.Model):
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )
-
-    @api.depends("demand_qty", "current_stock", "incoming_qty", "safety_stock_qty")
-    def _compute_order_qty(self):
-        """순소요량 계산: 소요량 + 안전재고 - 현재고 - 입고예정"""
-        for line in self:
-            net_demand = (
-                line.demand_qty
-                + line.safety_stock_qty
-                - line.current_stock
-                - line.incoming_qty
-            )
-            line.order_qty = max(0, net_demand)
 
     @api.depends("product_id", "demand_date")
     def _compute_display_name(self):
