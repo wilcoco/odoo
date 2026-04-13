@@ -781,6 +781,49 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
     # ─────────────────────────────────────────────
+    # 입고 현황 (내가 발주한 것의 입고)
+    # ─────────────────────────────────────────────
+    @http.route("/supplier/receiving", type="http", auth="public", website=True)
+    def receiving_status(self, token=None, **kwargs):
+        """입고 현황 (내가 발주한 건의 입고 상태)"""
+        try:
+            partner = self._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render("supplier_portal_purchase.portal_access_denied", {
+                "error": str(e),
+            })
+
+        Order = request.env["supplier.order"].sudo()
+
+        # 입고 대기 (출하완료, 아직 입고 안됨)
+        pending = Order.search([
+            ("buyer_partner_id", "=", partner.id),
+            ("state", "=", "shipped"),
+        ], order="date_required asc")
+
+        # 입고 예정 (확정됨, 아직 출하 안됨)
+        upcoming = Order.search([
+            ("buyer_partner_id", "=", partner.id),
+            ("state", "=", "confirmed"),
+        ], order="date_required asc")
+
+        # 최근 입고 완료 (30일)
+        thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
+        completed = Order.search([
+            ("buyer_partner_id", "=", partner.id),
+            ("state", "=", "received"),
+            ("date_received", ">=", thirty_days_ago),
+        ], order="date_received desc", limit=20)
+
+        return request.render("supplier_portal_purchase.portal_receiving", {
+            "partner": partner,
+            "token": token,
+            "pending": pending,
+            "upcoming": upcoming,
+            "completed": completed,
+        })
+
+    # ─────────────────────────────────────────────
     # 협력사 자체 재고 관리
     # ─────────────────────────────────────────────
     @http.route("/supplier/my-inventory", type="http", auth="public", website=True)

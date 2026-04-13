@@ -23,28 +23,63 @@
                 <!-- 네비게이션 -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <nav class="nav nav-pills">
-                            <a class="nav-link" t-attf-href="/supplier/portal?token=#{token}">
-                                <i class="fa fa-dashboard me-1"/> 대시보드
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/po/list?token=#{token}">
-                                <i class="fa fa-file-text me-1"/> 우리회사 발주
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/orders?token=#{token}">
-                                <i class="fa fa-paper-plane me-1"/> 발주 관리
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/incoming-orders?token=#{token}">
-                                <i class="fa fa-inbox me-1"/> 수주 관리
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/supply-chain?token=#{token}">
-                                <i class="fa fa-sitemap me-1"/> 공급망
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/delivery?token=#{token}">
-                                <i class="fa fa-truck me-1"/> 납품 현황
-                            </a>
-                            <a class="nav-link" t-attf-href="/supplier/my-inventory?token=#{token}">
-                                <i class="fa fa-cubes me-1"/> 내 재고
-                            </a>
+                        <nav class="navbar navbar-expand navbar-light bg-light rounded px-3">
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <a class="nav-link" t-attf-href="/supplier/portal?token=#{token}">
+                                        <i class="fa fa-dashboard me-1"/> 대시보드
+                                    </a>
+                                </li>
+                                <!-- 받은 발주 (수주) -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                        <i class="fa fa-inbox me-1"/> 받은 발주
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/po/list?token=#{token}">
+                                                <i class="fa fa-building me-2"/> 우리회사에서 받은 발주
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/incoming-orders?token=#{token}">
+                                                <i class="fa fa-users me-2"/> 다른 업체에서 받은 발주
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"/></li>
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/delivery?token=#{token}">
+                                                <i class="fa fa-truck me-2"/> 납품/출하 현황
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <!-- 보낸 발주 (발주) -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                        <i class="fa fa-paper-plane me-1"/> 보낸 발주
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/orders?token=#{token}">
+                                                <i class="fa fa-file-text me-2"/> 다른 업체에 보낸 발주
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"/></li>
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/receiving?token=#{token}">
+                                                <i class="fa fa-download me-2"/> 입고 현황
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <!-- 재고 -->
+                                <li class="nav-item">
+                                    <a class="nav-link" t-attf-href="/supplier/my-inventory?token=#{token}">
+                                        <i class="fa fa-cubes me-1"/> 재고 현황
+                                    </a>
+                                </li>
+                            </ul>
                         </nav>
                     </div>
                 </div>
@@ -183,6 +218,9 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-link me-2"/> 바로가기
+                        </div>
                         <div class="card-body">
                             <div class="row text-center">
                                 <div class="col-md-3">
@@ -195,21 +233,22 @@
                                 <div class="col-md-3">
                                     <a t-attf-href="/supplier/po/list?token=#{token}"
                                        class="btn btn-outline-primary btn-lg w-100 mb-2">
-                                        <i class="fa fa-file-text fa-2x d-block mb-2"/>
-                                        발주 목록
+                                        <i class="fa fa-inbox fa-2x d-block mb-2"/>
+                                        받은 발주
                                     </a>
                                 </div>
                                 <div class="col-md-3">
-                                    <a t-attf-href="/supplier/delivery?token=#{token}"
+                                    <a t-attf-href="/supplier/orders?token=#{token}"
+                                       class="btn btn-outline-info btn-lg w-100 mb-2">
+                                        <i class="fa fa-paper-plane fa-2x d-block mb-2"/>
+                                        보낸 발주
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a t-attf-href="/supplier/receiving?token=#{token}"
                                        class="btn btn-outline-success btn-lg w-100 mb-2">
-                                        <i class="fa fa-truck fa-2x d-block mb-2"/>
-                                        납품 현황
-                                    </a>
-                                </div>
-                                <div class="col-md-3">
-                                    <a href="#" class="btn btn-outline-secondary btn-lg w-100 mb-2">
-                                        <i class="fa fa-cog fa-2x d-block mb-2"/>
-                                        설정
+                                        <i class="fa fa-download fa-2x d-block mb-2"/>
+                                        입고 현황
                                     </a>
                                 </div>
                             </div>
@@ -220,12 +259,12 @@
         </t>
     </template>
 
-    <!-- 발주 목록 -->
+    <!-- 받은 발주 - 우리회사 -->
     <template id="portal_po_list" name="Supplier Portal PO List">
         <t t-call="supplier_portal_purchase.portal_layout">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fa fa-file-text me-2"/> 발주 목록</span>
+                    <span><i class="fa fa-building me-2"/> 우리회사에서 받은 발주</span>
                     <!-- 필터 -->
                     <div class="btn-group btn-group-sm">
                         <a t-attf-href="/supplier/po/list?token=#{token}&amp;state=all"
