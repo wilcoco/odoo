@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 협력사 간 발주 테스트 시나리오                                      -->
+        <!-- 한국브라켓 → 삼성캡 (1차 협력사가 2차 협력사에 발주)                  -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+
+        <!-- 발주 1: 한국브라켓이 삼성캡에게 엔드캡A 발주 (발주완료) -->
+        <record id="supplier_order_001" model="supplier.order">
+            <field name="buyer_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="seller_partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_id" ref="product_out_cap_001"/>
+            <field name="quantity">500</field>
+            <field name="price_unit">750</field>
+            <field name="date_order" eval="(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d')"/>
+            <field name="date_required" eval="(DateTime.today() + relativedelta(days=4)).strftime('%Y-%m-%d')"/>
+            <field name="state">sent</field>
+            <field name="notes">긴급 발주 - 에스콘 납품용</field>
+        </record>
+
+        <!-- 발주 2: 한국브라켓이 삼성캡에게 엔드캡B 발주 (확정됨) -->
+        <record id="supplier_order_002" model="supplier.order">
+            <field name="buyer_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="seller_partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_id" ref="product_out_cap_002"/>
+            <field name="quantity">300</field>
+            <field name="price_unit">800</field>
+            <field name="date_order" eval="(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="date_required" eval="(DateTime.today() + relativedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="date_confirmed" eval="(DateTime.today() - relativedelta(days=4)).strftime('%Y-%m-%d')"/>
+            <field name="state">confirmed</field>
+        </record>
+
+        <!-- 발주 3: 한국브라켓이 삼성캡에게 발주 (출하완료, 입고대기) -->
+        <record id="supplier_order_003" model="supplier.order">
+            <field name="buyer_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="seller_partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_id" ref="product_out_cap_001"/>
+            <field name="quantity">200</field>
+            <field name="price_unit">750</field>
+            <field name="date_order" eval="(DateTime.today() - relativedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="date_required" eval="(DateTime.today()).strftime('%Y-%m-%d')"/>
+            <field name="date_confirmed" eval="(DateTime.today() - relativedelta(days=6)).strftime('%Y-%m-%d')"/>
+            <field name="date_shipped" eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d')"/>
+            <field name="state">shipped</field>
+        </record>
+
+        <!-- 발주 4: 대한하우징이 삼성캡에게 발주 (발주완료) -->
+        <record id="supplier_order_004" model="supplier.order">
+            <field name="buyer_partner_id" ref="partner_supplier_dhhousing"/>
+            <field name="seller_partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_id" ref="product_out_cap_002"/>
+            <field name="quantity">400</field>
+            <field name="price_unit">800</field>
+            <field name="date_order" eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d')"/>
+            <field name="date_required" eval="(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="state">sent</field>
+            <field name="notes">하우징 조립용</field>
+        </record>
+
+        <!-- 발주 5: 입고 완료된 건 -->
+        <record id="supplier_order_005" model="supplier.order">
+            <field name="buyer_partner_id" ref="partner_supplier_hanbracket"/>
+            <field name="seller_partner_id" ref="partner_supplier_sscap"/>
+            <field name="product_id" ref="product_out_cap_001"/>
+            <field name="quantity">100</field>
+            <field name="price_unit">750</field>
+            <field name="date_order" eval="(DateTime.today() - relativedelta(days=14)).strftime('%Y-%m-%d')"/>
+            <field name="date_required" eval="(DateTime.today() - relativedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="date_confirmed" eval="(DateTime.today() - relativedelta(days=13)).strftime('%Y-%m-%d')"/>
+            <field name="date_shipped" eval="(DateTime.today() - relativedelta(days=8)).strftime('%Y-%m-%d')"/>
+            <field name="date_received" eval="(DateTime.today() - relativedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="state">received</field>
+        </record>
+
+    </data>
+</odoo>

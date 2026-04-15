@@ -53,6 +53,7 @@
         "data/demo/res_partner_demo.xml",
         "data/demo/res_users_demo.xml",
         "data/demo/product_demo.xml",
+        "data/demo/supplier_order_demo.xml",
     ],
     "assets": {
         "web.assets_frontend": [
