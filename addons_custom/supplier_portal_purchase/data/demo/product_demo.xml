@@ -6,7 +6,8 @@
         <record id="product_out_brk_001" model="product.product">
             <field name="name">프론트 브라켓 A</field>
             <field name="default_code">OUT-BRK-001</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_hanbracket"/>
@@ -21,7 +22,8 @@
         <record id="product_out_brk_002" model="product.product">
             <field name="name">리어 브라켓 B</field>
             <field name="default_code">OUT-BRK-002</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_hanbracket"/>
@@ -36,7 +38,8 @@
         <record id="product_out_hsg_001" model="product.product">
             <field name="name">메인 하우징</field>
             <field name="default_code">OUT-HSG-001</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_dhhousing"/>
@@ -51,7 +54,8 @@
         <record id="product_out_hsg_002" model="product.product">
             <field name="name">서브 하우징</field>
             <field name="default_code">OUT-HSG-002</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_dhhousing"/>
@@ -66,7 +70,8 @@
         <record id="product_out_cap_001" model="product.product">
             <field name="name">엔드캡 A</field>
             <field name="default_code">OUT-CAP-001</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_sscap"/>
@@ -81,7 +86,8 @@
         <record id="product_out_cap_002" model="product.product">
             <field name="name">엔드캡 B</field>
             <field name="default_code">OUT-CAP-002</field>
-            <field name="type">product</field>
+            <field name="type">consu</field>
+            <field name="is_storable">True</field>
             <field name="categ_id" ref="product.product_category_all"/>
             <field name="is_outsourced">True</field>
             <field name="outsource_partner_id" ref="partner_supplier_sscap"/>
