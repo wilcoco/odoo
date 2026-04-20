@@ -40,11 +40,36 @@
 
 사출기 실시간 데이터 수집 및 모니터링
 
-### 3. `addons_custom/iatf_*` — IATF 16949 품질경영 모듈
+### 3. `addons_custom/supplier_portal_purchase` — 외주 자동발주 및 협력사 포탈
+
+**주요 기능:**
+- 생산계획 확정 시 외주 부품 자동 발주
+- 협력사 포탈: 발주 확인, 납기/수량 응답, 승인 워크플로우
+- 다단계 공급망 관리 (1차→2차→에스콘)
+- 협력사 간 발주/수주 관리
+
+**포탈 메뉴 구조:**
+```
+받은 발주 ▼
+├── 에스콘에서 받은 발주 (purchase.order)
+├── 다른 업체에서 받은 발주 (supplier.order)
+└── 납품/출하 현황
+보낸 발주 ▼
+├── 다른 업체에 보낸 발주 (supplier.order)
+└── 입고 현황
+```
+
+**테스트 URL:**
+- 한국브라켓: `/supplier/portal?token=demo_token_hanbracket_2026`
+- 삼성캡: `/supplier/portal?token=demo_token_sscap_2026`
+
+**참고 문서:** `TEST_SCENARIO.md`
+
+### 4. `addons_custom/iatf_*` — IATF 16949 품질경영 모듈 (31개)
 
 감사, FMEA, SPC, PPAP, 측정장비 관리, 부적합 관리 등 자동차 산업 품질경영 표준 모듈
 
-### 4. `engel-middleware/` — 엥겔 사출기 미들웨어 (Go)
+### 5. `engel-middleware/` — 엥겔 사출기 미들웨어 (Go)
 
 사출기 PLC와 Odoo 간 데이터 브릿지 (untracked)
 
@@ -87,8 +112,9 @@ cd engel-middleware && make build
 
 ## 최근 작업 이력
 
+- **협력사 포탈 메뉴 개선** (2026-04): 받은발주/보낸발주 구분, 입고현황 추가
+- **협력사 간 발주 기능** (2026-04): supplier.order 모델, 다단계 공급망
+- **Odoo 18 호환성 수정**: type='consu' + is_storable, `<list>` 태그
 - 사출 생산계획 스케줄링 알고리즘 구현 완료
 - 풀 캐퍼 생산, 안전재고, 금형교환 최소화 로직
-- 사출기 생산 계획 리포트 추가
 - 일별 분석 차트 (SQL View 언피벗)
-- PLANNING_SPEC.md 기술 명세서 작성
