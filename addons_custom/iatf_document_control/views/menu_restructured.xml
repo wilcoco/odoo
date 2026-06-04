@@ -1,147 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Top-level IATF Quality menu -->
+        <!-- Top-level IATF Quality menu.
+             순수 컨테이너로만 정의한다. 다른 iatf 모듈들이 이 메뉴(menu_iatf_root / menu_iatf_misc)를
+             parent로 참조하므로 ID는 이 모듈(iatf_document_control) 네임스페이스에 유지해야 한다.
+             타 모듈 액션을 참조하는 통합(큐레이션) 메뉴는 iatf_menu 모듈에서 구성한다. -->
         <menuitem id="menu_iatf_root"
                   name="IATF 16949"
                   sequence="55"
-                  web_icon="iatf_document_control,static/description/icon.png"
-                  action="iatf_dashboard.action_iatf_dashboard_server"/>
+                  web_icon="iatf_document_control,static/description/icon.png"/>
 
-        <!-- IATF 16949 메뉴 재구성 -->
+        <!-- 기타/확장 (여러 iatf 모듈이 parent로 참조) -->
+        <menuitem id="menu_iatf_misc" name="기타/확장" parent="menu_iatf_root" sequence="90"/>
 
-    <!-- 1. 경영 및 기획 -->
-    <menuitem id="menu_iatf_management" name="경영 및 기획" parent="menu_iatf_root" sequence="1"/>
-    
-    <menuitem id="menu_iatf_management_review" name="경영검토" parent="menu_iatf_management" sequence="10"
-              action="iatf_management_review.action_iatf_management_review"/>
-    
-    <menuitem id="menu_iatf_quality_objective" name="품질목표 관리" parent="menu_iatf_management" sequence="20"
-              action="iatf_quality_objective.action_quality_objective"/>
-    
-    <menuitem id="menu_iatf_risk" name="리스크관리" parent="menu_iatf_management" sequence="30"
-              action="iatf_contingency.action_iatf_contingency"/>
-    
-    <menuitem id="menu_iatf_continuous_improvement" name="지속적개선" parent="menu_iatf_management" sequence="40"
-              action="iatf_nonconformity.action_iatf_nonconformity"/>
+        <!-- 문서관리: 본 모듈 자체 액션 -->
+        <menuitem id="menu_iatf_document_control" name="문서관리" parent="menu_iatf_root" sequence="30"/>
+        <menuitem id="menu_iatf_documents" name="문서 목록" parent="menu_iatf_document_control"
+                  action="action_iatf_document" sequence="10"/>
+        <menuitem id="menu_iatf_document_revisions" name="개정 이력" parent="menu_iatf_document_control"
+                  action="action_iatf_document_revision" sequence="20"/>
+        <menuitem id="menu_iatf_document_categories" name="문서 카테고리" parent="menu_iatf_document_control"
+                  action="action_iatf_document_category" sequence="30"/>
 
-    <!-- 2. 인적자원 및 교육 -->
-    <menuitem id="menu_iatf_hr" name="인적자원 및 교육" parent="menu_iatf_root" sequence="2"/>
-    
-    <menuitem id="menu_iatf_training" name="교육관리" parent="menu_iatf_hr" sequence="10"
-              action="iatf_training.action_iatf_training_record"/>
-    
-    <menuitem id="menu_iatf_qualification" name="자격인증관리" parent="menu_iatf_hr" sequence="20"
-              action="iatf_training.action_iatf_competence_matrix"/>
-
-    <!-- 3. 품질 시스템 및 감사 -->
-    <menuitem id="menu_iatf_quality_system" name="품질 시스템 및 감사" parent="menu_iatf_root" sequence="3"/>
-    
-    <menuitem id="menu_iatf_audit" name="내부심사" parent="menu_iatf_quality_system" sequence="10"
-              action="iatf_audit.action_iatf_audit"/>
-    
-    <menuitem id="menu_iatf_customer_satisfaction" name="고객만족도" parent="menu_iatf_quality_system" sequence="20"
-              action="iatf_customer_complaint.action_iatf_customer_complaint"/>
-    
-    <menuitem id="menu_iatf_document_control" name="문서관리" parent="menu_iatf_quality_system" sequence="30"/>
-
-    <menuitem id="menu_iatf_documents" name="문서 목록" parent="menu_iatf_document_control"
-              action="action_iatf_document" sequence="10"/>
-    <menuitem id="menu_iatf_document_revisions" name="개정 이력" parent="menu_iatf_document_control"
-              action="action_iatf_document_revision" sequence="20"/>
-    <menuitem id="menu_iatf_document_categories" name="문서 카테고리" parent="menu_iatf_document_control"
-              action="action_iatf_document_category" sequence="30"/>
-
-    <!-- 4. 생산 및 공정 관리 -->
-    <menuitem id="menu_iatf_production" name="생산 및 공정 관리" parent="menu_iatf_root" sequence="4"/>
-    
-    <menuitem id="menu_iatf_apqp" name="APQP/PPAP" parent="menu_iatf_production" sequence="10">
-        <menuitem id="menu_iatf_apqp_project" name="APQP 프로젝트" sequence="10"
-                  action="iatf_apqp.action_iatf_apqp_project"/>
-        <menuitem id="menu_iatf_ppap" name="PPAP 제출서류" sequence="20"
-                  action="iatf_ppap.action_iatf_ppap"/>
-    </menuitem>
-    
-    <menuitem id="menu_iatf_process" name="공정관리" parent="menu_iatf_production" sequence="20">
-        <menuitem id="menu_iatf_control_plan" name="관리계획서" sequence="10"
-                  action="iatf_control_plan.action_iatf_control_plan"/>
-        <menuitem id="menu_iatf_fmea" name="FMEA" sequence="20"
-                  action="iatf_fmea.action_iatf_fmea"/>
-        <menuitem id="menu_iatf_spc" name="SPC/공정능력" sequence="30"
-                  action="iatf_spc.action_iatf_spc_study"/>
-    </menuitem>
-    
-    <menuitem id="menu_iatf_inspection" name="검사관리" parent="menu_iatf_production" sequence="30">
-        <menuitem id="menu_iatf_incoming" name="수입검사" sequence="10"
-                  action="iatf_incoming_inspection.action_incoming_inspection"/>
-        <menuitem id="menu_iatf_process_inspection" name="공정검사" sequence="20"
-                  action="iatf_process_inspection.action_process_inspection"/>
-        <menuitem id="menu_iatf_layout" name="레이아웃검사" sequence="30"
-                  action="iatf_layout_inspection.action_layout_inspection"/>
-    </menuitem>
-
-    <!-- 5. 설비 및 금형 관리 -->
-    <menuitem id="menu_iatf_equipment" name="설비 및 금형 관리" parent="menu_iatf_root" sequence="5"/>
-    
-    <menuitem id="menu_iatf_equipment_main" name="설비관리" parent="menu_iatf_equipment" sequence="10"
-              action="iatf_equipment.action_equipment"/>
-    
-    <menuitem id="menu_iatf_calibration" name="계측기관리" parent="menu_iatf_equipment" sequence="20"
-              action="iatf_calibration.action_iatf_equipment"/>
-    
-    <menuitem id="menu_iatf_mold" name="금형관리" parent="menu_iatf_equipment" sequence="30"
-              action="iatf_mold.action_mold"/>
-
-    <!-- 6. 구매 및 자재 관리 -->
-    <menuitem id="menu_iatf_procurement" name="구매 및 자재 관리" parent="menu_iatf_root" sequence="6"/>
-    
-    <menuitem id="menu_iatf_supplier" name="공급자관리" parent="menu_iatf_procurement" sequence="10">
-        <menuitem id="menu_iatf_supplier_evaluation" name="공급자평가" sequence="10"
-                  action="iatf_supplier_quality.action_iatf_supplier_evaluation"/>
-        <menuitem id="menu_iatf_scar" name="SCAR" sequence="20"
-                  action="iatf_supplier_quality.action_iatf_scar"/>
-    </menuitem>
-    
-    <menuitem id="menu_iatf_outsource" name="외주관리" parent="menu_iatf_procurement" sequence="20"
-              action="iatf_outsource.action_outsource_order"/>
-
-    <!-- 7. 물류 및 인도 관리 -->
-    <menuitem id="menu_iatf_logistics" name="물류 및 인도 관리" parent="menu_iatf_root" sequence="7"/>
-    
-    <menuitem id="menu_iatf_traceability" name="추적성관리" parent="menu_iatf_logistics" sequence="10"
-              action="iatf_traceability.action_iatf_traceability_record"/>
-    
-    <menuitem id="menu_iatf_packaging" name="포장관리" parent="menu_iatf_logistics" sequence="20"
-              action="iatf_packaging.action_packaging_spec"/>
-
-    <!-- 8. 비상 및 안전 관리 -->
-    <menuitem id="menu_iatf_safety" name="비상 및 안전 관리" parent="menu_iatf_root" sequence="8"/>
-    
-    <menuitem id="menu_iatf_contingency" name="비상대응계획" parent="menu_iatf_safety" sequence="10"
-              action="iatf_contingency.action_iatf_contingency"/>
-    
-    <menuitem id="menu_iatf_recall" name="리콜시뮬레이션" parent="menu_iatf_safety" sequence="20"
-              action="iatf_traceability.action_iatf_recall_simulation"/>
-
-    <!-- 9. 리포트 및 분석 -->
-    <menuitem id="menu_iatf_reports" name="리포트 및 분석" parent="menu_iatf_root" sequence="9"/>
-    
-    <menuitem id="menu_iatf_dashboard" name="품질대시보드" parent="menu_iatf_root" sequence="10"
-              action="iatf_dashboard.action_iatf_dashboard_server"/>
-    
-    <menuitem id="menu_iatf_excel_import" name="엑셀 가져오기" parent="menu_iatf_reports" sequence="20"
-              action="iatf_dashboard.action_iatf_excel_import"/>
-    
-    <menuitem id="menu_iatf_reports_sub" name="리포트" parent="menu_iatf_reports" sequence="30"/>
-
-    <!-- 기타/확장 -->
-    <menuitem id="menu_iatf_misc" name="기타/확장" parent="menu_iatf_root" sequence="90"/>
-
-    <!-- 10. 설정 -->
-    <menuitem id="menu_iatf_settings" name="설정" parent="menu_iatf_root" sequence="100"
-              groups="base.group_system"/>
-    
-    <menuitem id="menu_iatf_config" name="IATF 설정" parent="menu_iatf_settings" sequence="10"
-              action="base.res_config_setting_act_window"/>
+        <!-- 설정 -->
+        <menuitem id="menu_iatf_settings" name="설정" parent="menu_iatf_root" sequence="100"
+                  groups="base.group_system"/>
+        <menuitem id="menu_iatf_config" name="IATF 설정" parent="menu_iatf_settings" sequence="10"
+                  action="base.res_config_setting_act_window"/>
     </data>
 </odoo>
