@@ -53,7 +53,14 @@ class PlanningRun(models.Model):
         "injection.planning.daily.summary", "planning_run_id",
         string="일별 요약",
     )
+    material_requirement_ids = fields.One2many(
+        "injection.planning.material.requirement", "planning_run_id",
+        string="원재료 소요",
+    )
     mo_count = fields.Integer(compute="_compute_stats", store=True)
+    material_shortage_count = fields.Integer(
+        string="원재료 부족 품목", compute="_compute_stats", store=True,
+    )
     total_planned_qty = fields.Float(
         string="총 계획 수량", compute="_compute_stats", store=True,
     )
@@ -65,12 +72,18 @@ class PlanningRun(models.Model):
         "res.company", default=lambda self: self.env.company,
     )
 
-    @api.depends("line_ids", "line_ids.planned_qty", "line_ids.changeover_needed", "mo_ids")
+    @api.depends(
+        "line_ids", "line_ids.planned_qty", "line_ids.changeover_needed", "mo_ids",
+        "material_requirement_ids.is_short",
+    )
     def _compute_stats(self):
         for rec in self:
             rec.mo_count = len(rec.mo_ids)
             rec.total_planned_qty = sum(rec.line_ids.mapped("planned_qty"))
             rec.total_changeovers = len(rec.line_ids.filtered("changeover_needed"))
+            rec.material_shortage_count = len(
+                rec.material_requirement_ids.filtered("is_short")
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -409,6 +422,9 @@ class PlanningRun(models.Model):
 
         # 5단계: 일별 요약 생성 (차트용)
         self._generate_daily_summary(part_demands, config)
+
+        # 6단계: 원재료 소요/재고 집계 (확정 검토용)
+        self._calculate_material_requirements()
 
         self.state = "review"
 
@@ -1124,6 +1140,65 @@ class PlanningRun(models.Model):
 
         if vals_list:
             Summary.create(vals_list)
+
+    def _calculate_material_requirements(self):
+        """계획 라인의 사출 부품 BOM을 전개하여 원재료별 총 소요량 집계.
+
+        사출 부품(완성 사출품)의 BOM 구성품 = 원재료(레진 등).
+        각 계획 라인의 planned_qty(불량·초기불량 반영된 생산량)에
+        BOM 단위 소요량을 곱해 원재료별로 합산하고, 현재 가용 재고와 비교한다.
+        """
+        Req = self.env["injection.planning.material.requirement"]
+        self.material_requirement_ids.unlink()
+
+        # {material_id: {"qty": float, "first_date": date}}
+        material_need = {}
+        for line in self.line_ids:
+            bom = self.env["mrp.bom"].search([
+                "|",
+                ("product_id", "=", line.product_id.id),
+                ("product_tmpl_id", "=", line.product_id.product_tmpl_id.id),
+            ], limit=1)
+            if not bom or not bom.bom_line_ids:
+                continue
+            for bline in bom.bom_line_ids:
+                qty_per = bline.product_qty / (bom.product_qty or 1)
+                need = line.planned_qty * qty_per
+                entry = material_need.setdefault(
+                    bline.product_id.id, {"qty": 0.0, "first_date": line.plan_date},
+                )
+                entry["qty"] += need
+                if line.plan_date and (
+                    not entry["first_date"] or line.plan_date < entry["first_date"]
+                ):
+                    entry["first_date"] = line.plan_date
+
+        if not material_need:
+            return
+
+        materials = self.env["product.product"].browse(list(material_need.keys()))
+        avail_map = {m.id: m.qty_available for m in materials}
+
+        vals_list = [{
+            "planning_run_id": self.id,
+            "material_id": mat_id,
+            "required_qty": info["qty"],
+            "available_qty": avail_map.get(mat_id, 0.0),
+            "first_need_date": info["first_date"],
+        } for mat_id, info in material_need.items()]
+        Req.create(vals_list)
+
+    def action_view_material_requirements(self):
+        """원재료 소요/재고 목록 열기"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"원재료 소요/재고 - {self.name}",
+            "res_model": "injection.planning.material.requirement",
+            "view_mode": "list,form",
+            "domain": [("planning_run_id", "=", self.id)],
+            "context": {"search_default_shortage_only": 1},
+        }
 
     def action_view_daily_summary(self):
         """일별 분석 차트 열기

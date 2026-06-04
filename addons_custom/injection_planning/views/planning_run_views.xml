@@ -93,6 +93,24 @@
                                 <span class="o_stat_text">일별 분석</span>
                             </div>
                         </button>
+                        <button name="action_view_material_requirements" type="object"
+                                class="oe_stat_button" icon="fa-flask"
+                                invisible="state == 'draft'">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value text-danger"
+                                      invisible="material_shortage_count == 0">
+                                    <field name="material_shortage_count"/>
+                                </span>
+                                <span class="o_stat_text">원재료 부족</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="material_shortage_count == 0 or state == 'draft'">
+                        <strong>⚠ 원재료 부족 경고</strong> —
+                        <field name="material_shortage_count" class="oe_inline"/>개 원재료의
+                        현재 재고가 계획 소요량보다 부족합니다.
+                        '원재료 소요/재고' 탭에서 확인 후 확정하세요.
                     </div>
                     <group>
                         <group>
@@ -128,6 +146,21 @@
                                     <field name="max_inventory" optional="hide"/>
                                     <field name="mo_id" optional="hide"/>
                                     <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="원재료 소요/재고" name="materials">
+                            <field name="material_requirement_ids" readonly="1">
+                                <list decoration-danger="is_short == True"
+                                      decoration-warning="coverage_rate &lt; 150 and is_short == False">
+                                    <field name="material_id"/>
+                                    <field name="required_qty" sum="총 소요"/>
+                                    <field name="available_qty"/>
+                                    <field name="shortage_qty"/>
+                                    <field name="coverage_rate"/>
+                                    <field name="uom_id" optional="show"/>
+                                    <field name="first_need_date"/>
+                                    <field name="is_short" widget="boolean"/>
                                 </list>
                             </field>
                         </page>

@@ -31,6 +31,12 @@
               action="action_daily_chart"
               sequence="15"/>
 
+    <menuitem id="menu_material_requirement"
+              name="원재료 소요/재고"
+              parent="menu_injection_planning_root"
+              action="action_material_requirement"
+              sequence="18"/>
+
     <!-- 마스터 -->
     <menuitem id="menu_planning_master"
               name="마스터 데이터"
