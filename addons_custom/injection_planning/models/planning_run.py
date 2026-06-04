@@ -57,9 +57,19 @@ class PlanningRun(models.Model):
         "injection.planning.material.requirement", "planning_run_id",
         string="원재료 소요",
     )
+    material_daily_ids = fields.One2many(
+        "injection.planning.material.daily", "planning_run_id",
+        string="원재료 일별 추이",
+    )
+    material_po_ids = fields.One2many(
+        "purchase.order", "injection_planning_run_id", string="원재료 발주서",
+    )
     mo_count = fields.Integer(compute="_compute_stats", store=True)
     material_shortage_count = fields.Integer(
         string="원재료 부족 품목", compute="_compute_stats", store=True,
+    )
+    material_po_count = fields.Integer(
+        string="원재료 발주 건수", compute="_compute_stats", store=True,
     )
     total_planned_qty = fields.Float(
         string="총 계획 수량", compute="_compute_stats", store=True,
@@ -74,7 +84,7 @@ class PlanningRun(models.Model):
 
     @api.depends(
         "line_ids", "line_ids.planned_qty", "line_ids.changeover_needed", "mo_ids",
-        "material_requirement_ids.is_short",
+        "material_requirement_ids.is_short", "material_po_ids",
     )
     def _compute_stats(self):
         for rec in self:
@@ -84,6 +94,7 @@ class PlanningRun(models.Model):
             rec.material_shortage_count = len(
                 rec.material_requirement_ids.filtered("is_short")
             )
+            rec.material_po_count = len(rec.material_po_ids)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -1149,11 +1160,15 @@ class PlanningRun(models.Model):
         BOM 단위 소요량을 곱해 원재료별로 합산하고, 현재 가용 재고와 비교한다.
         """
         Req = self.env["injection.planning.material.requirement"]
+        Daily = self.env["injection.planning.material.daily"]
         self.material_requirement_ids.unlink()
+        self.material_daily_ids.unlink()
 
-        # {material_id: {"qty": float, "first_date": date}}
-        material_need = {}
+        # 원재료별 (날짜→소요량) 집계
+        material_date_need = defaultdict(lambda: defaultdict(float))
         for line in self.line_ids:
+            if not line.plan_date:
+                continue
             bom = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", line.product_id.id),
@@ -1163,30 +1178,49 @@ class PlanningRun(models.Model):
                 continue
             for bline in bom.bom_line_ids:
                 qty_per = bline.product_qty / (bom.product_qty or 1)
-                need = line.planned_qty * qty_per
-                entry = material_need.setdefault(
-                    bline.product_id.id, {"qty": 0.0, "first_date": line.plan_date},
+                material_date_need[bline.product_id.id][line.plan_date] += (
+                    line.planned_qty * qty_per
                 )
-                entry["qty"] += need
-                if line.plan_date and (
-                    not entry["first_date"] or line.plan_date < entry["first_date"]
-                ):
-                    entry["first_date"] = line.plan_date
 
-        if not material_need:
+        if not material_date_need:
             return
 
-        materials = self.env["product.product"].browse(list(material_need.keys()))
+        materials = self.env["product.product"].browse(list(material_date_need.keys()))
         avail_map = {m.id: m.qty_available for m in materials}
 
-        vals_list = [{
-            "planning_run_id": self.id,
-            "material_id": mat_id,
-            "required_qty": info["qty"],
-            "available_qty": avail_map.get(mat_id, 0.0),
-            "first_need_date": info["first_date"],
-        } for mat_id, info in material_need.items()]
-        Req.create(vals_list)
+        req_vals = []
+        daily_vals = []
+        for mat_id, date_need in material_date_need.items():
+            total_need = sum(date_need.values())
+            available = avail_map.get(mat_id, 0.0)
+            sorted_dates = sorted(date_need.keys())
+
+            req_vals.append({
+                "planning_run_id": self.id,
+                "material_id": mat_id,
+                "required_qty": total_need,
+                "available_qty": available,
+                "first_need_date": sorted_dates[0],
+            })
+
+            # 일별 누적(롤링) 재고 추이
+            running = available
+            for d in sorted_dates:
+                need = date_need[d]
+                stock_start = running
+                stock_end = stock_start - need
+                running = stock_end
+                daily_vals.append({
+                    "planning_run_id": self.id,
+                    "material_id": mat_id,
+                    "plan_date": d,
+                    "required_qty": need,
+                    "stock_start": stock_start,
+                    "stock_end": stock_end,
+                })
+
+        Req.create(req_vals)
+        Daily.create(daily_vals)
 
     def action_view_material_requirements(self):
         """원재료 소요/재고 목록 열기"""
@@ -1198,6 +1232,98 @@ class PlanningRun(models.Model):
             "view_mode": "list,form",
             "domain": [("planning_run_id", "=", self.id)],
             "context": {"search_default_shortage_only": 1},
+        }
+
+    def action_view_material_daily(self):
+        """원재료 일별 소요/재고 추이 열기"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"원재료 일별 추이 - {self.name}",
+            "res_model": "injection.planning.material.daily",
+            "view_mode": "graph,list,pivot",
+            "domain": [("planning_run_id", "=", self.id)],
+        }
+
+    def action_create_material_po(self):
+        """원재료 부족분에 대해 공급업체별 발주서 자동 생성.
+
+        재고가 부족한(is_short) 원재료 중 아직 발주하지 않은 품목을
+        공급업체(product.supplierinfo)별로 묶어 발주서를 생성한다.
+        공급업체 정보가 없는 품목은 건너뛰고 메시지로 안내한다.
+        """
+        self.ensure_one()
+        if self.state not in ("review", "confirmed"):
+            raise models.UserError("검토 또는 확정 상태에서만 발주할 수 있습니다.")
+
+        shortages = self.material_requirement_ids.filtered(
+            lambda r: r.is_short and not r.purchase_order_id
+        )
+        if not shortages:
+            raise models.UserError("발주할 부족 원재료가 없습니다.")
+
+        # 공급업체별로 그룹핑
+        by_vendor = defaultdict(list)
+        no_vendor = self.env["product.product"]
+        for req in shortages:
+            seller = req.material_id.seller_ids[:1]
+            if not seller:
+                no_vendor |= req.material_id
+                continue
+            by_vendor[seller.partner_id.id].append((req, seller))
+
+        PO = self.env["purchase.order"]
+        POLine = self.env["purchase.order.line"]
+        created = PO
+
+        for partner_id, items in by_vendor.items():
+            po = PO.create({
+                "partner_id": partner_id,
+                "injection_planning_run_id": self.id,
+                "origin": self.name,
+                "date_order": fields.Datetime.now(),
+            })
+            for req, seller in items:
+                order_qty = req.shortage_qty
+                lead = seller.delay or 0
+                date_planned = fields.Datetime.now()
+                if req.first_need_date:
+                    date_planned = datetime.combine(
+                        req.first_need_date - timedelta(days=lead),
+                        datetime.min.time(),
+                    )
+                POLine.create({
+                    "order_id": po.id,
+                    "product_id": req.material_id.id,
+                    "product_qty": order_qty,
+                    "price_unit": seller.price or req.material_id.standard_price,
+                    "date_planned": date_planned,
+                })
+                req.write({
+                    "purchase_order_id": po.id,
+                    "ordered_qty": order_qty,
+                })
+            created |= po
+
+        msg = f"원재료 부족분 발주서 {len(created)}건 생성: {', '.join(created.mapped('name'))}"
+        if no_vendor:
+            msg += (
+                f"\n⚠ 공급업체 미등록으로 발주 제외: "
+                f"{', '.join(no_vendor.mapped('display_name'))}"
+            )
+        self.message_post(body=msg)
+
+        return self.action_view_material_pos()
+
+    def action_view_material_pos(self):
+        """생성된 원재료 발주서 보기"""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"원재료 발주서 - {self.name}",
+            "res_model": "purchase.order",
+            "view_mode": "list,form",
+            "domain": [("injection_planning_run_id", "=", self.id)],
         }
 
     def action_view_daily_summary(self):

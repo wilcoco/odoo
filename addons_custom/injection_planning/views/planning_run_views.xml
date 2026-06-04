@@ -62,6 +62,10 @@
                             type="object" class="btn-primary"
                             invisible="state != 'draft'"
                             confirm="계획을 계산하시겠습니까?"/>
+                    <button name="action_create_material_po" string="원재료 부족분 발주"
+                            type="object" class="btn-warning"
+                            invisible="state not in ('review', 'confirmed') or material_shortage_count == 0"
+                            confirm="부족한 원재료를 공급업체별로 발주하시겠습니까?"/>
                     <button name="action_confirm_generate_mo" string="확정 (MO 생성)"
                             type="object" class="btn-success"
                             invisible="state != 'review'"/>
@@ -102,6 +106,23 @@
                                     <field name="material_shortage_count"/>
                                 </span>
                                 <span class="o_stat_text">원재료 부족</span>
+                            </div>
+                        </button>
+                        <button name="action_view_material_daily" type="object"
+                                class="oe_stat_button" icon="fa-line-chart"
+                                invisible="state == 'draft'">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">원재료 추이</span>
+                            </div>
+                        </button>
+                        <button name="action_view_material_pos" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="material_po_count == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="material_po_count"/>
+                                </span>
+                                <span class="o_stat_text">원재료 발주</span>
                             </div>
                         </button>
                     </div>
@@ -160,6 +181,20 @@
                                     <field name="coverage_rate"/>
                                     <field name="uom_id" optional="show"/>
                                     <field name="first_need_date"/>
+                                    <field name="ordered_qty" optional="show"/>
+                                    <field name="purchase_order_id" optional="show"/>
+                                    <field name="is_short" widget="boolean"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="원재료 일별 추이" name="material_daily">
+                            <field name="material_daily_ids" readonly="1">
+                                <list decoration-danger="is_short == True">
+                                    <field name="plan_date"/>
+                                    <field name="material_id"/>
+                                    <field name="required_qty" sum="총 소요"/>
+                                    <field name="stock_start"/>
+                                    <field name="stock_end"/>
                                     <field name="is_short" widget="boolean"/>
                                 </list>
                             </field>

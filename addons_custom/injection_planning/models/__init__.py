@@ -5,6 +5,7 @@ from . import machine_availability
 from . import planning_line
 from . import planning_run
 from . import material_requirement
+from . import purchase_order
 from . import planning_daily_summary
 from . import planning_daily_chart
 from . import product_planning

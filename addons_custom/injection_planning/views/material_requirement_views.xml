@@ -70,4 +70,78 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_material_requirement_search"/>
     </record>
+
+    <!-- ============================================================
+         원재료 일별 소요/재고 추이 (injection.planning.material.daily)
+         ============================================================ -->
+
+    <!-- 검색 -->
+    <record id="view_material_daily_search" model="ir.ui.view">
+        <field name="name">injection.planning.material.daily.search</field>
+        <field name="model">injection.planning.material.daily</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="material_id" string="원재료"/>
+                <field name="planning_run_id"/>
+                <separator/>
+                <filter name="short_only" string="결품일만"
+                        domain="[('is_short', '=', True)]"/>
+                <searchpanel view_types="graph,list,pivot">
+                    <field name="material_id" string="원재료"
+                           select="one" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- 그래프: X축=생산일, 종료재고/소요량 추이 -->
+    <record id="view_material_daily_graph" model="ir.ui.view">
+        <field name="name">injection.planning.material.daily.graph</field>
+        <field name="model">injection.planning.material.daily</field>
+        <field name="arch" type="xml">
+            <graph type="line" stacked="0">
+                <field name="plan_date" interval="day"/>
+                <field name="stock_end" type="measure"/>
+                <field name="required_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- 피벗 -->
+    <record id="view_material_daily_pivot" model="ir.ui.view">
+        <field name="name">injection.planning.material.daily.pivot</field>
+        <field name="model">injection.planning.material.daily</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="material_id" type="row"/>
+                <field name="plan_date" interval="day" type="col"/>
+                <field name="required_qty" type="measure"/>
+                <field name="stock_end" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- 리스트 -->
+    <record id="view_material_daily_list" model="ir.ui.view">
+        <field name="name">injection.planning.material.daily.list</field>
+        <field name="model">injection.planning.material.daily</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_short == True">
+                <field name="plan_date"/>
+                <field name="material_id"/>
+                <field name="required_qty" sum="총 소요"/>
+                <field name="stock_start"/>
+                <field name="stock_end"/>
+                <field name="is_short" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 액션 -->
+    <record id="action_material_daily" model="ir.actions.act_window">
+        <field name="name">원재료 일별 추이</field>
+        <field name="res_model">injection.planning.material.daily</field>
+        <field name="view_mode">graph,list,pivot</field>
+        <field name="search_view_id" ref="view_material_daily_search"/>
+    </record>
 </odoo>

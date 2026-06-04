@@ -37,6 +37,12 @@
               action="action_material_requirement"
               sequence="18"/>
 
+    <menuitem id="menu_material_daily"
+              name="원재료 일별 추이"
+              parent="menu_injection_planning_root"
+              action="action_material_daily"
+              sequence="19"/>
+
     <!-- 마스터 -->
     <menuitem id="menu_planning_master"
               name="마스터 데이터"

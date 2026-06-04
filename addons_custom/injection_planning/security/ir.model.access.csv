@@ -23,3 +23,5 @@ access_chart_user,injection.planning.daily.chart.user,model_injection_planning_d
 access_chart_manager,injection.planning.daily.chart.manager,model_injection_planning_daily_chart,group_planning_manager,1,1,1,1
 access_material_req_user,injection.planning.material.requirement.user,model_injection_planning_material_requirement,group_planning_user,1,0,0,0
 access_material_req_manager,injection.planning.material.requirement.manager,model_injection_planning_material_requirement,group_planning_manager,1,1,1,1
+access_material_daily_user,injection.planning.material.daily.user,model_injection_planning_material_daily,group_planning_user,1,0,0,0
+access_material_daily_manager,injection.planning.material.daily.manager,model_injection_planning_material_daily,group_planning_manager,1,1,1,1
