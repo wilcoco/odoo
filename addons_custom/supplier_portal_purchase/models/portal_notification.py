@@ -28,6 +28,8 @@ class SupplierPortalNotification(models.Model):
             ("delivery_done", "입고 완료"),
             ("supply_chain_notify", "공급망 알림"),
             ("supply_chain_issue", "공급망 이슈"),
+            ("supplier_order_new", "협력사 발주"),
+            ("supplier_order_shipped", "협력사 출하"),
         ],
         string="알림 유형",
         required=True,
