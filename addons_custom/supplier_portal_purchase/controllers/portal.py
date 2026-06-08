@@ -6,6 +6,22 @@ from odoo.http import request
 from odoo.exceptions import AccessDenied, ValidationError
 
 
+def _to_int(value, default=0):
+    """폼 입력을 안전하게 정수로 변환 (빈 값/오류 시 default)."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_float(value, default=0.0):
+    """폼 입력을 안전하게 실수로 변환 (빈 값/오류 시 default)."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 class SupplierPortalController(http.Controller):
     """협력사 포탈 컨트롤러"""
 
@@ -216,7 +232,7 @@ class SupplierPortalController(http.Controller):
                 confirmed_date = None
             else:
                 # 조건부 승인: 폼에서 입력받은 값
-                confirmed_qty = float(post.get(f"qty_{line.id}", line.product_qty))
+                confirmed_qty = _to_float(post.get(f"qty_{line.id}"), line.product_qty)
                 date_str = post.get(f"date_{line.id}")
                 if date_str:
                     confirmed_date = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -612,9 +628,9 @@ class SupplierPortalController(http.Controller):
 
         Order = request.env["supplier.order"].sudo()
 
-        seller_id = int(post.get("seller_id", 0))
-        product_id = int(post.get("product_id", 0))
-        quantity = float(post.get("quantity", 0))
+        seller_id = _to_int(post.get("seller_id"))
+        product_id = _to_int(post.get("product_id"))
+        quantity = _to_float(post.get("quantity"))
         date_required = post.get("date_required")
 
         if not all([seller_id, product_id, quantity, date_required]):
@@ -860,8 +876,8 @@ class SupplierPortalController(http.Controller):
 
         Inventory = request.env["supplier.inventory"].sudo()
 
-        product_id = int(post.get("product_id", 0))
-        quantity = float(post.get("quantity", 0))
+        product_id = _to_int(post.get("product_id"))
+        quantity = _to_float(post.get("quantity"))
 
         if product_id:
             inv = Inventory.search([
