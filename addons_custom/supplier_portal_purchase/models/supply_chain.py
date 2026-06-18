@@ -404,7 +404,6 @@ class SupplyChainOrderStatus(models.Model):
         ],
         string="상태",
         default="pending",
-        tracking=True,
     )
 
     issue_note = fields.Text(string="이슈 내용")

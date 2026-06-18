@@ -39,7 +39,7 @@ class IatfAudit(models.Model):
 
     # ── Findings ──
     finding_ids = fields.One2many("iatf.audit.finding", "audit_id", string="지적사항")
-    finding_count = fields.Integer(compute="_compute_finding_count")
+    finding_count = fields.Integer(compute="_compute_finding_count", store=True)
     nc_major_count = fields.Integer(string="중대 부적합", compute="_compute_finding_count", store=True)
     nc_minor_count = fields.Integer(string="경미 부적합", compute="_compute_finding_count", store=True)
     observation_count = fields.Integer(string="관찰사항", compute="_compute_finding_count", store=True)

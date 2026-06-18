@@ -45,8 +45,8 @@ class IatfPpapSubmission(models.Model):
 
     # ── 18 Elements ──
     element_ids = fields.One2many("iatf.ppap.element", "submission_id", string="PPAP 요소")
-    element_complete_count = fields.Integer(compute="_compute_element_stats")
-    element_total_count = fields.Integer(compute="_compute_element_stats")
+    element_complete_count = fields.Integer(compute="_compute_element_stats", store=True)
+    element_total_count = fields.Integer(compute="_compute_element_stats", store=True)
     progress = fields.Float(compute="_compute_element_stats", store=True)
 
     # ── Customer Decision ──

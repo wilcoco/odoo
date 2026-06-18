@@ -200,7 +200,6 @@ class IatfApprovalLine(models.Model):
             ("rejected", "Rejected"),
         ],
         default="new",
-        tracking=True,
     )
     action_date = fields.Datetime(string="Action Date")
     note = fields.Char(string="Note")
