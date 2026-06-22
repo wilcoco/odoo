@@ -88,6 +88,19 @@
                             <field name="reject_number"/>
                         </group>
                     </group>
+                    <group string="판정">
+                        <group string="항목별 판정">
+                            <field name="visual_result"/>
+                            <field name="dimension_result"/>
+                            <field name="material_result"/>
+                            <field name="defect_rate"/>
+                        </group>
+                        <group string="종합 판정">
+                            <field name="result"/>
+                            <field name="disposition"/>
+                            <field name="nonconformity_id"/>
+                        </group>
+                    </group>
                     <notebook>
                         <page string="검사 항목">
                             <field name="line_ids">
@@ -102,21 +115,6 @@
                                     <field name="notes"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="판정">
-                            <group>
-                                <group string="항목별 판정">
-                                    <field name="visual_result"/>
-                                    <field name="dimension_result"/>
-                                    <field name="material_result"/>
-                                    <field name="defect_rate"/>
-                                </group>
-                                <group string="종합 판정">
-                                    <field name="result"/>
-                                    <field name="disposition"/>
-                                    <field name="nonconformity_id"/>
-                                </group>
-                            </group>
                         </page>
                         <page string="결재선">
                             <field name="approval_line_ids">
