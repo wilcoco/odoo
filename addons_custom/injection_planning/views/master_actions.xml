@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 통합 '마스터 데이터' 메뉴에서 끌어오는, 표준 모델용 사출 전용 액션들 -->
+    <!-- (모델/로직 변경 없음 — 표준 product/bom/workcenter 를 사출 컨텍스트로 노출) -->
+
+    <!-- 사출기(작업장): x_is_injection=True 만 -->
+    <record id="action_injection_workcenter" model="ir.actions.act_window">
+        <field name="name">사출기 (작업장)</field>
+        <field name="res_model">mrp.workcenter</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('x_is_injection', '=', True)]</field>
+        <field name="context">{'default_x_is_injection': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">사출기(작업장)를 등록하세요</p>
+            <p>사출 작업장으로 표시된(mrp.workcenter.x_is_injection) 작업장만 표시됩니다.
+               사출기-금형 조합에 등록하면 자동으로 사출 작업장으로 표시됩니다.</p>
+        </field>
+    </record>
+
+    <!-- 사출 부품/제품: 금형에 연결된 제품 (사출로 생산되는 부품) -->
+    <record id="action_injection_product" model="ir.actions.act_window">
+        <field name="name">사출 제품/부품</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('product_tmpl_id.bom_ids', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">제품을 등록하세요</p>
+            <p>BOM이 등록된 제품(완제품·사출부품)을 표시합니다.
+               현대 수요 품번(ITM)은 제품의 내부참조(default_code)와 매칭됩니다.</p>
+        </field>
+    </record>
+
+    <!-- BOM: 표준 mrp.bom -->
+    <record id="action_injection_bom" model="ir.actions.act_window">
+        <field name="name">BOM (자재명세서)</field>
+        <field name="res_model">mrp.bom</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">BOM을 등록하세요</p>
+            <p>완제품→사출부품(1단계), 사출부품→원재료(2단계) BOM을 등록합니다.</p>
+        </field>
+    </record>
+</odoo>
