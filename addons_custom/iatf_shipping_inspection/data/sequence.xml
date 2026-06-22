@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_shipping_inspection" model="ir.sequence">
+            <field name="name">출하검사</field>
+            <field name="code">iatf.shipping.inspection</field>
+            <field name="prefix">OQC-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>
