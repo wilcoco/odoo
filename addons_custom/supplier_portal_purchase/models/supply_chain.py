@@ -174,10 +174,14 @@ class SupplyChainTier(models.Model):
         store=True,
     )
 
-    @api.depends("sequence")
+    @api.depends("sequence", "route_id.tier_ids.sequence")
     def _compute_name(self):
+        # 경로 내 순번(1,2,3…)으로 'N차 공급' 표시.
+        # sequence 는 10/20 처럼 띄엄띄엄일 수 있어 raw 값을 그대로 쓰면 '10차'가 됨 → 순위로 환산.
         for tier in self:
-            tier.name = f"{tier.sequence}차 공급"
+            siblings = tier.route_id.tier_ids.sorted("sequence")
+            rank = (list(siblings).index(tier) + 1) if tier in siblings else 1
+            tier.name = f"{rank}차 공급"
 
     @api.depends("route_id.tier_ids", "sequence")
     def _compute_delivers_to(self):
@@ -404,7 +408,6 @@ class SupplyChainOrderStatus(models.Model):
         ],
         string="상태",
         default="pending",
-        tracking=True,
     )
 
     issue_note = fields.Text(string="이슈 내용")
