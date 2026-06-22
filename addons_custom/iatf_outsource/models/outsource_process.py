@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfOutsourceProcess(models.Model):
     _name = "iatf.outsource.process"
     _description = "외주공정 등록 (IATF 16949 §8.4)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "name"
 
     name = fields.Char(string="외주공정명", required=True, tracking=True)

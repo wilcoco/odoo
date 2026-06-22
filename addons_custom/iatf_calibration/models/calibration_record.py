@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfCalibrationRecord(models.Model):
     _name = "iatf.calibration.record"
     _description = "Calibration Record"
-    _inherit = ["mail.thread"]
+    _inherit = ["iatf.approval.mixin", "mail.thread"]
     _order = "calibration_date desc"
 
     name = fields.Char(
@@ -25,6 +25,7 @@ class IatfCalibrationRecord(models.Model):
     )
     provider = fields.Char(string="교정 업체")
     certificate_number = fields.Char(string="성적서 번호")
+    standard_used = fields.Char(string="사용 표준기/기준", help="회사양식 standardUsed")
 
     # ── Results ──
     result = fields.Selection(
@@ -37,6 +38,8 @@ class IatfCalibrationRecord(models.Model):
         string="결과", required=True, default="pass", tracking=True,
     )
     measured_values = fields.Text(string="측정값 / 데이터")
+    before_values = fields.Text(string="교정 전 값", help="회사양식 beforeValues")
+    after_values = fields.Text(string="교정 후 값", help="회사양식 afterValues")
     uncertainty = fields.Char(string="측정 불확도")
 
     # ── Environmental conditions ──

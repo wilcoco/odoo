@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfOutsourceOrder(models.Model):
     _name = "iatf.outsource.order"
     _description = "외주 발주/입고 기록"
-    _inherit = ["mail.thread"]
+    _inherit = ["iatf.approval.mixin", "mail.thread"]
     _order = "create_date desc"
 
     name = fields.Char(
