@@ -59,6 +59,18 @@
                     <button name="action_reset_draft" string="Reset" type="object"
                             invisible="state in ('draft',)"
                             groups="iatf_msa.group_msa_manager"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object"
+                            class="btn-primary" invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object"
+                            class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,collecting,analyzed,closed"/>
                 </header>
@@ -69,15 +81,19 @@
                     </div>
                     <group>
                         <group string="Gage Information">
+                            <field name="study_date"/>
                             <field name="study_type"/>
+                            <field name="instrument_id"/>
                             <field name="gage_name"/>
                             <field name="gage_id_number"/>
                             <field name="gage_resolution"/>
                             <field name="responsible_id"/>
                         </group>
                         <group string="Characteristic &amp; Spec">
+                            <field name="product_id"/>
                             <field name="characteristic_name"/>
                             <field name="unit"/>
+                            <field name="specification"/>
                             <field name="usl"/>
                             <field name="lsl"/>
                             <field name="tolerance"/>
@@ -126,6 +142,15 @@
                                        decoration-warning="grr_status == 'marginal'"
                                        decoration-danger="grr_status == 'unacceptable'"/>
                             </group>
+                        </page>
+                        <page string="결재선" name="approval">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="notes"/>
