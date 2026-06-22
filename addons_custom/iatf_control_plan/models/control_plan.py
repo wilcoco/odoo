@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfControlPlan(models.Model):
     _name = "iatf.control.plan"
     _description = "Control Plan (IATF 16949 §8.5.1.1)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
