@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfMold(models.Model):
     _name = "iatf.mold"
     _description = "금형/치공구 대장 (IATF 16949 §8.5.1.6)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "code"
 
     code = fields.Char(
