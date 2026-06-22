@@ -38,6 +38,18 @@
                             class="btn-warning" invisible="result != 'fail'"/>
                     <button name="action_cancel" string="취소" type="object"
                             invisible="state in ('closed', 'cancelled')"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object"
+                            class="btn-primary" invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object"
+                            class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,inspecting,decided,closed"/>
                 </header>
@@ -49,6 +61,7 @@
                         <group>
                             <field name="inspection_date"/>
                             <field name="supplier_id"/>
+                            <field name="supplier_cert_no"/>
                             <field name="product_id"/>
                             <field name="part_number"/>
                             <field name="lot_id"/>
@@ -92,10 +105,27 @@
                         </page>
                         <page string="판정">
                             <group>
-                                <field name="result"/>
-                                <field name="disposition"/>
-                                <field name="nonconformity_id"/>
+                                <group string="항목별 판정">
+                                    <field name="visual_result"/>
+                                    <field name="dimension_result"/>
+                                    <field name="material_result"/>
+                                    <field name="defect_rate"/>
+                                </group>
+                                <group string="종합 판정">
+                                    <field name="result"/>
+                                    <field name="disposition"/>
+                                    <field name="nonconformity_id"/>
+                                </group>
                             </group>
+                        </page>
+                        <page string="결재선">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="기타">
                             <group>
