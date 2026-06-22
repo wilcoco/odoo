@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_jig_user,iatf.jig.user,model_iatf_jig,group_jig_user,1,1,1,0
+access_jig_manager,iatf.jig.manager,model_iatf_jig,group_jig_manager,1,1,1,1
+access_jig_record_user,iatf.jig.record.user,model_iatf_jig_record,group_jig_user,1,1,1,0
+access_jig_record_manager,iatf.jig.record.manager,model_iatf_jig_record,group_jig_manager,1,1,1,1
+access_process_user,iatf.process.user,model_iatf_process,group_jig_user,1,1,1,0
+access_process_manager,iatf.process.manager,model_iatf_process,group_jig_manager,1,1,1,1
