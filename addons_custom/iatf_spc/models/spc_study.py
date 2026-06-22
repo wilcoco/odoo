@@ -6,7 +6,7 @@ import math
 class IatfSpcStudy(models.Model):
     _name = "iatf.spc.study"
     _description = "SPC Study (IATF 16949 §9.1.1.1)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -14,6 +14,7 @@ class IatfSpcStudy(models.Model):
         default=lambda self: _("New"),
     )
     title = fields.Char(string="제목", required=True, tracking=True)
+    analysis_date = fields.Date(string="분석일", default=fields.Date.today, tracking=True)
     chart_type = fields.Selection(
         [
             ("xbar_r", "X-bar R Chart"),
@@ -32,9 +33,11 @@ class IatfSpcStudy(models.Model):
     part_number = fields.Char(string="부품 번호")
     characteristic_name = fields.Char(string="특성", required=True)
     unit = fields.Char(string="측정 단위")
+    process_name = fields.Char(string="공정", help="회사양식 process")
     workcenter_id = fields.Many2one("mrp.workcenter", string="작업장")
     machine_name = fields.Char(string="설비")
     gage_name = fields.Char(string="게이지 / 측정기")
+    sample_size = fields.Integer(string="표본 크기 (총)", help="회사양식 sampleSize")
 
     # ── Specification ──
     usl = fields.Float(string="USL (상한 규격)")
