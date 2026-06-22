@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfPpapSubmission(models.Model):
     _name = "iatf.ppap.submission"
     _description = "PPAP Submission (IATF 16949 §8.3.4.4)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -45,8 +45,8 @@ class IatfPpapSubmission(models.Model):
 
     # ── 18 Elements ──
     element_ids = fields.One2many("iatf.ppap.element", "submission_id", string="PPAP 요소")
-    element_complete_count = fields.Integer(compute="_compute_element_stats")
-    element_total_count = fields.Integer(compute="_compute_element_stats")
+    element_complete_count = fields.Integer(compute="_compute_element_stats", store=True)
+    element_total_count = fields.Integer(compute="_compute_element_stats", store=True)
     progress = fields.Float(compute="_compute_element_stats", store=True)
 
     # ── Customer Decision ──

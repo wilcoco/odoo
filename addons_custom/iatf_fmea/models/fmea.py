@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfFmea(models.Model):
     _name = "iatf.fmea"
     _description = "FMEA Document (IATF 16949 §8.3.5)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfQualityObjective(models.Model):
     _name = "iatf.quality.objective"
     _description = "품질 목표 (IATF 16949 §6.2)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "year desc, sequence"
 
     name = fields.Char(

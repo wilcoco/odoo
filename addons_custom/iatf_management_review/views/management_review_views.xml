@@ -36,6 +36,17 @@
                     <button name="action_start" string="Start Meeting" type="object" class="oe_highlight" invisible="state != 'planned'"/>
                     <button name="action_issue_minutes" string="Issue Minutes" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
                     <button name="action_close" string="Close" type="object" class="oe_highlight" invisible="state != 'minutes_issued'"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar" statusbar_visible="planned,in_progress,minutes_issued,closed"/>
                 </header>
                 <sheet>
@@ -90,6 +101,15 @@
                         <page string="Documents" name="docs">
                             <field name="document_ids" widget="many2many_tags"/>
                             <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="결재선" name="approval">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

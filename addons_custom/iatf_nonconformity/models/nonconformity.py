@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfNonconformity(models.Model):
     _name = "iatf.nonconformity"
     _description = "Nonconformity Report (IATF 16949 §10.2)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     # ── Identification ──
