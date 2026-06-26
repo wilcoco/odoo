@@ -147,6 +147,10 @@ class IatfQualityObjective(models.Model):
                 val = self._calc_otd(start, end)
             elif "cpk" in kpi:
                 val = self._calc_avg_cpk()
+            elif "합격률" in kpi or "pass" in kpi.lower():
+                val = self._calc_inspection_pass_rate(start, end)
+            elif "부적합" in kpi or "nc" in kpi.lower():
+                val = self._calc_nc_count(start, end)
             elif "고객불만" in kpi or "complaint" in kpi.lower():
                 val = self._calc_complaints(start, end)
             elif "copq" in kpi or "불량비용" in kpi:
@@ -161,17 +165,19 @@ class IatfQualityObjective(models.Model):
         })
         self.message_post(body=_("KPI 자동 계산 완료"))
 
+    def _model(self, name):
+        """모델 미설치 시 None 반환. (빈 recordset 은 falsy 라 'if env.get()' 가 항상 거짓이
+        되는 버그 방지 — 존재여부는 반드시 'name in self.env' 로 판정)"""
+        return self.env[name] if name in self.env else None
+
     def _calc_ppm(self, start, end):
         """불량 PPM 계산"""
-        IQC = self.env.get("iatf.incoming.inspection")
-        PQC = self.env.get("iatf.process.inspection")
         total_qty = rejected_qty = 0.0
-        if IQC:
-            recs = IQC.search([("inspection_date", ">=", start), ("inspection_date", "<=", end), ("state", "=", "decided")])
-            total_qty += sum(recs.mapped("quantity_inspected"))
-            rejected_qty += sum(recs.mapped("quantity_rejected"))
-        if PQC:
-            recs = PQC.search([("inspection_date", ">=", start), ("inspection_date", "<=", end), ("state", "=", "decided")])
+        for name in ("iatf.incoming.inspection", "iatf.process.inspection"):
+            M = self._model(name)
+            if M is None:
+                continue
+            recs = M.search([("inspection_date", ">=", start), ("inspection_date", "<=", end), ("state", "=", "decided")])
             total_qty += sum(recs.mapped("quantity_inspected"))
             rejected_qty += sum(recs.mapped("quantity_rejected"))
         return (rejected_qty / total_qty * 1000000) if total_qty else 0.0
@@ -191,26 +197,45 @@ class IatfQualityObjective(models.Model):
 
     def _calc_avg_cpk(self):
         """평균 Cpk"""
-        SPC = self.env.get("iatf.spc.study")
-        if not SPC:
+        SPC = self._model("iatf.spc.study")
+        if SPC is None:
             return 0.0
         studies = SPC.search([("state", "=", "analyzed"), ("cpk", ">", 0)])
         return sum(studies.mapped("cpk")) / len(studies) if studies else 0.0
 
     def _calc_complaints(self, start, end):
         """고객불만 건수"""
-        CC = self.env.get("iatf.customer.complaint")
-        if not CC:
+        CC = self._model("iatf.customer.complaint")
+        if CC is None:
             return 0.0
         return CC.search_count([("received_date", ">=", start), ("received_date", "<=", end)])
 
     def _calc_copq(self, start, end):
         """불량 비용 (COPQ)"""
-        NC = self.env.get("iatf.nonconformity")
-        if not NC:
+        NC = self._model("iatf.nonconformity")
+        if NC is None:
             return 0.0
         ncs = NC.search([("detection_date", ">=", start), ("detection_date", "<=", end)])
         return sum(ncs.mapped("cost_total"))
+
+    def _calc_inspection_pass_rate(self, start, end):
+        """검사 합격률 (%) — 수입+공정검사 (pass+conditional)/판정완료 (G5)"""
+        passed = decided = 0
+        for name in ("iatf.incoming.inspection", "iatf.process.inspection"):
+            M = self._model(name)
+            if M is None:
+                continue
+            base = [("inspection_date", ">=", start), ("inspection_date", "<=", end)]
+            passed += M.search_count(base + [("result", "in", ("pass", "conditional"))])
+            decided += M.search_count(base + [("result", "in", ("pass", "conditional", "fail"))])
+        return (passed / decided * 100.0) if decided else 0.0
+
+    def _calc_nc_count(self, start, end):
+        """부적합 건수 (G5)"""
+        NC = self._model("iatf.nonconformity")
+        if NC is None:
+            return 0.0
+        return NC.search_count([("detection_date", ">=", start), ("detection_date", "<=", end)])
 
     @api.model
     def _cron_auto_calculate_all(self):
