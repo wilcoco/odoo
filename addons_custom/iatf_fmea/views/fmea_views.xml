@@ -84,6 +84,7 @@
                         <group string="Classification">
                             <field name="fmea_type"/>
                             <field name="product_id"/>
+                            <field name="bom_id"/>
                             <field name="part_number"/>
                             <field name="process_name"/>
                             <field name="customer_id"/>

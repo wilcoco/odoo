@@ -14,8 +14,14 @@ class IatfPpapSubmission(models.Model):
     )
     title = fields.Char(string="제목", required=True, tracking=True)
     product_id = fields.Many2one("product.product", string="제품", tracking=True)
+    bom_id = fields.Many2one("mrp.bom", string="BOM", help="이 제품의 BOM 구조 (G1 연동)")
     part_number = fields.Char(string="부품 번호")
     customer_id = fields.Many2one("res.partner", string="고객", tracking=True)
+
+    @api.onchange("product_id")
+    def _onchange_product_id_bom(self):
+        if self.product_id and not self.bom_id:
+            self.bom_id = self.env["mrp.bom"]._bom_find(self.product_id).get(self.product_id)
 
     submission_level = fields.Selection(
         [

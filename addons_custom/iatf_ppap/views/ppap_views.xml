@@ -86,6 +86,7 @@
                     <group>
                         <group string="Part / Customer">
                             <field name="product_id"/>
+                            <field name="bom_id"/>
                             <field name="part_number"/>
                             <field name="customer_id"/>
                             <field name="submission_reason"/>

@@ -23,6 +23,13 @@ class IatfControlPlan(models.Model):
     )
 
     product_id = fields.Many2one("product.product", string="제품")
+    bom_id = fields.Many2one("mrp.bom", string="BOM",
+                             help="이 제품의 BOM 구조 (G1 연동) — 다단계 구성품 참조")
+
+    @api.onchange("product_id")
+    def _onchange_product_id_bom(self):
+        if self.product_id and not self.bom_id:
+            self.bom_id = self.env["mrp.bom"]._bom_find(self.product_id).get(self.product_id)
     part_number = fields.Char(string="부품 번호")
     customer_id = fields.Many2one("res.partner", string="고객")
     revision = fields.Char(string="개정", default="01")

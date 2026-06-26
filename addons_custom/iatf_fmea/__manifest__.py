@@ -5,7 +5,7 @@
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "iatf_document_control", "iatf_approval"],
+    "depends": ["base", "mail", "iatf_document_control", "iatf_approval", "mrp"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
