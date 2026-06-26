@@ -39,6 +39,10 @@ class IatfDashboard(models.TransientModel):
     audit_open_findings = fields.Integer(compute="_compute_all")
     audit_planned = fields.Integer(compute="_compute_all")
 
+    # ── Corrective Action (G4) ──
+    ca_open = fields.Integer(compute="_compute_all")
+    ca_overdue = fields.Integer(compute="_compute_all")
+
     # ── Supplier ──
     supplier_grade_d = fields.Integer(compute="_compute_all")
     scar_open = fields.Integer(compute="_compute_all")
@@ -59,10 +63,12 @@ class IatfDashboard(models.TransientModel):
     # ── Incoming Inspection ──
     iqc_open = fields.Integer(compute="_compute_all")
     iqc_fail = fields.Integer(compute="_compute_all")
+    iqc_pass_rate = fields.Float(compute="_compute_all", string="IQC 합격률 (%)", digits=(5, 1))
 
     # ── Process Inspection ──
     pqc_open = fields.Integer(compute="_compute_all")
     pqc_fail = fields.Integer(compute="_compute_all")
+    pqc_pass_rate = fields.Float(compute="_compute_all", string="공정검사 합격률 (%)", digits=(5, 1))
 
     # ── Quality Objective ──
     qo_active = fields.Integer(compute="_compute_all")
@@ -110,6 +116,12 @@ class IatfDashboard(models.TransientModel):
             return self.env[model].search(domain)
         except KeyError:
             return self.env["base"].browse()
+
+    def _pass_rate(self, model):
+        """합격률(%) = (pass+conditional) / 판정완료 건수 × 100. 모델 없거나 0건이면 0.0."""
+        passed = self._safe_count(model, [("result", "in", ("pass", "conditional"))])
+        decided = self._safe_count(model, [("result", "in", ("pass", "conditional", "fail"))])
+        return round(passed / decided * 100.0, 1) if decided else 0.0
 
     def _compute_all(self):
         today = fields.Date.today()
@@ -169,6 +181,12 @@ class IatfDashboard(models.TransientModel):
             rec.audit_planned = sc("iatf.audit",
                 [("state", "=", "planned")])
 
+            # Corrective Action (G4)
+            rec.ca_open = sc("iatf.corrective.action",
+                [("state", "not in", ("verified", "closed"))])
+            rec.ca_overdue = sc("iatf.corrective.action",
+                [("is_overdue", "=", True)])
+
             # Supplier
             rec.supplier_grade_d = sc("iatf.supplier.evaluation",
                 [("grade", "=", "d"), ("state", "=", "confirmed")])
@@ -198,12 +216,14 @@ class IatfDashboard(models.TransientModel):
                 [("state", "not in", ("closed", "cancelled"))])
             rec.iqc_fail = sc("iatf.incoming.inspection",
                 [("result", "=", "fail")])
+            rec.iqc_pass_rate = self._pass_rate("iatf.incoming.inspection")
 
             # Process Inspection
             rec.pqc_open = sc("iatf.process.inspection",
                 [("state", "not in", ("closed", "cancelled"))])
             rec.pqc_fail = sc("iatf.process.inspection",
                 [("result", "=", "fail")])
+            rec.pqc_pass_rate = self._pass_rate("iatf.process.inspection")
 
             # Quality Objective
             rec.qo_active = sc("iatf.quality.objective",
@@ -275,6 +295,11 @@ class IatfDashboard(models.TransientModel):
         return {"type": "ir.actions.act_window", "res_model": "iatf.customer.complaint",
                 "view_mode": "list,form", "name": _("Open Complaints"),
                 "domain": [("state", "!=", "closed")]}
+
+    def action_open_ca_open(self):
+        return {"type": "ir.actions.act_window", "res_model": "iatf.corrective.action",
+                "view_mode": "list,form", "name": _("진행 중 시정조치"),
+                "domain": [("state", "not in", ("verified", "closed"))]}
 
     def action_open_fmea_high(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.fmea.line",
