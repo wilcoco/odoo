@@ -46,6 +46,8 @@
                             <field name="document_no"/>
                             <field name="revision"/>
                             <field name="effective_date"/>
+                            <field name="workcenter_id"/>
+                            <field name="operation_id"/>
                         </group>
                     </group>
                     <group string="설명">
