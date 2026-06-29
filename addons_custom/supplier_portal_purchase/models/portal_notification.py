@@ -30,6 +30,7 @@ class SupplierPortalNotification(models.Model):
             ("supply_chain_issue", "공급망 이슈"),
             ("supplier_order_new", "협력사 발주"),
             ("supplier_order_shipped", "협력사 출하"),
+            ("delivery_overdue", "납품 지연(납기경과 미입고)"),
         ],
         string="알림 유형",
         required=True,

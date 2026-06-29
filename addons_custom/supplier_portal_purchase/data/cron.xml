@@ -14,4 +14,13 @@
         </record>
 
     </data>
+    <record id="ir_cron_overdue_delivery" model="ir.cron">
+        <field name="name">납품 지연(납기경과 미입고) 감지·경고</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_overdue_deliveries()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>
