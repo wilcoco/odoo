@@ -1,6 +1,6 @@
 {
     "name": "사출 생산계획 자동화",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "summary": "Oracle 수요 연동 + BOM 전개 + 사출기 스케줄링 + MO 자동 생성",
     "category": "Manufacturing",
     "license": "LGPL-3",
@@ -28,6 +28,7 @@
         "views/planning_daily_summary_views.xml",
         "views/material_requirement_views.xml",
         "views/product_planning_views.xml",
+        "views/master_actions.xml",
         "wizards/generate_mo_wizard_views.xml",
         "wizards/import_demand_wizard_views.xml",
         "wizards/generate_demo_wizard_views.xml",
