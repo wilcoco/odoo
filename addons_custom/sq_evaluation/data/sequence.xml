@@ -7,5 +7,11 @@
             <field name="prefix">SQ-%(year)s-</field>
             <field name="padding">4</field>
         </record>
+        <record id="seq_sq_field_record" model="ir.sequence">
+            <field name="name">SQ 현장증빙 기록</field>
+            <field name="code">sq.field.record</field>
+            <field name="prefix">SQF-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>

@@ -15,6 +15,7 @@
         "data/sq_criteria_data.xml",
         "views/sq_evaluation_views.xml",
         "views/sq_criteria_views.xml",
+        "views/sq_field_record_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

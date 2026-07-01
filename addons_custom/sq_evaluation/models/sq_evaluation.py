@@ -133,8 +133,8 @@ class SqEvaluationLine(models.Model):
     additional_finding = fields.Text(string="추가 지적사항")
 
     def _evidence_domain(self):
-        """평가서 기간(period_start/end)으로 증빙 스코프 — 소스에 날짜필드 있고 모델에 존재할 때만."""
-        domain = []
+        """super(기준 스코프: field_record) + 평가서 기간(period)로 증빙 스코프."""
+        domain = super()._evidence_domain()
         ev = self.evaluation_id
         date_field = EVIDENCE_DATE_FIELD.get(self.evidence_source)
         model, _label = self._evidence_target()

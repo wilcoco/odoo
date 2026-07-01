@@ -17,7 +17,7 @@
             <field name="name">설비 가동중단(계획/비계획)후 재가동시 업무처리 절차 수립 및 준수상태</field>
             <field name="description">▣ 설비 가동중단(계획/비계획)후 재가동시 업무처리 절차 수립 및 준수상태 - 설비 가동중단 발생시 설비점검 절차 수립 및 준수상태 ※ 계획 : 가동중단 시간별/사유별 점검절차 수립 및 이행 비계획 : 이상발생 가동중단 발생시 설비 점검 지침, 생산중인 제품에 대한 품질보증 업무절차 수립 및 이행 - 설비중단/이상 발생시(툴교환 포함) 직전 생산품 이상유무 검사 및 설비이상 조치후 초품 이상유무 검사 및 기록관리 (설비중단/이상 발생시 또는 설비이상 조치중 생산부품 불량으로 폐기 및 수량 이력관리) - 비계획 가동중단 발생시 전/후 생산제품에 대한 LOT 구분 관리방안 수립 및 식별관리 실시</field>
             <field name="max_score">20</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_1_3" model="sq.criteria">
             <field name="code">1_3</field>
@@ -35,7 +35,7 @@
             <field name="name">품질관리 취약 시간대 관리기준 수립 및 관리상태 (주말특근 및 비지정 작업자 투입시포함)</field>
             <field name="description">▣ 품질관리 취약 시간대 관리기준 수립 및 관리상태 (주말특근 및 비지정 작업자 투입시포함) - 교대 작업시 일상점검, 자주검사 및 순회검사 관리기준 수립 및 관리상태 - 교대 작업시 공정 Issue 사항 전달 여부 ※ 초/종품 검사는 필수, 중품은 선택사항으로 자율적 기준 수립필요, 중품검사 미진행도 가능, 단, 생산LOT가 장기적일경우 최소 1회/shift검사 진행 필요 ※ 인원 부족으로 야간 검사요원 미 투입 시 야간 생산품 검증 프로세스 수립 (야간 작업 초종 생산품 익일 주간 검사인원 출근시 검사 등)</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_1_5" model="sq.criteria">
             <field name="code">1_5</field>
@@ -44,7 +44,7 @@
             <field name="name">생산품목별 원단위 중량 관리기준 수립 및 점검상태</field>
             <field name="description">▣ 생산품목별 원단위 중량 관리기준 수립 및 점검상태 - 차종별/품목별 1SHOT 생산시 소요 사출 중량 점검기준 기준 마스터 작성 - 원단위 중량 관리 마스터 기준 월간단위 총 생산실적 대비 신재 투입량 수율관리 실적점검(1회/월 점검) - 월간 총 생산실적 및 스크랩 발생실적 대비 매각 내역 비교검증(1회/월 이상) ※ 점검자료 : 원단위 중량관리 마스터, 생산일보, 스크랩 매각내역서, 스크랩 배합일지 등</field>
             <field name="max_score">30</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_1_6" model="sq.criteria">
             <field name="code">1_6</field>
@@ -53,7 +53,7 @@
             <field name="name">원재료 수분관리 설정근거 수립 및 준수상태</field>
             <field name="description">▣ 원재료 수분관리 설정근거 수립 및 준수상태 - 원소재별 수분함유량 관리기준 수립 (기준설정 근거자료 확보) ※ 비함습성 원재료 또는 수분함유량 관리 불필요 소재는 근거 확보 시(원재료내 수분 품질영향성 없음) 관리 불필요 ⇒ 미건조 사출 T/O품 품질검증(외관/중량/치수/물성 등) 자료 확보 필요 - 소재별 건조온도, 시간 관리기준 수립 (기준 설정 근거자료 확보) - 사출시 품목별 건조온도/시간 준수여부 증빙자료 관리 (건조호퍼 가동시간 등 일보내 기록관리)</field>
             <field name="max_score">30</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_1_7" model="sq.criteria">
             <field name="code">1_7</field>
@@ -80,7 +80,7 @@
             <field name="name">사출 성형시 원소재 수분함유량 검증 프로세스 수립 및 준수상태</field>
             <field name="description">▣ 사출 성형시 원소재 수분함유량 검증 프로세스 수립 및 준수상태 - 수분함유량 검증 온도 및 시간 설정 적합성 ※ 권장사항 1) 테스트 온도 : 원소재 건조호퍼 온도와 동일하게 설정 2) 검증시간 : 수분함유량 증가가 안되는 시간까지 설정[수동모드], 수분함유량 증가율 0.01%미만일때 멈춤[자동모드] - 양산공정 품목별 원소재 수분함유량 검증 프로세스 수립[설비 재가동시 검증 필요, 연속 가동일경우 매일측정 불필요] ⇒ 수분함유량 검증 업무절차 수립 및 이행상태(건조설비 중단 후 재가동시, 원소재 사양 변경시 등) ※ 수분함유량 검증은 생산 개시전 사전 검증토록 기준수립 및 증빙 관리 필요 - 생산 기준별(연속가동 생산) 시업시 수분측정 점검이력 신뢰도 확인 (측정기 출력 데이터 등 증빙 유효성 확인)</field>
             <field name="max_score">30</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_1_10" model="sq.criteria">
             <field name="code">1_10</field>
@@ -89,7 +89,7 @@
             <field name="name">사출 성형공정 외 공정관리 운영실태 (분쇄 및 배합공정, 융착공정 없을시 &#x27;해당없음&#x27; 처리)</field>
             <field name="description">▣ 사출 성형공정 외 공정관리 운영실태 (분쇄 및 배합공정, 융착공정 없을시 &#x27;해당없음&#x27; 처리) 1) 분쇄 및 배합 공정 - 재료별/품목별 신재, 스크랩 혼합 관리기준 설정 및 고객사 승인(협의)여부 - 신재, 스크랩 혼합 사용시 원소재 물성 MS-SPEC 만족여부 검증자료 - 생산 LOT별 혼합일지(배합일지) 기록상태 - 비규격 원소재 사용여부 : 외주 협력사로부터 재생재 구입 사용시 SQ 불합격 처리(자체 공정내 재생라인 운영시 제외) 2) 융착 공정 - 융착설비 셋팅기준 설정(&#x27;H&#x27;방향 융착 높이) 및 융착 구간별 외관/이탈력 보증 프로세스 수립 - 기밀 융착목적 전둘레 융착시 리크검사 또는 융착면당 융착돌기 품질보증 프로세스 수립</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_2_1" model="sq.criteria">
             <field name="code">2_1</field>
@@ -296,7 +296,7 @@
             <field name="name">수입자재 보관장 관리기준 수립 및 준수상태</field>
             <field name="description">▣ 수입자재 보관장 관리기준 수립 및 준수상태 - 자재 창고 Lay Out 현황도 작성 및 선입선출 관리(선입선출 다이 등 구조적 시스템, 입/불출 절차 효율성 확보 여부) - 입고품 적재/관리기준 수립 및 준수(입고 완료품 찍힘/발청, 이물질오염, 기타 손상 확인시 감점) - 원소재 보관 관리기준 수립 및 준수상태(포장상태 및 개봉후 식별방법 등) - 미사용 장기보관 자재류 처리기준 수립 및 이행상태 - 설변에 의한 불용자재 발생시 자재 식별 및 혼입 방지 관리 상태 - 항온/항습보관 필요 자재의 경우 보관장 관리기준 수립 및 준수 상태 - 원소재 및 외주품 안전재고 관리기준 수립 및 외주품 결품시 유사사양 대체 투입 금지</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_5_3" model="sq.criteria">
             <field name="code">5_3</field>
@@ -305,7 +305,7 @@
             <field name="name">입고품 식별관리 기준 수립 및 준수여부</field>
             <field name="description">▣ 입고품 식별관리 기준 수립 및 준수여부 - 검사 전,후 식별 및 미검사품 사용 방지 보증 방안 - 소재사양 및 GRADE 식별절차 - 장기/불용/개발품 자재 식별절차(장기/불용/개발용 원재료 별도 구분/식별관리) - 공정 투입후 잔량관리(보관상태/식별표시/유효기간 설정 등) - 여러 사양의 부품을 동시 생산하는 라인의 SUB품 조립 작업시 사양관리 방안마련 ※ Barcode 인터락 또는 부품 보관박스 LABEL 구분후 작업일보 SUB품 사양(품번기입) 활동으로 정사양 여부 시업전 점검</field>
             <field name="max_score">20</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_5_4" model="sq.criteria">
             <field name="code">5_4</field>
@@ -314,7 +314,7 @@
             <field name="name">재공품/완제품 용기 표준화 관리기준 수립 및 이행상태</field>
             <field name="description">▣ 재공품/완제품 용기 표준화 관리기준 수립 및 이행상태 - 품목별/공정별 장입(적재) 기준 수립 및 준수상태/ 과다적재 예방을 위한 장입 한계 기준설정 등 - 외관확인이 어려운 공정처리 전/후 재공품 보관용기 식별절차 수립 및 준수상태 (예: 표면처리, 열처리 전/후, 템퍼링 전/후 용기 식별관리 절차수립, 열처리후 템퍼링 시간관리) - 제품 특성을 고려한 용기 관리기준 설정(청정도 관리 대상품 이물질유입 예방목적 용기 세척, 오염방지 커버 적용 등) - 포장 용기 다단적재 및 현장 적재상태 (종이BOX, 프라스틱BOX, 전용용기 등 적재 관리기준 수립 및 이행상태) - 완제품 보관관리 기준 및 관리상태 : 성적서 기록상태, 완제품 보관관리(별도공간/식별공간, 청결관리, 간지사용 등 제품 외관 및 기능에 품질문제 발생 가능여부)</field>
             <field name="max_score">20</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_6_1" model="sq.criteria">
             <field name="code">6_1</field>
@@ -323,7 +323,7 @@
             <field name="name">안전사고 발생 예방을 위한 업무 프로세스 수립 및 준수실태</field>
             <field name="description">▣ 안전사고 발생 예방을 위한 업무 프로세스 수립 및 준수실태 - 작업자 안전관리 프로세스 수립 및 준수실태(현장확인) : 생산중 핸드폰 미사용을 위한 별도 보관대 설치 및 시건장치, 라인투입전 휴대폰 미반납후 사용시 조치방안 : 안전 보호장구(보안경/헬멧/장갑 등) 착용 기준수립 및 이행상태 점검(일상) - 업종별 안전사고 발생 예방을 위한 설비/레이아웃 반영 ⇒ 예) 프레스 : 작업자 감지센서(안전BAR), 양수 조작버튼, 플라이휠 커버 등 도금 : 마스크 착용, 위험물(약품) 별도 보관장 마련 및 취급기준 수립 용접 : 안전장갑 및 보호 안경 착용, 용접 스페터 비산 방지용 보호막 설치 등 - 작업 현장내 안전표지/수칙 게시 및 작업자 교육 - 작업 현장내 위험요소(위험물)에 대한 사고예방 장비/시설물 설치 및 식별 표준류 반영 1) 표준류 게시된 현위치 기준 소화 방재시설 위치 및 비상대피 동선 표기된 표준류 작성/게시 2) 설비 간섭 등 고려 소화 방재시설 식별표, 비상대비 표시등 2층높이 반영 - 운영중인 설비에 대한 정기 안전관리 프로세스 수립 및 이행상태 - 설비 점검시(계획/비계획) 업무 처리절차 수립 : 2인 1개조 운영, 비정상 가동 예방절차 등</field>
             <field name="max_score">30</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_6_2" model="sq.criteria">
             <field name="code">6_2</field>
@@ -395,7 +395,7 @@
             <field name="name">3정 5행 관리 프로세스 수립 및 준수실태</field>
             <field name="description">▣ 3정 5행 관리 프로세스 수립 및 준수실태 - 정기적인 3정5행 현장개선 프로세스 수립 (점검 체크시트 작성, 점검 주기, 업무 분담, 지적사항 개선 시정조치 완료여부] - 현장점검시 3정 5행 관리실태</field>
             <field name="max_score">20</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_6_10" model="sq.criteria">
             <field name="code">6_10</field>
@@ -413,7 +413,7 @@
             <field name="name">공정 누락 방지를 위한 작업환경 설정 상태</field>
             <field name="description">▣ 공정 누락 방지를 위한 작업환경 설정 상태 - 제품 생산시 공정 누락 방지를 위한 작업환경 구축 상태(공정이동 전표 활용 등) - 제품 생산시 자재 소진에 의한 부품 및 부자재등 누락 방지 방안 운영 상태 → 정기적인 부자재 입고/소진량과 완제품 생산실적 비교검증 활동 실시 등</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
         <record id="sq_crit_6_12" model="sq.criteria">
             <field name="code">6_12</field>
@@ -422,7 +422,7 @@
             <field name="name">『정성품질』 운영 프로세스는 마련되어 있고, 점검 및 포상활동은 실시되는가?</field>
             <field name="description">▣ 『정성품질』 운영 프로세스는 마련되어 있고, 점검 및 포상활동은 실시되는가? ▷『정성품질』 활동 관련 업무분장(키맨) - 『정성품질』 수평전개 교육 담당/ 품질문제 발생시 개선활동 담당/ 고객사 협업 담당 등 ▷ 정성품질 통신문 품질현황판 게시 및 사내 임직원 전파교육 실시 이력 관리 ▷제조현장 『정성품질』관련 예방/개선 프로세스 수립(제조현장 반영내역 확인) - 예방활동 : 휴먼에러 발생 예방을 위한 작업자/공정/설비 등 예방점검 개선 이력 - 개선활동 : 중요 품질문제(작업자 휴먼에러) 발생시 해당 공정 시정조치 활동 이력 → 발생 원인에 대한 세부적인 원인 분류 및 근본적인 시정조치 활동 실시 ▷『정성품질』 유지 및 관리실태 점검 활동 실시이력(현황 및 개선대책 경영진 보고) - 제조현장 표준류 준수, 작업공수 일치성, 공정검사 기준 준수 등 『정성품질』 관리실태 정기적 점검이력 ex) 제조현장 확인시 수작업 조립 어려움, 작업 공수 불명확, 역조립/오조립 가능성, 신규/임시 작업자 표준 준수 등 『정성품질』 개선 필요항목 확인 ▷『정성품질』 정착화 및 붐업 조성을 위한 포상제도 운영관리 - 『정성품질』관련 사전 예방활동 및 개선 우수사례에 대한 포상제도 운영기준 수립 및 실적</field>
             <field name="max_score">20</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">field_record</field>
         </record>
     </data>
 </odoo>

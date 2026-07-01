@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sq_field_record_list" model="ir.ui.view">
+        <field name="name">sq.field.record.list</field>
+        <field name="model">sq.field.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="record_date"/>
+                <field name="criteria_id"/>
+                <field name="category_id" optional="show"/>
+                <field name="title"/>
+                <field name="result" widget="badge"
+                       decoration-success="result == 'conform'"
+                       decoration-warning="result == 'observe'"
+                       decoration-danger="result == 'nonconform'"/>
+                <field name="responsible_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_sq_field_record_form" model="ir.ui.view">
+        <field name="name">sq.field.record.form</field>
+        <field name="model">sq.field.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="criteria_id"/>
+                            <field name="record_date"/>
+                            <field name="result"/>
+                        </group>
+                        <group>
+                            <field name="title"/>
+                            <field name="responsible_id"/>
+                        </group>
+                    </group>
+                    <separator string="내용 / 관찰사항"/>
+                    <field name="description"/>
+                    <field name="attachment_ids" widget="many2many_binary"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_sq_field_record" model="ir.actions.act_window">
+        <field name="name">현장/절차 증빙 기록</field>
+        <field name="res_model">sq.field.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

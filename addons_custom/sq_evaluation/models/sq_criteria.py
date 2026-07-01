@@ -18,10 +18,11 @@ EVIDENCE_MAP = {
     "quality_objective": ("iatf.quality.objective", "품질목표/실적"),
     "training": ("iatf.competence.matrix", "역량/자격인증"),
     "change_management": ("iatf.change.request", "설계변경/4M"),
-    "jig": ("iatf.jig", "지그 대장/점검"),
+    "jig": ("iatf.jig.record", "지그 점검 기록"),
     "document": ("iatf.document", "품질문서/매뉴얼"),
     "environment": ("iatf.environment.check", "작업환경(조도/온습도) 점검"),
     "inspection_criteria": ("iatf.inspection.criteria", "검사기준/한도견본"),
+    "field_record": ("sq.field.record", "현장/절차 증빙 기록"),
 }
 EVIDENCE_SELECTION = [(k, v[1]) for k, v in EVIDENCE_MAP.items()] + [("none", "연동 없음 (현장/수기 증빙)")]
 
@@ -35,6 +36,12 @@ EVIDENCE_DATE_FIELD = {
     "calibration": "calibration_date",
     "nc": "detection_date",
     "control_plan": "revision_date",
+    "training": "last_training_date",
+    "environment": "check_date",
+    "document": "revision_date",
+    "change_management": "request_date",
+    "jig": "record_date",
+    "field_record": "record_date",
 }
 
 
@@ -57,8 +64,14 @@ class SqEvidenceMixin(models.AbstractModel):
             return "stock.lot", "LOT/시리얼 (stock.lot)"
         return None, label
 
+    def _evidence_criteria_id(self):
+        """이 레코드가 가리키는 sq.criteria id. (criteria=자기 자신, line=criteria_id)"""
+        return self.id if self._name == "sq.criteria" else self.criteria_id.id
+
     def _evidence_domain(self):
-        """자사 데이터 전체 (스코프=자가평가). 하위에서 오버라이드 가능."""
+        """자사 데이터 전체 (스코프=자가평가). field_record 는 해당 기준으로 스코프."""
+        if self.evidence_source == "field_record":
+            return [("criteria_id", "=", self._evidence_criteria_id())]
         return []
 
     @api.depends("evidence_source")
@@ -80,6 +93,10 @@ class SqEvidenceMixin(models.AbstractModel):
         model, label = self._evidence_target()
         if not model:
             raise UserError(_("이 항목은 Odoo 연동 증빙이 없습니다 (현장/수기 증빙 대상)."))
+        ctx = {}
+        if model == "sq.field.record":
+            # 드릴다운에서 바로 현장증빙 기록 추가 가능하도록 기준 프리필
+            ctx = {"default_criteria_id": self._evidence_criteria_id()}
         return {
             "type": "ir.actions.act_window",
             "name": _("증빙자료: %s") % (label or model),
@@ -87,7 +104,7 @@ class SqEvidenceMixin(models.AbstractModel):
             "view_mode": "list,form",
             "domain": self._evidence_domain(),
             "target": "current",
-            "context": {"search_default_filter_done": 0},
+            "context": ctx,
         }
 
 

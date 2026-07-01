@@ -16,4 +16,6 @@
               groups="sq_evaluation.group_sq_manager"/>
     <menuitem id="menu_sq_criteria_cfg" name="평가기준 관리" parent="menu_sq_config"
               action="action_sq_criteria" sequence="10"/>
+    <menuitem id="menu_sq_field_record" name="현장/절차 증빙" parent="menu_sq_root"
+              action="action_sq_field_record" sequence="25"/>
 </odoo>

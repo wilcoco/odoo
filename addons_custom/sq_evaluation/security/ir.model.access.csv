@@ -7,3 +7,5 @@ access_sq_evaluation_user,sq.evaluation.user,model_sq_evaluation,group_sq_user,1
 access_sq_evaluation_mgr,sq.evaluation.mgr,model_sq_evaluation,group_sq_manager,1,1,1,1
 access_sq_evaluation_line_user,sq.evaluation.line.user,model_sq_evaluation_line,group_sq_user,1,1,1,1
 access_sq_evaluation_line_mgr,sq.evaluation.line.mgr,model_sq_evaluation_line,group_sq_manager,1,1,1,1
+access_sq_field_record_user,sq.field.record.user,model_sq_field_record,group_sq_user,1,1,1,0
+access_sq_field_record_mgr,sq.field.record.mgr,model_sq_field_record,group_sq_manager,1,1,1,1
