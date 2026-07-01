@@ -97,7 +97,7 @@ class IatfSupplierEvaluation(models.Model):
         IQC = self.env.get("iatf.incoming.inspection")
         quality_score = 100.0
         ppm = 0.0
-        if IQC:
+        if IQC is not None:
             iqcs = IQC.search([
                 ("supplier_id", "=", supplier.id),
                 ("state", "=", "decided"),
@@ -135,7 +135,7 @@ class IatfSupplierEvaluation(models.Model):
         SCAR = self.env.get("iatf.scar")
         responsiveness_score = 100.0
         scar_count = 0
-        if SCAR:
+        if SCAR is not None:
             scars = SCAR.search([
                 ("supplier_id", "=", supplier.id),
                 ("create_date", ">=", period_start),
@@ -151,7 +151,7 @@ class IatfSupplierEvaluation(models.Model):
         # ── NC 건수 ──
         NC = self.env.get("iatf.nonconformity")
         nc_count = 0
-        if NC:
+        if NC is not None:
             nc_count = NC.search_count([
                 ("partner_id", "=", supplier.id),
                 ("detection_date", ">=", period_start),
