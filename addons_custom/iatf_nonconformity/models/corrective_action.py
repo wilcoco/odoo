@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -5,7 +7,7 @@ from odoo.exceptions import UserError
 class IatfCorrectiveAction(models.Model):
     _name = "iatf.corrective.action"
     _description = "Corrective / Preventive Action (IATF 16949 §10.2)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -24,9 +26,13 @@ class IatfCorrectiveAction(models.Model):
         ],
         string="조치 유형", required=True, default="corrective", tracking=True,
     )
-    description = fields.Html(string="조치 내용", required=True)
-    responsible_id = fields.Many2one("res.users", string="담당자", required=True, tracking=True)
-    due_date = fields.Date(string="기한", required=True, tracking=True)
+    description = fields.Html(string="조치 내용")
+    responsible_id = fields.Many2one(
+        "res.users", string="담당자", required=True, tracking=True,
+        default=lambda self: self.env.user)
+    due_date = fields.Date(
+        string="기한", required=True, tracking=True,
+        default=lambda self: fields.Date.today() + timedelta(days=14))
     completion_date = fields.Date(string="완료일")
 
     # ── Verification ──
