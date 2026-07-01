@@ -8,8 +8,8 @@
                 <field name="name"/>
                 <field name="record_date"/>
                 <field name="criteria_id"/>
-                <field name="category_id" optional="show"/>
-                <field name="title"/>
+                <field name="check_cycle"/>
+                <field name="pass_rate"/>
                 <field name="result" widget="badge"
                        decoration-success="result == 'conform'"
                        decoration-warning="result == 'observe'"
@@ -28,15 +28,32 @@
                     <group>
                         <group>
                             <field name="criteria_id"/>
+                            <field name="check_cycle"/>
                             <field name="record_date"/>
-                            <field name="result"/>
                         </group>
                         <group>
-                            <field name="title"/>
+                            <field name="result"/>
+                            <field name="pass_rate"/>
                             <field name="responsible_id"/>
                         </group>
                     </group>
-                    <separator string="내용 / 관찰사항"/>
+                    <separator string="점검 항목 (서식)"/>
+                    <field name="check_line_ids">
+                        <list editable="bottom" default_order="sequence">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="input_type" column_invisible="1"/>
+                            <field name="spec" optional="show"/>
+                            <field name="result"
+                                   decoration-success="result == 'pass'"
+                                   decoration-danger="result == 'fail'"/>
+                            <field name="value_num" string="측정값"/>
+                            <field name="unit" optional="show"/>
+                            <field name="value_text" optional="hide"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                    <separator string="비고"/>
                     <field name="description"/>
                     <field name="attachment_ids" widget="many2many_binary"/>
                 </sheet>
@@ -45,7 +62,7 @@
         </field>
     </record>
     <record id="action_sq_field_record" model="ir.actions.act_window">
-        <field name="name">현장/절차 증빙 기록</field>
+        <field name="name">현장/절차 점검 기록</field>
         <field name="res_model">sq.field.record</field>
         <field name="view_mode">list,form</field>
     </record>

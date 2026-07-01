@@ -26,10 +26,13 @@
                 <field name="name"/>
                 <field name="max_score" string="배점"/>
                 <field name="evidence_source" string="증빙 출처"/>
+                <field name="check_cycle" string="주기"/>
                 <field name="evidence_available" string="연동" widget="boolean_toggle" readonly="1"/>
                 <field name="evidence_count" string="증빙건수"/>
                 <button name="action_view_evidence" type="object" string="증빙 조회"
                         class="btn-primary" invisible="evidence_available == False"/>
+                <button name="action_new_field_record" type="object" string="점검기록"
+                        class="btn-secondary" invisible="evidence_source != 'field_record'"/>
             </list>
         </field>
     </record>
@@ -42,6 +45,8 @@
                 <header>
                     <button name="action_view_evidence" type="object" string="증빙 조회"
                             class="btn-primary" invisible="evidence_available == False"/>
+                    <button name="action_new_field_record" type="object" string="점검기록 작성"
+                            class="btn-secondary" invisible="evidence_source != 'field_record'"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -56,13 +61,27 @@
                         </group>
                         <group>
                             <field name="evidence_source"/>
-                            <field name="evidence_available"/>
+                            <field name="check_cycle"/>
                             <field name="evidence_count"/>
                             <field name="active"/>
                         </group>
                     </group>
-                    <separator string="점검 상세"/>
-                    <field name="description"/>
+                    <notebook>
+                        <page string="점검 상세">
+                            <field name="description"/>
+                        </page>
+                        <page string="점검서식(체크리스트)" invisible="evidence_source != 'field_record'">
+                            <field name="checklist_ids">
+                                <list editable="bottom" default_order="sequence">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="input_type"/>
+                                    <field name="spec"/>
+                                    <field name="unit"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

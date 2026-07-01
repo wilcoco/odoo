@@ -9,3 +9,7 @@ access_sq_evaluation_line_user,sq.evaluation.line.user,model_sq_evaluation_line,
 access_sq_evaluation_line_mgr,sq.evaluation.line.mgr,model_sq_evaluation_line,group_sq_manager,1,1,1,1
 access_sq_field_record_user,sq.field.record.user,model_sq_field_record,group_sq_user,1,1,1,0
 access_sq_field_record_mgr,sq.field.record.mgr,model_sq_field_record,group_sq_manager,1,1,1,1
+access_sq_checklist_tmpl_user,sq.checklist.template.user,model_sq_checklist_template,group_sq_user,1,0,0,0
+access_sq_checklist_tmpl_mgr,sq.checklist.template.mgr,model_sq_checklist_template,group_sq_manager,1,1,1,1
+access_sq_field_record_line_user,sq.field.record.line.user,model_sq_field_record_line,group_sq_user,1,1,1,1
+access_sq_field_record_line_mgr,sq.field.record.line.mgr,model_sq_field_record_line,group_sq_manager,1,1,1,1

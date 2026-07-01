@@ -137,6 +137,16 @@ class SqCategory(models.Model):
         }
 
 
+CHECK_CYCLE_SELECTION = [
+    ("daily", "일"), ("shift", "교대시"), ("weekly", "주"), ("monthly", "월"),
+    ("quarterly", "분기"), ("biannual", "반기"), ("annual", "년"),
+    ("event", "발생시"), ("none", "해당없음"),
+]
+INPUT_TYPE_SELECTION = [
+    ("pass_fail", "적합/부적합"), ("number", "수치"), ("text", "서술"),
+]
+
+
 class SqCriteria(models.Model):
     _name = "sq.criteria"
     _description = "SQ 평가 기준 항목 (템플릿)"
@@ -150,4 +160,37 @@ class SqCriteria(models.Model):
     description = fields.Text(string="점검 상세")
     max_score = fields.Integer(string="배점", default=0)
     evidence_source = fields.Selection(EVIDENCE_SELECTION, string="증빙 출처", default="none", required=True)
+    check_cycle = fields.Selection(CHECK_CYCLE_SELECTION, string="점검 주기", default="none",
+                                   help="현장/절차 증빙(field_record) 항목의 점검 주기")
+    checklist_ids = fields.One2many("sq.checklist.template", "criteria_id", string="점검서식(체크리스트)")
+    checklist_count = fields.Integer(compute="_compute_checklist_count")
     active = fields.Boolean(default=True)
+
+    def _compute_checklist_count(self):
+        for rec in self:
+            rec.checklist_count = len(rec.checklist_ids)
+
+    def action_new_field_record(self):
+        """이 항목의 주기 점검기록 신규 작성 (체크리스트 자동 로드)."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("점검기록 작성: %s") % self.name,
+            "res_model": "sq.field.record",
+            "view_mode": "form",
+            "target": "current",
+            "context": {"default_criteria_id": self.id},
+        }
+
+
+class SqChecklistTemplate(models.Model):
+    _name = "sq.checklist.template"
+    _description = "SQ 점검서식 항목 (체크리스트 템플릿)"
+    _order = "criteria_id, sequence, id"
+
+    criteria_id = fields.Many2one("sq.criteria", string="SQ 평가항목", required=True, ondelete="cascade")
+    sequence = fields.Integer(default=10)
+    name = fields.Char(string="점검 항목", required=True)
+    input_type = fields.Selection(INPUT_TYPE_SELECTION, string="입력 유형", default="pass_fail", required=True)
+    spec = fields.Char(string="기준 / 규격")
+    unit = fields.Char(string="단위")

@@ -13,6 +13,7 @@
         "data/sequence.xml",
         "data/sq_category_data.xml",
         "data/sq_criteria_data.xml",
+        "data/sq_checklist_data.xml",
         "views/sq_evaluation_views.xml",
         "views/sq_criteria_views.xml",
         "views/sq_field_record_views.xml",
