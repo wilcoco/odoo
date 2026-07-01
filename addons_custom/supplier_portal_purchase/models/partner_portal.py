@@ -56,8 +56,27 @@ class ResPartner(models.Model):
                 partner.supplier_po_count = 0
                 partner.supplier_pending_count = 0
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        partners = super().create(vals_list)
+        partners._ensure_portal_token()
+        return partners
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "is_supplier_portal" in vals:
+            self._ensure_portal_token()
+        return res
+
+    def _ensure_portal_token(self):
+        """협력사 포털 사용 파트너는 항상 강한 랜덤 토큰을 갖도록 보장.
+        (토큰 미생성 상태로 포털이 열리는 프로비저닝 갭 방지)"""
+        for partner in self:
+            if partner.is_supplier_portal and not partner.supplier_portal_token:
+                partner.supplier_portal_token = secrets.token_urlsafe(32)
+
     def action_generate_portal_token(self):
-        """포탈 접근 토큰 생성"""
+        """포탈 접근 토큰 (재)생성"""
         for partner in self:
             partner.supplier_portal_token = secrets.token_urlsafe(32)
         return True
