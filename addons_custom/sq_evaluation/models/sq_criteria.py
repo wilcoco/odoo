@@ -1,0 +1,122 @@
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+
+# SQ 평가항목 evidence_source → (Odoo 모델, 라벨). 우리(캠스) 자사 데이터 조회용.
+# IATF 모듈이 없으면 model in self.env 로 안전하게 스킵(하드의존 회피).
+EVIDENCE_MAP = {
+    "iqc": ("iatf.incoming.inspection", "수입검사"),
+    "process_inspection": ("iatf.process.inspection", "공정/최종검사"),
+    "msa": ("iatf.msa.study", "MSA (Gage R&R)"),
+    "spc": ("iatf.spc.study", "SPC 공정능력"),
+    "reliability": ("iatf.reliability.test", "신뢰성 시험"),
+    "calibration": ("iatf.calibration.record", "계측기 교정"),
+    "equipment": ("iatf.equipment", "설비 대장"),
+    "mold": ("iatf.mold", "금형 대장"),
+    "traceability": ("iatf.traceability.record", "LOT 추적성"),
+    "control_plan": ("iatf.control.plan", "관리계획서/표준류"),
+    "nc": ("iatf.nonconformity", "부적합/격리"),
+    "quality_objective": ("iatf.quality.objective", "품질목표/실적"),
+    "training": ("iatf.competence.matrix", "역량/자격인증"),
+    "change_management": ("iatf.change.request", "설계변경/4M"),
+    "jig": ("iatf.jig", "지그 대장/점검"),
+    "document": ("iatf.document", "품질문서/매뉴얼"),
+}
+EVIDENCE_SELECTION = [(k, v[1]) for k, v in EVIDENCE_MAP.items()] + [("none", "연동 없음 (현장/수기 증빙)")]
+
+
+class SqEvidenceMixin(models.AbstractModel):
+    """평가항목/라인이 공유하는 증빙 조회 로직. evidence_source 필드는 상속 모델이 보유."""
+    _name = "sq.evidence.mixin"
+    _description = "SQ Evidence Resolver Mixin"
+
+    evidence_count = fields.Integer(string="증빙 건수", compute="_compute_evidence_count")
+    evidence_available = fields.Boolean(string="Odoo 연동 가능", compute="_compute_evidence_count")
+
+    def _evidence_target(self):
+        """(model_name, label) 반환. 미설치/미연동이면 (None, label)."""
+        src = self.evidence_source
+        model, label = EVIDENCE_MAP.get(src, (None, None))
+        if model and model in self.env:
+            return model, label
+        # traceability 폴백: 전용 추적모델 없으면 표준 stock.lot
+        if src == "traceability" and "stock.lot" in self.env:
+            return "stock.lot", "LOT/시리얼 (stock.lot)"
+        return None, label
+
+    def _evidence_domain(self):
+        """자사 데이터 전체 (스코프=자가평가). 하위에서 오버라이드 가능."""
+        return []
+
+    @api.depends("evidence_source")
+    def _compute_evidence_count(self):
+        for rec in self:
+            model, _label = rec._evidence_target()
+            if model:
+                rec.evidence_available = True
+                try:
+                    rec.evidence_count = rec.env[model].search_count(rec._evidence_domain())
+                except Exception:
+                    rec.evidence_count = 0
+            else:
+                rec.evidence_available = False
+                rec.evidence_count = 0
+
+    def action_view_evidence(self):
+        self.ensure_one()
+        model, label = self._evidence_target()
+        if not model:
+            raise UserError(_("이 항목은 Odoo 연동 증빙이 없습니다 (현장/수기 증빙 대상)."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("증빙자료: %s") % (label or model),
+            "res_model": model,
+            "view_mode": "list,form",
+            "domain": self._evidence_domain(),
+            "target": "current",
+            "context": {"search_default_filter_done": 0},
+        }
+
+
+class SqCategory(models.Model):
+    _name = "sq.category"
+    _description = "SQ 평가 대분류"
+    _order = "sequence, id"
+
+    name = fields.Char(string="대분류", required=True)
+    code = fields.Char(string="코드", required=True)
+    sequence = fields.Integer(default=10)
+    criteria_ids = fields.One2many("sq.criteria", "category_id", string="세부항목")
+    criteria_count = fields.Integer(compute="_compute_counts")
+    max_score_total = fields.Integer(string="배점 합계", compute="_compute_counts")
+
+    def _compute_counts(self):
+        for rec in self:
+            rec.criteria_count = len(rec.criteria_ids)
+            rec.max_score_total = sum(rec.criteria_ids.mapped("max_score"))
+
+    def action_open_criteria(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("증빙 대시보드: %s") % self.name,
+            "res_model": "sq.criteria",
+            "view_mode": "list,form",
+            "domain": [("category_id", "=", self.id)],
+            "context": {"default_category_id": self.id, "search_default_category_id": self.id},
+        }
+
+
+class SqCriteria(models.Model):
+    _name = "sq.criteria"
+    _description = "SQ 평가 기준 항목 (템플릿)"
+    _inherit = ["sq.evidence.mixin"]
+    _order = "sequence, id"
+
+    code = fields.Char(string="No", required=True)
+    category_id = fields.Many2one("sq.category", string="대분류", required=True, ondelete="cascade")
+    sequence = fields.Integer(default=10)
+    name = fields.Char(string="세부항목", required=True)
+    description = fields.Text(string="점검 상세")
+    max_score = fields.Integer(string="배점", default=0)
+    evidence_source = fields.Selection(EVIDENCE_SELECTION, string="증빙 출처", default="none", required=True)
+    active = fields.Boolean(default=True)

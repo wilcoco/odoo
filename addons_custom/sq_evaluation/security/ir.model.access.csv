@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sq_category_user,sq.category.user,model_sq_category,group_sq_user,1,0,0,0
+access_sq_category_mgr,sq.category.mgr,model_sq_category,group_sq_manager,1,1,1,1
+access_sq_criteria_user,sq.criteria.user,model_sq_criteria,group_sq_user,1,0,0,0
+access_sq_criteria_mgr,sq.criteria.mgr,model_sq_criteria,group_sq_manager,1,1,1,1
+access_sq_evaluation_user,sq.evaluation.user,model_sq_evaluation,group_sq_user,1,1,1,0
+access_sq_evaluation_mgr,sq.evaluation.mgr,model_sq_evaluation,group_sq_manager,1,1,1,1
+access_sq_evaluation_line_user,sq.evaluation.line.user,model_sq_evaluation_line,group_sq_user,1,1,1,1
+access_sq_evaluation_line_mgr,sq.evaluation.line.mgr,model_sq_evaluation_line,group_sq_manager,1,1,1,1

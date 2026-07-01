@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 대분류(영역) 카드 = 증빙 대시보드 진입 -->
+    <record id="view_sq_category_list" model="ir.ui.view">
+        <field name="name">sq.category.list</field>
+        <field name="model">sq.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="criteria_count" string="항목수"/>
+                <field name="max_score_total" string="배점합"/>
+                <button name="action_open_criteria" type="object" string="증빙 대시보드 열기" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 기준 항목 = 항목별 증빙 조회 (영역 대시보드 본문) -->
+    <record id="view_sq_criteria_list" model="ir.ui.view">
+        <field name="name">sq.criteria.list</field>
+        <field name="model">sq.criteria</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="evidence_available == False" default_order="sequence">
+                <field name="code"/>
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="max_score" string="배점"/>
+                <field name="evidence_source" string="증빙 출처"/>
+                <field name="evidence_available" string="연동" widget="boolean_toggle" readonly="1"/>
+                <field name="evidence_count" string="증빙건수"/>
+                <button name="action_view_evidence" type="object" string="증빙 조회"
+                        class="btn-primary" invisible="evidence_available == False"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sq_criteria_form" model="ir.ui.view">
+        <field name="name">sq.criteria.form</field>
+        <field name="model">sq.criteria</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_view_evidence" type="object" string="증빙 조회"
+                            class="btn-primary" invisible="evidence_available == False"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="max_score"/>
+                        </group>
+                        <group>
+                            <field name="evidence_source"/>
+                            <field name="evidence_available"/>
+                            <field name="evidence_count"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <separator string="점검 상세"/>
+                    <field name="description"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sq_criteria_search" model="ir.ui.view">
+        <field name="name">sq.criteria.search</field>
+        <field name="model">sq.criteria</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="linked" string="Odoo 연동됨" domain="[('evidence_source','!=','none')]"/>
+                <filter name="manual" string="수기 증빙" domain="[('evidence_source','=','none')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_cat" string="대분류" context="{'group_by':'category_id'}"/>
+                    <filter name="g_src" string="증빙 출처" context="{'group_by':'evidence_source'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sq_category" model="ir.actions.act_window">
+        <field name="name">영역별 증빙 대시보드</field>
+        <field name="res_model">sq.category</field>
+        <field name="view_mode">list</field>
+    </record>
+    <record id="action_sq_criteria" model="ir.actions.act_window">
+        <field name="name">SQ 평가기준 / 증빙</field>
+        <field name="res_model">sq.criteria</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sq_criteria_search"/>
+        <field name="context">{'search_default_g_cat': 1}</field>
+    </record>
+</odoo>

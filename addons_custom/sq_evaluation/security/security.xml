@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_sq" model="ir.module.category">
+        <field name="name">SQ 평가</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="group_sq_user" model="res.groups">
+        <field name="name">SQ 평가 담당자</field>
+        <field name="category_id" ref="module_category_sq"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_sq_manager" model="res.groups">
+        <field name="name">SQ 평가 관리자</field>
+        <field name="category_id" ref="module_category_sq"/>
+        <field name="implied_ids" eval="[(4, ref('group_sq_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>
