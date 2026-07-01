@@ -1,4 +1,5 @@
 from odoo import api, fields, models, _
+from .sq_criteria import EVIDENCE_DATE_FIELD
 
 # 이행상태 → 점수배율 (참고 엑셀 실측: 양호0.8·보완0.6·일부미흡0.5·다수미흡0.25)
 STATUS_RATIO = {
@@ -38,6 +39,8 @@ class SqEvaluation(models.Model):
     industry = fields.Char(string="업종", help="예: PL사출")
     evaluator_id = fields.Many2one("res.users", string="평가 담당", default=lambda self: self.env.user)
     host_org = fields.Char(string="주관장/고객", help="예: HKMC / 상위 협력사")
+    period_start = fields.Date(string="증빙 기간 시작", help="비우면 전체 기간 증빙 조회")
+    period_end = fields.Date(string="증빙 기간 종료")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
 
     line_ids = fields.One2many("sq.evaluation.line", "evaluation_id", string="평가 항목")
@@ -128,6 +131,19 @@ class SqEvaluationLine(models.Model):
                                  help="해당없음이면 0 (분모 제외)")
     observation = fields.Text(string="지적 및 관찰사항")
     additional_finding = fields.Text(string="추가 지적사항")
+
+    def _evidence_domain(self):
+        """평가서 기간(period_start/end)으로 증빙 스코프 — 소스에 날짜필드 있고 모델에 존재할 때만."""
+        domain = []
+        ev = self.evaluation_id
+        date_field = EVIDENCE_DATE_FIELD.get(self.evidence_source)
+        model, _label = self._evidence_target()
+        if date_field and model and date_field in self.env[model]._fields:
+            if ev.period_start:
+                domain.append((date_field, ">=", ev.period_start))
+            if ev.period_end:
+                domain.append((date_field, "<=", ev.period_end))
+        return domain
 
     @api.depends("status", "max_score")
     def _compute_score(self):

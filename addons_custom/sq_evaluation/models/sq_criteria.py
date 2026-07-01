@@ -23,6 +23,18 @@ EVIDENCE_MAP = {
 }
 EVIDENCE_SELECTION = [(k, v[1]) for k, v in EVIDENCE_MAP.items()] + [("none", "연동 없음 (현장/수기 증빙)")]
 
+# 소스별 기간 스코프용 날짜필드 (없으면 기간필터 생략)
+EVIDENCE_DATE_FIELD = {
+    "iqc": "inspection_date",
+    "process_inspection": "inspection_date",
+    "msa": "study_date",
+    "spc": "analysis_date",
+    "reliability": "test_date",
+    "calibration": "calibration_date",
+    "nc": "detection_date",
+    "control_plan": "revision_date",
+}
+
 
 class SqEvidenceMixin(models.AbstractModel):
     """평가항목/라인이 공유하는 증빙 조회 로직. evidence_source 필드는 상속 모델이 보유."""

@@ -49,6 +49,8 @@
                         <group>
                             <field name="evaluator_id"/>
                             <field name="host_org"/>
+                            <field name="period_start"/>
+                            <field name="period_end"/>
                         </group>
                     </group>
                     <group>
