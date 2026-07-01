@@ -750,22 +750,31 @@
                                         </td>
                                         <td>
                                             <t t-if="status.state == 'notified'">
-                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/confirm?token=#{token}"
-                                                   class="btn btn-sm btn-info">
-                                                    <i class="fa fa-check"/> 확정
-                                                </a>
+                                                <form method="post" t-attf-action="/supplier/supply-chain/#{status.id}/confirm" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="token" t-att-value="token"/>
+                                                    <button type="submit" class="btn btn-sm btn-info">
+                                                        <i class="fa fa-check"/> 확정
+                                                    </button>
+                                                </form>
                                             </t>
                                             <t t-elif="status.state == 'confirmed'">
-                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/ship?token=#{token}"
-                                                   class="btn btn-sm btn-primary">
-                                                    <i class="fa fa-truck"/> 출하
-                                                </a>
+                                                <form method="post" t-attf-action="/supplier/supply-chain/#{status.id}/ship" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="token" t-att-value="token"/>
+                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                        <i class="fa fa-truck"/> 출하
+                                                    </button>
+                                                </form>
                                             </t>
                                             <t t-elif="status.state == 'shipped'">
-                                                <a t-attf-href="/supplier/supply-chain/#{status.id}/complete?token=#{token}"
-                                                   class="btn btn-sm btn-success">
-                                                    <i class="fa fa-check-circle"/> 완료
-                                                </a>
+                                                <form method="post" t-attf-action="/supplier/supply-chain/#{status.id}/complete" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="token" t-att-value="token"/>
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fa fa-check-circle"/> 완료
+                                                    </button>
+                                                </form>
                                             </t>
                                             <a t-attf-href="/supplier/supply-chain/#{status.id}/issue?token=#{token}"
                                                class="btn btn-sm btn-outline-danger ms-1"

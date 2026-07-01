@@ -363,7 +363,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/supply-chain/<int:status_id>/confirm", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_confirm(self, status_id, token=None, **kwargs):
         """공급망 단계 확정"""
         try:
@@ -382,7 +382,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/supply-chain?token={token}")
 
     @http.route("/supplier/supply-chain/<int:status_id>/ship", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_ship(self, status_id, token=None, **kwargs):
         """공급망 단계 출하"""
         try:
@@ -409,7 +409,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/supply-chain?token={token}")
 
     @http.route("/supplier/supply-chain/<int:status_id>/complete", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_complete(self, status_id, token=None, **kwargs):
         """공급망 단계 완료"""
         try:
@@ -684,7 +684,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/orders/<int:order_id>/receive", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def order_receive(self, order_id, token=None, **kwargs):
         """입고 확인 (발주자)"""
         try:
@@ -769,7 +769,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/incoming-orders/<int:order_id>/confirm", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def incoming_order_confirm(self, order_id, token=None, **kwargs):
         """수주 확정 (공급자)"""
         try:
@@ -788,7 +788,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
     @http.route("/supplier/incoming-orders/<int:order_id>/ship", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def incoming_order_ship(self, order_id, token=None, **kwargs):
         """출하 처리 (공급자)"""
         try:
