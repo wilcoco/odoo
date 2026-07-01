@@ -116,7 +116,7 @@
             <field name="name">검사용 마스터(한도견본) 관리기준 수립 및 준수상태</field>
             <field name="description">▣ 검사용 마스터(한도견본) 관리기준 수립 및 준수상태 - 외주품/완성품 외관 합/부 판별용 한도견본 운영 - 설비 유효성 확보용 한도견본 또는 셋팅 마스터지그 제작관리 (시업시 마스터 이용한 설비 유효성 검증 실시) - 검사기 신뢰도 확인을 위한 OK/NG 마스터 설정기준 및 관리상태 - 한도견본의 변색, 변형, 녹 발생 등으로 실제 견본품 운영이 어려울 경우 외관검사기준서로 대체 가능 - 목시검사(확대경) 한도견본 비치, 관리 및 이력관리</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">inspection_criteria</field>
         </record>
         <record id="sq_crit_2_4" model="sq.criteria">
             <field name="code">2_4</field>
@@ -386,7 +386,7 @@
             <field name="name">검사 유효성 확보를 위한 조도관리 프로세스 수립 및 준수실태</field>
             <field name="description">▣ 검사 유효성 확보를 위한 조도관리 프로세스 수립 및 준수실태 - 정기적인 작업장/ 검사장 조도 관리를 위한 운영 프로세스 수립[측정장소/시간, 조도 관리기준, 측정장소 지정] - 표준류내 자주/순회검사 실시구간 조도관리 포인트 누락여부 ※ 야간작업 등 고려 일몰후 조도측정 실시, 측정산포 최소화 목적 검사위치 지정 및 손 미거치 조건 조도측정 실시 등</field>
             <field name="max_score">10</field>
-            <field name="evidence_source">none</field>
+            <field name="evidence_source">environment</field>
         </record>
         <record id="sq_crit_6_9" model="sq.criteria">
             <field name="code">6_9</field>

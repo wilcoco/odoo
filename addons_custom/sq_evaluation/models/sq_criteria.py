@@ -20,6 +20,8 @@ EVIDENCE_MAP = {
     "change_management": ("iatf.change.request", "설계변경/4M"),
     "jig": ("iatf.jig", "지그 대장/점검"),
     "document": ("iatf.document", "품질문서/매뉴얼"),
+    "environment": ("iatf.environment.check", "작업환경(조도/온습도) 점검"),
+    "inspection_criteria": ("iatf.inspection.criteria", "검사기준/한도견본"),
 }
 EVIDENCE_SELECTION = [(k, v[1]) for k, v in EVIDENCE_MAP.items()] + [("none", "연동 없음 (현장/수기 증빙)")]
 
