@@ -1,4 +1,6 @@
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+
 from .sq_criteria import EVIDENCE_DATE_FIELD
 
 # 이행상태 → 점수배율 (참고 엑셀 실측: 양호0.8·보완0.6·일부미흡0.5·다수미흡0.25)
@@ -97,13 +99,31 @@ class SqEvaluation(models.Model):
         return super().create(vals_list)
 
     def action_load_criteria(self):
-        """평가체계(SQ/IATF)에 해당하는 활성 기준 템플릿을 평가 라인으로 로드."""
+        """평가체계(SQ/IATF)의 활성 기준 템플릿을 평가 라인으로 로드.
+
+        3차 적대적 시뮬 결함(C3) 대응 — 재클릭/리셋 후 재로드 시 확정 판정 유실 방지:
+        ① 서버 가드: 초안 상태에서만 허용(RPC 직접호출 포함).
+        ② merge 방식: 판정(status)된 라인은 절대 삭제하지 않고 보존,
+           미판정 라인 중 기준셋에서 빠진 것만 제거, 누락 기준만 추가.
+        """
         self.ensure_one()
-        self.line_ids.unlink()
+        if self.state != "draft":
+            raise UserError(_("기준 로드는 초안 상태에서만 가능합니다. (진행 중 판정 보호)"))
+        scored = self.line_ids.filtered(lambda l: l.status)
+        wrong_fw = scored.filtered(lambda l: l.criteria_id.framework != self.framework)
+        if wrong_fw:
+            raise UserError(_(
+                "다른 평가체계로 확정된 판정 %(n)s건이 있습니다. 평가체계를 되돌리거나 "
+                "새 평가서를 만드세요. (판정 유실 방지)") % {"n": len(wrong_fw)})
         crits = self.env["sq.criteria"].search([
             ("active", "=", True), ("framework", "=", self.framework)])
+        existing_crit_ids = set(self.line_ids.mapped("criteria_id").ids)
+        # 미판정 + 기준셋 이탈 라인만 제거 (판정된 라인은 보존)
+        self.line_ids.filtered(
+            lambda l: not l.status and l.criteria_id.id not in crits.ids).unlink()
+        missing = crits.filtered(lambda c: c.id not in existing_crit_ids)
         self.env["sq.evaluation.line"].create([
-            {"evaluation_id": self.id, "criteria_id": c.id} for c in crits
+            {"evaluation_id": self.id, "criteria_id": c.id} for c in missing
         ])
         self.state = "in_progress"
         return True
