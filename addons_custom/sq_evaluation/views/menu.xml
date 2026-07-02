@@ -23,4 +23,6 @@
               action="action_sq_criteria" sequence="10"/>
     <menuitem id="menu_iatf_criteria_cfg" name="IATF 심사기준 관리" parent="menu_sq_config"
               action="action_iatf_criteria" sequence="20"/>
+    <menuitem id="menu_sq_grade_cfg" name="자체 평가 등급표" parent="menu_sq_config"
+              action="action_sq_grade" sequence="30"/>
 </odoo>

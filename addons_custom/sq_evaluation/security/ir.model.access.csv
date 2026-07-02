@@ -13,3 +13,5 @@ access_sq_checklist_tmpl_user,sq.checklist.template.user,model_sq_checklist_temp
 access_sq_checklist_tmpl_mgr,sq.checklist.template.mgr,model_sq_checklist_template,group_sq_manager,1,1,1,1
 access_sq_field_record_line_user,sq.field.record.line.user,model_sq_field_record_line,group_sq_user,1,1,1,1
 access_sq_field_record_line_mgr,sq.field.record.line.mgr,model_sq_field_record_line,group_sq_manager,1,1,1,1
+access_sq_grade_user,sq.grade.user,model_sq_grade,group_sq_user,1,0,0,0
+access_sq_grade_mgr,sq.grade.mgr,model_sq_grade,group_sq_manager,1,1,1,1

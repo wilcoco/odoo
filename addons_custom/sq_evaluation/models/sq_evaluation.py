@@ -53,7 +53,8 @@ class SqEvaluation(models.Model):
     total_score = fields.Float(string="취득점수", compute="_compute_scores", store=True)
     score_pct = fields.Float(string="달성률 (%)", compute="_compute_scores", store=True, digits=(5, 1))
     grade = fields.Char(string="등급", compute="_compute_scores", store=True,
-                        help="기본 임계값 기반 자동등급 (실제 SQ 등급표 확인 필요)")
+                        help="자체 평가 등급표(sq.grade, 설정>등급표) 기반 자동등급")
+    grade_label = fields.Char(string="판정", compute="_compute_scores", store=True)
     na_count = fields.Integer(string="해당없음 수", compute="_compute_scores", store=True)
 
     summary_opinion = fields.Text(string="종합 의견")
@@ -65,7 +66,7 @@ class SqEvaluation(models.Model):
         string="상태", default="draft", tracking=True,
     )
 
-    @api.depends("line_ids.score", "line_ids.effective_max")
+    @api.depends("line_ids.score", "line_ids.effective_max", "framework")
     def _compute_scores(self):
         for rec in self:
             tmax = sum(rec.line_ids.mapped("effective_max"))
@@ -74,15 +75,19 @@ class SqEvaluation(models.Model):
             rec.total_score = tscore
             rec.score_pct = (tscore / tmax * 100.0) if tmax else 0.0
             rec.na_count = len(rec.line_ids.filtered(lambda l: l.status == "na"))
-            rec.grade = rec._grade_from_pct(rec.score_pct)
+            rec.grade, rec.grade_label = rec._grade_from_pct(rec.score_pct)
 
     def _grade_from_pct(self, pct):
-        """기본 등급 매핑 — 실제 HKMC SQ 등급표로 교체 필요(참고 엑셀: 69.85%→G)."""
-        thresholds = [(90, "A"), (80, "B"), (70, "C"), (60, "D"), (0, "F")]
-        for cut, g in thresholds:
-            if pct >= cut:
-                return g
-        return "F"
+        """자체 평가 등급표(sq.grade) 조회 — 높은 하한부터 판정. 표 비어있으면 '-'."""
+        grades = self.env["sq.grade"].search(
+            [("framework", "=", self.framework)], order="min_pct desc")
+        for g in grades:
+            if pct >= g.min_pct:
+                return g.name, g.label or ""
+        if grades:  # 모든 하한 미만 → 최하 등급
+            last = grades[-1]
+            return last.name, last.label or ""
+        return "-", ""
 
     @api.model_create_multi
     def create(self, vals_list):
