@@ -6,6 +6,8 @@
               action="action_sq_evaluation" sequence="10"/>
 
     <!-- 주 메뉴: 평가체계별 기준 → 증빙 조회 -->
+    <menuitem id="menu_sq_weak_lines" name="보강 필요 항목" parent="menu_sq_root"
+              action="action_sq_weak_lines" sequence="15"/>
     <menuitem id="menu_sq_evidence" name="SQ 증빙 조회" parent="menu_sq_root"
               action="action_sq_criteria" sequence="20"/>
     <menuitem id="menu_iatf_evidence" name="IATF 심사 증빙" parent="menu_sq_root"

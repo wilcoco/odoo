@@ -108,6 +108,51 @@ class SqEvaluation(models.Model):
         self.state = "in_progress"
         return True
 
+    # ── 증빙 기반 자동채점 (명세 3-2/3-4) ──
+    def action_auto_propose(self):
+        """전 라인 증빙 자동채점 → proposed_status 제안 (확정 status는 안 건드림)."""
+        for rec in self:
+            auto = manual = 0
+            for line in rec.line_ids:
+                st, reason = line._auto_propose()
+                line.write({
+                    "proposed_status": st or False,
+                    "proposed_reason": reason,
+                    "auto_scored": bool(st),
+                })
+                auto += 1 if st else 0
+                manual += 0 if st else 1
+            weak = len(rec.line_ids.filtered(
+                lambda l: l.proposed_status in ("supplement", "partial_poor", "many_poor", "poor")))
+            rec.message_post(body=_(
+                "증빙 기반 자동채점: 제안 %(a)s건 / 수기대상 %(m)s건 / <b>보강 필요 %(w)s건</b>"
+            ) % {"a": auto, "m": manual, "w": weak})
+        return True
+
+    def action_apply_proposal(self):
+        """제안값 일괄 확정 — 심사자가 아직 판정 안 한(빈) 라인만 status ← proposed.
+        이미 수기 확정된 라인은 보존(자동이 확정을 덮지 않음)."""
+        for rec in self:
+            targets = rec.line_ids.filtered(lambda l: l.proposed_status and not l.status)
+            for line in targets:
+                line.status = line.proposed_status
+            rec.message_post(body=_("제안값 일괄 확정: %(n)s건 반영 (기존 수기판정 보존)")
+                             % {"n": len(targets)})
+        return True
+
+    def action_view_weak_lines(self):
+        """보강 필요 항목(제안 또는 확정이 보완 이하)만 조회."""
+        self.ensure_one()
+        weak = ("supplement", "partial_poor", "many_poor", "poor")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("보강 필요 항목: %s") % self.name,
+            "res_model": "sq.evaluation.line",
+            "view_mode": "list,form",
+            "domain": ["&", ("evaluation_id", "=", self.id),
+                       "|", ("proposed_status", "in", weak), ("status", "in", weak)],
+        }
+
     def action_done(self):
         self.write({"state": "done"})
 
@@ -135,6 +180,11 @@ class SqEvaluationLine(models.Model):
     evidence_source = fields.Selection(related="criteria_id.evidence_source", store=True)
 
     status = fields.Selection(STATUS_SELECTION, string="이행상태")
+    # ── 증빙 기반 자동채점 (제안 ≠ 확정 분리 — 명세 3-1) ──
+    proposed_status = fields.Selection(STATUS_SELECTION, string="제안 이행상태", readonly=True)
+    proposed_ratio = fields.Float(string="제안 배율", compute="_compute_proposed_ratio", digits=(3, 2))
+    proposed_reason = fields.Char(string="제안 근거", readonly=True)
+    auto_scored = fields.Boolean(string="자동채점됨", readonly=True)
     ratio = fields.Float(string="배율", compute="_compute_score", store=True, digits=(3, 2))
     score = fields.Float(string="평가점수", compute="_compute_score", store=True, digits=(6, 2))
     effective_max = fields.Float(string="유효배점", compute="_compute_score", store=True,
@@ -166,3 +216,87 @@ class SqEvaluationLine(models.Model):
                 rec.ratio = STATUS_RATIO.get(rec.status, 0.0)
                 rec.score = (rec.max_score or 0) * rec.ratio
                 rec.effective_max = float(rec.max_score or 0)
+
+    @api.depends("proposed_status")
+    def _compute_proposed_ratio(self):
+        for rec in self:
+            rec.proposed_ratio = STATUS_RATIO.get(rec.proposed_status, 0.0)
+
+    # ── 증빙 기반 자동채점 규칙 (명세 3-3, 임계값은 시뮬 실측으로 검증) ──
+    def _auto_propose(self):
+        """(proposed_status, reason) 반환. 수기 항목은 (False, 사유)."""
+        self.ensure_one()
+        src = self.evidence_source
+        model, label = self._evidence_target()
+        if not model:
+            return False, _("수기 증빙 항목(자동 대상 아님)")
+        M = self.env[model]
+        domain = self._evidence_domain()
+        n = M.search_count(domain)
+
+        if src in ("iqc", "process_inspection"):
+            decided = M.search_count(domain + [("result", "in", ("pass", "conditional", "fail"))])
+            if not decided:
+                return "poor", _("판정된 검사 0건")
+            passed = M.search_count(domain + [("result", "in", ("pass", "conditional"))])
+            rate = passed / decided * 100.0
+            st = "excellent" if rate >= 99 else "good" if rate >= 95 else "supplement"
+            return st, _("합격률 %(r).1f%% (%(p)s/%(d)s건)") % {"r": rate, "p": passed, "d": decided}
+
+        if src == "spc":
+            recs = M.search(domain + [("cpk", ">", 0)])
+            if not recs:
+                return "poor", _("Cpk 산출 SPC 0건")
+            avg = sum(recs.mapped("cpk")) / len(recs)
+            st = ("excellent" if avg >= 1.67 else "good" if avg >= 1.33
+                  else "supplement" if avg >= 1.0 else "many_poor")
+            return st, _("평균 Cpk %(c).2f (%(n)s건)") % {"c": avg, "n": len(recs)}
+
+        if src == "msa":
+            recs = M.search(domain + [("pct_grr", ">", 0)])
+            if not recs:
+                return "poor", _("GRR 산출 MSA 0건")
+            worst = max(recs.mapped("pct_grr"))
+            st = "excellent" if worst < 10 else "good" if worst <= 30 else "supplement"
+            return st, _("최대 %%GRR %(g).1f%% (%(n)s건)") % {"g": worst, "n": len(recs)}
+
+        if src == "calibration":
+            if not n:
+                return "poor", _("교정기록 0건")
+            overdue = M.search_count(domain + [("next_due_date", "<", fields.Date.today())])
+            if overdue:
+                return "partial_poor", _("차기 교정일 초과 %(o)s건 / 총 %(n)s건") % {"o": overdue, "n": n}
+            return "excellent", _("교정 %(n)s건, 기한 초과 없음") % {"n": n}
+
+        if src in ("nc", "corrective_action"):
+            if not n:
+                return "supplement", _("기록 0건 — 프로세스 운영 실증 불가")
+            closed = M.search_count(domain + [("state", "in", ("closed", "verified"))])
+            rate = closed / n * 100.0
+            st = "excellent" if rate >= 90 else "good" if rate >= 70 else "supplement"
+            return st, _("종결율 %(r).0f%% (%(c)s/%(n)s건)") % {"r": rate, "c": closed, "n": n}
+
+        if src in ("ppap", "apqp", "fmea", "control_plan"):
+            approved = 0
+            if "state" in M._fields:
+                approved = M.search_count(domain + [
+                    ("state", "in", ("approved", "closed", "completed", "customer_approved"))])
+            if approved:
+                return "excellent", _("%(l)s 승인/완료 %(a)s건") % {"l": label, "a": approved}
+            if n:
+                return "supplement", _("%(l)s %(n)s건 (승인/완료 없음)") % {"l": label, "n": n}
+            return "poor", _("%(l)s 0건") % {"l": label}
+
+        if src == "field_record":
+            if not n:
+                return "poor", _("점검기록 0건")
+            recs = M.search(domain)
+            conform = len(recs.filtered(lambda r: r.result == "conform"))
+            rate = conform / len(recs) * 100.0
+            st = "excellent" if rate >= 95 else "good" if rate >= 80 else "supplement"
+            return st, _("점검 적합률 %(r).0f%% (%(c)s/%(n)s건)") % {"r": rate, "c": conform, "n": len(recs)}
+
+        # 건수형 기본 (traceability/document/training/equipment/mold/jig/environment/audit/...)
+        if n:
+            return "good", _("%(l)s %(n)s건 확보") % {"l": label or model, "n": n}
+        return "poor", _("%(l)s 기록 0건") % {"l": label or model}

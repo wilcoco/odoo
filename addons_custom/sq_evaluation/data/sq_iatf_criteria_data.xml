@@ -37,7 +37,7 @@
             <field name="sequence">1000</field>
             <field name="name">리스크 관리 (리스크 등록부 운영)</field>
             <field name="description">IATF 16949 6.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">risk</field>
         </record>
         <record id="sq_crit_iatf_6_1_2_3" model="sq.criteria">
@@ -46,7 +46,7 @@
             <field name="sequence">1010</field>
             <field name="name">비상사태 대응계획 수립·훈련</field>
             <field name="description">IATF 16949 6.1.2.3 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">contingency</field>
         </record>
         <record id="sq_crit_iatf_6_2" model="sq.criteria">
@@ -55,7 +55,7 @@
             <field name="sequence">1020</field>
             <field name="name">품질목표 수립 및 실적 모니터링</field>
             <field name="description">IATF 16949 6.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">quality_objective</field>
         </record>
         <record id="sq_crit_iatf_7_1_5_1_1" model="sq.criteria">
@@ -64,7 +64,7 @@
             <field name="sequence">1030</field>
             <field name="name">측정시스템분석(MSA) — Gage R&amp;R</field>
             <field name="description">IATF 16949 7.1.5.1.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">msa</field>
         </record>
         <record id="sq_crit_iatf_7_1_5_2_1" model="sq.criteria">
@@ -73,7 +73,7 @@
             <field name="sequence">1040</field>
             <field name="name">계측기 교정/검증 기록</field>
             <field name="description">IATF 16949 7.1.5.2.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">calibration</field>
         </record>
         <record id="sq_crit_iatf_7_1_4" model="sq.criteria">
@@ -82,7 +82,7 @@
             <field name="sequence">1050</field>
             <field name="name">작업환경(조도/온습도) 관리</field>
             <field name="description">IATF 16949 7.1.4 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">environment</field>
         </record>
         <record id="sq_crit_iatf_7_2" model="sq.criteria">
@@ -91,7 +91,7 @@
             <field name="sequence">1060</field>
             <field name="name">역량/자격인증 관리 (자격 매트릭스)</field>
             <field name="description">IATF 16949 7.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">training</field>
         </record>
         <record id="sq_crit_iatf_7_5" model="sq.criteria">
@@ -100,7 +100,7 @@
             <field name="sequence">1070</field>
             <field name="name">문서화된 정보 관리 (문서/표준류)</field>
             <field name="description">IATF 16949 7.5 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">document</field>
         </record>
         <record id="sq_crit_iatf_4_3_2" model="sq.criteria">
@@ -109,7 +109,7 @@
             <field name="sequence">1080</field>
             <field name="name">고객특별요구사항(CSR) 관리</field>
             <field name="description">IATF 16949 4.3.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">csr</field>
         </record>
         <record id="sq_crit_iatf_8_3" model="sq.criteria">
@@ -118,7 +118,7 @@
             <field name="sequence">1090</field>
             <field name="name">제품설계개발 — APQP 프로젝트</field>
             <field name="description">IATF 16949 8.3 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">apqp</field>
         </record>
         <record id="sq_crit_iatf_8_3_5_1" model="sq.criteria">
@@ -127,7 +127,7 @@
             <field name="sequence">1100</field>
             <field name="name">설계/공정 FMEA</field>
             <field name="description">IATF 16949 8.3.5.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">fmea</field>
         </record>
         <record id="sq_crit_iatf_8_5_1_1" model="sq.criteria">
@@ -136,7 +136,7 @@
             <field name="sequence">1110</field>
             <field name="name">관리계획서(Control Plan)</field>
             <field name="description">IATF 16949 8.5.1.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">control_plan</field>
         </record>
         <record id="sq_crit_iatf_8_3_4_4" model="sq.criteria">
@@ -145,7 +145,7 @@
             <field name="sequence">1120</field>
             <field name="name">양산부품승인(PPAP)</field>
             <field name="description">IATF 16949 8.3.4.4 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">ppap</field>
         </record>
         <record id="sq_crit_iatf_8_4_2_4" model="sq.criteria">
@@ -154,7 +154,7 @@
             <field name="sequence">1130</field>
             <field name="name">공급자 모니터링/평가</field>
             <field name="description">IATF 16949 8.4.2.4 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">supplier_eval</field>
         </record>
         <record id="sq_crit_iatf_8_4_3" model="sq.criteria">
@@ -163,7 +163,7 @@
             <field name="sequence">1140</field>
             <field name="name">외주공정 관리</field>
             <field name="description">IATF 16949 8.4.3 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">outsource</field>
         </record>
         <record id="sq_crit_iatf_8_5_1_5" model="sq.criteria">
@@ -172,7 +172,7 @@
             <field name="sequence">1150</field>
             <field name="name">설비 예방보전(TPM)</field>
             <field name="description">IATF 16949 8.5.1.5 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">equipment</field>
         </record>
         <record id="sq_crit_iatf_8_5_1_6" model="sq.criteria">
@@ -181,7 +181,7 @@
             <field name="sequence">1160</field>
             <field name="name">금형/치공구 관리</field>
             <field name="description">IATF 16949 8.5.1.6 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">mold</field>
         </record>
         <record id="sq_crit_iatf_8_5_2" model="sq.criteria">
@@ -190,7 +190,7 @@
             <field name="sequence">1170</field>
             <field name="name">식별 및 추적성(LOT)</field>
             <field name="description">IATF 16949 8.5.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">traceability</field>
         </record>
         <record id="sq_crit_iatf_8_5_3" model="sq.criteria">
@@ -199,7 +199,7 @@
             <field name="sequence">1180</field>
             <field name="name">고객자산 관리</field>
             <field name="description">IATF 16949 8.5.3 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">customer_property</field>
         </record>
         <record id="sq_crit_iatf_8_5_4" model="sq.criteria">
@@ -208,7 +208,7 @@
             <field name="sequence">1190</field>
             <field name="name">포장/보존 사양 관리</field>
             <field name="description">IATF 16949 8.5.4 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">packaging</field>
         </record>
         <record id="sq_crit_iatf_8_5_6" model="sq.criteria">
@@ -217,7 +217,7 @@
             <field name="sequence">1200</field>
             <field name="name">변경관리(설계/4M)</field>
             <field name="description">IATF 16949 8.5.6 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">change_management</field>
         </record>
         <record id="sq_crit_iatf_8_6_4" model="sq.criteria">
@@ -226,7 +226,7 @@
             <field name="sequence">1210</field>
             <field name="name">수입검사 (구매품 검증)</field>
             <field name="description">IATF 16949 8.6.4 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">iqc</field>
         </record>
         <record id="sq_crit_iatf_8_6" model="sq.criteria">
@@ -235,7 +235,7 @@
             <field name="sequence">1220</field>
             <field name="name">공정/최종검사</field>
             <field name="description">IATF 16949 8.6 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">process_inspection</field>
         </record>
         <record id="sq_crit_iatf_8_6_2" model="sq.criteria">
@@ -244,7 +244,7 @@
             <field name="sequence">1230</field>
             <field name="name">레이아웃 검사(전수치수/기능시험)</field>
             <field name="description">IATF 16949 8.6.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">layout_inspection</field>
         </record>
         <record id="sq_crit_iatf_8_7" model="sq.criteria">
@@ -253,7 +253,7 @@
             <field name="sequence">1240</field>
             <field name="name">부적합품 관리 (격리/식별/처리)</field>
             <field name="description">IATF 16949 8.7 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">nc</field>
         </record>
         <record id="sq_crit_iatf_9_1_1_1" model="sq.criteria">
@@ -262,7 +262,7 @@
             <field name="sequence">1250</field>
             <field name="name">공정능력/통계적공정관리(SPC)</field>
             <field name="description">IATF 16949 9.1.1.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">spc</field>
         </record>
         <record id="sq_crit_iatf_9_1_2_1" model="sq.criteria">
@@ -271,7 +271,7 @@
             <field name="sequence">1260</field>
             <field name="name">고객만족 — 고객불만 관리</field>
             <field name="description">IATF 16949 9.1.2.1 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">complaint</field>
         </record>
         <record id="sq_crit_iatf_9_2_2" model="sq.criteria">
@@ -280,7 +280,7 @@
             <field name="sequence">1270</field>
             <field name="name">내부심사 (시스템/공정/제품 심사)</field>
             <field name="description">IATF 16949 9.2.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">audit</field>
         </record>
         <record id="sq_crit_iatf_9_3" model="sq.criteria">
@@ -289,7 +289,7 @@
             <field name="sequence">1280</field>
             <field name="name">경영검토</field>
             <field name="description">IATF 16949 9.3 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">management_review</field>
         </record>
         <record id="sq_crit_iatf_10_2" model="sq.criteria">
@@ -298,7 +298,7 @@
             <field name="sequence">1290</field>
             <field name="name">부적합 시정조치(8D)</field>
             <field name="description">IATF 16949 10.2 요구사항 대응 — 시스템 운영 데이터로 증빙</field>
-            <field name="max_score">0</field>
+            <field name="max_score">10</field>
             <field name="evidence_source">corrective_action</field>
         </record>
     </data>

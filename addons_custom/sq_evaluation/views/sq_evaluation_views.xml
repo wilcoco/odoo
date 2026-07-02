@@ -29,6 +29,14 @@
                     <button name="action_load_criteria" string="기준 로드" type="object"
                             class="btn-primary" invisible="state != 'draft'"
                             confirm="현재 라인을 지우고 활성 SQ 기준 전체를 로드합니다. 진행할까요?"/>
+                    <button name="action_auto_propose" string="자동채점 제안" type="object"
+                            class="btn-secondary" invisible="state not in ('draft','in_progress')"
+                            help="증빙 실데이터 기반 이행상태 제안 (확정값은 안 건드림)"/>
+                    <button name="action_apply_proposal" string="제안 일괄 확정" type="object"
+                            class="btn-secondary" invisible="state not in ('draft','in_progress')"
+                            confirm="아직 판정하지 않은 라인에만 제안값을 확정 반영합니다. 진행할까요?"/>
+                    <button name="action_view_weak_lines" string="보강 필요 항목" type="object"
+                            class="btn-warning"/>
                     <button name="action_done" string="평가 완료" type="object"
                             class="btn-primary" invisible="state != 'in_progress'"/>
                     <button name="action_confirm" string="확정" type="object"
@@ -79,6 +87,11 @@
                                     <field name="category_id" optional="show"/>
                                     <field name="name"/>
                                     <field name="max_score"/>
+                                    <field name="proposed_status" optional="show"
+                                           decoration-success="proposed_status in ('excellent','good')"
+                                           decoration-warning="proposed_status in ('supplement','partial_poor')"
+                                           decoration-danger="proposed_status in ('many_poor','poor')"/>
+                                    <field name="proposed_reason" optional="show"/>
                                     <field name="status"/>
                                     <field name="score"/>
                                     <field name="evidence_source" optional="hide"/>
@@ -109,5 +122,36 @@
         <field name="name">SQ 평가서</field>
         <field name="res_model">sq.evaluation</field>
         <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 보강 필요 항목 (전 평가서 통합 — 자동채점/확정이 보완 이하) -->
+    <record id="view_sq_evaluation_line_weak_list" model="ir.ui.view">
+        <field name="name">sq.evaluation.line.weak.list</field>
+        <field name="model">sq.evaluation.line</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="proposed_status in ('many_poor','poor') or status in ('many_poor','poor')"
+                  decoration-warning="proposed_status in ('supplement','partial_poor') or status in ('supplement','partial_poor')">
+                <field name="evaluation_id"/>
+                <field name="code"/>
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="max_score"/>
+                <field name="proposed_status"/>
+                <field name="proposed_reason"/>
+                <field name="status" string="확정"/>
+                <field name="evidence_available" column_invisible="1"/>
+                <field name="evidence_count" string="증빙"/>
+                <button name="action_view_evidence" type="object" string="증빙 보기"
+                        class="btn-link" invisible="evidence_available == False"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_sq_weak_lines" model="ir.actions.act_window">
+        <field name="name">보강 필요 항목</field>
+        <field name="res_model">sq.evaluation.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sq_evaluation_line_weak_list"/>
+        <field name="domain">['|', ('proposed_status','in',('supplement','partial_poor','many_poor','poor')), ('status','in',('supplement','partial_poor','many_poor','poor'))]</field>
+        <field name="context">{'group_by': ['evaluation_id']}</field>
     </record>
 </odoo>
