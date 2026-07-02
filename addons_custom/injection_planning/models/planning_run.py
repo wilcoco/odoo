@@ -450,7 +450,10 @@ class PlanningRun(models.Model):
         # {(product_id, date_str): qty}
         part_demands = defaultdict(float)
 
-        for demand in self.demand_ids.filtered(lambda d: d.state == "draft"):
+        # 재계산 멱등성: draft 뿐 아니라 이전 계산으로 confirmed 된 수요도 재전개 대상에 포함.
+        #   (calculate_plan 재실행 시 draft 가 없어 계획이 0으로 비워지던 데이터손실 방지.
+        #    이미 생산완료(done)·취소(cancelled) 수요는 제외.)
+        for demand in self.demand_ids.filtered(lambda d: d.state in ("draft", "confirmed")):
             bom = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", demand.product_id.id),
