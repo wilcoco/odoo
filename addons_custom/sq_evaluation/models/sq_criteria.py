@@ -23,7 +23,25 @@ EVIDENCE_MAP = {
     "environment": ("iatf.environment.check", "작업환경(조도/온습도) 점검"),
     "inspection_criteria": ("iatf.inspection.criteria", "검사기준/한도견본"),
     "field_record": ("sq.field.record", "현장/절차 증빙 기록"),
+    # ── IATF 심사 기준용 증빙 소스 ──
+    "fmea": ("iatf.fmea", "FMEA"),
+    "ppap": ("iatf.ppap.submission", "PPAP 제출"),
+    "apqp": ("iatf.apqp.project", "APQP 프로젝트"),
+    "audit": ("iatf.audit", "내부심사"),
+    "management_review": ("iatf.management.review", "경영검토"),
+    "complaint": ("iatf.customer.complaint", "고객불만"),
+    "supplier_eval": ("iatf.supplier.evaluation", "공급자 평가"),
+    "corrective_action": ("iatf.corrective.action", "시정조치(8D)"),
+    "risk": ("iatf.risk.register", "리스크 관리"),
+    "contingency": ("iatf.contingency.plan", "비상사태 대응계획"),
+    "csr": ("iatf.csr", "고객특별요구사항(CSR)"),
+    "layout_inspection": ("iatf.layout.inspection", "레이아웃(정기) 검사"),
+    "customer_property": ("iatf.customer.property", "고객자산"),
+    "packaging": ("iatf.packaging.spec", "포장 사양"),
+    "outsource": ("iatf.outsource.order", "외주 관리"),
 }
+
+FRAMEWORK_SELECTION = [("sq", "SQ"), ("iatf", "IATF 16949")]
 EVIDENCE_SELECTION = [(k, v[1]) for k, v in EVIDENCE_MAP.items()] + [("none", "연동 없음 (현장/수기 증빙)")]
 
 # 소스별 기간 스코프용 날짜필드 (없으면 기간필터 생략)
@@ -42,6 +60,9 @@ EVIDENCE_DATE_FIELD = {
     "change_management": "request_date",
     "jig": "record_date",
     "field_record": "record_date",
+    "complaint": "received_date",
+    "audit": "actual_date",
+    "corrective_action": "due_date",
 }
 
 
@@ -115,6 +136,7 @@ class SqCategory(models.Model):
 
     name = fields.Char(string="대분류", required=True)
     code = fields.Char(string="코드", required=True)
+    framework = fields.Selection(FRAMEWORK_SELECTION, string="평가체계", default="sq", required=True)
     sequence = fields.Integer(default=10)
     criteria_ids = fields.One2many("sq.criteria", "category_id", string="세부항목")
     criteria_count = fields.Integer(compute="_compute_counts")
@@ -155,6 +177,7 @@ class SqCriteria(models.Model):
 
     code = fields.Char(string="No", required=True)
     category_id = fields.Many2one("sq.category", string="대분류", required=True, ondelete="cascade")
+    framework = fields.Selection(related="category_id.framework", store=True, string="평가체계")
     sequence = fields.Integer(default=10)
     name = fields.Char(string="세부항목", required=True)
     description = fields.Text(string="점검 상세")

@@ -7,6 +7,7 @@
             <list>
                 <field name="name"/>
                 <field name="title"/>
+                <field name="framework"/>
                 <field name="evaluation_date"/>
                 <field name="eval_type"/>
                 <field name="total_score"/>
@@ -42,6 +43,7 @@
                     </div>
                     <group>
                         <group>
+                            <field name="framework"/>
                             <field name="evaluation_date"/>
                             <field name="eval_type"/>
                             <field name="industry"/>

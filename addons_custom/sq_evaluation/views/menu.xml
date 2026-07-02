@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_sq_root" name="SQ 평가" sequence="45"/>
+    <menuitem id="menu_sq_root" name="심사평가 (SQ·IATF)" sequence="45"/>
 
     <menuitem id="menu_sq_evaluation" name="평가서" parent="menu_sq_root"
               action="action_sq_evaluation" sequence="10"/>
 
-    <!-- 주 메뉴: 항목별 증빙 조회 (대분류 그룹) -->
-    <menuitem id="menu_sq_evidence" name="증빙 조회" parent="menu_sq_root"
+    <!-- 주 메뉴: 평가체계별 기준 → 증빙 조회 -->
+    <menuitem id="menu_sq_evidence" name="SQ 증빙 조회" parent="menu_sq_root"
               action="action_sq_criteria" sequence="20"/>
+    <menuitem id="menu_iatf_evidence" name="IATF 심사 증빙" parent="menu_sq_root"
+              action="action_iatf_criteria" sequence="22"/>
+
+    <menuitem id="menu_sq_field_record" name="현장/절차 점검" parent="menu_sq_root"
+              action="action_sq_field_record" sequence="25"/>
 
     <menuitem id="menu_sq_dashboard" name="영역별 대시보드" parent="menu_sq_root"
               action="action_sq_category" sequence="30"/>
 
     <menuitem id="menu_sq_config" name="설정" parent="menu_sq_root" sequence="90"
               groups="sq_evaluation.group_sq_manager"/>
-    <menuitem id="menu_sq_criteria_cfg" name="평가기준 관리" parent="menu_sq_config"
+    <menuitem id="menu_sq_criteria_cfg" name="SQ 평가기준 관리" parent="menu_sq_config"
               action="action_sq_criteria" sequence="10"/>
-    <menuitem id="menu_sq_field_record" name="현장/절차 증빙" parent="menu_sq_root"
-              action="action_sq_field_record" sequence="25"/>
+    <menuitem id="menu_iatf_criteria_cfg" name="IATF 심사기준 관리" parent="menu_sq_config"
+              action="action_iatf_criteria" sequence="20"/>
 </odoo>

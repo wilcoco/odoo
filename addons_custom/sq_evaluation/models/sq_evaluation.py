@@ -32,6 +32,10 @@ class SqEvaluation(models.Model):
                        default=lambda self: _("New"))
     title = fields.Char(string="평가명", required=True, tracking=True)
     evaluation_date = fields.Date(string="평가일", default=fields.Date.today, required=True, tracking=True)
+    framework = fields.Selection(
+        [("sq", "SQ"), ("iatf", "IATF 16949")],
+        string="평가체계", default="sq", required=True, tracking=True,
+    )
     eval_type = fields.Selection(
         [("self", "자가평가"), ("pre_audit", "수감 사전점검"), ("regular", "정기"), ("new_cert", "신규인증")],
         string="평가 구분", default="self", tracking=True,
@@ -88,10 +92,11 @@ class SqEvaluation(models.Model):
         return super().create(vals_list)
 
     def action_load_criteria(self):
-        """활성 SQ 기준 템플릿 전체를 평가 라인으로 로드."""
+        """평가체계(SQ/IATF)에 해당하는 활성 기준 템플릿을 평가 라인으로 로드."""
         self.ensure_one()
         self.line_ids.unlink()
-        crits = self.env["sq.criteria"].search([("active", "=", True)])
+        crits = self.env["sq.criteria"].search([
+            ("active", "=", True), ("framework", "=", self.framework)])
         self.env["sq.evaluation.line"].create([
             {"evaluation_id": self.id, "criteria_id": c.id} for c in crits
         ])
