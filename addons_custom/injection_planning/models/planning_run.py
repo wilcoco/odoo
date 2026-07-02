@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -399,6 +400,13 @@ class PlanningRun(models.Model):
     def action_calculate_plan(self):
         """메인 스케줄링 알고리즘"""
         self.ensure_one()
+        # C3 동일 패턴(서버 가드): 검토/확정 단계에서 재계산 차단 — UI 버튼은 draft에서만 보이지만
+        # RPC 직접호출·상태전이로 우회되면 검토 중 수동조정한 계획 라인이 유실되므로 서버에서도 막는다.
+        # 재계산은 '초안으로'(action_reset_draft)로 명시 초기화 후 진행.
+        if self.state not in ("draft", "calculating"):
+            raise UserError(_(
+                "이미 계산된 계획입니다. 재계산하려면 먼저 '초안으로'를 눌러 초기화하세요.\n"
+                "(검토 단계에서 수동 조정한 계획 라인이 유실되지 않도록 보호합니다.)"))
         self.state = "calculating"
         self.line_ids.unlink()
 
