@@ -39,6 +39,9 @@ EVIDENCE_MAP = {
     "customer_property": ("iatf.customer.property", "고객자산"),
     "packaging": ("iatf.packaging.spec", "포장 사양"),
     "outsource": ("iatf.outsource.order", "외주 관리"),
+    # ── 사출 현장 실측(PLC/전용기록) — SQ L3 증빙 승격 ──
+    "molding_condition": ("engel.injection.serial", "성형조건 실측(PLC: 사이클·압력·온도)"),
+    "moisture": ("injection.rawmaterial.moisture", "원재료 수분 측정 기록"),
 }
 
 FRAMEWORK_SELECTION = [("sq", "SQ"), ("iatf", "IATF 16949")]
@@ -83,6 +86,9 @@ class SqEvidenceMixin(models.AbstractModel):
         # traceability 폴백: 전용 추적모델 없으면 표준 stock.lot
         if src == "traceability" and "stock.lot" in self.env:
             return "stock.lot", "LOT/시리얼 (stock.lot)"
+        # 사출 실측 소스(PLC 등) 미설치 환경 → 현장/절차 점검기록으로 폴백
+        if src in ("molding_condition", "moisture") and "sq.field.record" in self.env:
+            return "sq.field.record", (label or "") + " (미설치 → 현장기록 폴백)"
         return None, label
 
     def _evidence_criteria_id(self):
@@ -90,8 +96,9 @@ class SqEvidenceMixin(models.AbstractModel):
         return self.id if self._name == "sq.criteria" else self.criteria_id.id
 
     def _evidence_domain(self):
-        """자사 데이터 전체 (스코프=자가평가). field_record 는 해당 기준으로 스코프."""
-        if self.evidence_source == "field_record":
+        """자사 데이터 전체 (스코프=자가평가). 현장기록(폴백 포함)은 해당 기준으로 스코프."""
+        model, _label = self._evidence_target()
+        if model == "sq.field.record":
             return [("criteria_id", "=", self._evidence_criteria_id())]
         return []
 

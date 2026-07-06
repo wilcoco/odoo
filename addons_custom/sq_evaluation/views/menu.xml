@@ -19,6 +19,8 @@
     <menuitem id="menu_sq_dashboard" name="영역별 대시보드" parent="menu_sq_root"
               action="action_sq_category" sequence="30"/>
 
+    <menuitem id="menu_sq_category_scores" name="영역별 점수 집계" parent="menu_sq_root"
+              action="action_sq_category_scores" sequence="35"/>
     <menuitem id="menu_sq_config" name="설정" parent="menu_sq_root" sequence="90"
               groups="sq_evaluation.group_sq_manager"/>
     <menuitem id="menu_sq_criteria_cfg" name="SQ 평가기준 관리" parent="menu_sq_config"

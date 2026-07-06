@@ -211,6 +211,13 @@ class SqEvaluationLine(models.Model):
                                  help="해당없음이면 0 (분모 제외)")
     observation = fields.Text(string="지적 및 관찰사항")
     additional_finding = fields.Text(string="추가 지적사항")
+    # ── 지적사항 시트(개선추적 폼) 반영: 지적 → 개선대책·기한·책임자 ──
+    improvement_plan = fields.Text(string="개선 대책")
+    improvement_deadline = fields.Date(string="개선 기한")
+    improvement_owner_id = fields.Many2one("res.users", string="개선 책임자")
+    improvement_state = fields.Selection(
+        [("open", "미조치"), ("in_progress", "조치중"), ("done", "조치완료")],
+        string="조치 상태", default="open")
 
     def _evidence_domain(self):
         """super(기준 스코프: field_record) + 평가서 기간(period)로 증빙 스코프."""

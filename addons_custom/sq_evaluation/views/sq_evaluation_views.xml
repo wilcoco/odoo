@@ -144,8 +144,35 @@
                 <field name="evidence_count" string="증빙"/>
                 <button name="action_view_evidence" type="object" string="증빙 보기"
                         class="btn-link" invisible="evidence_available == False"/>
+                <field name="improvement_plan" string="개선 대책"/>
+                <field name="improvement_deadline" string="기한"/>
+                <field name="improvement_owner_id" string="책임자"/>
+                <field name="improvement_state" string="조치" widget="badge"
+                       decoration-success="improvement_state == 'done'"
+                       decoration-warning="improvement_state == 'in_progress'"
+                       decoration-danger="improvement_state == 'open'"/>
             </list>
         </field>
+    </record>
+
+    <!-- 영역(카테고리)별 점수 집계 — 보고서 메인 '5.평가결과' 표 대응 -->
+    <record id="view_sq_evaluation_line_pivot" model="ir.ui.view">
+        <field name="name">sq.evaluation.line.pivot</field>
+        <field name="model">sq.evaluation.line</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="evaluation_id" type="row"/>
+                <field name="category_id" type="col"/>
+                <field name="score" type="measure"/>
+                <field name="effective_max" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="action_sq_category_scores" model="ir.actions.act_window">
+        <field name="name">영역별 점수 집계</field>
+        <field name="res_model">sq.evaluation.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_sq_evaluation_line_pivot"/>
     </record>
     <record id="action_sq_weak_lines" model="ir.actions.act_window">
         <field name="name">보강 필요 항목</field>
