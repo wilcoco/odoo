@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="sq_cat_1" model="sq.category">
+            <field name="code">1</field>
+            <field name="name">생산조건관리</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="sq_cat_2" model="sq.category">
+            <field name="code">2</field>
+            <field name="name">검사시험</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="sq_cat_3" model="sq.category">
+            <field name="code">3</field>
+            <field name="name">설비관리</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="sq_cat_4" model="sq.category">
+            <field name="code">4</field>
+            <field name="name">금형관리</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="sq_cat_5" model="sq.category">
+            <field name="code">5</field>
+            <field name="name">자재관리</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="sq_cat_6" model="sq.category">
+            <field name="code">6</field>
+            <field name="name">품질경영체제</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+</odoo>
