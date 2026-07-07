@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfFmea(models.Model):
     _name = "iatf.fmea"
     _description = "FMEA Document (IATF 16949 §8.3.5)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -23,8 +23,14 @@ class IatfFmea(models.Model):
 
     # ── Header info (AIAG-VDA FMEA format) ──
     product_id = fields.Many2one("product.product", string="제품")
+    bom_id = fields.Many2one("mrp.bom", string="BOM", help="이 제품의 BOM 구조 (G1 연동)")
     part_number = fields.Char(string="부품 번호")
     process_name = fields.Char(string="공정 / 시스템명")
+
+    @api.onchange("product_id")
+    def _onchange_product_id_bom(self):
+        if self.product_id and not self.bom_id:
+            self.bom_id = self.env["mrp.bom"]._bom_find(self.product_id).get(self.product_id)
     customer_id = fields.Many2one("res.partner", string="고객")
     model_year = fields.Char(string="모델연도 / 프로그램")
 

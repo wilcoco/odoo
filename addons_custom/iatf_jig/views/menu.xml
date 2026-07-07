@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_jig_root" name="지그/공정"
+              parent="iatf_document_control.menu_iatf_root" sequence="40"/>
+    <menuitem id="menu_iatf_jig" name="지그 대장"
+              parent="menu_iatf_jig_root" action="action_jig" sequence="10"/>
+    <menuitem id="menu_iatf_jig_record" name="지그 점검 기록"
+              parent="menu_iatf_jig_root" action="action_jig_record" sequence="20"/>
+    <menuitem id="menu_iatf_process" name="공정 마스터"
+              parent="menu_iatf_jig_root" action="action_process" sequence="30"/>
+</odoo>

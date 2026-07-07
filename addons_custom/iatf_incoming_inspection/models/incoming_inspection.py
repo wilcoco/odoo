@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfIncomingInspection(models.Model):
     _name = "iatf.incoming.inspection"
     _description = "수입검사 (IATF 16949 §8.6.4)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -44,6 +44,26 @@ class IatfIncomingInspection(models.Model):
 
     # ── 검사 항목 ──
     line_ids = fields.One2many("iatf.incoming.inspection.line", "inspection_id", string="검사 항목")
+
+    # ── 항목별 판정 요약 (회사양식: 외관/치수/재질) ──
+    visual_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="외관 판정", tracking=True,
+    )
+    dimension_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="치수 판정", tracking=True,
+    )
+    material_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="재질 판정 (Mill Sheet)", tracking=True,
+        help="자재 성적서(Mill Sheet) 확인 결과",
+    )
+    defect_rate = fields.Float(
+        string="불량률 (%)", compute="_compute_defect_rate", store=True,
+        digits=(5, 2), help="불합격 수량 / 검사 수량 × 100",
+    )
+    supplier_cert_no = fields.Char(string="성적서 번호", help="협력사 시험성적서 번호")
 
     # ── 판정 ──
     result = fields.Selection(
@@ -94,6 +114,14 @@ class IatfIncomingInspection(models.Model):
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.incoming.inspection") or _("New")
         return super().create(vals_list)
+
+    @api.depends("quantity_rejected", "quantity_inspected")
+    def _compute_defect_rate(self):
+        for rec in self:
+            rec.defect_rate = (
+                rec.quantity_rejected / rec.quantity_inspected * 100.0
+                if rec.quantity_inspected else 0.0
+            )
 
     def action_start_inspection(self):
         self.write({"state": "inspecting"})

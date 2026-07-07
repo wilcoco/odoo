@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_shipping_root" name="출하검사"
+              parent="iatf_document_control.menu_iatf_root" sequence="17"/>
+    <menuitem id="menu_iatf_shipping_inspections" name="검사 목록"
+              parent="menu_iatf_shipping_root"
+              action="action_shipping_inspection" sequence="10"/>
+</odoo>

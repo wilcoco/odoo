@@ -122,6 +122,17 @@
                         <div class="col-lg-3 col-md-6 mb-3">
                             <div class="card">
                                 <div class="card-body text-center">
+                                    <h5 class="card-title">진행 중 시정조치</h5>
+                                    <h2><field name="ca_open"/></h2>
+                                    <small>기한 초과: <field name="ca_overdue" class="text-danger"/></small>
+                                    <br/>
+                                    <button name="action_open_ca_open" type="object" class="btn btn-sm btn-outline-primary mt-2">보기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
                                     <h5 class="card-title">미결 SCAR</h5>
                                     <h2><field name="scar_open"/></h2>
                                     <small>협력업체 D등급: <field name="supplier_grade_d"/></small>
@@ -159,7 +170,7 @@
                                 <div class="card-body text-center">
                                     <h5 class="card-title">수입검사 (IQC)</h5>
                                     <h2><field name="iqc_open" class="text-white"/></h2>
-                                    <small>불합격: <field name="iqc_fail" class="text-white"/></small>
+                                    <small>불합격: <field name="iqc_fail" class="text-white"/> · 합격률: <field name="iqc_pass_rate" class="text-white"/>%</small>
                                     <br/>
                                     <button name="action_open_iqc_open" type="object" class="btn btn-sm btn-light mt-2">보기</button>
                                 </div>
@@ -170,7 +181,7 @@
                                 <div class="card-body text-center">
                                     <h5 class="card-title">공정/출하검사</h5>
                                     <h2><field name="pqc_open" class="text-white"/></h2>
-                                    <small>불합격: <field name="pqc_fail" class="text-white"/></small>
+                                    <small>불합격: <field name="pqc_fail" class="text-white"/> · 합격률: <field name="pqc_pass_rate" class="text-white"/>%</small>
                                     <br/>
                                     <button name="action_open_pqc_open" type="object" class="btn btn-sm btn-light mt-2">보기</button>
                                 </div>

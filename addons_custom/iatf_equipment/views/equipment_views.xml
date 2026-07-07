@@ -31,6 +31,17 @@
                     <button name="action_breakdown" string="고장" type="object" class="btn-danger" invisible="state != 'active'"/>
                     <button name="action_inactive" string="비가동" type="object" invisible="state in ('disposed', 'draft')"/>
                     <button name="action_dispose" string="폐기" type="object" invisible="state == 'disposed'"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
                 </header>
                 <sheet>
@@ -121,6 +132,15 @@
                                     <field name="supplier"/>
                                     <field name="lead_time_days"/>
                                     <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="결재선">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
                                 </list>
                             </field>
                         </page>

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfCorrectiveAction(models.Model):
     _name = "iatf.corrective.action"
     _description = "Corrective / Preventive Action (IATF 16949 §10.2)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(

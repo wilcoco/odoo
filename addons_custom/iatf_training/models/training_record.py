@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfTrainingRecord(models.Model):
     _name = "iatf.training.record"
     _description = "Training Record (IATF 16949 §7.2)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "training_date desc"
 
     name = fields.Char(

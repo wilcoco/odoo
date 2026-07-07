@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_jig_record" model="ir.sequence">
+            <field name="name">지그 점검 기록</field>
+            <field name="code">iatf.jig.record</field>
+            <field name="prefix">JGR-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

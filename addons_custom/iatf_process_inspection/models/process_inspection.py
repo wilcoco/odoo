@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfProcessInspection(models.Model):
     _name = "iatf.process.inspection"
     _description = "공정검사 / 최종검사 (IATF 16949 §8.6)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -20,6 +20,18 @@ class IatfProcessInspection(models.Model):
         ],
         string="검사 단계", required=True, default="ipqc", tracking=True,
     )
+    # ── 회사양식: 초/중/종물 + 교대 + 생산일 ──
+    article_stage = fields.Selection(
+        [
+            ("first", "초물"),
+            ("middle", "중물"),
+            ("last", "종물"),
+        ],
+        string="검사 차수", tracking=True,
+        help="초물(생산 개시)/중물(생산 중)/종물(생산 종료) 검사 — 회사양식 inspectionType",
+    )
+    shift = fields.Char(string="교대조", help="예: 주간/야간 또는 1/2/3교대")
+    production_date = fields.Date(string="생산일")
     inspection_date = fields.Datetime(string="검사 일시", default=fields.Datetime.now, required=True)
 
     # ── 제조/출하 참조 ──
@@ -53,6 +65,20 @@ class IatfProcessInspection(models.Model):
 
     # ── 검사 항목 ──
     line_ids = fields.One2many("iatf.process.inspection.line", "inspection_id", string="검사 항목")
+
+    # ── 항목별 판정 요약 (회사양식: 외관/치수/기능) ──
+    visual_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="외관 판정", tracking=True,
+    )
+    dimension_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="치수 판정", tracking=True,
+    )
+    function_result = fields.Selection(
+        [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
+        string="기능 판정", tracking=True,
+    )
 
     # ── 판정 ──
     result = fields.Selection(

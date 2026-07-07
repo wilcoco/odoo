@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_process_list" model="ir.ui.view">
+        <field name="name">iatf.process.list</field>
+        <field name="model">iatf.process</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="document_no"/>
+                <field name="revision"/>
+                <field name="owner_dept_id"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_process_form" model="ir.ui.view">
+        <field name="name">iatf.process.form</field>
+        <field name="model">iatf.process</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="code" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="category"/>
+                            <field name="owner_dept_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="document_no"/>
+                            <field name="revision"/>
+                            <field name="effective_date"/>
+                            <field name="workcenter_id"/>
+                            <field name="operation_id"/>
+                        </group>
+                    </group>
+                    <group string="설명">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="결재선">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_process" model="ir.actions.act_window">
+        <field name="name">공정 마스터</field>
+        <field name="res_model">iatf.process</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
