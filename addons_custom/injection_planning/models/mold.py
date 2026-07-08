@@ -19,6 +19,11 @@ class InjectionMold(models.Model):
         string="금형 교체 시간 (시간)", default=2.0, tracking=True,
         help="금형 교체에 소요되는 시간 (시간 단위)",
     )
+    required_clamping_ton = fields.Float(
+        string="요구 형체력 (톤)", tracking=True,
+        help="이 금형이 요구하는 최소 사출기 형체력(톤). 0이면 적합성 필터 미적용. "
+             "배정 시 사출기 형체력(톤) ≥ 요구 형체력 인 조합만 선택된다.",
+    )
     current_shots = fields.Integer(string="현재 샷카운트", default=0)
     guaranteed_shots = fields.Integer(
         string="보증 샷수", tracking=True,

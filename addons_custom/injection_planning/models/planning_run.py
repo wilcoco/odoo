@@ -579,8 +579,12 @@ class PlanningRun(models.Model):
                 if (c.product_id.id == pid) or (c.mold_id.product_id.id == pid)
             ]
             if caps:
-                best = max(caps, key=lambda c: c.hourly_capacity)
-                product_daily_cap[pid] = best.hourly_capacity * daily_hours
+                # [G4] 유효능력(불량률 반영) 기준 — 배정 선택 기준과 일치
+                def _eff(c):
+                    dr = c.defect_rate or config.default_defect_rate or 0.0
+                    return c.hourly_capacity * max(0.0, 1.0 - dr / 100.0)
+                best = max(caps, key=_eff)
+                product_daily_cap[pid] = _eff(best) * daily_hours
                 _logger.info(
                     "[순수요] 제품 id=%s: daily_cap=%.1f (hourly=%.1f × %dh)",
                     pid, product_daily_cap[pid], best.hourly_capacity, daily_hours,
@@ -710,33 +714,8 @@ class PlanningRun(models.Model):
             {pid: len(caps) for pid, caps in product_caps.items()},
         )
 
-        # 사출기별 작업 수집
+        # 사출기별 작업 수집 — 배정은 가용시간 헬퍼 정의 후(아래) 수행 [G4/G5]
         machine_jobs = defaultdict(list)
-
-        for (pid, date_str), demand_qty in sorted(
-            net_demands.items(), key=lambda x: (x[0][1], -x[1])  # [G3] 납기(날짜)순, 동일일자는 수량 큰 순
-        ):
-            caps = product_caps.get(pid, [])
-            if not caps:
-                _logger.warning(
-                    "제품 ID %s에 대한 사출기-금형 조합 없음, 건너뜀", pid,
-                )
-                _iss = self.env.context.get("plan_issues")
-                if _iss is not None:
-                    _p = self.env["product.product"].browse(pid)
-                    _iss.append("사출기-금형 조합 없음(배정 탈락!): %s %s %.0f개"
-                                % (_p.default_code or _p.name, date_str, demand_qty))
-                continue
-
-            # 가장 적합한 조합 선택 (시간당 생산능력 높은 순)
-            best_cap = max(caps, key=lambda c: c.hourly_capacity)
-
-            machine_jobs[best_cap.workcenter_id.id].append({
-                "product_id": pid,
-                "date_str": date_str,
-                "demand_qty": demand_qty,
-                "capability": best_cap,
-            })
 
         # 기본 교대 시간 (가동일정 미등록 시 사용)
         default_day_h = config.day_shift_hours or 8.0
@@ -819,6 +798,74 @@ class PlanningRun(models.Model):
             for mold_id, mold_jobs, _ in rest:
                 ordered.append((mold_id, mold_jobs))
             return ordered
+
+        # ── 작업 배정 [G5 형체력 적합성 + G4 유효능력·부하분산·병렬] ──
+        _issues = self.env.context.get("plan_issues")
+        assigned_hours = defaultdict(float)  # (wc_id, date_str) → 배정된 시간
+
+        def _eff_cap(c):
+            dr = c.defect_rate or config.default_defect_rate or 0.0
+            return c.hourly_capacity * max(0.0, 1.0 - dr / 100.0)
+
+        def _suitable_caps(caps_list, pid):
+            """[G5] 형체력 적합성: 사출기 형체력 ≥ 금형 요구 형체력.
+            둘 중 하나라도 0(미등록)이면 필터 미적용(방어). 전 조합 부적합이면
+            경고 후 미필터 진행(생산 자체를 조용히 막지 않기 위함)."""
+            ok = []
+            for c in caps_list:
+                need = c.mold_id.required_clamping_ton or 0.0
+                have = c.workcenter_id.x_clamping_force_ton or 0.0
+                if need and have and have + 1e-6 < need:
+                    continue
+                ok.append(c)
+            if not ok and caps_list:
+                if _issues is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _issues.append("형체력 적합 조합 없음(스펙 확인 필요, 미필터 진행): %s"
+                                   % (_p.default_code or _p.name))
+                return caps_list
+            return ok
+
+        for (pid, date_str), demand_qty in sorted(
+            net_demands.items(), key=lambda x: (x[0][1], -x[1])  # [G3] 납기순, 동일일자 수량 큰 순
+        ):
+            caps = product_caps.get(pid, [])
+            if not caps:
+                _logger.warning("제품 ID %s에 대한 사출기-금형 조합 없음, 건너뜀", pid)
+                if _issues is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _issues.append("사출기-금형 조합 없음(배정 탈락!): %s %s %.0f개"
+                                   % (_p.default_code or _p.name, date_str, demand_qty))
+                continue
+
+            # [G4] 유효능력(불량률 반영) 높은 순으로 후보 정렬
+            ranked = sorted(_suitable_caps(caps, pid), key=_eff_cap, reverse=True)
+            remaining_qty = demand_qty
+            for cap in ranked:
+                if remaining_qty <= 0:
+                    break
+                wc = cap.workcenter_id.id
+                eff = _eff_cap(cap) or (cap.hourly_capacity or 1.0)
+                if cap is ranked[-1]:
+                    take = remaining_qty  # 마지막 후보: 잔량 전부(초과분은 시간커서가 익일 이월)
+                else:
+                    # [G4 부하분산] 이 기계의 당일 잔여 가용시간만큼만 → 넘치면 차선 기계로(병렬)
+                    avail_h, _d, _n2 = _get_available_hours(wc, date_str)
+                    free_h = avail_h - assigned_hours[(wc, date_str)]
+                    if free_h <= 0.1:
+                        continue
+                    cap_qty = int(free_h * eff)
+                    if cap_qty <= 0:
+                        continue
+                    take = min(remaining_qty, cap_qty)
+                machine_jobs[wc].append({
+                    "product_id": pid,
+                    "date_str": date_str,
+                    "demand_qty": take,
+                    "capability": cap,
+                })
+                assigned_hours[(wc, date_str)] += (take / eff) if eff > 0 else 0.0
+                remaining_qty -= take
 
         # 사출기별 스케줄링
         lines_data = []
