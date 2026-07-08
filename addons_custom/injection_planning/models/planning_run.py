@@ -1,6 +1,7 @@
 import math
 import logging
 from collections import defaultdict
+from markupsafe import Markup
 from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
@@ -130,8 +131,9 @@ class PlanningRun(models.Model):
         self.ensure_one()
         config = self._get_config()
 
+        unmapped = {}
         try:
-            demands = self._fetch_from_oracle(config)
+            demands = self.with_context(unmapped_codes=unmapped)._fetch_from_oracle(config)
         except Exception as e:
             _logger.exception("Oracle 수요 조회 실패")
             raise models.UserError(f"Oracle 수요 조회 실패: {e}")
@@ -181,6 +183,12 @@ class PlanningRun(models.Model):
             )
         else:
             self.message_post(body="Oracle에서 가져온 수요 데이터가 없습니다.")
+        # [안전망 S1] 품목 미매핑으로 조용히 제외된 품번을 채터에 보고
+        if unmapped:
+            self.message_post(body=Markup(
+                "<b>⚠ 품목 미매핑으로 제외된 수요 품번 %d종</b> — 품목 마스터 등록 필요:<br/>"
+                % len(unmapped)
+                + ", ".join("%s(%d행)" % (k, v) for k, v in sorted(unmapped.items())[:30])))
 
     def action_add_manual_demand(self):
         """수동 수요 입력 폼 열기"""
@@ -392,6 +400,9 @@ class PlanningRun(models.Model):
         )
         if not product:
             _logger.warning("제품 코드 '%s'에 해당하는 제품 없음", code)
+            um = self.env.context.get("unmapped_codes")
+            if um is not None:
+                um[code] = um.get(code, 0) + 1
         return product
 
     # ─────────────────────────────────────────────
@@ -412,12 +423,23 @@ class PlanningRun(models.Model):
 
         config = self._get_config()
 
+        # [안전망] 계산 중 '조용한 건너뜀'(미전개·조합없음 등)을 수집해 완료 시 채터 보고
+        plan_issues = []
+        self = self.with_context(plan_issues=plan_issues)
+
+        def _post_issues():
+            if plan_issues:
+                self.message_post(body=Markup(
+                    "<b>⚠ 계획 계산 경고 %d건</b><br/>" % len(plan_issues)
+                    + "<br/>".join("· " + i for i in plan_issues)))
+
         # 1단계: BOM 전개 (완성품 → 사출 부품)
         part_demands = self._explode_bom()
 
         if not part_demands:
             self.state = "review"
             self.message_post(body="BOM 전개 결과 사출 부품 수요가 없습니다.")
+            _post_issues()
             return
 
         # 2단계: 순수요 계산 (재고 차감, 최대재고 제한)
@@ -426,6 +448,7 @@ class PlanningRun(models.Model):
         if not net_demands:
             self.state = "review"
             self.message_post(body="현재 재고로 모든 수요 충족 가능. 추가 생산 불필요.")
+            _post_issues()
             return
 
         # 3단계: 사출기 배정 + 수량 조정 + 스케줄링
@@ -445,6 +468,7 @@ class PlanningRun(models.Model):
         # 6단계: 원재료 소요/재고 집계 (확정 검토용)
         self._calculate_material_requirements()
 
+        _post_issues()
         self.state = "review"
 
     def _explode_bom(self):
@@ -457,25 +481,54 @@ class PlanningRun(models.Model):
         """
         # {(product_id, date_str): qty}
         part_demands = defaultdict(float)
+        issues = self.env.context.get("plan_issues")
+
+        # [G1] 사출품 판정: is_injection_part(injection_worksite 설치 시) 또는 capability 보유
+        cap_pids = set()
+        for c in self.env["injection.machine.mold.capability"].search([("active", "=", True)]):
+            cpid = c.product_id.id or c.mold_id.product_id.id
+            if cpid:
+                cap_pids.add(cpid)
+
+        def _is_inj(prod):
+            tmpl = prod.product_tmpl_id
+            if tmpl._fields.get("is_injection_part") and tmpl.is_injection_part:
+                return True
+            return prod.id in cap_pids
 
         # 재계산 멱등성: draft 뿐 아니라 이전 계산으로 confirmed 된 수요도 재전개 대상에 포함.
         #   (calculate_plan 재실행 시 draft 가 없어 계획이 0으로 비워지던 데이터손실 방지.
         #    이미 생산완료(done)·취소(cancelled) 수요는 제외.)
         for demand in self.demand_ids.filtered(lambda d: d.state in ("draft", "confirmed")):
-            bom = self.env["mrp.bom"].search([
+            boms = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", demand.product_id.id),
                 ("product_tmpl_id", "=", demand.product_id.product_tmpl_id.id),
-            ], limit=1)
+            ])
+            bom = boms[:1]
+            # [안전망 S4] 같은 품목에 활성 BOM 이 2개 이상이면 임의 선택 상태 — 경고
+            if len(boms) > 1 and issues is not None:
+                issues.append(
+                    "다중 활성 BOM %d개: %s (첫 번째 사용 — ALC/버전 확인 필요)"
+                    % (len(boms), demand.product_id.default_code or demand.product_id.name))
 
             if not bom or not bom.bom_line_ids:
-                # BOM 없거나 라인 없으면 제품 자체가 사출품으로 간주
-                part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                # BOM 없으면: 사출품이면 자체 수요로 간주, 비사출이면 제외+경고
+                if _is_inj(demand.product_id):
+                    part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                elif issues is not None:
+                    issues.append(
+                        "BOM 없음+비사출 수요 제외: %s (%s, %.0f개)"
+                        % (demand.product_id.default_code or demand.product_id.name,
+                           demand.demand_date, demand.quantity))
                 demand.state = "confirmed"
                 continue
 
             # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
             for line in bom.bom_line_ids:
+                # [G1] 비사출 구성품(외주 체결구·클립 등)은 사출 계획에서 제외
+                if not _is_inj(line.product_id):
+                    continue
                 qty_per = line.product_qty / (bom.product_qty or 1)
                 part_demands[(line.product_id.id, str(demand.demand_date))] += (
                     demand.quantity * qty_per
@@ -536,6 +589,11 @@ class PlanningRun(models.Model):
                 _logger.warning(
                     "[순수요] 제품 id=%s: capability 없음! 풀캐퍼 계산 불가", pid,
                 )
+                _iss = self.env.context.get("plan_issues")
+                if _iss is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _iss.append("capability 없음(풀캐퍼 정책 미적용): %s"
+                                % (_p.default_code or _p.name))
 
         # 제품별 날짜→수요 매핑 (향후 N일 참조용)
         product_date_demand = defaultdict(dict)
@@ -656,13 +714,18 @@ class PlanningRun(models.Model):
         machine_jobs = defaultdict(list)
 
         for (pid, date_str), demand_qty in sorted(
-            net_demands.items(), key=lambda x: x[1]
+            net_demands.items(), key=lambda x: (x[0][1], -x[1])  # [G3] 납기(날짜)순, 동일일자는 수량 큰 순
         ):
             caps = product_caps.get(pid, [])
             if not caps:
                 _logger.warning(
                     "제품 ID %s에 대한 사출기-금형 조합 없음, 건너뜀", pid,
                 )
+                _iss = self.env.context.get("plan_issues")
+                if _iss is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _iss.append("사출기-금형 조합 없음(배정 탈락!): %s %s %.0f개"
+                                % (_p.default_code or _p.name, date_str, demand_qty))
                 continue
 
             # 가장 적합한 조합 선택 (시간당 생산능력 높은 순)
