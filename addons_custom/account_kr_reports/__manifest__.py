@@ -7,9 +7,11 @@
     "author": "DevSanx",
     "depends": ["account_kr_guard"],
     "data": [
+        "security/ir.model.access.csv",
         "views/move_tax_views.xml",
         "views/ledger_views.xml",
         "views/menus.xml",
+        "views/cash_status_views.xml",
     ],
     "installable": True,
 }
