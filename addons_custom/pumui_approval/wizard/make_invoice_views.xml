@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pumui_make_invoice" model="ir.ui.view">
+        <field name="name">pumui.make.invoice.form</field>
+        <field name="model">pumui.make.invoice</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="pumui_id" readonly="1"/>
+                    <field name="stage" widget="radio"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="청구서 생성" type="object" class="btn-primary"/>
+                    <button string="취소" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
