@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_close_checklist_form" model="ir.ui.view">
+        <field name="name">kr.close.checklist.form</field>
+        <field name="model">kr.close.checklist</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <sheet>
+                    <h1>마감 전 체크리스트</h1>
+                    <p class="text-muted">0이 아닌 항목을 눌러 문제 건을 확인·정리한 뒤 마감하세요. (리포트 #28)</p>
+                    <group>
+                        <group string="청구서">
+                            <label for="zero_total"/>
+                            <div><field name="zero_total" class="oe_inline"/> 건
+                                <button name="action_zero_total" type="object" string="보기" class="btn-link" invisible="zero_total == 0"/></div>
+                            <label for="line_no_tax"/>
+                            <div><field name="line_no_tax" class="oe_inline"/> 건
+                                <button name="action_line_no_tax" type="object" string="보기" class="btn-link" invisible="line_no_tax == 0"/></div>
+                            <label for="negative_invoices"/>
+                            <div><field name="negative_invoices" class="oe_inline"/> 건
+                                <button name="action_negative" type="object" string="보기" class="btn-link" invisible="negative_invoices == 0"/></div>
+                        </group>
+                        <group string="결제">
+                            <label for="draft_payments"/>
+                            <div><field name="draft_payments" class="oe_inline"/> 건
+                                <button name="action_draft_payments" type="object" string="보기" class="btn-link" invisible="draft_payments == 0"/></div>
+                            <label for="unmatched_payments"/>
+                            <div><field name="unmatched_payments" class="oe_inline"/> 건
+                                <button name="action_unmatched_payments" type="object" string="보기" class="btn-link" invisible="unmatched_payments == 0"/></div>
+                        </group>
+                        <group string="거래처">
+                            <label for="partner_no_vat"/>
+                            <div><field name="partner_no_vat" class="oe_inline"/> 건
+                                <button name="action_partner_no_vat" type="object" string="보기" class="btn-link" invisible="partner_no_vat == 0"/></div>
+                            <label for="partner_dup_vat"/>
+                            <div><field name="partner_dup_vat" class="oe_inline"/> 건
+                                <button name="action_partner_dup_vat" type="object" string="보기" class="btn-link" invisible="partner_dup_vat == 0"/></div>
+                        </group>
+                        <group string="품의 연계">
+                            <label for="unapproved_pumui_moves"/>
+                            <div><field name="unapproved_pumui_moves" class="oe_inline"/> 건
+                                <button name="action_unapproved_pumui" type="object" string="보기" class="btn-link" invisible="unapproved_pumui_moves == 0"/></div>
+                            <label for="no_pumui_moves"/>
+                            <div><field name="no_pumui_moves" class="oe_inline"/> 건
+                                <button name="action_no_pumui" type="object" string="보기" class="btn-link" invisible="no_pumui_moves == 0"/></div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_kr_close_checklist" model="ir.actions.server">
+        <field name="name">마감 전 체크리스트</field>
+        <field name="model_id" ref="model_kr_close_checklist"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+</odoo>
