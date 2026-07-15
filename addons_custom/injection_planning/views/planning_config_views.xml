@@ -19,7 +19,7 @@
                         </group>
                         <group>
                             <field name="oracle_user"/>
-                            <field name="oracle_password"/>
+                            <field name="oracle_password" widget="password"/>
                             <button name="action_test_oracle_connection"
                                     string="연결 테스트" type="object"
                                     class="btn-primary"/>

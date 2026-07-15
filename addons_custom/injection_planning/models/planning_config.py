@@ -15,7 +15,7 @@ class InjectionPlanningConfig(models.Model):
     oracle_port = fields.Integer(string="Oracle 포트", default=1521)
     oracle_sid = fields.Char(string="Oracle SID", default="orcl")
     oracle_user = fields.Char(string="DB 사용자", default="prd")
-    oracle_password = fields.Char(string="DB 비밀번호", password=True)
+    oracle_password = fields.Char(string="DB 비밀번호")
     oracle_client_path = fields.Char(
         string="Oracle Client 경로",
         help="Oracle Instant Client 라이브러리 경로 (Thick 모드). "
