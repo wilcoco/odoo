@@ -19,7 +19,8 @@
                                    invisible="not is_supplier_portal"/>
                         </group>
                         <group string="포탈 접근" invisible="not is_supplier_portal">
-                            <field name="supplier_portal_token" readonly="1"/>
+                            <field name="supplier_portal_token_expiry"/>
+                        <field name="supplier_portal_token" readonly="1"/>
                             <button name="action_generate_portal_token"
                                     string="토큰 생성" type="object"
                                     class="btn-secondary"

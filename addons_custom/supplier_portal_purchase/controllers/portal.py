@@ -40,6 +40,11 @@ class SupplierPortalController(http.Controller):
         if not partner:
             raise AccessDenied(_("유효하지 않은 접근 토큰입니다."))
 
+        # [보안수칙] 토큰 만료 검사 — 만료일 경과 시 접근 거부(재발급 필요)
+        expiry = partner.supplier_portal_token_expiry
+        if expiry and expiry < fields.Date.context_today(partner):
+            raise AccessDenied(_("접근 토큰이 만료되었습니다. 담당자에게 재발급을 요청하세요."))
+
         return partner
 
     def _validate_po_access(self, po_id, token):

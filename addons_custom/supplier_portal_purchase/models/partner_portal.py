@@ -12,6 +12,10 @@ class ResPartner(models.Model):
         default=False,
         help="협력사 포탈을 통해 발주 확인/응답 가능",
     )
+    supplier_portal_token_expiry = fields.Date(
+        string="포털 토큰 만료일",
+        help="이 날짜가 지나면 포털 접근이 거부된다(운영 보안 수칙). "
+             "재발급 시 자동으로 오늘+180일로 갱신. 비우면 무기한(권장 안 함).")
     supplier_portal_token = fields.Char(
         string="포탈 접근 토큰",
         copy=False,
@@ -74,11 +78,14 @@ class ResPartner(models.Model):
         for partner in self:
             if partner.is_supplier_portal and not partner.supplier_portal_token:
                 partner.supplier_portal_token = secrets.token_urlsafe(32)
+                partner.supplier_portal_token_expiry = fields.Date.add(
+                    fields.Date.context_today(partner), days=180)
 
     def action_generate_portal_token(self):
         """포탈 접근 토큰 (재)생성"""
         for partner in self:
             partner.supplier_portal_token = secrets.token_urlsafe(32)
+        self.supplier_portal_token_expiry = fields.Date.add(fields.Date.context_today(self), days=180)
         return True
 
     def action_view_supplier_pos(self):
