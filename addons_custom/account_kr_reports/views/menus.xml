@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 매입매출장 액션들 -->
+    <record id="action_kr_sales_ledger" model="ir.actions.act_window">
+        <field name="name">매출장</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="view_ids" eval="[(5,0,0),
+            (0,0,{'view_mode':'list','view_id':ref('view_kr_tax_ledger_list')}),
+            (0,0,{'view_mode':'pivot','view_id':ref('view_kr_tax_ledger_pivot')})]"/>
+        <field name="search_view_id" ref="view_kr_tax_ledger_search"/>
+        <field name="domain">[('move_type','in',('out_invoice','out_refund'))]</field>
+        <field name="context">{'search_default_posted':1}</field>
+    </record>
+    <record id="action_kr_purchase_ledger" model="ir.actions.act_window">
+        <field name="name">매입장</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="view_ids" eval="[(5,0,0),
+            (0,0,{'view_mode':'list','view_id':ref('view_kr_tax_ledger_list')}),
+            (0,0,{'view_mode':'pivot','view_id':ref('view_kr_tax_ledger_pivot')})]"/>
+        <field name="search_view_id" ref="view_kr_tax_ledger_search"/>
+        <field name="domain">[('move_type','in',('in_invoice','in_refund'))]</field>
+        <field name="context">{'search_default_posted':1}</field>
+    </record>
+    <!-- 세금계산서 합계표 (매출처별/매입처별) -->
+    <record id="action_kr_sales_tax_summary" model="ir.actions.act_window">
+        <field name="name">매출처별 세금계산서 합계표</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_kr_tax_ledger_pivot"/>
+        <field name="search_view_id" ref="view_kr_tax_ledger_search"/>
+        <field name="domain">[('move_type','in',('out_invoice','out_refund')),('state','=','posted'),('kr_doc_type','=','tax_invoice')]</field>
+    </record>
+    <record id="action_kr_purchase_tax_summary" model="ir.actions.act_window">
+        <field name="name">매입처별 세금계산서 합계표</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_kr_tax_ledger_pivot"/>
+        <field name="search_view_id" ref="view_kr_tax_ledger_search"/>
+        <field name="domain">[('move_type','in',('in_invoice','in_refund')),('state','=','posted'),('kr_doc_type','=','tax_invoice')]</field>
+    </record>
+
+    <!-- 메뉴 (account_kr_guard의 루트 재사용) -->
+    <menuitem id="menu_kr_tax_ledger" name="매입매출장" parent="account_kr_guard.menu_kr_guard_root" sequence="40"/>
+    <menuitem id="menu_kr_sales_ledger" name="매출장" parent="menu_kr_tax_ledger" action="action_kr_sales_ledger" sequence="10"/>
+    <menuitem id="menu_kr_purchase_ledger" name="매입장" parent="menu_kr_tax_ledger" action="action_kr_purchase_ledger" sequence="20"/>
+    <menuitem id="menu_kr_sales_summary" name="매출처별 합계표" parent="menu_kr_tax_ledger" action="action_kr_sales_tax_summary" sequence="30"/>
+    <menuitem id="menu_kr_purchase_summary" name="매입처별 합계표" parent="menu_kr_tax_ledger" action="action_kr_purchase_tax_summary" sequence="40"/>
+    <menuitem id="menu_kr_daily_sheet" name="일계표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_daily_sheet" sequence="50"/>
+    <menuitem id="menu_kr_monthly_sheet" name="월계표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_monthly_sheet" sequence="55"/>
+    <menuitem id="menu_kr_today_moves" name="오늘 전표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_today_moves" sequence="60"/>
+    <menuitem id="menu_kr_receivable_due" name="수금 예정표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_receivable_due" sequence="70"/>
+    <menuitem id="menu_kr_payable_due" name="지급 예정표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_payable_due" sequence="75"/>
+</odoo>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 청구서 폼: 과세구분·증빙종류·승인번호·원본번호 -->
+    <record id="view_move_form_kr_tax" model="ir.ui.view">
+        <field name="name">account.move.form.kr.tax</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="kr_doc_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
+                <field name="kr_tax_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
+                <field name="kr_approval_number" invisible="kr_doc_type not in ('tax_invoice','invoice')"/>
+                <field name="kr_is_correction" invisible="not kr_is_correction"/>
+                <field name="kr_origin_number" invisible="not kr_is_correction"
+                       required="kr_is_correction and kr_doc_type == 'tax_invoice'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- 매입매출장 목록 (전용) -->
+    <record id="view_kr_tax_ledger_list" model="ir.ui.view">
+        <field name="name">account.move.kr.tax.ledger.list</field>
+        <field name="model">account.move</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="kr_is_correction" create="false">
+                <field name="invoice_date" string="작성일자"/>
+                <field name="delivery_date" string="공급일자" optional="hide"/>
+                <field name="partner_id" string="거래처"/>
+                <field name="kr_partner_vat" string="사업자등록번호" optional="show"/>
+                <field name="kr_approval_number" optional="show"/>
+                <field name="name" string="전표번호"/>
+                <field name="amount_untaxed" string="공급가액" sum="공급가액계"/>
+                <field name="amount_tax" string="세액" sum="세액계"/>
+                <field name="amount_total" string="합계금액" sum="합계"/>
+                <field name="kr_tax_type"/>
+                <field name="kr_doc_type" optional="show"/>
+                <field name="kr_is_correction" string="수정" optional="show"/>
+                <field name="kr_origin_number" optional="hide"/>
+                <field name="pumui_id" optional="hide"/>
+                <field name="payment_state" optional="show"/>
+                <field name="state" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 부가세 집계 피벗 (유형별/거래처별) -->
+    <record id="view_kr_tax_ledger_pivot" model="ir.ui.view">
+        <field name="name">account.move.kr.tax.ledger.pivot</field>
+        <field name="model">account.move</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="partner_id" type="row"/>
+                <field name="kr_tax_type" type="col"/>
+                <field name="amount_untaxed" type="measure" string="공급가액"/>
+                <field name="amount_tax" type="measure" string="세액"/>
+                <field name="amount_total" type="measure" string="합계"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_kr_tax_ledger_search" model="ir.ui.view">
+        <field name="name">account.move.kr.tax.ledger.search</field>
+        <field name="model">account.move</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="kr_approval_number"/>
+                <field name="name"/>
+                <filter name="posted" string="전기됨" domain="[('state','=','posted')]"/>
+                <separator/>
+                <filter name="taxable" string="과세" domain="[('kr_tax_type','=','taxable')]"/>
+                <filter name="zero" string="영세" domain="[('kr_tax_type','=','zero')]"/>
+                <filter name="exempt" string="면세" domain="[('kr_tax_type','=','exempt')]"/>
+                <filter name="correction" string="수정/마이너스" domain="[('kr_is_correction','=',True)]"/>
+                <separator/>
+                <filter name="f_month" string="작성일자(월)" date="invoice_date"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_partner" string="거래처" context="{'group_by':'partner_id'}"/>
+                    <filter name="g_tax" string="과세구분" context="{'group_by':'kr_tax_type'}"/>
+                    <filter name="g_doc" string="증빙종류" context="{'group_by':'kr_doc_type'}"/>
+                    <filter name="g_month" string="월별" context="{'group_by':'invoice_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 마감 체크리스트에 부가세 신고 전 검증 섹션 추가 -->
+    <record id="view_kr_close_checklist_form_tax" model="ir.ui.view">
+        <field name="name">kr.close.checklist.form.tax</field>
+        <field name="model">kr.close.checklist</field>
+        <field name="inherit_id" ref="account_kr_guard.view_kr_close_checklist_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='no_pumui_moves']/../.." position="after">
+                <group string="부가세 신고 전 검증">
+                    <label for="tax_no_approval"/>
+                    <div><field name="tax_no_approval" class="oe_inline"/> 건
+                        <button name="action_tax_no_approval" type="object" string="보기" class="btn-link" invisible="tax_no_approval == 0"/></div>
+                    <label for="tax_no_vat_partner"/>
+                    <div><field name="tax_no_vat_partner" class="oe_inline"/> 건
+                        <button name="action_tax_no_vat_partner" type="object" string="보기" class="btn-link" invisible="tax_no_vat_partner == 0"/></div>
+                    <label for="correction_no_origin"/>
+                    <div><field name="correction_no_origin" class="oe_inline"/> 건
+                        <button name="action_correction_no_origin" type="object" string="보기" class="btn-link" invisible="correction_no_origin == 0"/></div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
