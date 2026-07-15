@@ -104,6 +104,9 @@
                     <label for="correction_no_origin"/>
                     <div><field name="correction_no_origin" class="oe_inline"/> 건
                         <button name="action_correction_no_origin" type="object" string="보기" class="btn-link" invisible="correction_no_origin == 0"/></div>
+                    <label for="residual_mismatch"/>
+                    <div><field name="residual_mismatch" class="oe_inline"/> 거래처
+                        <button name="action_residual_mismatch" type="object" string="보기" class="btn-link" invisible="residual_mismatch == 0"/></div>
                 </group>
             </xpath>
         </field>

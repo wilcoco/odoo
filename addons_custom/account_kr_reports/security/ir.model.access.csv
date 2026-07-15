@@ -8,3 +8,4 @@ access_kr_fs_line_mgr,kr.fs.line manager,model_kr_fs_line,account.group_account_
 access_kr_financial_statement,kr.financial.statement,model_kr_financial_statement,account.group_account_invoice,1,1,1,1
 access_kr_financial_statement_line,kr.financial.statement.line,model_kr_financial_statement_line,account.group_account_invoice,1,1,1,1
 access_kr_template_download,kr.template.download,model_kr_template_download,account.group_account_invoice,1,1,1,1
+access_kr_lock_log,kr.lock.log readonly,model_kr_lock_log,account.group_account_invoice,1,0,0,0
