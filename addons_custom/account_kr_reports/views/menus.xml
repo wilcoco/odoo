@@ -52,4 +52,8 @@
     <menuitem id="menu_kr_today_moves" name="오늘 전표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_today_moves" sequence="60"/>
     <menuitem id="menu_kr_receivable_due" name="수금 예정표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_receivable_due" sequence="70"/>
     <menuitem id="menu_kr_payable_due" name="지급 예정표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_payable_due" sequence="75"/>
+    <menuitem id="menu_kr_loan" name="대출 관리" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_loan" sequence="80"/>
+    <menuitem id="menu_kr_fs" name="K-재무제표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_fs" sequence="85"/>
+    <menuitem id="menu_kr_fs_line" name="재무제표 매핑 설정" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_fs_line" sequence="86" groups="account.group_account_manager"/>
+    <menuitem id="menu_kr_template_download" name="업로드 템플릿 다운로드" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_template_download" sequence="90"/>
 </odoo>

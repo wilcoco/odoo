@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_loan_list" model="ir.ui.view">
+        <field name="name">kr.loan.list</field>
+        <field name="model">kr.loan</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'closed'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date_start"/>
+                <field name="maturity_date"/>
+                <field name="payment_mode"/>
+                <field name="interest_rate"/>
+                <field name="principal" sum="원금 합계"/>
+                <field name="balance" sum="잔액 합계"/>
+                <field name="paid_interest" sum="지급이자 합계"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'" decoration-success="state == 'active'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_loan_form" model="ir.ui.view">
+        <field name="name">kr.loan.form</field>
+        <field name="model">kr.loan</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_schedule" type="object" string="스케줄 생성"
+                            class="btn-primary" invisible="payment_mode == 'custom' or state == 'closed'"/>
+                    <button name="action_close" type="object" string="상환 완료 처리"
+                            invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="principal"/>
+                            <field name="interest_rate"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="maturity_date"/>
+                            <field name="payment_mode"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="현황">
+                            <field name="balance"/>
+                            <field name="paid_principal"/>
+                            <field name="paid_interest"/>
+                            <field name="total_interest"/>
+                        </group>
+                        <group string="약정 조건">
+                            <field name="note" nolabel="1" colspan="2"
+                                   placeholder="예: 당년도 발생 차입금은 연말 정리 후, 차환 시 차액 적용"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="지급 스케줄">
+                            <field name="schedule_ids">
+                                <list editable="bottom" decoration-success="state == 'paid'">
+                                    <field name="date_due"/>
+                                    <field name="amount_principal" sum="원금"/>
+                                    <field name="amount_interest" sum="이자"/>
+                                    <field name="date_paid"/>
+                                    <field name="move_id"/>
+                                    <field name="state"/>
+                                    <button name="action_mark_paid" type="object" string="지급 완료"
+                                            icon="fa-check" invisible="state == 'paid'"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_loan" model="ir.actions.act_window">
+        <field name="name">대출 관리</field>
+        <field name="res_model">kr.loan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">대출 약정을 등록하세요</p>
+            <p>약정 조건(지급 방식·이자율·스케줄)을 입력하면 잔액과 지급 현황이 자동 관리됩니다.</p>
+        </field>
+    </record>
+</odoo>
