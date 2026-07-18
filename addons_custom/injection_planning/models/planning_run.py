@@ -1095,6 +1095,36 @@ class PlanningRun(models.Model):
             "context": {"default_planning_run_id": self.id},
         }
 
+    def _validate_planning_line(self, line):
+        """MO 생성 전 라인 검증 훅 — 확장 모듈(worksite 등)이 오버라이드.
+        검증 실패는 UserError 로 전체 생성을 중단시킨다(계획자가 먼저 고칠 문제)."""
+        return True
+
+    def _get_mo_vals(self, line, bom):
+        """MO vals 단일 훅 — 확장 모듈은 generate 전체가 아니라 이 훅만 오버라이드한다.
+        (한쪽 수정이 다른 쪽에 누락되는 이중 유지보수 방지)"""
+        MO = self.env["mrp.production"]
+        mo_vals = {
+            "product_id": line.product_id.id,
+            "product_qty": line.planned_qty,
+            "bom_id": bom.id if bom else False,
+            "date_start": line.start_time or fields.Datetime.now(),
+            "planning_run_id": self.id,
+        }
+        # 사출 현장(injection_worksite) 연계 — 계획 배정 결과(호기·금형)를 MO 에 전달.
+        # 미전달 시 PLC 단위실적이 계획 MO 를 찾지 못해 현장 연동이 끊긴다.
+        # worksite 미설치 환경(계획 단독)에서도 동작하도록 필드 존재 검사로 가드.
+        if line.workcenter_id and "workcenter_id" in MO._fields:
+            mo_vals["workcenter_id"] = line.workcenter_id.id
+        if "is_injection_mo" in MO._fields:
+            mo_vals["is_injection_mo"] = True
+        if line.mold_id and "actual_mold_id" in MO._fields:
+            mo_vals["actual_mold_id"] = line.mold_id.id
+        if "inj_shift" in MO._fields:
+            # 계획 단계엔 교대 정보가 없음 — 주간 기본, 현장 개시 시 변경
+            mo_vals["inj_shift"] = "day"
+        return mo_vals
+
     def generate_manufacturing_orders(self):
         """실제 MO 생성"""
         self.ensure_one()
@@ -1103,31 +1133,13 @@ class PlanningRun(models.Model):
         failed = []
 
         for line in self.line_ids.filtered(lambda l: l.state == "draft"):
+            self._validate_planning_line(line)
             bom = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", line.product_id.id),
                 ("product_tmpl_id", "=", line.product_id.product_tmpl_id.id),
             ], limit=1)
-
-            mo_vals = {
-                "product_id": line.product_id.id,
-                "product_qty": line.planned_qty,
-                "bom_id": bom.id if bom else False,
-                "date_start": line.start_time or fields.Datetime.now(),
-                "planning_run_id": self.id,
-            }
-            # 사출 현장(injection_worksite) 연계 — 계획 배정 결과(호기·금형)를 MO 에 전달.
-            # 미전달 시 PLC 단위실적이 계획 MO 를 찾지 못해 현장 연동이 끊긴다.
-            # worksite 미설치 환경(계획 단독)에서도 동작하도록 필드 존재 검사로 가드.
-            if line.workcenter_id and "workcenter_id" in MO._fields:
-                mo_vals["workcenter_id"] = line.workcenter_id.id
-            if "is_injection_mo" in MO._fields:
-                mo_vals["is_injection_mo"] = True
-            if line.mold_id and "actual_mold_id" in MO._fields:
-                mo_vals["actual_mold_id"] = line.mold_id.id
-            if "inj_shift" in MO._fields:
-                # 계획 단계엔 교대 정보가 없음 — 주간 기본, 현장 개시 시 변경
-                mo_vals["inj_shift"] = "day"
+            mo_vals = self._get_mo_vals(line, bom)
 
             try:
                 mo = MO.create(mo_vals)
