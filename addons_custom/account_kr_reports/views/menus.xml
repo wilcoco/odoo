@@ -56,5 +56,6 @@
     <menuitem id="menu_kr_fs" name="K-재무제표" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_fs" sequence="85"/>
     <menuitem id="menu_kr_fs_line" name="재무제표 매핑 설정" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_fs_line" sequence="86" groups="account.group_account_manager"/>
     <menuitem id="menu_kr_lock_log" name="마감 잠금 변경 이력" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_lock_log" sequence="87" groups="account.group_account_manager"/>
+    <menuitem id="menu_kr_sales_tax_match" name="매출 승인번호 매칭" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_sales_tax_match" sequence="89"/>
     <menuitem id="menu_kr_template_download" name="업로드 템플릿 다운로드" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_template_download" sequence="90"/>
 </odoo>

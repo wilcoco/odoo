@@ -28,6 +28,12 @@ TEMPLATES = {
                    "품목 설명", "1", "500000", "매입 10%"],
         "help": "가져오기 대상: 회계 > 구매처 > 공급자청구서 (account.move, move_type=in_invoice)",
     },
+    "tax_sale_match": {
+        "filename": "오두_매출_승인번호_매칭.csv",
+        "headers": ["approval_number", "vat", "date", "total"],
+        "sample": ["20260131-12345678-12345678", "123-45-67890", "2026-01-31", "1100000"],
+        "help": "회계 점검·조회(K) > 매출 승인번호 매칭 위저드 (기존 posted 매출 청구서에 백필)",
+    },
     "bank": {
         "filename": "오두_업로드_은행거래내역.csv",
         "headers": ["date", "payment_ref", "partner_id", "amount"],
@@ -45,7 +51,7 @@ class KrTemplateDownload(models.TransientModel):
 
     template_type = fields.Selection(
         [("tax_sale", "세금계산서 매출분"), ("tax_purchase", "세금계산서 매입분"),
-         ("bank", "은행 거래내역")],
+         ("tax_sale_match", "매출 승인번호 매칭용"), ("bank", "은행 거래내역")],
         string="템플릿 종류", required=True, default="tax_sale")
     file = fields.Binary(string="템플릿 파일", readonly=True)
     filename = fields.Char(string="파일명")
