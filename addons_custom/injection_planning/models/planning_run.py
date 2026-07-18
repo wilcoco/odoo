@@ -1100,6 +1100,7 @@ class PlanningRun(models.Model):
         self.ensure_one()
         MO = self.env["mrp.production"]
         created_mos = self.env["mrp.production"]
+        failed = []
 
         for line in self.line_ids.filtered(lambda l: l.state == "draft"):
             bom = self.env["mrp.bom"].search([
@@ -1115,6 +1116,18 @@ class PlanningRun(models.Model):
                 "date_start": line.start_time or fields.Datetime.now(),
                 "planning_run_id": self.id,
             }
+            # 사출 현장(injection_worksite) 연계 — 계획 배정 결과(호기·금형)를 MO 에 전달.
+            # 미전달 시 PLC 단위실적이 계획 MO 를 찾지 못해 현장 연동이 끊긴다.
+            # worksite 미설치 환경(계획 단독)에서도 동작하도록 필드 존재 검사로 가드.
+            if line.workcenter_id and "workcenter_id" in MO._fields:
+                mo_vals["workcenter_id"] = line.workcenter_id.id
+            if "is_injection_mo" in MO._fields:
+                mo_vals["is_injection_mo"] = True
+            if line.mold_id and "actual_mold_id" in MO._fields:
+                mo_vals["actual_mold_id"] = line.mold_id.id
+            if "inj_shift" in MO._fields:
+                # 계획 단계엔 교대 정보가 없음 — 주간 기본, 현장 개시 시 변경
+                mo_vals["inj_shift"] = "day"
 
             try:
                 mo = MO.create(mo_vals)
@@ -1125,16 +1138,20 @@ class PlanningRun(models.Model):
                     "MO %s 생성: %s x %s",
                     mo.name, line.product_id.display_name, line.planned_qty,
                 )
-            except Exception:
+            except Exception as exc:
                 _logger.exception(
                     "MO 생성 실패: product=%s, qty=%s",
                     line.product_id.display_name, line.planned_qty,
                 )
+                failed.append("%s×%s: %s" % (
+                    line.product_id.display_name, line.planned_qty, str(exc)[:80]))
 
         self.state = "confirmed"
-        self.message_post(
-            body=f"{len(created_mos)}건 제조 오더가 생성되었습니다."
-        )
+        body = f"{len(created_mos)}건 제조 오더가 생성되었습니다."
+        if failed:
+            # 조용한 실패 금지 — 생성 실패분을 채터에 각인해 계획 유실을 가시화
+            body += "<br/>⚠️ 생성 실패 %d건:<br/>%s" % (len(failed), "<br/>".join(failed))
+        self.message_post(body=Markup(body) if failed else body)
         return created_mos
 
     def action_cancel(self):

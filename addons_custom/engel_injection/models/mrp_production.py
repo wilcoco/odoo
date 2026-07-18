@@ -41,6 +41,12 @@ class MrpProduction(models.Model):
         """MO 확정 시 LOT 자동 생성"""
         res = super().action_confirm()
         for production in self:
+            # 사출 MO/사출품 제외 — lot·시리얼 발행은 escon_serial(14자리 규칙) 소관.
+            # 여기서 임의 명명(LOT-YYYYMM)하면 규칙 밖 lot 이 생겨 스캔/추적 체계가 깨진다.
+            # (2-tier: 계획 MO 는 실물 lot 을 갖지 않고 단위 MO 가 발행받는다)
+            if getattr(production, "is_injection_mo", False) or \
+                    getattr(production.product_id, "is_injection_part", False):
+                continue
             if (
                 production.product_id.tracking in ("lot", "serial")
                 and not production.lot_producing_id
