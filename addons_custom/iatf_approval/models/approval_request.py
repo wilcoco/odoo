@@ -200,7 +200,6 @@ class IatfApprovalLine(models.Model):
             ("rejected", "Rejected"),
         ],
         default="new",
-        tracking=True,
     )
     action_date = fields.Datetime(string="Action Date")
     note = fields.Char(string="Note")
@@ -316,9 +315,38 @@ class IatfApprovalMixin(models.AbstractModel):
         requests.sudo().unlink()
         return res
 
+    def _approval_amount(self):
+        """템플릿 금액 조건용 문서 금액 — 필요한 모델은 오버라이드."""
+        self.ensure_one()
+        for fname in ("amount_total", "amount", "total_amount"):
+            if fname in self._fields:
+                try:
+                    return float(self[fname] or 0.0)
+                except (TypeError, ValueError):
+                    continue
+        return 0.0
+
+    def _approval_apply_default_template(self):
+        """결재선이 비어 있으면 모델/부서/금액 매칭 템플릿으로 자동 구성."""
+        Template = self.env["iatf.approval.template"]
+        for record in self:
+            if record.approval_line_ids:
+                continue
+            employee = self.env.user.employee_id
+            department = employee.department_id if employee else self.env["hr.department"]
+            template = Template._find_for(record, record._approval_amount(), department)
+            if not template:
+                continue
+            record.approval_request_id.write({"line_ids": [
+                (0, 0, {"sequence": l.sequence, "user_id": l.user_id.id})
+                for l in template.line_ids]})
+            record.message_post(body="결재선 템플릿 '%s' 자동 적용 (%d단계)"
+                                     % (template.name, len(template.line_ids)))
+
     def action_submit_approval(self):
         for record in self:
             record._approval_ensure_request()
+            record._approval_apply_default_template()
             record.approval_request_id.action_submit()
         return True
 

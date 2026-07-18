@@ -3,3 +3,7 @@ access_iatf_approval_request_user,iatf.approval.request.user,model_iatf_approval
 access_iatf_approval_request_manager,iatf.approval.request.manager,model_iatf_approval_request,base.group_system,1,1,1,1
 access_iatf_approval_line_user,iatf.approval.line.user,model_iatf_approval_line,base.group_user,1,1,1,0
 access_iatf_approval_line_manager,iatf.approval.line.manager,model_iatf_approval_line,base.group_system,1,1,1,1
+access_iatf_approval_template_user,iatf.approval.template.user,model_iatf_approval_template,base.group_user,1,0,0,0
+access_iatf_approval_template_admin,iatf.approval.template.admin,model_iatf_approval_template,base.group_system,1,1,1,1
+access_iatf_approval_template_line_user,iatf.approval.template.line.user,model_iatf_approval_template_line,base.group_user,1,0,0,0
+access_iatf_approval_template_line_admin,iatf.approval.template.line.admin,model_iatf_approval_template_line,base.group_system,1,1,1,1

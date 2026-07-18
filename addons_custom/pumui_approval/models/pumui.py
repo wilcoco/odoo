@@ -104,8 +104,13 @@ class PumuiRequest(models.Model):
         for rec in self:
             if not rec.line_ids:
                 raise UserError(_("품의 항목이 없습니다. 항목을 입력 후 상신하세요."))
+        # 결재선이 비어 있으면 기본 결재선 템플릿(모델/부서/금액 매칭) 먼저 적용
+        self._approval_ensure_request()
+        self._approval_apply_default_template()
+        for rec in self:
             if not rec.approval_line_ids:
-                raise UserError(_("결재선(승인자)을 지정한 후 상신하세요."))
+                raise UserError(_("결재선(승인자)을 지정한 후 상신하세요. "
+                                  "(매칭되는 결재선 템플릿이 없습니다)"))
         return super().action_submit_approval()
 
     # ── 청구서 생성 (승인 후에만, 단계별 지원) ──
