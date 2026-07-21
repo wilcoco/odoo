@@ -53,6 +53,9 @@
                 <header>
                     <button name="action_start_collecting" string="Start Collecting" type="object" class="oe_highlight"
                             invisible="state != 'draft'"/>
+                    <button name="action_collect_plc_measurements" string="PLC 실측 수집" type="object"
+                            invisible="state in ('done', 'cancel')"
+                            help="사출 PLC 실측중량을 부분군으로 자동 수집 (재실행 시 이어서 수집)"/>
                     <button name="action_calculate" string="Calculate" type="object" class="oe_highlight"
                             invisible="state not in ('collecting', 'analyzed')"/>
                     <button name="action_close" string="Close" type="object"

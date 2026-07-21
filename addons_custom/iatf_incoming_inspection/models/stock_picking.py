@@ -80,17 +80,30 @@ class StockPicking(models.Model):
 class StockMove(models.Model):
     _inherit = "stock.move"
 
-    def _action_confirm(self, merge=True, merge_into=False):
-        """품질 보류 로트가 MO에 투입되는 것을 차단 (L3-1)"""
+    def _kr_check_held_lots(self, stage):
+        """원자재 소비 move 의 보류 로트 차단. raw_material_production_id 가 원자재 move 의
+        정확한 링크 (기존 production_id 는 완제품 move 필드 — 투입을 못 거르던 결함 교정)."""
         for move in self:
-            if move.production_id and move.lot_ids:
-                held_lots = move.lot_ids.filtered(lambda l: l.quality_hold)
-                if held_lots:
-                    raise UserError(_(
-                        "품질 보류 중인 로트는 제조에 투입할 수 없습니다.\n"
-                        "보류 로트: %s\n사유: %s"
-                    ) % (
-                        ", ".join(held_lots.mapped("name")),
-                        ", ".join(filter(None, held_lots.mapped("hold_reason"))),
-                    ))
+            if not (move.raw_material_production_id or move.production_id):
+                continue
+            lots = move.lot_ids | move.move_line_ids.lot_id
+            held = lots.filtered(lambda l: l.quality_hold)
+            if held:
+                raise UserError(_(
+                    "품질 보류 중인 로트는 제조에 투입할 수 없습니다. (%s)\n"
+                    "보류 로트: %s\n사유: %s"
+                ) % (
+                    stage,
+                    ", ".join(held.mapped("name")),
+                    ", ".join(filter(None, held.mapped("hold_reason"))),
+                ))
+
+    def _action_confirm(self, merge=True, merge_into=False):
+        """확정 시점 차단 (L3-1)"""
+        self._kr_check_held_lots(_("확정 시"))
         return super()._action_confirm(merge=merge, merge_into=merge_into)
+
+    def _action_done(self, cancel_backorder=False):
+        """실소비 시점 차단 — 확정 후 lot 을 지정하는 일반 경로 보강 (L3-1 확장)"""
+        self._kr_check_held_lots(_("소비 시"))
+        return super()._action_done(cancel_backorder=cancel_backorder)

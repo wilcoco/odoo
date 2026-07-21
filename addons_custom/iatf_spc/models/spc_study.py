@@ -49,6 +49,9 @@ class IatfSpcStudy(models.Model):
 
     # ── Data ──
     subgroup_ids = fields.One2many("iatf.spc.subgroup", "study_id", string="부분군")
+    plc_last_record_id = fields.Integer(
+        string="PLC 수집 위치", readonly=True, copy=False,
+        help="마지막으로 수집한 injection.production.record id — 재실행 멱등 기준")
     subgroup_count = fields.Integer(compute="_compute_stats", store=True)
 
     # ── Calculated results ──
@@ -269,3 +272,43 @@ class IatfSpcStudy(models.Model):
         })
         self.message_post(body=_(
             "SPC 관리이탈 %d건 → 부적합 %s 자동 생성됨. CAPA 진행 필요.") % (ooc_count, nc.name))
+
+    def action_collect_plc_measurements(self):
+        """PLC 실측중량(injection.production.record)을 부분군으로 자동 수집.
+        재실행 멱등(마지막 수집 id 이후만), 부분군 크기 미달 잔여분은 다음 수집으로 이월."""
+        from odoo.exceptions import UserError
+        if "injection.production.record" not in self.env:
+            raise UserError(_("사출 현장 모듈(injection_worksite)이 설치되지 않아 PLC 수집을 사용할 수 없습니다."))
+        Record = self.env["injection.production.record"]
+        Subgroup = self.env["iatf.spc.subgroup"]
+        for study in self:
+            if not study.product_id:
+                raise UserError(_("제품을 먼저 지정하세요."))
+            domain = [
+                ("id", ">", study.plc_last_record_id or 0),
+                ("product_id", "=", study.product_id.id),
+                ("measured_weight", ">", 0),
+            ]
+            if "weight_is_measured" in Record._fields:
+                domain.append(("weight_is_measured", "=", True))
+            records = Record.search(domain, order="id")
+            n = study.sample_size if 2 <= (study.sample_size or 0) <= 10 else 5
+            seq = (max(study.subgroup_ids.mapped("sequence")) if study.subgroup_ids else 0) + 10
+            created = 0
+            i = 0
+            while i + n <= len(records):
+                chunk = records[i:i + n]
+                vals = {"study_id": study.id, "sequence": seq,
+                        "sample_date": chunk[-1].create_date,
+                        "notes": _("PLC 자동수집 #%s~%s") % (chunk[0].id, chunk[-1].id)}
+                for k, rec in enumerate(chunk, start=1):
+                    vals["x%d" % k] = rec.measured_weight
+                Subgroup.create(vals)
+                study.plc_last_record_id = chunk[-1].id
+                seq += 10
+                created += 1
+                i += n
+            study.message_post(body=_(
+                "PLC 실측 수집: 부분군 %(c)d개 생성 (크기 %(n)d), 잔여 %(r)d건 이월")
+                % {"c": created, "n": n, "r": len(records) - i})
+        return True
