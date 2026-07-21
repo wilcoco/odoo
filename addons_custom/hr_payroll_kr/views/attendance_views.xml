@@ -90,6 +90,6 @@
 
     <menuitem id="menu_kr_attendance_sheet" name="월 근태 집계"
               parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root"
-              action="action_kr_attendance_sheet" sequence="35"
+              action="action_kr_attendance_sheet" sequence="34"
               groups="hr_payroll.group_hr_payroll_user"/>
 </odoo>

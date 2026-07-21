@@ -50,8 +50,12 @@
         </field>
     </record>
 
+    <!-- 급여 루트 바로 아래 "기준정보 입력" — 급여 담당자가 바로 찾도록 (설정 메뉴 아님) -->
+    <menuitem id="menu_kr_payroll_master_root" name="기준정보 입력"
+              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root" sequence="35"
+              groups="hr_payroll.group_hr_payroll_user"/>
     <menuitem id="menu_kr_payroll_rate" name="4대보험 요율"
-              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_configuration" action="action_kr_payroll_rate" sequence="90"/>
+              parent="menu_kr_payroll_master_root" action="action_kr_payroll_rate" sequence="10"/>
     <menuitem id="menu_kr_income_tax_bracket" name="간이세액표"
-              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_configuration" action="action_kr_income_tax_bracket" sequence="91"/>
+              parent="menu_kr_payroll_master_root" action="action_kr_income_tax_bracket" sequence="20"/>
 </odoo>

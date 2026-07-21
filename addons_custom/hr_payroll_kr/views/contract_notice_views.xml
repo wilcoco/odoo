@@ -41,6 +41,6 @@
         </field>
     </record>
     <menuitem id="menu_kr_insurance_notice" name="4대보험 고지액(EDI)"
-              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_configuration"
-              action="action_kr_insurance_notice" sequence="92"/>
+              parent="hr_payroll_kr.menu_kr_payroll_master_root"
+              action="action_kr_insurance_notice" sequence="30"/>
 </odoo>
