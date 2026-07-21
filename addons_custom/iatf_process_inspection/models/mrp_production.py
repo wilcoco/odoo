@@ -29,9 +29,22 @@ class MrpProduction(models.Model):
         하루 수천 타의 검사서 폭증 방지. 첫 단위 완료 시 초물 1건, 이후는 수량 누적."""
         PQC = self.env["iatf.process.inspection"]
         if "is_ip_unit_mo" in self._fields and self.is_ip_unit_mo:
+            # 묶음 단위 = 계획 MO × 생산일 × 교대 — 회사양식 초/중/종물이 생산 런(일자·교대)
+            # 단위로 반복되는 실무와 정합 (계획 MO 전체당 1건은 며칠짜리 생산에 너무 성김).
             plan = self.parent_planning_mo_id if "parent_planning_mo_id" in self._fields else self.browse()
             target = plan or self
-            existing = PQC.search([("production_id", "=", target.id)], order="id", limit=1)
+            prod_date = fields.Date.context_today(self)
+            if self.date_finished:
+                prod_date = fields.Date.to_date(str(self.date_finished)[:10])
+            shift = ""
+            if "inj_shift" in self._fields and self.inj_shift:
+                shift = dict(self._fields["inj_shift"]._description_selection(self.env)
+                             ).get(self.inj_shift, self.inj_shift)
+            existing = PQC.search([
+                ("production_id", "=", target.id),
+                ("production_date", "=", prod_date),
+                ("shift", "=", shift or False),
+            ], order="id", limit=1)
             if existing:
                 if existing.approval_state not in ("approved",):
                     existing.write({
@@ -44,12 +57,15 @@ class MrpProduction(models.Model):
                 "article_stage": "first",
                 "production_id": target.id,
                 "product_id": self.product_id.id,
+                "production_date": prod_date,
+                "shift": shift or False,
                 "lot_id": self.lot_producing_id.id if self.lot_producing_id else False,
                 "workcenter_id": self.workcenter_id.id if "workcenter_id" in self._fields and self.workcenter_id else False,
                 "quantity_produced": self.qty_produced,
                 "quantity_inspected": self.qty_produced,
             })
-            _logger.info("PQC(초물) plan-MO aggregate created: %s for %s", pqc.name, target.name)
+            _logger.info("PQC(초물) run aggregate created: %s for %s %s %s",
+                         pqc.name, target.name, prod_date, shift)
             return
         vals = {
             "inspection_stage": "final",
