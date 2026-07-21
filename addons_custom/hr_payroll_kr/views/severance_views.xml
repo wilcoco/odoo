@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_severance_list" model="ir.ui.view">
+        <field name="name">kr.severance.estimate.list</field>
+        <field name="model">kr.severance.estimate</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="employee_id"/>
+                <field name="date_join"/>
+                <field name="date_leave"/>
+                <field name="service_days"/>
+                <field name="avg_daily_wage"/>
+                <field name="severance_amount"/>
+                <field name="plan_type"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_severance_form" model="ir.ui.view">
+        <field name="name">kr.severance.estimate.form</field>
+        <field name="model">kr.severance.estimate</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_fill_from_payslips" type="object" string="급여에서 집계"
+                            invisible="state != 'draft'"/>
+                    <button name="action_confirm" type="object" string="확정" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="재직 정보">
+                            <field name="employee_id"/>
+                            <field name="contract_id"/>
+                            <field name="plan_type"/>
+                            <field name="date_join"/>
+                            <field name="date_leave"/>
+                            <field name="service_days"/>
+                        </group>
+                        <group string="평균임금 산정 (입력)">
+                            <field name="months3_wage"/>
+                            <field name="months3_days"/>
+                            <field name="annual_bonus"/>
+                            <field name="annual_leave_pay"/>
+                        </group>
+                    </group>
+                    <group string="산정 결과">
+                        <group>
+                            <field name="avg_daily_wage"/>
+                            <field name="severance_amount"/>
+                        </group>
+                        <group>
+                            <field name="note" nolabel="1" colspan="2"
+                                   placeholder="예: 상여 포함 여부는 취업규칙 제○조 기준"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_severance" model="ir.actions.act_window">
+        <field name="name">퇴직금 계산서</field>
+        <field name="res_model">kr.severance.estimate</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">퇴직금 계산서를 만드세요</p>
+            <p>퇴직일을 입력하면 3개월 임금(급여명세서 자동 집계)·상여 가산으로 평균임금과 법정퇴직금이 계산됩니다.</p>
+        </field>
+    </record>
+
+    <record id="view_kr_retirement_contrib_list" model="ir.ui.view">
+        <field name="name">kr.retirement.contribution.list</field>
+        <field name="model">kr.retirement.contribution</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="year"/>
+                <field name="amount" sum="납입 합계"/>
+                <field name="institution"/>
+                <field name="annual_wage"/>
+                <field name="required_amount"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_kr_retirement_contrib" model="ir.actions.act_window">
+        <field name="name">퇴직연금(DC) 납입 대장</field>
+        <field name="res_model">kr.retirement.contribution</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'group_by': ['employee_id']}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">DC 납입 내역을 기록하세요</p>
+            <p>직원별 그룹으로 연 필요 납입액(연간 임금총액의 1/12) 대비 실납입을 점검합니다.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_kr_retirement_root" name="퇴직급여"
+              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root" sequence="75"
+              groups="hr_payroll.group_hr_payroll_user"/>
+    <menuitem id="menu_kr_severance" name="퇴직금 계산서"
+              parent="menu_kr_retirement_root" action="action_kr_severance" sequence="10"/>
+    <menuitem id="menu_kr_retirement_contrib" name="퇴직연금(DC) 납입 대장"
+              parent="menu_kr_retirement_root" action="action_kr_retirement_contrib" sequence="20"/>
+</odoo>
