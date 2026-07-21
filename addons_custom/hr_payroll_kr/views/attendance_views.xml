@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_attendance_sheet_list" model="ir.ui.view">
+        <field name="name">kr.attendance.sheet.list</field>
+        <field name="model">kr.attendance.sheet</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="warning_52h">
+                <field name="employee_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="days_worked"/>
+                <field name="hours_overtime"/>
+                <field name="hours_holiday"/>
+                <field name="hours_holiday_ot"/>
+                <field name="hours_night"/>
+                <field name="hours_late"/>
+                <field name="warning_52h" optional="hidden"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirmed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_attendance_sheet_form" model="ir.ui.view">
+        <field name="name">kr.attendance.sheet.form</field>
+        <field name="model">kr.attendance.sheet</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_aggregate" type="object" string="출퇴근에서 집계"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_confirm" type="object" string="확정"
+                            invisible="state != 'draft'"/>
+                    <button name="action_draft" type="object" string="초안으로"
+                            invisible="state != 'confirmed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="집계 (보정 가능)">
+                            <field name="days_worked"/>
+                            <field name="hours_overtime"/>
+                            <field name="hours_holiday"/>
+                            <field name="hours_holiday_ot"/>
+                            <field name="hours_night"/>
+                            <field name="hours_late"/>
+                        </group>
+                    </group>
+                    <field name="warning_52h" invisible="not warning_52h" readonly="1"/>
+                    <notebook>
+                        <page string="일별 내역">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="planned_hours"/>
+                                    <field name="worked_hours"/>
+                                    <field name="overtime_hours"/>
+                                    <field name="holiday_hours"/>
+                                    <field name="holiday_ot_hours"/>
+                                    <field name="night_hours"/>
+                                    <field name="late_hours"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="특이사항">
+                            <field name="note" placeholder="특별 인정 OT(사출 휴게근무·도장 청소 등), 특별연장근로 신청 내역"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_attendance_sheet" model="ir.actions.act_window">
+        <field name="name">월 근태 집계</field>
+        <field name="res_model">kr.attendance.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">월 근태 집계를 만드세요</p>
+            <p>오두 출퇴근 기록에서 잔업/특근/특잔/심야/지각을 자동 분류하고,
+               확정하면 급여명세서 계산 시 시간이 자동 반영됩니다. 주 52시간 초과도 경고합니다.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_kr_attendance_sheet" name="월 근태 집계"
+              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root"
+              action="action_kr_attendance_sheet" sequence="35"
+              groups="hr_payroll.group_hr_payroll_user"/>
+</odoo>
