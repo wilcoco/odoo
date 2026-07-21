@@ -26,7 +26,8 @@
         <field name="struct_id" ref="structure_kr_regular"/>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = contract.wage</field>
+        <field name="amount_python_compute">factor = payslip.env['kr.payroll.rate']._proration_factor(contract, payslip.date_from, payslip.date_to)
+result = round(contract.wage * factor)</field>
     </record>
     <record id="rule_kr_allowance" model="hr.salary.rule">
         <field name="name">수당 (기타입력 ALW 합)</field>

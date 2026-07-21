@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models
 
 RATE_CODES = [
@@ -24,6 +26,23 @@ class KrPayrollRate(models.Model):
     min_base = fields.Float(string="기준보수 하한(월)", help="0 = 하한 없음")
     max_base = fields.Float(string="기준보수 상한(월)", help="0 = 상한 없음")
     note = fields.Char(string="비고")
+
+    @api.model
+    def _proration_factor(self, contract, date_from, date_to):
+        """중도입퇴사 일할계산 비율. 정책은 시스템 파라미터
+        hr_payroll_kr.proration = calendar(월력일수, 기본) | fixed30(30일 고정) | none(일할 안 함).
+        재직일수 = 계약기간과 급여기간의 겹치는 역일수."""
+        policy = self.env["ir.config_parameter"].sudo().get_param(
+            "hr_payroll_kr.proration", "calendar")
+        if policy == "none":
+            return 1.0
+        start = max(date_from, contract.date_start) if contract.date_start else date_from
+        end = min(date_to, contract.date_end) if contract.date_end else date_to
+        if end < start:
+            return 0.0
+        worked = (end - start).days + 1
+        month_days = (date_to - date_from).days + 1 if policy == "calendar" else 30
+        return min(1.0, worked / month_days)
 
     @api.model
     def _find(self, code, date):
