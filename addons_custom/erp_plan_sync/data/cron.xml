@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- ERP 새벽 적재(≈04:45) 후 수신. 기본 비활성 — 운영 전환 시 활성화 -->
+    <record id="cron_erp_plan_daily" model="ir.cron">
+        <field name="name">ERP 생산계획 일일 수신</field>
+        <field name="model_id" ref="model_erp_plan_sync"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_daily_sync()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

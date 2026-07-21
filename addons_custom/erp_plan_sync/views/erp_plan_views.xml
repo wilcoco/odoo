@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_erp_plan_sync_form" model="ir.ui.view">
+        <field name="name">erp.plan.sync.form</field>
+        <field name="model">erp.plan.sync</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_fetch" type="object" string="ERP에서 수신" class="btn-primary"
+                            invisible="state == 'pushed'"/>
+                    <button name="action_push_demands" type="object" string="수요 반영"
+                            class="btn-primary" invisible="state != 'fetched'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="ymd" placeholder="비우면 최신 기준일"/>
+                            <field name="fetched_at"/>
+                            <field name="erp_loaded_at"/>
+                            <field name="row_count"/>
+                        </group>
+                        <group>
+                            <field name="line_created"/>
+                            <field name="line_updated"/>
+                            <field name="unmatched_count" decoration-danger="unmatched_count &gt; 0"/>
+                            <field name="demand_created"/>
+                            <field name="demand_updated"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list decoration-danger="state == 'unmatched'" decoration-success="state == 'pushed'">
+                            <field name="plan_date"/>
+                            <field name="itm"/>
+                            <field name="product_id"/>
+                            <field name="qty" sum="합계"/>
+                            <field name="csrt"/>
+                            <field name="line_code"/>
+                            <field name="chasu"/>
+                            <field name="state"/>
+                            <field name="demand_id"/>
+                            <button name="action_rematch" type="object" string="재매칭" icon="fa-refresh"
+                                    invisible="state != 'unmatched'"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_erp_plan_sync_list" model="ir.ui.view">
+        <field name="name">erp.plan.sync.list</field>
+        <field name="model">erp.plan.sync</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="fetched_at"/>
+                <field name="row_count"/>
+                <field name="line_created"/>
+                <field name="unmatched_count"/>
+                <field name="demand_created"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_erp_plan_sync" model="ir.actions.act_window">
+        <field name="name">ERP 계획 수신</field>
+        <field name="res_model">erp.plan.sync</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_erp_plan_line_list" model="ir.ui.view">
+        <field name="name">erp.plan.line.list</field>
+        <field name="model">erp.plan.line</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'unmatched'">
+                <field name="plan_date"/>
+                <field name="ymd"/>
+                <field name="itm"/>
+                <field name="product_id"/>
+                <field name="qty" sum="합계"/>
+                <field name="csrt"/>
+                <field name="state"/>
+                <button name="action_rematch" type="object" string="재매칭" icon="fa-refresh"
+                        invisible="state != 'unmatched'"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_erp_plan_line_unmatched" model="ir.actions.act_window">
+        <field name="name">품번 미매칭 보완 큐</field>
+        <field name="res_model">erp.plan.line</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('state', '=', 'unmatched')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">미매칭 품번이 없습니다</p>
+            <p>ERP 품번(ITM)과 같은 내부참조(default_code)의 품목을 등록한 뒤 '재매칭'을 누르세요.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_erp_plan_root" name="ERP 계획 연동"
+              parent="injection_planning.menu_injection_planning_root" sequence="15"/>
+    <menuitem id="menu_erp_plan_sync" name="ERP 계획 수신"
+              parent="menu_erp_plan_root" action="action_erp_plan_sync" sequence="10"/>
+    <menuitem id="menu_erp_plan_unmatched" name="품번 미매칭 보완 큐"
+              parent="menu_erp_plan_root" action="action_erp_plan_line_unmatched" sequence="20"/>
+</odoo>
