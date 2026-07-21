@@ -10,6 +10,18 @@ class HrContract(models.Model):
         [("severance", "퇴직금"), ("db", "퇴직연금 DB형"), ("dc", "퇴직연금 DC형")],
         string="퇴직급여 제도", default="severance",
         help="DC형은 납입 대장으로 관리, 퇴직금/DB형은 퇴직금 계산서로 산정")
+    # 생산직 급여 매뉴얼(2025.04) 반영
+    kr_wage_type = fields.Selection(
+        [("monthly", "월급제"), ("daily", "일급제(생산직)")],
+        string="임금 형태", default="monthly",
+        help="일급제: 기본급 = 기본일급 × 근무일수(급여명세서 기타입력 DAYS)")
+    kr_daily_wage = fields.Float(string="기본일급",
+                                 help="일급제 기본급 산정 + 기본시급(일급÷8, 지각/조퇴 공제 기준)")
+    kr_is_probation = fields.Boolean(
+        string="수습", help="수습 3개월: 급여 90% 지급, 상여 미지급 (매뉴얼 2-10)")
+    kr_tax_adjust_pct = fields.Float(
+        string="소득세 조정율(%)", default=100.0,
+        help="연말정산 과다추징 방지용 직원별 조정율 (매뉴얼 2-14)")
 
 
 class KrSeveranceEstimate(models.Model):

@@ -30,10 +30,10 @@ class KrPayrollRate(models.Model):
     @api.model
     def _proration_factor(self, contract, date_from, date_to):
         """중도입퇴사 일할계산 비율. 정책은 시스템 파라미터
-        hr_payroll_kr.proration = calendar(월력일수, 기본) | fixed30(30일 고정) | none(일할 안 함).
+        hr_payroll_kr.proration = fixed30(30일 고정, 기본 — 생산직 매뉴얼) | calendar(월력일수) | none.
         재직일수 = 계약기간과 급여기간의 겹치는 역일수."""
         policy = self.env["ir.config_parameter"].sudo().get_param(
-            "hr_payroll_kr.proration", "calendar")
+            "hr_payroll_kr.proration", "fixed30")
         if policy == "none":
             return 1.0
         start = max(date_from, contract.date_start) if contract.date_start else date_from
@@ -100,3 +100,28 @@ class KrIncomeTaxBracket(models.Model):
             ("dependents", "=", max(1, min(dependents, 11))),
         ], order="date_from desc", limit=1)
         return bracket.tax_amount or 0.0
+
+
+class KrInsuranceNotice(models.Model):
+    """4대보험 고지액 — 매뉴얼 2-15: 건강보험·국민연금은 EDI 고지 내역대로 공제.
+    해당 월 고지액이 있으면 요율 계산 대신 고지액을 사용한다."""
+    _name = "kr.insurance.notice"
+    _description = "4대보험 고지액(EDI)"
+    _order = "date_from desc, employee_id"
+
+    employee_id = fields.Many2one("hr.employee", string="직원", required=True, index=True)
+    code = fields.Selection([("health", "건강보험(장기요양 포함)"), ("national_pension", "국민연금")],
+                            string="보험", required=True)
+    date_from = fields.Date(string="적용 시작", required=True)
+    date_to = fields.Date(string="적용 종료", help="비우면 다음 고지 전까지")
+    amount = fields.Float(string="월 고지액(근로자 부담)", required=True)
+    note = fields.Char(string="비고", help="예: 2026-07 EDI 고지분")
+
+    @api.model
+    def _notice_amount(self, employee, code, date):
+        rec = self.search([
+            ("employee_id", "=", employee.id), ("code", "=", code),
+            ("date_from", "<=", date),
+            "|", ("date_to", "=", False), ("date_to", ">=", date),
+        ], order="date_from desc", limit=1)
+        return rec.amount if rec else None

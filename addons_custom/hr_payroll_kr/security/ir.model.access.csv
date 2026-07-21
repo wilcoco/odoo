@@ -7,3 +7,5 @@ access_kr_severance_user,kr.severance user,model_kr_severance_estimate,hr_payrol
 access_kr_severance_mgr,kr.severance manager,model_kr_severance_estimate,hr_payroll.group_hr_payroll_manager,1,1,1,1
 access_kr_retirement_user,kr.retirement user,model_kr_retirement_contribution,hr_payroll.group_hr_payroll_user,1,1,1,0
 access_kr_retirement_mgr,kr.retirement manager,model_kr_retirement_contribution,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_insurance_notice_user,kr.insurance.notice user,model_kr_insurance_notice,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_insurance_notice_mgr,kr.insurance.notice manager,model_kr_insurance_notice,hr_payroll.group_hr_payroll_manager,1,1,1,1

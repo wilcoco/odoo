@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_contract_form_kr" model="ir.ui.view">
+        <field name="name">hr.contract.form.kr</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='wage']" position="after">
+                <field name="kr_wage_type"/>
+                <field name="kr_daily_wage" invisible="kr_wage_type != 'daily'"/>
+                <field name="kr_is_probation"/>
+                <field name="kr_tax_adjust_pct"/>
+                <field name="kr_retirement_plan"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_kr_insurance_notice_list" model="ir.ui.view">
+        <field name="name">kr.insurance.notice.list</field>
+        <field name="model">kr.insurance.notice</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="employee_id"/>
+                <field name="code"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="amount"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_kr_insurance_notice" model="ir.actions.act_window">
+        <field name="name">4대보험 고지액(EDI)</field>
+        <field name="res_model">kr.insurance.notice</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'group_by': ['code']}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">EDI 고지액을 입력하세요</p>
+            <p>건강보험·국민연금은 고지액이 있으면 고지액대로 공제하고, 없으면 요율로 계산합니다.
+               가져오기(Import)로 일괄 업로드 가능 (employee_id, code, date_from, amount).</p>
+        </field>
+    </record>
+    <menuitem id="menu_kr_insurance_notice" name="4대보험 고지액(EDI)"
+              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_configuration"
+              action="action_kr_insurance_notice" sequence="92"/>
+</odoo>
