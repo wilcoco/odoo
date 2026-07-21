@@ -13,3 +13,5 @@ access_kr_att_sheet_user,kr.attendance.sheet user,model_kr_attendance_sheet,hr_p
 access_kr_att_sheet_mgr,kr.attendance.sheet manager,model_kr_attendance_sheet,hr_payroll.group_hr_payroll_manager,1,1,1,1
 access_kr_att_line_user,kr.attendance.sheet.line user,model_kr_attendance_sheet_line,hr_payroll.group_hr_payroll_user,1,1,1,1
 access_kr_att_line_mgr,kr.attendance.sheet.line manager,model_kr_attendance_sheet_line,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_edi_import,kr.edi.notice.import,model_kr_edi_notice_import,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_withholding,kr.withholding.report,model_kr_withholding_report,hr_payroll.group_hr_payroll_user,1,1,1,1
