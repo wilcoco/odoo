@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from odoo import api, fields, models
 
 RATE_CODES = [

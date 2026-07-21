@@ -164,6 +164,14 @@ class KrAttendanceSheetLine(models.Model):
     note = fields.Char(string="비고")
 
 
+class HrPayslipInput(models.Model):
+    _inherit = "hr.payslip.input"
+
+    kr_auto_filled = fields.Boolean(
+        string="근태 자동", default=False,
+        help="근태 집계에서 자동 주입된 라인 — 재계산 시 집계값으로 갱신됨. 수동 입력은 갱신 안 함")
+
+
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
@@ -191,12 +199,24 @@ class HrPayslip(models.Model):
                 "OTHOL": sheet.hours_holiday, "OTHOLX": sheet.hours_holiday_ot,
                 "OTNIGHT": sheet.hours_night, "LATE": sheet.hours_late,
             }
-            existing = set(slip.input_line_ids.mapped("input_type_id.code"))
+            by_code = {}
+            for il in slip.input_line_ids:
+                by_code.setdefault(il.input_type_id.code, il)
             lines = []
             for code, amount in mapping.items():
-                if amount and code not in existing:
+                existing = by_code.get(code)
+                if existing is not None:
+                    # 수동 입력(kr_auto_filled=False)은 존중, 자동 라인은 집계 수정 반영
+                    if existing.kr_auto_filled and existing.amount != amount:
+                        if amount:
+                            existing.amount = amount
+                        else:
+                            existing.unlink()
+                    continue
+                if amount:
                     itype = InputType.search([("code", "=", code)], limit=1)
                     if itype:
-                        lines.append((0, 0, {"input_type_id": itype.id, "amount": amount}))
+                        lines.append((0, 0, {"input_type_id": itype.id, "amount": amount,
+                                             "kr_auto_filled": True}))
             if lines:
                 slip.write({"input_line_ids": lines})
