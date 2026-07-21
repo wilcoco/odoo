@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_kr_payroll_rate_user,kr.payroll.rate user,model_kr_payroll_rate,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_payroll_rate_mgr,kr.payroll.rate manager,model_kr_payroll_rate,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_income_tax_user,kr.income.tax.bracket user,model_kr_income_tax_bracket,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_income_tax_mgr,kr.income.tax.bracket manager,model_kr_income_tax_bracket,hr_payroll.group_hr_payroll_manager,1,1,1,1

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 급여 구조: 한국 표준 (요율은 kr.payroll.rate 마스터에서 조회 — 코드에 수치 없음) -->
+    <record id="structure_type_kr" model="hr.payroll.structure.type">
+        <field name="name">한국 정규직</field>
+        <field name="country_id" ref="base.kr"/>
+    </record>
+
+    <record id="structure_kr_regular" model="hr.payroll.structure">
+        <field name="name">한국 표준 급여</field>
+        <field name="type_id" ref="structure_type_kr"/>
+        <field name="country_id" ref="base.kr"/>
+    </record>
+
+    <record id="rule_category_comp" model="hr.salary.rule.category">
+        <field name="name">회사 부담분</field>
+        <field name="code">KRCOMP</field>
+    </record>
+
+    <!-- 지급 -->
+    <record id="rule_kr_basic" model="hr.salary.rule">
+        <field name="name">기본급</field>
+        <field name="code">BASIC</field>
+        <field name="sequence">1</field>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = contract.wage</field>
+    </record>
+    <record id="rule_kr_allowance" model="hr.salary.rule">
+        <field name="name">수당 (기타입력 ALW 합)</field>
+        <field name="code">KRALW</field>
+        <field name="sequence">30</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.get('ALW'))</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['ALW'].amount</field>
+    </record>
+    <record id="rule_kr_gross" model="hr.salary.rule">
+        <field name="name">총지급액</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">100</field>
+        <field name="category_id" ref="hr_payroll.GROSS"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
+    </record>
+
+    <!-- 공제 (근로자 부담) -->
+    <record id="rule_kr_np" model="hr.salary.rule">
+        <field name="name">국민연금</field>
+        <field name="code">KRNP</field>
+        <field name="sequence">110</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip.env['kr.payroll.rate']._employee_amount('national_pension', categories['GROSS'], payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_hi" model="hr.salary.rule">
+        <field name="name">건강보험</field>
+        <field name="code">KRHI</field>
+        <field name="sequence">120</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip.env['kr.payroll.rate']._employee_amount('health', categories['GROSS'], payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_ltc" model="hr.salary.rule">
+        <field name="name">장기요양보험</field>
+        <field name="code">KRLTC</field>
+        <field name="sequence">130</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">hi = payslip.env['kr.payroll.rate']._employee_amount('health', categories['GROSS'], payslip.date_to)
+result = -payslip.env['kr.payroll.rate']._employee_amount('long_term_care', hi, payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_ei" model="hr.salary.rule">
+        <field name="name">고용보험</field>
+        <field name="code">KREI</field>
+        <field name="sequence">140</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip.env['kr.payroll.rate']._employee_amount('employment', categories['GROSS'], payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_inctax" model="hr.salary.rule">
+        <field name="name">소득세 (간이세액표)</field>
+        <field name="code">KRTAX</field>
+        <field name="sequence">150</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">dep = inputs['DEP'].amount if inputs.get('DEP') else 1
+result = -payslip.env['kr.income.tax.bracket']._lookup(categories['GROSS'], int(dep), payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_loctax" model="hr.salary.rule">
+        <field name="name">지방소득세 (소득세의 10%)</field>
+        <field name="code">KRLOCTAX</field>
+        <field name="sequence">160</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = round(result_rules['KRTAX']['total'] * 0.1)</field>
+    </record>
+
+    <record id="rule_kr_net" model="hr.salary.rule">
+        <field name="name">실지급액</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['GROSS'] + categories['DED']</field>
+    </record>
+
+    <!-- 회사 부담분 (실지급 무영향 — 전표·원가용) -->
+    <record id="rule_kr_np_comp" model="hr.salary.rule">
+        <field name="name">국민연금 (회사)</field>
+        <field name="code">KRNPCO</field>
+        <field name="sequence">300</field>
+        <field name="category_id" ref="rule_category_comp"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip.env['kr.payroll.rate']._company_amount('national_pension', categories['GROSS'], payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_hi_comp" model="hr.salary.rule">
+        <field name="name">건강보험+장기요양 (회사)</field>
+        <field name="code">KRHICO</field>
+        <field name="sequence">310</field>
+        <field name="category_id" ref="rule_category_comp"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">Rate = payslip.env['kr.payroll.rate']
+hi = Rate._company_amount('health', categories['GROSS'], payslip.date_to)
+result = hi + Rate._company_amount('long_term_care', hi, payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_ei_comp" model="hr.salary.rule">
+        <field name="name">고용보험 (회사)</field>
+        <field name="code">KREICO</field>
+        <field name="sequence">320</field>
+        <field name="category_id" ref="rule_category_comp"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip.env['kr.payroll.rate']._company_amount('employment', categories['GROSS'], payslip.date_to)</field>
+    </record>
+    <record id="rule_kr_ia_comp" model="hr.salary.rule">
+        <field name="name">산재보험 (회사 전액)</field>
+        <field name="code">KRIACO</field>
+        <field name="sequence">330</field>
+        <field name="category_id" ref="rule_category_comp"/>
+        <field name="struct_id" ref="structure_kr_regular"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip.env['kr.payroll.rate']._company_amount('industrial_accident', categories['GROSS'], payslip.date_to)</field>
+    </record>
+
+    <!-- 기타입력 유형: 수당/공제대상 가족수 -->
+    <record id="input_type_alw" model="hr.payslip.input.type">
+        <field name="name">수당 합계</field>
+        <field name="code">ALW</field>
+    </record>
+    <record id="input_type_dep" model="hr.payslip.input.type">
+        <field name="name">공제대상 가족수(본인 포함)</field>
+        <field name="code">DEP</field>
+    </record>
+</odoo>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 초기 요율 시드 — ★담당자/노무사 확정 필요★ (2025년 공표 요율 기준 골격.
+         확정 요율·상하한은 요율 마스터 화면에서 수정하거나 새 기간 행 추가) -->
+    <record id="rate_np_seed" model="kr.payroll.rate">
+        <field name="code">national_pension</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="employee_rate">4.5</field>
+        <field name="company_rate">4.5</field>
+        <field name="note">확정 필요 — 기준소득월액 상·하한 미입력</field>
+    </record>
+    <record id="rate_hi_seed" model="kr.payroll.rate">
+        <field name="code">health</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="employee_rate">3.545</field>
+        <field name="company_rate">3.545</field>
+        <field name="note">확정 필요</field>
+    </record>
+    <record id="rate_ltc_seed" model="kr.payroll.rate">
+        <field name="code">long_term_care</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="employee_rate">12.95</field>
+        <field name="company_rate">12.95</field>
+        <field name="note">건강보험료 대비 % — 확정 필요</field>
+    </record>
+    <record id="rate_ei_seed" model="kr.payroll.rate">
+        <field name="code">employment</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="employee_rate">0.9</field>
+        <field name="company_rate">1.15</field>
+        <field name="note">회사분은 규모별 상이(0.9+고안직 0.25~0.85) — 확정 필요</field>
+    </record>
+    <record id="rate_ia_seed" model="kr.payroll.rate">
+        <field name="code">industrial_accident</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="employee_rate">0</field>
+        <field name="company_rate">0</field>
+        <field name="note">업종별 요율 — 근로복지공단 고지값 입력 필요 (0이면 미계산)</field>
+    </record>
+</odoo>
