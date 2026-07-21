@@ -28,6 +28,8 @@ class ErpPlanSync(models.Model):
     fetched_at = fields.Datetime(string="수신 시각", readonly=True)
     erp_loaded_at = fields.Char(string="ERP 적재 시각(LDATE)", readonly=True)
     row_count = fields.Integer(string="원본 행수", readonly=True)
+    skipped_count = fields.Integer(string="관심외 품번 제외", readonly=True,
+                                   help="erp_plan_sync.item_prefixes 필터로 건너뛴 행 (양산품 등 비관리 대상)")
     line_created = fields.Integer(string="신규 계획라인", readonly=True)
     line_updated = fields.Integer(string="갱신 계획라인", readonly=True)
     unmatched_count = fields.Integer(string="품번 미매칭", readonly=True)
@@ -74,6 +76,11 @@ class ErpPlanSync(models.Model):
             finally:
                 conn.close()
             base_date = datetime.strptime(ymd, "%Y%m%d").date()
+            # 관심 품번 프리픽스 (예: "86500-BS,86600-BS") — 미설정 시 전량 수신.
+            # 오두 관리 대상(신공장 차종)만 스테이징해 양산품 노이즈가 보완 큐를 덮지 않게 한다.
+            prefixes = [x.strip() for x in (self.env["ir.config_parameter"].sudo()
+                        .get_param("erp_plan_sync.item_prefixes") or "").split(",") if x.strip()]
+            skipped = 0
             created = updated = 0
             unmatched_items = set()
             ldate = ""
@@ -83,6 +90,9 @@ class ErpPlanSync(models.Model):
                 day_qtys = r[9:9 + len(DAY_COLS)]
                 ldate = str(r[9 + len(DAY_COLS)] or "")
                 itm = (itm or "").strip()
+                if prefixes and not any(itm.startswith(pfx) for pfx in prefixes):
+                    skipped += 1
+                    continue
                 if itm not in product_cache:
                     product_cache[itm] = Product.search([("default_code", "=", itm)], limit=1)
                 product = product_cache[itm]
@@ -113,6 +123,7 @@ class ErpPlanSync(models.Model):
                 "name": "ERP계획 %s" % ymd, "ymd": ymd,
                 "fetched_at": fields.Datetime.now(), "erp_loaded_at": ldate,
                 "row_count": len(rows), "line_created": created, "line_updated": updated,
+                "skipped_count": skipped,
                 "unmatched_count": Line.search_count([("sync_id", "=", sync.id), ("state", "=", "unmatched")]),
                 "state": "fetched",
             })

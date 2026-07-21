@@ -19,6 +19,7 @@
                             <field name="fetched_at"/>
                             <field name="erp_loaded_at"/>
                             <field name="row_count"/>
+                            <field name="skipped_count"/>
                         </group>
                         <group>
                             <field name="line_created"/>
@@ -57,6 +58,7 @@
                 <field name="name"/>
                 <field name="fetched_at"/>
                 <field name="row_count"/>
+                            <field name="skipped_count"/>
                 <field name="line_created"/>
                 <field name="unmatched_count"/>
                 <field name="demand_created"/>
