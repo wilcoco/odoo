@@ -142,9 +142,10 @@ class EngelInjectionSerial(models.Model):
 
     def _create_traceability_record(self):
         """iatf.traceability.record 자동 생성 + 공정 파라미터"""
-        TraceRecord = self.env.get("iatf.traceability.record")
-        if TraceRecord is None:
+        if "iatf.traceability.record" not in self.env:
             return
+        # sudo: 시스템 자동 기록 — 작업자가 추적성 그룹이 없어도 기록돼야 함
+        TraceRecord = self.env["iatf.traceability.record"].sudo()
         operator_user_id = False
         if self.operator_id and self.operator_id.user_id:
             operator_user_id = self.operator_id.user_id.id
