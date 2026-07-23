@@ -304,9 +304,16 @@ class IatfApprovalMixin(models.AbstractModel):
 
         res = super().write(vals) if vals else True
         if self._approval_should_reset(vals):
+            changed = set(vals) - self._approval_reset_ignored_fields()
             for record in self:
                 if record.approval_state == "approved":
                     record.action_reset_approval()
+                    # 조용한 리셋 금지 — 상신자가 "승인됐는데 미승인으로 보인다"고
+                    # 오인하는 실사고 사례. 사유·재상신 필요를 채터에 각인한다.
+                    labels = [record._fields[f].string or f for f in changed if f in record._fields]
+                    record.message_post(body=_(
+                        "⚠️ 승인 후 문서가 수정되어 결재가 초기화되었습니다. "
+                        "(수정 항목: %s) 다시 상신해 주세요.") % ", ".join(labels or ["-"]))
         return res
 
     def unlink(self):
@@ -328,7 +335,9 @@ class IatfApprovalMixin(models.AbstractModel):
 
     def _approval_apply_default_template(self):
         """결재선이 비어 있으면 모델/부서/금액 매칭 템플릿으로 자동 구성."""
-        Template = self.env["iatf.approval.template"]
+        # 템플릿은 설정 데이터 — 일반 사용자는 ir.model 읽기 권한이 없어
+        # model_id.model 도메인 탐색이 AccessError 가 되므로 sudo 로 조회한다.
+        Template = self.env["iatf.approval.template"].sudo()
         for record in self:
             if record.approval_line_ids:
                 continue
