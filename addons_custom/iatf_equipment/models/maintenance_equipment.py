@@ -11,7 +11,7 @@ class MaintenanceEquipment(models.Model):
 
     def _compute_iatf_counts(self):
         PM = self.env.get("iatf.pm.schedule")
-        BD = self.env.get("iatf.breakdown")
+        BD = self.env.get("iatf.equipment.breakdown")
         for rec in self:
             eq = rec.iatf_equipment_id
             if eq and PM:
@@ -48,7 +48,7 @@ class MaintenanceEquipment(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "res_model": "iatf.breakdown",
+            "res_model": "iatf.equipment.breakdown",
             "view_mode": "list,form",
             "domain": [("equipment_id", "=", self.iatf_equipment_id.id)] if self.iatf_equipment_id else [("id", "=", 0)],
             "name": _("고장 이력"),

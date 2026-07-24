@@ -1,4 +1,5 @@
 from . import mold
+from . import mrp_workcenter
 from . import planning_config
 from . import machine_mold_capability
 from . import machine_availability

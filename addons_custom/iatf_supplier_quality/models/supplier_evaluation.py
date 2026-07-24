@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfSupplierEvaluation(models.Model):
     _name = "iatf.supplier.evaluation"
     _description = "Supplier Quality Evaluation (IATF 16949 §8.4)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "evaluation_date desc"
 
     name = fields.Char(
@@ -97,7 +97,7 @@ class IatfSupplierEvaluation(models.Model):
         IQC = self.env.get("iatf.incoming.inspection")
         quality_score = 100.0
         ppm = 0.0
-        if IQC:
+        if IQC is not None:
             iqcs = IQC.search([
                 ("supplier_id", "=", supplier.id),
                 ("state", "=", "decided"),
@@ -105,10 +105,18 @@ class IatfSupplierEvaluation(models.Model):
             ])
             total_qty = sum(iqcs.mapped("quantity_inspected"))
             rejected_qty = sum(iqcs.mapped("quantity_rejected"))
+            # PPM 기반 점수(수량 입력 시) 와 합불 '건수' 기반 점수 중 더 나쁜 값 채택.
+            #   → 불합격 판정인데 quantity_rejected 를 안 채워 PPM=0(=100점) 되는 문제 방지.
+            q_ppm = 100.0
             if total_qty > 0:
                 ppm = rejected_qty / total_qty * 1_000_000
-                # PPM → 점수 변환: 0 PPM = 100점, 10000+ PPM = 0점
-                quality_score = max(0, 100 - (ppm / 100))
+                # 0 PPM = 100점, 10000+ PPM = 0점
+                q_ppm = max(0, 100 - (ppm / 100))
+            q_count = 100.0
+            if iqcs:
+                fail_n = len(iqcs.filtered(lambda i: i.result == "fail"))
+                q_count = max(0, 100 - (fail_n / len(iqcs) * 100))
+            quality_score = min(q_ppm, q_count)
 
         # ── 납기 점수: PO 납기 준수율 ──
         PO = self.env["purchase.order"]
@@ -126,8 +134,10 @@ class IatfSupplierEvaluation(models.Model):
                 ("picking_type_code", "=", "incoming"),
             ])
             if pickings:
+                # 날짜(일) 단위 비교 — 같은 날 입고를 시각차로 '지연' 처리하는 문제 방지
                 on_time = pickings.filtered(
-                    lambda p: p.date_done and p.scheduled_date and p.date_done <= p.scheduled_date)
+                    lambda p: p.date_done and p.scheduled_date
+                    and p.date_done.date() <= p.scheduled_date.date())
                 otd_pct = len(on_time) / len(pickings) * 100
                 delivery_score = otd_pct
 
@@ -135,7 +145,7 @@ class IatfSupplierEvaluation(models.Model):
         SCAR = self.env.get("iatf.scar")
         responsiveness_score = 100.0
         scar_count = 0
-        if SCAR:
+        if SCAR is not None:
             scars = SCAR.search([
                 ("supplier_id", "=", supplier.id),
                 ("create_date", ">=", period_start),
@@ -145,13 +155,13 @@ class IatfSupplierEvaluation(models.Model):
             responsiveness_score = max(0, 100 - scar_count * 15)
             # 기한 초과 SCAR 추가 감점
             overdue = scars.filtered(
-                lambda s: s.state not in ("closed", "verified") and s.due_date and s.due_date < today)
+                lambda s: s.state not in ("closed",) and s.response_due_date and s.response_due_date < today)
             responsiveness_score = max(0, responsiveness_score - len(overdue) * 10)
 
         # ── NC 건수 ──
         NC = self.env.get("iatf.nonconformity")
         nc_count = 0
-        if NC:
+        if NC is not None:
             nc_count = NC.search_count([
                 ("partner_id", "=", supplier.id),
                 ("detection_date", ">=", period_start),

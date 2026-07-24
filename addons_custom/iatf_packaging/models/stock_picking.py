@@ -20,7 +20,7 @@ class StockPicking(models.Model):
             product_ids = rec.move_ids.mapped("product_id").ids
             specs = PkgSpec.search([
                 ("product_id", "in", product_ids),
-                ("state", "=", "approved"),
+                ("state", "=", "active"),
             ])
             rec.packaging_spec_ids = specs
             rec.packaging_spec_count = len(specs)
@@ -39,7 +39,7 @@ class StockPicking(models.Model):
         for move in self.move_ids.filtered(lambda m: m.product_id.type != "service"):
             specs = PkgSpec.search([
                 ("product_id", "=", move.product_id.id),
-                ("state", "=", "approved"),
+                ("state", "=", "active"),
             ])
             if specs and not self.packaging_verified:
                 self.message_post(
