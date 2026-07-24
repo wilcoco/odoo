@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from odoo import fields, models
 
@@ -88,7 +89,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "email": "contact@hanbracket.co.kr",
                 "phone": "02-1234-5678",
                 "is_supplier_portal": True,
-                "supplier_portal_token": "demo_token_hanbracket_2026",
+                "supplier_portal_token": secrets.token_urlsafe(32),
                 "supplier_rank": 1,
             },
             {
@@ -96,7 +97,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "email": "contact@dhhousing.co.kr",
                 "phone": "031-9876-5432",
                 "is_supplier_portal": True,
-                "supplier_portal_token": "demo_token_dhhousing_2026",
+                "supplier_portal_token": secrets.token_urlsafe(32),
                 "supplier_rank": 1,
             },
             {
@@ -104,7 +105,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "email": "contact@sscap.co.kr",
                 "phone": "032-5555-6666",
                 "is_supplier_portal": True,
-                "supplier_portal_token": "demo_token_sscap_2026",
+                "supplier_portal_token": secrets.token_urlsafe(32),
                 "supplier_rank": 1,
             },
         ]
@@ -390,7 +391,7 @@ class GenerateOutsourceDemoWizard(models.TransientModel):
                 "email": "contact@sojae.co.kr",
                 "phone": "031-111-2222",
                 "is_supplier_portal": True,
-                "supplier_portal_token": f"demo_token_sojae_{suffix}",
+                "supplier_portal_token": secrets.token_urlsafe(32),
                 "supplier_rank": 1,
             })
 

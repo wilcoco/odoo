@@ -27,16 +27,23 @@ class SupplierPortalController(http.Controller):
 
     def _validate_portal_access(self, token):
         """토큰 검증 및 협력사 반환"""
-        if not token:
+        # 예측가능/약한 토큰 방어: 빈 값·데모 토큰·짧은 토큰은 즉시 거부.
+        if not token or token.startswith("demo_token_") or len(token) < 20:
             raise AccessDenied(_("접근 토큰이 필요합니다."))
 
         partner = request.env["res.partner"].sudo().search([
             ("supplier_portal_token", "=", token),
+            ("supplier_portal_token", "!=", False),
             ("is_supplier_portal", "=", True),
         ], limit=1)
 
         if not partner:
             raise AccessDenied(_("유효하지 않은 접근 토큰입니다."))
+
+        # [보안수칙] 토큰 만료 검사 — 만료일 경과 시 접근 거부(재발급 필요)
+        expiry = partner.supplier_portal_token_expiry
+        if expiry and expiry < fields.Date.context_today(partner):
+            raise AccessDenied(_("접근 토큰이 만료되었습니다. 담당자에게 재발급을 요청하세요."))
 
         return partner
 
@@ -361,7 +368,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/supply-chain/<int:status_id>/confirm", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_confirm(self, status_id, token=None, **kwargs):
         """공급망 단계 확정"""
         try:
@@ -380,7 +387,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/supply-chain?token={token}")
 
     @http.route("/supplier/supply-chain/<int:status_id>/ship", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_ship(self, status_id, token=None, **kwargs):
         """공급망 단계 출하"""
         try:
@@ -407,7 +414,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/supply-chain?token={token}")
 
     @http.route("/supplier/supply-chain/<int:status_id>/complete", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def supply_chain_complete(self, status_id, token=None, **kwargs):
         """공급망 단계 완료"""
         try:
@@ -636,6 +643,14 @@ class SupplierPortalController(http.Controller):
         if not all([seller_id, product_id, quantity, date_required]):
             return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
 
+        # 스푸핑 방지: 판매자·품목이 폼 허용집합(new_order_form)에 속하는지 서버측 재검증.
+        seller = request.env["res.partner"].sudo().browse(seller_id)
+        if not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id:
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_seller")
+        product = request.env["product.product"].sudo().browse(product_id)
+        if not product.exists() or not product.is_outsourced:
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_product")
+
         order = Order.create({
             "buyer_partner_id": partner.id,
             "seller_partner_id": seller_id,
@@ -674,7 +689,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/orders/<int:order_id>/receive", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def order_receive(self, order_id, token=None, **kwargs):
         """입고 확인 (발주자)"""
         try:
@@ -759,7 +774,7 @@ class SupplierPortalController(http.Controller):
         })
 
     @http.route("/supplier/incoming-orders/<int:order_id>/confirm", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def incoming_order_confirm(self, order_id, token=None, **kwargs):
         """수주 확정 (공급자)"""
         try:
@@ -778,7 +793,7 @@ class SupplierPortalController(http.Controller):
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
     @http.route("/supplier/incoming-orders/<int:order_id>/ship", type="http",
-                auth="public", website=True)
+                auth="public", website=True, methods=["POST"])
     def incoming_order_ship(self, order_id, token=None, **kwargs):
         """출하 처리 (공급자)"""
         try:

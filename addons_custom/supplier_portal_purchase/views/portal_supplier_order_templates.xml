@@ -296,10 +296,13 @@
                             <!-- 발주자 (buyer) 액션 -->
                             <t t-if="is_buyer">
                                 <t t-if="order.state == 'shipped'">
-                                    <a t-attf-href="/supplier/orders/#{order.id}/receive?token=#{token}"
-                                       class="btn btn-success w-100 mb-2">
-                                        <i class="fa fa-check me-1"/> 입고 확인
-                                    </a>
+                                    <form method="post" t-attf-action="/supplier/orders/#{order.id}/receive">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="token" t-att-value="token"/>
+                                        <button type="submit" class="btn btn-success w-100 mb-2">
+                                            <i class="fa fa-check me-1"/> 입고 확인
+                                        </button>
+                                    </form>
                                 </t>
                                 <t t-else="">
                                     <p class="text-muted mb-0">
@@ -319,16 +322,22 @@
                             <!-- 공급자 (seller) 액션 -->
                             <t t-if="not is_buyer">
                                 <t t-if="order.state == 'sent'">
-                                    <a t-attf-href="/supplier/incoming-orders/#{order.id}/confirm?token=#{token}"
-                                       class="btn btn-warning w-100 mb-2">
-                                        <i class="fa fa-check me-1"/> 확정
-                                    </a>
+                                    <form method="post" t-attf-action="/supplier/incoming-orders/#{order.id}/confirm">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="token" t-att-value="token"/>
+                                        <button type="submit" class="btn btn-warning w-100 mb-2">
+                                            <i class="fa fa-check me-1"/> 확정
+                                        </button>
+                                    </form>
                                 </t>
                                 <t t-elif="order.state == 'confirmed'">
-                                    <a t-attf-href="/supplier/incoming-orders/#{order.id}/ship?token=#{token}"
-                                       class="btn btn-primary w-100 mb-2">
-                                        <i class="fa fa-truck me-1"/> 출하
-                                    </a>
+                                    <form method="post" t-attf-action="/supplier/incoming-orders/#{order.id}/ship">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="token" t-att-value="token"/>
+                                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                                            <i class="fa fa-truck me-1"/> 출하
+                                        </button>
+                                    </form>
                                 </t>
                                 <t t-else="">
                                     <p class="text-muted mb-0">
@@ -474,16 +483,18 @@
                                         </td>
                                         <td>
                                             <t t-if="order.state == 'sent'">
-                                                <a t-attf-href="/supplier/incoming-orders/#{order.id}/confirm?token=#{token}"
-                                                   class="btn btn-sm btn-warning">
-                                                    확정
-                                                </a>
+                                                <form method="post" t-attf-action="/supplier/incoming-orders/#{order.id}/confirm" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="token" t-att-value="token"/>
+                                                    <button type="submit" class="btn btn-sm btn-warning">확정</button>
+                                                </form>
                                             </t>
                                             <t t-elif="order.state == 'confirmed'">
-                                                <a t-attf-href="/supplier/incoming-orders/#{order.id}/ship?token=#{token}"
-                                                   class="btn btn-sm btn-primary">
-                                                    출하
-                                                </a>
+                                                <form method="post" t-attf-action="/supplier/incoming-orders/#{order.id}/ship" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" name="token" t-att-value="token"/>
+                                                    <button type="submit" class="btn btn-sm btn-primary">출하</button>
+                                                </form>
                                             </t>
                                             <t t-else="">
                                                 <a t-attf-href="/supplier/incoming-orders/#{order.id}?token=#{token}"
@@ -591,10 +602,11 @@
                                                 <td><t t-esc="order.product_id.name"/></td>
                                                 <td><t t-esc="order.date_shipped" t-options="{'widget': 'date'}"/></td>
                                                 <td>
-                                                    <a t-attf-href="/supplier/orders/#{order.id}/receive?token=#{token}"
-                                                       class="btn btn-sm btn-success">
-                                                        입고확인
-                                                    </a>
+                                                    <form method="post" t-attf-action="/supplier/orders/#{order.id}/receive" class="d-inline">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <input type="hidden" name="token" t-att-value="token"/>
+                                                        <button type="submit" class="btn btn-sm btn-success">입고확인</button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         </t>
