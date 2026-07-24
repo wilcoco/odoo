@@ -21,7 +21,7 @@ echo "══ 1) 핵심 심볼 생존 스캔 @ $BASE ══"
 while IFS= read -r sym; do
     case "$sym" in ''|\#*) continue;; esac
     # 주의: ref 지정 grep -c 출력은 ref:path:count → count 는 마지막 필드($NF)
-    n=$(git grep -c "$sym" "$BASE" -- odoo_plugins 2>/dev/null | awk -F: '{s+=$NF} END{print s+0}')
+    n=$(git grep -c "$sym" "$BASE" -- addons_custom 2>/dev/null | awk -F: '{s+=$NF} END{print s+0}')
     if [ "$n" -eq 0 ]; then
         echo "  🔴 유실 의심: $sym (0곳)"
         FAIL=1
