@@ -344,13 +344,32 @@ class OutsourcePlanningRun(models.Model):
         for line in lines:
             product = line.product_id
 
-            # 공급업체 가격 조회
-            supplierinfo = self.env["product.supplierinfo"].search([
-                ("partner_id", "=", partner_id),
-                ("product_tmpl_id", "=", product.product_tmpl_id.id),
-            ], limit=1)
-
-            price = supplierinfo.price if supplierinfo else product.standard_price
+            # 발주 단가 = 계약단가(vendor.part.price, 정산과 동일 원장) 우선
+            #   → 없으면 supplierinfo.price → 최후 standard_price(조용한 폴백 방지: 경고 게시)
+            # 근거: 발주가·정산가가 다른 원장을 읽으면 협력사 대금 불일치가 생김
+            #   (escon_supplier_util/MODULE_ANALYSIS.md 결함 ③의 코드화).
+            price = None
+            price_src = "contract"
+            VPP = self.env.get("vendor.part.price")
+            if VPP is not None:
+                partner = self.env["res.partner"].browse(partner_id)
+                price = VPP.get_price(
+                    product, partner, fields.Date.context_today(self),
+                    self.env.company)
+            if price is None:
+                supplierinfo = self.env["product.supplierinfo"].search([
+                    ("partner_id", "=", partner_id),
+                    ("product_tmpl_id", "=", product.product_tmpl_id.id),
+                ], limit=1)
+                if supplierinfo:
+                    price, price_src = supplierinfo.price, "supplierinfo"
+                else:
+                    price, price_src = product.standard_price, "standard_fallback"
+            if price_src == "standard_fallback":
+                # [안전망] 회계원가로 발주되는 조용한 폴백을 가시화
+                po.message_post(body=(
+                    "⚠ 계약단가·공급가 미등록 → 회계원가(standard)로 발주: %s (%.2f) — 단가 마스터 등록 필요"
+                    % (product.display_name, price)))
 
             self.env["purchase.order.line"].create({
                 "order_id": po.id,
