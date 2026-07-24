@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pumui_request_list" model="ir.ui.view">
+        <field name="name">pumui.request.list</field>
+        <field name="model">pumui.request</field>
+        <field name="arch" type="xml">
+            <list decoration-success="approval_state == 'approved'"
+                  decoration-danger="approval_state == 'rejected'"
+                  decoration-info="approval_state == 'in_progress'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="title"/>
+                <field name="pumui_type"/>
+                <field name="partner_id"/>
+                <field name="project_id" optional="hide"/>
+                <field name="amount_total" sum="합계"/>
+                <field name="approval_state" widget="badge"/>
+                <field name="billing_status" widget="badge"
+                       decoration-success="billing_status == 'paid'"
+                       decoration-info="billing_status in ('invoiced','partial')"/>
+                <field name="requester_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pumui_request_form" model="ir.ui.view">
+        <field name="name">pumui.request.form</field>
+        <field name="model">pumui.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_approval" string="결재 상신" type="object"
+                            class="btn-primary" invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object"
+                            class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"
+                            confirm="반려하시겠습니까? 반려 사유가 입력되어 있어야 합니다."/>
+                    <button name="action_open_make_invoice_wizard" string="청구서 생성" type="object"
+                            class="btn-primary" invisible="approval_state != 'approved'"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_moves" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="move_count == 0">
+                            <field name="move_count" widget="statinfo" string="청구서"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="예: 사출기 3호기 노즐 교체 지출 품의"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="pumui_type"/>
+                            <field name="partner_id"/>
+                            <field name="project_id"/>
+                            <field name="contract_name"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="requester_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="품의 항목" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="payment_stage"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="price_tax"/>
+                                    <field name="price_total"/>
+                                    <field name="invoiced" widget="boolean_toggle" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="amount_untaxed"/>
+                                <field name="amount_tax"/>
+                                <field name="amount_total" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+                        <page string="청구/지급 현황" name="billing">
+                            <group>
+                                <group string="청구">
+                                    <field name="invoiced_amount"/>
+                                    <field name="uninvoiced_amount"/>
+                                    <field name="amount_diff"
+                                           decoration-danger="amount_diff != 0"/>
+                                </group>
+                                <group string="지급/수금">
+                                    <field name="paid_amount"/>
+                                    <field name="billing_status" widget="badge"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="결재선" name="approval">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                            <group>
+                                <field name="rejection_reason"
+                                       placeholder="반려 시 사유를 반드시 입력하세요 (필수)"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pumui_request_search" model="ir.ui.view">
+        <field name="name">pumui.request.search</field>
+        <field name="model">pumui.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="partner_id"/>
+                <filter name="my" string="내 기안" domain="[('requester_id','=',uid)]"/>
+                <filter name="to_approve" string="내 승인 대기"
+                        domain="[('approval_state','=','in_progress'),('approval_current_approver_id','=',uid)]"/>
+                <separator/>
+                <filter name="approved" string="승인 완료" domain="[('approval_state','=','approved')]"/>
+                <filter name="rejected" string="반려" domain="[('approval_state','=','rejected')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_partner" string="거래처" context="{'group_by':'partner_id'}"/>
+                    <filter name="g_state" string="승인상태" context="{'group_by':'approval_state'}"/>
+                    <filter name="g_type" string="품의 구분" context="{'group_by':'pumui_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_pumui_request" model="ir.actions.act_window">
+        <field name="name">품의서</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pumui_request_search"/>
+    </record>
+</odoo>

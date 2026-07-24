@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_fs_form" model="ir.ui.view">
+        <field name="name">kr.financial.statement.form</field>
+        <field name="model">kr.financial.statement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="report"/>
+                        <field name="date_to"/>
+                        <field name="date_from" invisible="report != 'pl'"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <button name="action_compute" type="object" string="조회" class="btn-primary"/>
+                    <field name="line_ids" readonly="1">
+                        <list decoration-bf="bold">
+                            <field name="name"/>
+                            <field name="amount"/>
+                            <field name="bold" column_invisible="1"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_fs" model="ir.actions.server">
+        <field name="name">K-재무제표 (재무상태표/손익계산서)</field>
+        <field name="model_id" ref="model_kr_financial_statement"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+    <record id="view_kr_fs_line_list" model="ir.ui.view">
+        <field name="name">kr.fs.line.list</field>
+        <field name="model">kr.fs.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="report"/>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="account_types"/>
+                <field name="extra_account_ids" widget="many2many_tags"/>
+                <field name="exclude_account_ids" widget="many2many_tags"/>
+                <field name="sign"/>
+                <field name="bold"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_kr_fs_line" model="ir.actions.act_window">
+        <field name="name">재무제표 매핑 설정</field>
+        <field name="res_model">kr.fs.line</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">K-GAAP 항목-계정유형 매핑</p>
+            <p>기본 매핑은 첫 조회 시 자동 생성됩니다. 계정 추가/제외로 조정하세요.</p>
+        </field>
+    </record>
+</odoo>

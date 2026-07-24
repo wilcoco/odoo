@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pumui_request_user,pumui.request.user,model_pumui_request,group_pumui_user,1,1,1,0
+access_pumui_request_mgr,pumui.request.mgr,model_pumui_request,group_pumui_manager,1,1,1,1
+access_pumui_line_user,pumui.request.line.user,model_pumui_request_line,group_pumui_user,1,1,1,1
+access_pumui_line_mgr,pumui.request.line.mgr,model_pumui_request_line,group_pumui_manager,1,1,1,1
+access_pumui_make_invoice,pumui.make.invoice,model_pumui_make_invoice,group_pumui_user,1,1,1,1

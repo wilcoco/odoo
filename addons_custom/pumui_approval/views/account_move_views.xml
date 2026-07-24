@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 청구서 폼: 품의서 링크 + 승인상태 + 차이 (리포트 #4 일부·#6) -->
+    <record id="view_move_form_pumui" model="ir.ui.view">
+        <field name="name">account.move.form.pumui</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="pumui_id" readonly="1"
+                       invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
+                <field name="pumui_approval_state" widget="badge" invisible="not pumui_id"
+                       decoration-success="pumui_approval_state == 'approved'"
+                       decoration-danger="pumui_approval_state == 'rejected'"/>
+                <field name="pumui_amount_diff" invisible="not pumui_id"
+                       decoration-danger="pumui_amount_diff != 0"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- 청구서 목록 검색: 품의 미연계 필터 (리포트 #6: 품의서 없이 생성된 청구서 식별) -->
+    <record id="view_account_invoice_filter_pumui" model="ir.ui.view">
+        <field name="name">account.move.search.pumui</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="no_pumui" string="품의 미연계"
+                        domain="[('pumui_id','=',False)]"/>
+                <filter name="has_pumui" string="품의 연계됨"
+                        domain="[('pumui_id','!=',False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 한국식 조회 바로가기 (리포트 #19·#20 1단계: 별도 메뉴 직행) -->
+    <record id="action_kr_partner_ledger" model="ir.actions.act_window">
+        <field name="name">거래처원장 (전체 전표항목)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="domain">[('partner_id','!=',False),('parent_state','=','posted')]</field>
+        <field name="context">{'group_by': ['partner_id'], 'search_default_posted': 1}</field>
+    </record>
+    <record id="action_kr_account_ledger" model="ir.actions.act_window">
+        <field name="name">계정별원장</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="domain">[('parent_state','=','posted')]</field>
+        <field name="context">{'group_by': ['account_id']}</field>
+    </record>
+
+    <menuitem id="menu_kr_guard_root" name="회계 점검·조회(K)" parent="account.menu_finance" sequence="95"/>
+    <menuitem id="menu_kr_checklist" name="마감 전 체크리스트" parent="menu_kr_guard_root"
+              action="action_kr_close_checklist" sequence="10"/>
+    <menuitem id="menu_kr_partner_ledger" name="거래처원장(전체)" parent="menu_kr_guard_root"
+              action="action_kr_partner_ledger" sequence="20"/>
+    <menuitem id="menu_kr_account_ledger" name="계정별원장" parent="menu_kr_guard_root"
+              action="action_kr_account_ledger" sequence="30"/>
+</odoo>

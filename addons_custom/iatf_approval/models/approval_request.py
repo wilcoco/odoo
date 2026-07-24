@@ -200,7 +200,6 @@ class IatfApprovalLine(models.Model):
             ("rejected", "Rejected"),
         ],
         default="new",
-        tracking=True,
     )
     action_date = fields.Datetime(string="Action Date")
     note = fields.Char(string="Note")
@@ -305,9 +304,16 @@ class IatfApprovalMixin(models.AbstractModel):
 
         res = super().write(vals) if vals else True
         if self._approval_should_reset(vals):
+            changed = set(vals) - self._approval_reset_ignored_fields()
             for record in self:
                 if record.approval_state == "approved":
                     record.action_reset_approval()
+                    # 조용한 리셋 금지 — 상신자가 "승인됐는데 미승인으로 보인다"고
+                    # 오인하는 실사고 사례. 사유·재상신 필요를 채터에 각인한다.
+                    labels = [record._fields[f].string or f for f in changed if f in record._fields]
+                    record.message_post(body=_(
+                        "⚠️ 승인 후 문서가 수정되어 결재가 초기화되었습니다. "
+                        "(수정 항목: %s) 다시 상신해 주세요.") % ", ".join(labels or ["-"]))
         return res
 
     def unlink(self):
@@ -316,9 +322,40 @@ class IatfApprovalMixin(models.AbstractModel):
         requests.sudo().unlink()
         return res
 
+    def _approval_amount(self):
+        """템플릿 금액 조건용 문서 금액 — 필요한 모델은 오버라이드."""
+        self.ensure_one()
+        for fname in ("amount_total", "amount", "total_amount"):
+            if fname in self._fields:
+                try:
+                    return float(self[fname] or 0.0)
+                except (TypeError, ValueError):
+                    continue
+        return 0.0
+
+    def _approval_apply_default_template(self):
+        """결재선이 비어 있으면 모델/부서/금액 매칭 템플릿으로 자동 구성."""
+        # 템플릿은 설정 데이터 — 일반 사용자는 ir.model 읽기 권한이 없어
+        # model_id.model 도메인 탐색이 AccessError 가 되므로 sudo 로 조회한다.
+        Template = self.env["iatf.approval.template"].sudo()
+        for record in self:
+            if record.approval_line_ids:
+                continue
+            employee = self.env.user.employee_id
+            department = employee.department_id if employee else self.env["hr.department"]
+            template = Template._find_for(record, record._approval_amount(), department)
+            if not template:
+                continue
+            record.approval_request_id.write({"line_ids": [
+                (0, 0, {"sequence": l.sequence, "user_id": l.user_id.id})
+                for l in template.line_ids]})
+            record.message_post(body="결재선 템플릿 '%s' 자동 적용 (%d단계)"
+                                     % (template.name, len(template.line_ids)))
+
     def action_submit_approval(self):
         for record in self:
             record._approval_ensure_request()
+            record._approval_apply_default_template()
             record.approval_request_id.action_submit()
         return True
 

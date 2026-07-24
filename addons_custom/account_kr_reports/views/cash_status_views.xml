@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_cash_status_form" model="ir.ui.view">
+        <field name="name">kr.cash.status.form</field>
+        <field name="model">kr.cash.status</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <sheet>
+                    <h1>자금현황</h1>
+                    <group>
+                        <field name="total_balance"/>
+                        <label for="pending_payments"/>
+                        <div><field name="pending_payments" class="oe_inline"/> 건
+                            <button name="action_pending_payments" type="object" string="보기" class="btn-link" invisible="pending_payments == 0"/></div>
+                    </group>
+                    <field name="line_ids">
+                        <list create="false" edit="false">
+                            <field name="journal_id"/>
+                            <field name="today_in" sum="계"/>
+                            <field name="today_out" sum="계"/>
+                            <field name="balance" sum="총잔액"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_kr_cash_status" model="ir.actions.server">
+        <field name="name">자금현황</field>
+        <field name="model_id" ref="model_kr_cash_status"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open()</field>
+    </record>
+
+    <!-- #31 1단계: 프로젝트별 품의·청구 집계 -->
+    <record id="view_pumui_project_pivot" model="ir.ui.view">
+        <field name="name">pumui.request.project.pivot</field>
+        <field name="model">pumui.request</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="project_id" type="row"/>
+                <field name="pumui_type" type="col"/>
+                <field name="amount_total" type="measure" string="품의 총액"/>
+                <field name="invoiced_amount" type="measure" string="청구 완료"/>
+                <field name="paid_amount" type="measure" string="지급/수금"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="action_kr_project_summary" model="ir.actions.act_window">
+        <field name="name">프로젝트별 품의·청구 집계</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="view_id" ref="view_pumui_project_pivot"/>
+        <field name="domain">[('approval_state','=','approved')]</field>
+    </record>
+
+    <menuitem id="menu_kr_cash_status" name="자금현황" parent="account_kr_guard.menu_kr_guard_root"
+              action="action_kr_cash_status" sequence="80"/>
+    <menuitem id="menu_kr_project_summary" name="프로젝트별 집계" parent="account_kr_guard.menu_kr_guard_root"
+              action="action_kr_project_summary" sequence="85"/>
+</odoo>
