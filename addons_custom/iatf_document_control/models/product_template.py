@@ -23,40 +23,40 @@ class ProductTemplate(models.Model):
 
             FMEA = self.env.get("iatf.fmea")
             tmpl.iatf_fmea_count = FMEA.search_count(
-                [("product_id", "in", pids)]) if FMEA else 0
+                [("product_id", "in", pids)]) if FMEA is not None else 0
 
             CP = self.env.get("iatf.control.plan")
             tmpl.iatf_control_plan_count = CP.search_count(
-                [("product_id", "in", pids)]) if CP else 0
+                [("product_id", "in", pids)]) if CP is not None else 0
 
             SPC = self.env.get("iatf.spc.study")
             tmpl.iatf_spc_count = SPC.search_count(
-                [("product_id", "in", pids)]) if SPC else 0
+                [("product_id", "in", pids)]) if SPC is not None else 0
 
             PPAP = self.env.get("iatf.ppap.submission")
             tmpl.iatf_ppap_count = PPAP.search_count(
-                [("product_id", "in", pids)]) if PPAP else 0
+                [("product_id", "in", pids)]) if PPAP is not None else 0
 
             NC = self.env.get("iatf.nonconformity")
             tmpl.iatf_nc_count = NC.search_count(
-                [("product_id", "in", pids)]) if NC else 0
+                [("product_id", "in", pids)]) if NC is not None else 0
 
             PQC = self.env.get("iatf.process.inspection")
             IQC = self.env.get("iatf.incoming.inspection")
             insp = 0
             if PQC is not None:
                 insp += PQC.search_count([("product_id", "in", pids)])
-            if IQC:
+            if IQC is not None:
                 insp += IQC.search_count([("product_id", "in", pids)])
             tmpl.iatf_inspection_count = insp
 
             CC = self.env.get("iatf.customer.complaint")
             tmpl.iatf_complaint_count = CC.search_count(
-                [("product_id", "in", pids)]) if CC else 0
+                [("product_id", "in", pids)]) if CC is not None else 0
 
             MSA = self.env.get("iatf.msa.study")
             tmpl.iatf_msa_count = MSA.search_count(
-                [("product_id", "in", pids)]) if MSA else 0
+                [("product_id", "in", pids)]) if MSA is not None else 0
 
     # ── 스마트버튼 액션 ──
     def _iatf_action(self, res_model, name):

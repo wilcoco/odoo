@@ -68,10 +68,10 @@ class ResPartner(models.Model):
             rec.iatf_scar_count = len(rec.iatf_scar_ids)
             NC = self.env.get("iatf.nonconformity")
             rec.iatf_nc_count = NC.search_count([
-                ("partner_id", "=", rec.id)]) if NC else 0
+                ("partner_id", "=", rec.id)]) if NC is not None else 0
             IQC = self.env.get("iatf.incoming.inspection")
             rec.iatf_iqc_count = IQC.search_count([
-                ("supplier_id", "=", rec.id)]) if IQC else 0
+                ("supplier_id", "=", rec.id)]) if IQC is not None else 0
 
     @api.depends("iatf_evaluation_ids.grade", "iatf_evaluation_ids.state")
     def _compute_iatf_grade(self):
