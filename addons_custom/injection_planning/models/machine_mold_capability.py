@@ -18,6 +18,12 @@ class MachineMoldCapability(models.Model):
     cavity_count = fields.Integer(
         related="mold_id.cavity_count", string="캐비티 수", readonly=True,
     )
+    required_clamping_ton = fields.Float(
+        related="mold_id.required_clamping_ton", string="요구 형체력(톤)", readonly=True,
+    )
+    machine_clamping_ton = fields.Float(
+        related="workcenter_id.x_clamping_force_ton", string="사출기 형체력(톤)", readonly=True,
+    )
 
     # ── 변수 ──
     cycle_time = fields.Float(

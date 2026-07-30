@@ -1,8 +1,20 @@
 import logging
+from datetime import datetime, time, timedelta
 
+import pytz
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
+
+# 교대 시간의 단일 기본값입니다.
+# 운영 시간이 바뀌면 Odoo의 "사출 생산계획 > 설정 > 교대 근무"에서
+# day_shift_start / night_shift_start 두 값을 수정하세요.
+# 이 값은 자동 교대 계획, 사출 MO 교대 추론, Odoo/Flutter 계획일 검색에
+# 공통 적용됩니다. 설정 레코드가 없을 때만 아래 기본값을 사용합니다.
+DEFAULT_DAY_SHIFT_START = 8.0
+DEFAULT_NIGHT_SHIFT_START = 20.0
+DEFAULT_SHIFT_TIMEZONE = "Asia/Seoul"
 
 
 class InjectionPlanningConfig(models.Model):
@@ -15,7 +27,7 @@ class InjectionPlanningConfig(models.Model):
     oracle_port = fields.Integer(string="Oracle 포트", default=1521)
     oracle_sid = fields.Char(string="Oracle SID", default="orcl")
     oracle_user = fields.Char(string="DB 사용자", default="prd")
-    oracle_password = fields.Char(string="DB 비밀번호", password=True)
+    oracle_password = fields.Char(string="DB 비밀번호")
     oracle_client_path = fields.Char(
         string="Oracle Client 경로",
         help="Oracle Instant Client 라이브러리 경로 (Thick 모드). "
@@ -72,12 +84,20 @@ class InjectionPlanningConfig(models.Model):
         help="야간 교대 근무 시간 (예: 8시간, 10시간)",
     )
     day_shift_start = fields.Float(
-        string="주간 시작 시각", default=8.0,
-        help="주간 근무 시작 (예: 8.0 = 오전 8시, 7.5 = 오전 7시 30분)",
+        string="주간 시작 시각", default=DEFAULT_DAY_SHIFT_START,
+        help=(
+            "교대 시간 변경 시 이 값을 수정하세요. 자동 교대 계획과 "
+            "Odoo/Flutter 계획일 검색에 함께 적용됩니다. "
+            "예: 8.0 = 오전 8시, 7.5 = 오전 7시 30분"
+        ),
     )
     night_shift_start = fields.Float(
-        string="야간 시작 시각", default=20.0,
-        help="야간 근무 시작 (예: 20.0 = 오후 8시)",
+        string="야간 시작 시각", default=DEFAULT_NIGHT_SHIFT_START,
+        help=(
+            "교대 시간 변경 시 이 값을 수정하세요. 자동 교대 계획과 "
+            "Odoo/Flutter 계획일 검색에 함께 적용됩니다. "
+            "예: 20.0 = 오후 8시, 19.5 = 오후 7시 30분"
+        ),
     )
 
     # ── 안전재고 ──
@@ -102,6 +122,101 @@ class InjectionPlanningConfig(models.Model):
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )
+
+    @api.constrains("day_shift_start", "night_shift_start")
+    def _check_shift_start_hours(self):
+        for config in self:
+            for label, value in (
+                ("주간 시작 시각", config.day_shift_start),
+                ("야간 시작 시각", config.night_shift_start),
+            ):
+                if not 0.0 <= value < 24.0:
+                    raise ValidationError(
+                        f"{label}은(는) 0 이상 24 미만이어야 합니다."
+                    )
+            if config.day_shift_start == config.night_shift_start:
+                raise ValidationError(
+                    "주간 시작 시각과 야간 시작 시각은 달라야 합니다."
+                )
+
+    @api.model
+    def _get_active_shift_config(self, company=None):
+        """회사에 적용할 교대 설정을 반환합니다."""
+        company = company or self.env.company
+        config = self.search([("company_id", "=", company.id)], limit=1)
+        return config or self.search([("company_id", "=", False)], limit=1)
+
+    def get_shift_start_hours(self):
+        """단일 설정 원천에서 (주간 시작, 야간 시작)을 반환합니다."""
+        config = self if len(self) == 1 else self._get_active_shift_config()
+        if not config:
+            return DEFAULT_DAY_SHIFT_START, DEFAULT_NIGHT_SHIFT_START
+        return float(config.day_shift_start), float(config.night_shift_start)
+
+    def get_shift_timezone(self):
+        """교대 판정에 사용할 회사 작업장 시간대를 반환합니다."""
+        config = self if len(self) == 1 else self._get_active_shift_config()
+        company = config.company_id if config and config.company_id else self.env.company
+        return (
+            company.resource_calendar_id.tz
+            or company.partner_id.tz
+            or DEFAULT_SHIFT_TIMEZONE
+        )
+
+    @api.model
+    def hour_float_to_time(self, hour_value):
+        """8.5 형식의 설정값을 08:30:00으로 변환합니다."""
+        total_seconds = int(round(float(hour_value) * 3600)) % (24 * 3600)
+        hour, remainder = divmod(total_seconds, 3600)
+        minute, second = divmod(remainder, 60)
+        return time(hour, minute, second)
+
+    def get_shift_code(self, local_datetime):
+        """회사 현지 시각을 day/night 교대로 분류합니다."""
+        day_start, night_start = self.get_shift_start_hours()
+        current_hour = (
+            local_datetime.hour
+            + local_datetime.minute / 60.0
+            + local_datetime.second / 3600.0
+        )
+        if day_start < night_start:
+            return "day" if day_start <= current_hour < night_start else "night"
+        return "day" if current_hour >= day_start or current_hour < night_start else "night"
+
+    def get_shift_end(self, local_datetime, shift):
+        """현재 교대가 끝나는 다음 경계 시각을 반환합니다."""
+        day_start, night_start = self.get_shift_start_hours()
+        end_hour = night_start if shift == "day" else day_start
+        boundary = datetime.combine(
+            local_datetime.date(),
+            self.hour_float_to_time(end_hour),
+        )
+        if boundary <= local_datetime:
+            boundary += timedelta(days=1)
+        return boundary
+
+    def utc_to_shift_local(self, value):
+        """Odoo UTC datetime을 교대 기준 회사 현지 시각으로 변환합니다."""
+        utc_value = fields.Datetime.to_datetime(value)
+        if not utc_value:
+            return False
+        if utc_value.tzinfo:
+            aware_utc = utc_value.astimezone(pytz.UTC)
+        else:
+            aware_utc = pytz.UTC.localize(utc_value)
+        return aware_utc.astimezone(pytz.timezone(self.get_shift_timezone()))
+
+    def shift_local_to_utc(self, value):
+        """교대 기준 회사 현지 시각을 Odoo 저장용 UTC naive 값으로 변환합니다."""
+        local_value = fields.Datetime.to_datetime(value)
+        if not local_value:
+            return False
+        timezone = pytz.timezone(self.get_shift_timezone())
+        if local_value.tzinfo:
+            aware_local = local_value.astimezone(timezone)
+        else:
+            aware_local = timezone.localize(local_value)
+        return aware_local.astimezone(pytz.UTC).replace(tzinfo=None)
 
     def _get_oracle_connection(self):
         """Oracle 연결 객체 반환 (Thick 모드 지원)"""
@@ -150,9 +265,9 @@ class InjectionPlanningConfig(models.Model):
     @api.model
     def action_open_config(self):
         """싱글톤 설정 레코드 열기 (없으면 생성)"""
-        config = self.search([], limit=1)
+        config = self._get_active_shift_config()
         if not config:
-            config = self.create({})
+            config = self.create({"company_id": self.env.company.id})
         return {
             "type": "ir.actions.act_window",
             "name": "생산계획 설정",

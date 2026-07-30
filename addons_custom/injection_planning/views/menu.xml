@@ -6,7 +6,7 @@
               web_icon="injection_planning,static/description/icon.png"
               sequence="25"/>
 
-    <!-- 계획 -->
+    <!-- ════════ 계획/운영 ════════ -->
     <menuitem id="menu_planning_run"
               name="계획 실행"
               parent="menu_injection_planning_root"
@@ -18,12 +18,6 @@
               parent="menu_injection_planning_root"
               action="action_machine_production_report"
               sequence="12"/>
-
-    <menuitem id="menu_demand"
-              name="수요 데이터"
-              parent="menu_injection_planning_root"
-              action="action_demand"
-              sequence="20"/>
 
     <menuitem id="menu_daily_summary"
               name="일별 분석"
@@ -43,31 +37,57 @@
               action="action_material_daily"
               sequence="19"/>
 
-    <!-- 마스터 -->
+    <menuitem id="menu_demand"
+              name="수요 데이터"
+              parent="menu_injection_planning_root"
+              action="action_demand"
+              sequence="20"/>
+
+    <!-- ════════ 마스터 데이터 (한 곳에 통합) ════════ -->
     <menuitem id="menu_planning_master"
               name="마스터 데이터"
               parent="menu_injection_planning_root"
+              sequence="30"/>
+
+    <!-- 제품/BOM (표준 모델, 사출 컨텍스트로 노출) -->
+    <menuitem id="menu_master_product"
+              name="사출 제품/부품"
+              parent="menu_planning_master"
+              action="action_injection_product"
+              sequence="10"/>
+
+    <menuitem id="menu_master_bom"
+              name="BOM (자재명세서)"
+              parent="menu_planning_master"
+              action="action_injection_bom"
+              sequence="20"/>
+
+    <!-- 사출기/금형/조합/가동일정 (모두 마스터 하위로 정렬) -->
+    <menuitem id="menu_master_workcenter"
+              name="사출기 (작업장)"
+              parent="menu_planning_master"
+              action="action_injection_workcenter"
               sequence="30"/>
 
     <menuitem id="menu_mold"
               name="금형 관리"
               parent="menu_planning_master"
               action="action_injection_mold"
-              sequence="10"/>
+              sequence="40"/>
 
     <menuitem id="menu_machine_mold"
               name="사출기-금형 조합"
               parent="menu_planning_master"
               action="action_machine_mold_capability"
-              sequence="20"/>
+              sequence="50"/>
 
     <menuitem id="menu_machine_availability"
               name="사출기 가동 일정"
-              parent="menu_injection_planning_root"
+              parent="menu_planning_master"
               action="action_machine_availability"
-              sequence="25"/>
+              sequence="60"/>
 
-    <!-- 설정 -->
+    <!-- ════════ 설정 ════════ -->
     <menuitem id="menu_planning_config_parent"
               name="설정"
               parent="menu_injection_planning_root"
