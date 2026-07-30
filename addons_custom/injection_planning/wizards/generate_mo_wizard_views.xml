@@ -8,11 +8,11 @@
                 <group>
                     <group>
                         <field name="planning_run_id" readonly="1"/>
-                        <field name="line_count"/>
+                        <field name="line_count" readonly="1"/>
                     </group>
                     <group>
-                        <field name="total_qty"/>
-                        <field name="changeover_count"/>
+                        <field name="total_qty" readonly="1"/>
+                        <field name="changeover_count" readonly="1"/>
                     </group>
                 </group>
                 <separator string=""/>

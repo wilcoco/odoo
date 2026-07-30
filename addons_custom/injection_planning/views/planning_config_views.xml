@@ -19,7 +19,7 @@
                         </group>
                         <group>
                             <field name="oracle_user"/>
-                            <field name="oracle_password"/>
+                            <field name="oracle_password" widget="password"/>
                             <button name="action_test_oracle_connection"
                                     string="연결 테스트" type="object"
                                     class="btn-primary"/>
@@ -45,6 +45,11 @@
                         </group>
                     </group>
                     <group string="교대 근무">
+                        <div class="alert alert-info" role="alert" colspan="2">
+                            교대 시간은 여기의 <b>주간 시작 시각</b>과
+                            <b>야간 시작 시각</b>에서 변경합니다.
+                            자동 교대 계획과 Odoo/Flutter 계획일 검색에 함께 적용됩니다.
+                        </div>
                         <group>
                             <field name="day_shift_hours"/>
                             <field name="day_shift_start"/>

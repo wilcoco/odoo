@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class GenerateMOWizard(models.TransientModel):
@@ -18,10 +18,18 @@ class GenerateMOWizard(models.TransientModel):
         string="금형 교체 횟수", compute="_compute_summary",
     )
 
+    @api.depends(
+        "planning_run_id",
+        "planning_run_id.line_ids.state",
+        "planning_run_id.line_ids.planned_qty",
+        "planning_run_id.line_ids.changeover_needed",
+    )
     def _compute_summary(self):
         for rec in self:
-            lines = rec.planning_run_id.line_ids.filtered(
-                lambda l: l.state == "draft"
+            lines = (
+                rec.planning_run_id._get_mo_candidate_lines()
+                if rec.planning_run_id
+                else self.env["injection.planning.line"]
             )
             rec.line_count = len(lines)
             rec.total_qty = sum(lines.mapped("planned_qty"))

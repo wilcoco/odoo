@@ -1,9 +1,11 @@
 import math
 import logging
 from collections import defaultdict
+from markupsafe import Markup
 from datetime import datetime, timedelta
 
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -129,8 +131,9 @@ class PlanningRun(models.Model):
         self.ensure_one()
         config = self._get_config()
 
+        unmapped = {}
         try:
-            demands = self._fetch_from_oracle(config)
+            demands = self.with_context(unmapped_codes=unmapped)._fetch_from_oracle(config)
         except Exception as e:
             _logger.exception("Oracle 수요 조회 실패")
             raise models.UserError(f"Oracle 수요 조회 실패: {e}")
@@ -180,6 +183,12 @@ class PlanningRun(models.Model):
             )
         else:
             self.message_post(body="Oracle에서 가져온 수요 데이터가 없습니다.")
+        # [안전망 S1] 품목 미매핑으로 조용히 제외된 품번을 채터에 보고
+        if unmapped:
+            self.message_post(body=Markup(
+                "<b>⚠ 품목 미매핑으로 제외된 수요 품번 %d종</b> — 품목 마스터 등록 필요:<br/>"
+                % len(unmapped)
+                + ", ".join("%s(%d행)" % (k, v) for k, v in sorted(unmapped.items())[:30])))
 
     def action_add_manual_demand(self):
         """수동 수요 입력 폼 열기"""
@@ -253,7 +262,9 @@ class PlanningRun(models.Model):
         }
 
     def _get_config(self):
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env[
+            "injection.planning.config"
+        ]._get_active_shift_config()
         if not config:
             raise models.UserError("생산계획 설정이 없습니다. 먼저 설정을 생성하세요.")
         return config
@@ -391,6 +402,9 @@ class PlanningRun(models.Model):
         )
         if not product:
             _logger.warning("제품 코드 '%s'에 해당하는 제품 없음", code)
+            um = self.env.context.get("unmapped_codes")
+            if um is not None:
+                um[code] = um.get(code, 0) + 1
         return product
 
     # ─────────────────────────────────────────────
@@ -399,10 +413,27 @@ class PlanningRun(models.Model):
     def action_calculate_plan(self):
         """메인 스케줄링 알고리즘"""
         self.ensure_one()
+        # C3 동일 패턴(서버 가드): 검토/확정 단계에서 재계산 차단 — UI 버튼은 draft에서만 보이지만
+        # RPC 직접호출·상태전이로 우회되면 검토 중 수동조정한 계획 라인이 유실되므로 서버에서도 막는다.
+        # 재계산은 '초안으로'(action_reset_draft)로 명시 초기화 후 진행.
+        if self.state not in ("draft", "calculating"):
+            raise UserError(_(
+                "이미 계산된 계획입니다. 재계산하려면 먼저 '초안으로'를 눌러 초기화하세요.\n"
+                "(검토 단계에서 수동 조정한 계획 라인이 유실되지 않도록 보호합니다.)"))
         self.state = "calculating"
         self.line_ids.unlink()
 
         config = self._get_config()
+
+        # [안전망] 계산 중 '조용한 건너뜀'(미전개·조합없음 등)을 수집해 완료 시 채터 보고
+        plan_issues = []
+        self = self.with_context(plan_issues=plan_issues)
+
+        def _post_issues():
+            if plan_issues:
+                self.message_post(body=Markup(
+                    "<b>⚠ 계획 계산 경고 %d건</b><br/>" % len(plan_issues)
+                    + "<br/>".join("· " + i for i in plan_issues)))
 
         # 1단계: BOM 전개 (완성품 → 사출 부품)
         part_demands = self._explode_bom()
@@ -410,6 +441,7 @@ class PlanningRun(models.Model):
         if not part_demands:
             self.state = "review"
             self.message_post(body="BOM 전개 결과 사출 부품 수요가 없습니다.")
+            _post_issues()
             return
 
         # 2단계: 순수요 계산 (재고 차감, 최대재고 제한)
@@ -418,6 +450,7 @@ class PlanningRun(models.Model):
         if not net_demands:
             self.state = "review"
             self.message_post(body="현재 재고로 모든 수요 충족 가능. 추가 생산 불필요.")
+            _post_issues()
             return
 
         # 3단계: 사출기 배정 + 수량 조정 + 스케줄링
@@ -437,6 +470,7 @@ class PlanningRun(models.Model):
         # 6단계: 원재료 소요/재고 집계 (확정 검토용)
         self._calculate_material_requirements()
 
+        _post_issues()
         self.state = "review"
 
     def _explode_bom(self):
@@ -449,22 +483,54 @@ class PlanningRun(models.Model):
         """
         # {(product_id, date_str): qty}
         part_demands = defaultdict(float)
+        issues = self.env.context.get("plan_issues")
 
-        for demand in self.demand_ids.filtered(lambda d: d.state == "draft"):
-            bom = self.env["mrp.bom"].search([
+        # [G1] 사출품 판정: is_injection_part(injection_worksite 설치 시) 또는 capability 보유
+        cap_pids = set()
+        for c in self.env["injection.machine.mold.capability"].search([("active", "=", True)]):
+            cpid = c.product_id.id or c.mold_id.product_id.id
+            if cpid:
+                cap_pids.add(cpid)
+
+        def _is_inj(prod):
+            tmpl = prod.product_tmpl_id
+            if tmpl._fields.get("is_injection_part") and tmpl.is_injection_part:
+                return True
+            return prod.id in cap_pids
+
+        # 재계산 멱등성: draft 뿐 아니라 이전 계산으로 confirmed 된 수요도 재전개 대상에 포함.
+        #   (calculate_plan 재실행 시 draft 가 없어 계획이 0으로 비워지던 데이터손실 방지.
+        #    이미 생산완료(done)·취소(cancelled) 수요는 제외.)
+        for demand in self.demand_ids.filtered(lambda d: d.state in ("draft", "confirmed")):
+            boms = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", demand.product_id.id),
                 ("product_tmpl_id", "=", demand.product_id.product_tmpl_id.id),
-            ], limit=1)
+            ])
+            bom = boms[:1]
+            # [안전망 S4] 같은 품목에 활성 BOM 이 2개 이상이면 임의 선택 상태 — 경고
+            if len(boms) > 1 and issues is not None:
+                issues.append(
+                    "다중 활성 BOM %d개: %s (첫 번째 사용 — ALC/버전 확인 필요)"
+                    % (len(boms), demand.product_id.default_code or demand.product_id.name))
 
             if not bom or not bom.bom_line_ids:
-                # BOM 없거나 라인 없으면 제품 자체가 사출품으로 간주
-                part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                # BOM 없으면: 사출품이면 자체 수요로 간주, 비사출이면 제외+경고
+                if _is_inj(demand.product_id):
+                    part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                elif issues is not None:
+                    issues.append(
+                        "BOM 없음+비사출 수요 제외: %s (%s, %.0f개)"
+                        % (demand.product_id.default_code or demand.product_id.name,
+                           demand.demand_date, demand.quantity))
                 demand.state = "confirmed"
                 continue
 
             # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
             for line in bom.bom_line_ids:
+                # [G1] 비사출 구성품(외주 체결구·클립 등)은 사출 계획에서 제외
+                if not _is_inj(line.product_id):
+                    continue
                 qty_per = line.product_qty / (bom.product_qty or 1)
                 part_demands[(line.product_id.id, str(demand.demand_date))] += (
                     demand.quantity * qty_per
@@ -515,8 +581,12 @@ class PlanningRun(models.Model):
                 if (c.product_id.id == pid) or (c.mold_id.product_id.id == pid)
             ]
             if caps:
-                best = max(caps, key=lambda c: c.hourly_capacity)
-                product_daily_cap[pid] = best.hourly_capacity * daily_hours
+                # [G4] 유효능력(불량률 반영) 기준 — 배정 선택 기준과 일치
+                def _eff(c):
+                    dr = c.defect_rate or config.default_defect_rate or 0.0
+                    return c.hourly_capacity * max(0.0, 1.0 - dr / 100.0)
+                best = max(caps, key=_eff)
+                product_daily_cap[pid] = _eff(best) * daily_hours
                 _logger.info(
                     "[순수요] 제품 id=%s: daily_cap=%.1f (hourly=%.1f × %dh)",
                     pid, product_daily_cap[pid], best.hourly_capacity, daily_hours,
@@ -525,6 +595,11 @@ class PlanningRun(models.Model):
                 _logger.warning(
                     "[순수요] 제품 id=%s: capability 없음! 풀캐퍼 계산 불가", pid,
                 )
+                _iss = self.env.context.get("plan_issues")
+                if _iss is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _iss.append("capability 없음(풀캐퍼 정책 미적용): %s"
+                                % (_p.default_code or _p.name))
 
         # 제품별 날짜→수요 매핑 (향후 N일 참조용)
         product_date_demand = defaultdict(dict)
@@ -641,51 +716,25 @@ class PlanningRun(models.Model):
             {pid: len(caps) for pid, caps in product_caps.items()},
         )
 
-        # 사출기별 작업 수집
+        # 사출기별 작업 수집 — 배정은 가용시간 헬퍼 정의 후(아래) 수행 [G4/G5]
         machine_jobs = defaultdict(list)
-
-        for (pid, date_str), demand_qty in sorted(
-            net_demands.items(), key=lambda x: x[1]
-        ):
-            caps = product_caps.get(pid, [])
-            if not caps:
-                _logger.warning(
-                    "제품 ID %s에 대한 사출기-금형 조합 없음, 건너뜀", pid,
-                )
-                continue
-
-            # 가장 적합한 조합 선택 (시간당 생산능력 높은 순)
-            best_cap = max(caps, key=lambda c: c.hourly_capacity)
-
-            machine_jobs[best_cap.workcenter_id.id].append({
-                "product_id": pid,
-                "date_str": date_str,
-                "demand_qty": demand_qty,
-                "capability": best_cap,
-            })
 
         # 기본 교대 시간 (가동일정 미등록 시 사용)
         default_day_h = config.day_shift_hours or 8.0
         default_night_h = config.night_shift_hours or 8.0
-        day_start = int(config.day_shift_start or 8)
-        night_start = int(config.night_shift_start or 20)
+        # 교대 시작 시각은 injection.planning.config의 단일 설정을 사용한다.
+        # 운영 시간이 바뀌면 생산계획 설정의 주간/야간 시작 시각만 수정한다.
+        day_start, _night_start = config.get_shift_start_hours()
+        day_start_time = config.hour_float_to_time(day_start)
         mo_split_mode = config.mo_split_mode or "none"
 
         def _get_shift(dt):
             """시간대로 교대 구분"""
-            hour = dt.hour
-            if day_start <= hour < night_start:
-                return "day"
-            return "night"
+            return config.get_shift_code(dt)
 
         def _get_shift_end(dt, shift):
             """해당 교대의 종료 시각"""
-            if shift == "day":
-                return dt.replace(hour=night_start, minute=0, second=0, microsecond=0)
-            else:
-                # 야간: 다음날 주간 시작
-                next_day = dt.date() + timedelta(days=1)
-                return datetime.combine(next_day, datetime.min.time()).replace(hour=day_start)
+            return config.get_shift_end(dt, shift)
 
         # 사출기별 가동 일정 조회
         avail_map = {}  # (wc_id, date) → availability record
@@ -746,6 +795,74 @@ class PlanningRun(models.Model):
                 ordered.append((mold_id, mold_jobs))
             return ordered
 
+        # ── 작업 배정 [G5 형체력 적합성 + G4 유효능력·부하분산·병렬] ──
+        _issues = self.env.context.get("plan_issues")
+        assigned_hours = defaultdict(float)  # (wc_id, date_str) → 배정된 시간
+
+        def _eff_cap(c):
+            dr = c.defect_rate or config.default_defect_rate or 0.0
+            return c.hourly_capacity * max(0.0, 1.0 - dr / 100.0)
+
+        def _suitable_caps(caps_list, pid):
+            """[G5] 형체력 적합성: 사출기 형체력 ≥ 금형 요구 형체력.
+            둘 중 하나라도 0(미등록)이면 필터 미적용(방어). 전 조합 부적합이면
+            경고 후 미필터 진행(생산 자체를 조용히 막지 않기 위함)."""
+            ok = []
+            for c in caps_list:
+                need = c.mold_id.required_clamping_ton or 0.0
+                have = c.workcenter_id.x_clamping_force_ton or 0.0
+                if need and have and have + 1e-6 < need:
+                    continue
+                ok.append(c)
+            if not ok and caps_list:
+                if _issues is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _issues.append("형체력 적합 조합 없음(스펙 확인 필요, 미필터 진행): %s"
+                                   % (_p.default_code or _p.name))
+                return caps_list
+            return ok
+
+        for (pid, date_str), demand_qty in sorted(
+            net_demands.items(), key=lambda x: (x[0][1], -x[1])  # [G3] 납기순, 동일일자 수량 큰 순
+        ):
+            caps = product_caps.get(pid, [])
+            if not caps:
+                _logger.warning("제품 ID %s에 대한 사출기-금형 조합 없음, 건너뜀", pid)
+                if _issues is not None:
+                    _p = self.env["product.product"].browse(pid)
+                    _issues.append("사출기-금형 조합 없음(배정 탈락!): %s %s %.0f개"
+                                   % (_p.default_code or _p.name, date_str, demand_qty))
+                continue
+
+            # [G4] 유효능력(불량률 반영) 높은 순으로 후보 정렬
+            ranked = sorted(_suitable_caps(caps, pid), key=_eff_cap, reverse=True)
+            remaining_qty = demand_qty
+            for cap in ranked:
+                if remaining_qty <= 0:
+                    break
+                wc = cap.workcenter_id.id
+                eff = _eff_cap(cap) or (cap.hourly_capacity or 1.0)
+                if cap is ranked[-1]:
+                    take = remaining_qty  # 마지막 후보: 잔량 전부(초과분은 시간커서가 익일 이월)
+                else:
+                    # [G4 부하분산] 이 기계의 당일 잔여 가용시간만큼만 → 넘치면 차선 기계로(병렬)
+                    avail_h, _d, _n2 = _get_available_hours(wc, date_str)
+                    free_h = avail_h - assigned_hours[(wc, date_str)]
+                    if free_h <= 0.1:
+                        continue
+                    cap_qty = int(free_h * eff)
+                    if cap_qty <= 0:
+                        continue
+                    take = min(remaining_qty, cap_qty)
+                machine_jobs[wc].append({
+                    "product_id": pid,
+                    "date_str": date_str,
+                    "demand_qty": take,
+                    "capability": cap,
+                })
+                assigned_hours[(wc, date_str)] += (take / eff) if eff > 0 else 0.0
+                remaining_qty -= take
+
         # 사출기별 스케줄링
         lines_data = []
         machine_time_cursor = {}
@@ -767,8 +884,8 @@ class PlanningRun(models.Model):
             if wc_id not in machine_time_cursor:
                 first_date = _find_next_available(wc_id, self.plan_date_from)
                 start_dt = datetime.combine(
-                    first_date, datetime.min.time()
-                ).replace(hour=day_start)
+                    first_date, day_start_time
+                )
                 machine_time_cursor[wc_id] = start_dt
                 avail_h, _, _ = _get_available_hours(wc_id, first_date)
                 machine_day_remaining[wc_id] = avail_h
@@ -842,8 +959,8 @@ class PlanningRun(models.Model):
                             wc_id, cursor.date() + timedelta(days=1)
                         )
                         cursor = datetime.combine(
-                            next_date, datetime.min.time()
-                        ).replace(hour=day_start)
+                            next_date, day_start_time
+                        )
                         avail_h, _, _ = _get_available_hours(
                             wc_id, next_date
                         )
@@ -899,8 +1016,8 @@ class PlanningRun(models.Model):
                                     "initial_scrap": scrap if is_first_seg else 0,
                                     "changeover_needed": needs_changeover if is_first_seg else False,
                                     "changeover_hours": co_hours if is_first_seg else 0.0,
-                                    "start_time": seg_start,
-                                    "end_time": seg_end,
+                                    "start_time": config.shift_local_to_utc(seg_start),
+                                    "end_time": config.shift_local_to_utc(seg_end),
                                     "shift": current_shift,
                                     "current_stock": product.qty_available,
                                     "max_inventory": product.max_inventory_qty,
@@ -926,8 +1043,8 @@ class PlanningRun(models.Model):
                             "initial_scrap": scrap,
                             "changeover_needed": needs_changeover,
                             "changeover_hours": co_hours,
-                            "start_time": start_time,
-                            "end_time": end_time,
+                            "start_time": config.shift_local_to_utc(start_time),
+                            "end_time": config.shift_local_to_utc(end_time),
                             "current_stock": product.qty_available,
                             "max_inventory": product.max_inventory_qty,
                         })
@@ -962,9 +1079,20 @@ class PlanningRun(models.Model):
     # ─────────────────────────────────────────────
     # MO 생성
     # ─────────────────────────────────────────────
+    def _get_mo_candidate_lines(self):
+        """현재 실행에서 아직 MO로 전환되지 않은 계획 라인을 반환한다.
+
+        확인 위자드의 요약과 실제 생성 로직이 같은 대상 집합을 사용하도록
+        단일 진입점으로 둔다. 부분 실패 후 재시도할 때도 draft 라인만 남는다.
+        """
+        self.ensure_one()
+        return self.line_ids.filtered(lambda line: line.state == "draft")
+
     def action_confirm_generate_mo(self):
         """확정 → MO 일괄 생성"""
         self.ensure_one()
+        if not self._get_mo_candidate_lines():
+            raise UserError(_("MO 생성 대상 계획 라인이 없습니다."))
         return {
             "type": "ir.actions.act_window",
             "name": "MO 생성 확인",
@@ -974,26 +1102,54 @@ class PlanningRun(models.Model):
             "context": {"default_planning_run_id": self.id},
         }
 
+    def _validate_planning_line(self, line):
+        """MO 생성 전 라인 검증 훅 — 확장 모듈(worksite 등)이 오버라이드.
+        검증 실패는 UserError 로 전체 생성을 중단시킨다(계획자가 먼저 고칠 문제)."""
+        return True
+
+    def _get_mo_vals(self, line, bom):
+        """MO vals 단일 훅 — 확장 모듈은 generate 전체가 아니라 이 훅만 오버라이드한다.
+        (한쪽 수정이 다른 쪽에 누락되는 이중 유지보수 방지)"""
+        MO = self.env["mrp.production"]
+        mo_vals = {
+            "product_id": line.product_id.id,
+            "product_qty": line.planned_qty,
+            "bom_id": bom.id if bom else False,
+            "date_start": line.start_time or fields.Datetime.now(),
+            "planning_run_id": self.id,
+        }
+        # 사출 현장(injection_worksite) 연계 — 계획 배정 결과(호기·금형)를 MO 에 전달.
+        # 미전달 시 PLC 단위실적이 계획 MO 를 찾지 못해 현장 연동이 끊긴다.
+        # worksite 미설치 환경(계획 단독)에서도 동작하도록 필드 존재 검사로 가드.
+        if line.workcenter_id and "workcenter_id" in MO._fields:
+            mo_vals["workcenter_id"] = line.workcenter_id.id
+        if "is_injection_mo" in MO._fields:
+            mo_vals["is_injection_mo"] = True
+        if line.mold_id and "actual_mold_id" in MO._fields:
+            mo_vals["actual_mold_id"] = line.mold_id.id
+        if "inj_shift" in MO._fields:
+            # 계획 단계엔 교대 정보가 없음 — 주간 기본, 현장 개시 시 변경
+            mo_vals["inj_shift"] = "day"
+        return mo_vals
+
     def generate_manufacturing_orders(self):
         """실제 MO 생성"""
         self.ensure_one()
         MO = self.env["mrp.production"]
         created_mos = self.env["mrp.production"]
+        failed = []
+        candidate_lines = self._get_mo_candidate_lines()
+        if not candidate_lines:
+            raise UserError(_("MO 생성 대상 계획 라인이 없습니다."))
 
-        for line in self.line_ids.filtered(lambda l: l.state == "draft"):
+        for line in candidate_lines:
+            self._validate_planning_line(line)
             bom = self.env["mrp.bom"].search([
                 "|",
                 ("product_id", "=", line.product_id.id),
                 ("product_tmpl_id", "=", line.product_id.product_tmpl_id.id),
             ], limit=1)
-
-            mo_vals = {
-                "product_id": line.product_id.id,
-                "product_qty": line.planned_qty,
-                "bom_id": bom.id if bom else False,
-                "date_start": line.start_time or fields.Datetime.now(),
-                "planning_run_id": self.id,
-            }
+            mo_vals = self._get_mo_vals(line, bom)
 
             try:
                 mo = MO.create(mo_vals)
@@ -1004,16 +1160,20 @@ class PlanningRun(models.Model):
                     "MO %s 생성: %s x %s",
                     mo.name, line.product_id.display_name, line.planned_qty,
                 )
-            except Exception:
+            except Exception as exc:
                 _logger.exception(
                     "MO 생성 실패: product=%s, qty=%s",
                     line.product_id.display_name, line.planned_qty,
                 )
+                failed.append("%s×%s: %s" % (
+                    line.product_id.display_name, line.planned_qty, str(exc)[:80]))
 
         self.state = "confirmed"
-        self.message_post(
-            body=f"{len(created_mos)}건 제조 오더가 생성되었습니다."
-        )
+        body = f"{len(created_mos)}건 제조 오더가 생성되었습니다."
+        if failed:
+            # 조용한 실패 금지 — 생성 실패분을 채터에 각인해 계획 유실을 가시화
+            body += "<br/>⚠️ 생성 실패 %d건:<br/>%s" % (len(failed), "<br/>".join(failed))
+        self.message_post(body=Markup(body) if failed else body)
         return created_mos
 
     def action_cancel(self):
@@ -1348,7 +1508,9 @@ class PlanningRun(models.Model):
     @api.model
     def _cron_auto_planning(self):
         """자동 모드: Oracle 수요 → 계획 계산 → MO 생성"""
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env[
+            "injection.planning.config"
+        ]._get_active_shift_config()
         if not config or not config.auto_generate_mo:
             return
 
@@ -1361,7 +1523,7 @@ class PlanningRun(models.Model):
         try:
             plan.action_fetch_demand()
             plan.action_calculate_plan()
-            if plan.line_ids:
+            if plan._get_mo_candidate_lines():
                 plan.generate_manufacturing_orders()
                 plan.state = "done"
                 _logger.info("자동 생산계획 완료: %s, MO %d건", plan.name, plan.mo_count)
