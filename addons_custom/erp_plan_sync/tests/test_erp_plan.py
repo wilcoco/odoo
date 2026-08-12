@@ -44,3 +44,20 @@ class TestErpPlanPush(TransactionCase):
         with self.assertRaises(Exception):
             with self.env.cr.savepoint():
                 self._line("86500-DUP001")  # 같은 키 중복 — unique 차단
+
+    def test_hourly_push_and_key(self):
+        """시간대별 라인 → hourly 수요(hour 포함), 같은 계획일 다른 시간대는 공존."""
+        product = self.env["product.product"].create(
+            {"name": "T-시간대품", "default_code": "86500-HOUR01"})
+        sync = self.env["erp.plan.sync"].create({"state": "fetched"})
+        l1 = self._line("86500-HOUR01", product, sync_id=sync.id,
+                        demand_type="hourly", hour=3, qty=7)
+        l2 = self._line("86500-HOUR01", product, sync_id=sync.id,
+                        demand_type="hourly", hour=4, qty=8)  # 같은 날 다른 시간대 — unique 허용
+        sync.action_push_demands()
+        self.assertEqual(l1.demand_id.demand_type, "hourly")
+        self.assertEqual(l1.demand_id.hour, 3)
+        self.assertEqual(l2.demand_id.hour, 4)
+        with self.assertRaises(Exception):
+            with self.env.cr.savepoint():
+                self._line("86500-HOUR01", product, demand_type="hourly", hour=3)

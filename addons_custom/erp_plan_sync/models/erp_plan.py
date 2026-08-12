@@ -17,6 +17,17 @@ DAY_COLS = ["D00", "D01", "D02", "D03", "D04", "D05", "D06",
             "D07", "D08", "D09", "D10", "D11", "D12"]
 
 
+def _hourly_col_map():
+    """T_ZM_PLN1 시간대별 컬럼 → (컬럼명, day_offset, hour). 5일 × 10시간.
+    컬럼 패턴: D{일:02d}{시:1d}R (1~9시), D{일:02d}10R (10시)."""
+    cols = []
+    for day in range(5):
+        for hour in range(1, 10):
+            cols.append((f"D{day:02d}{hour}R", day, hour))
+        cols.append((f"D{day:02d}10R", day, 10))
+    return cols
+
+
 class ErpPlanSync(models.Model):
     _name = "erp.plan.sync"
     _description = "ERP 생산계획 수신 배치"
@@ -60,8 +71,13 @@ class ErpPlanSync(models.Model):
         """T_ZM_PLN2 에서 기준일 계획을 수신해 스테이징(멱등)으로 적재."""
         Line = self.env["erp.plan.line"]
         Product = self.env["product.product"]
+        get_param = self.env["ir.config_parameter"].sudo().get_param
+        fetch_hourly = (get_param("erp_plan_sync.fetch_hourly", "1") or "1").strip() != "0"
+        hourly_table = (get_param("erp_plan_sync.hourly_table") or "T_ZM_PLN1").strip()
+        hcols = _hourly_col_map()
         for sync in self:
             conn = self._connect()
+            hourly_rows = []
             try:
                 cur = conn.cursor()
                 ymd = sync.ymd
@@ -73,6 +89,14 @@ class ErpPlanSync(models.Model):
                     + ", ".join(DAY_COLS) + ", LDATE "
                     "FROM T_ZM_PLN2 WHERE YMD = :ymd", ymd=ymd)
                 rows = cur.fetchall()
+                if fetch_hourly:
+                    # 시간대별(T_ZM_PLN1, 5일×10시간) — 계획 화면 위임 수신까지
+                    # 이 원장 하나로 커버하기 위해 같은 기준일로 함께 수신한다.
+                    cur.execute(
+                        "SELECT DIV, YMD, CHASU, LINE, FR, CSRT, ALC, ITM, FNO, "
+                        + ", ".join(c[0] for c in hcols)
+                        + " FROM " + hourly_table + " WHERE YMD = :ymd", ymd=ymd)
+                    hourly_rows = cur.fetchall()
             finally:
                 conn.close()
             base_date = datetime.strptime(ymd, "%Y%m%d").date()
@@ -104,7 +128,8 @@ class ErpPlanSync(models.Model):
                     plan_date = base_date + timedelta(days=offset)
                     key = [("ymd", "=", ymd), ("chasu", "=", chasu),
                            ("line_code", "=", line_code or ""), ("itm", "=", itm),
-                           ("fno", "=", fno or 0), ("plan_date", "=", plan_date)]
+                           ("fno", "=", fno or 0), ("plan_date", "=", plan_date),
+                           ("demand_type", "=", "daily"), ("hour", "=", 0)]
                     existing = Line.search(key, limit=1)
                     vals = {"qty": qty, "product_id": product.id if product else False,
                             "state": "unmatched" if not product else (
@@ -117,12 +142,51 @@ class ErpPlanSync(models.Model):
                     else:
                         Line.create(dict(vals, ymd=ymd, chasu=chasu,
                                          line_code=line_code or "", itm=itm,
-                                         fno=fno or 0, plan_date=plan_date))
+                                         fno=fno or 0, plan_date=plan_date,
+                                         demand_type="daily", hour=0))
                         created += 1
+            # ── 시간대별(T_ZM_PLN1) 언피벗 — 일자별과 같은 스테이징 원장 사용 ──
+            for r in hourly_rows:
+                div, _ymd, chasu, line_code, fr, csrt, alc, itm, fno = r[:9]
+                hour_qtys = r[9:9 + len(hcols)]
+                itm = (itm or "").strip()
+                if prefixes and not any(itm.startswith(pfx) for pfx in prefixes):
+                    skipped += 1
+                    continue
+                if itm not in product_cache:
+                    product_cache[itm] = Product.search([("default_code", "=", itm)], limit=1)
+                product = product_cache[itm]
+                if not product:
+                    unmatched_items.add(itm)
+                for (col, day_offset, hour), qty in zip(hcols, hour_qtys):
+                    if not qty:
+                        continue
+                    plan_date = base_date + timedelta(days=day_offset)
+                    key = [("ymd", "=", ymd), ("chasu", "=", chasu),
+                           ("line_code", "=", line_code or ""), ("itm", "=", itm),
+                           ("fno", "=", fno or 0), ("plan_date", "=", plan_date),
+                           ("demand_type", "=", "hourly"), ("hour", "=", hour)]
+                    existing = Line.search(key, limit=1)
+                    vals = {"qty": qty, "product_id": product.id if product else False,
+                            "state": "unmatched" if not product else (
+                                existing.state if existing and existing.state == "pushed" else "matched"),
+                            "div": div, "fr": fr, "csrt": csrt, "alc": alc,
+                            "erp_loaded_at": ldate, "sync_id": sync.id}
+                    if existing:
+                        existing.write(vals)
+                        updated += 1
+                    else:
+                        Line.create(dict(vals, ymd=ymd, chasu=chasu,
+                                         line_code=line_code or "", itm=itm,
+                                         fno=fno or 0, plan_date=plan_date,
+                                         demand_type="hourly", hour=hour))
+                        created += 1
+
             sync.write({
                 "name": "ERP계획 %s" % ymd, "ymd": ymd,
                 "fetched_at": fields.Datetime.now(), "erp_loaded_at": ldate,
-                "row_count": len(rows), "line_created": created, "line_updated": updated,
+                "row_count": len(rows) + len(hourly_rows),
+                "line_created": created, "line_updated": updated,
                 "skipped_count": skipped,
                 "unmatched_count": Line.search_count([("sync_id", "=", sync.id), ("state", "=", "unmatched")]),
                 "state": "fetched",
@@ -143,11 +207,15 @@ class ErpPlanSync(models.Model):
                         line.demand_id.quantity = line.qty
                         updated += 1
                 else:
-                    line.demand_id = Demand.create({
+                    dvals = {
                         "demand_date": line.plan_date, "product_id": line.product_id.id,
-                        "quantity": line.qty, "demand_type": "daily", "source": "oracle",
+                        "quantity": line.qty, "demand_type": line.demand_type,
+                        "source": "oracle",
                         "notes": "ERP %s 차수%s 라인%s" % (line.ymd, line.chasu, line.line_code),
-                    })
+                    }
+                    if line.demand_type == "hourly":
+                        dvals["hour"] = line.hour
+                    line.demand_id = Demand.create(dvals)
                     created += 1
                 line.state = "pushed"
             sync.write({"demand_created": created, "demand_updated": updated, "state": "pushed"})
@@ -178,6 +246,11 @@ class ErpPlanLine(models.Model):
     itm = fields.Char(string="품번(ITM)", required=True, index=True)
     fno = fields.Integer(string="FNO")
     plan_date = fields.Date(string="계획일", required=True, index=True)
+    demand_type = fields.Selection(
+        [("daily", "일자별"), ("hourly", "시간대별")],
+        string="구분", default="daily", required=True, index=True,
+        help="일자별=T_ZM_PLN2, 시간대별=T_ZM_PLN1 (계획 화면 위임 수신의 단일 원장)")
+    hour = fields.Integer(string="시간대", default=0, help="시간대별일 때 1~10")
     qty = fields.Float(string="계획수량")
     product_id = fields.Many2one("product.product", string="매칭 품목")
     demand_id = fields.Many2one("production.demand", string="생성 수요", readonly=True)
@@ -188,8 +261,8 @@ class ErpPlanLine(models.Model):
 
     _sql_constraints = [(
         "erp_plan_key_uniq",
-        "unique(ymd, chasu, line_code, itm, fno, plan_date)",
-        "같은 기준일·차수·라인·품번·계획일 라인이 이미 있습니다 (재수신은 갱신 처리).")]
+        "unique(ymd, chasu, line_code, itm, fno, plan_date, demand_type, hour)",
+        "같은 기준일·차수·라인·품번·계획일·시간대 라인이 이미 있습니다 (재수신은 갱신 처리).")]
 
     def action_rematch(self):
         """보완 큐: 품목 마스터 등록 후 재매칭."""
