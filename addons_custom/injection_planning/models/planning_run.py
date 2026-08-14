@@ -127,8 +127,24 @@ class PlanningRun(models.Model):
         return True
 
     def action_fetch_demand(self):
-        """Oracle에서 수요 데이터 로드"""
+        """Oracle에서 수요 데이터 로드.
+
+        erp_plan_sync 설치 시: 수신을 그 원장(스테이징+멱등 갱신)에 위임한다 —
+        오라클 수요의 정본은 하나(이중 수신·이중 계상 방지). 이 버튼은 수동
+        트리거 역할만 하고, 아래 직접 조회 로직은 모듈 미설치 환경의 폴백이다.
+        """
         self.ensure_one()
+        if "erp.plan.sync" in self.env:
+            sync = self.env["erp.plan.sync"].create({})
+            sync.action_fetch()
+            sync.action_push_demands()
+            self.action_load_demands()
+            self.message_post(body=_(
+                "ERP 수요 수신을 erp_plan_sync 원장에 위임 — 배치 %(name)s "
+                "(수요 생성 %(c)d·갱신 %(u)d, 품번 미매칭 %(m)d)") % {
+                    "name": sync.name, "c": sync.demand_created,
+                    "u": sync.demand_updated, "m": sync.unmatched_count})
+            return True
         config = self._get_config()
 
         unmapped = {}
@@ -262,7 +278,9 @@ class PlanningRun(models.Model):
         }
 
     def _get_config(self):
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env[
+            "injection.planning.config"
+        ]._get_active_shift_config()
         if not config:
             raise models.UserError("생산계획 설정이 없습니다. 먼저 설정을 생성하세요.")
         return config
@@ -512,6 +530,12 @@ class PlanningRun(models.Model):
                     "다중 활성 BOM %d개: %s (첫 번째 사용 — ALC/버전 확인 필요)"
                     % (len(boms), demand.product_id.default_code or demand.product_id.name))
 
+            # 수요 제품 자체가 사출품이면 BOM(원재료) 보유 여부와 무관하게 자체 수요.
+            # (기존: BOM 있으면 하위만 추출 → 원재료 BOM 가진 사출품 수요가 소실되던 결함)
+            if _is_inj(demand.product_id):
+                part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                demand.state = "confirmed"
+                continue
             if not bom or not bom.bom_line_ids:
                 # BOM 없으면: 사출품이면 자체 수요로 간주, 비사출이면 제외+경고
                 if _is_inj(demand.product_id):
@@ -525,11 +549,16 @@ class PlanningRun(models.Model):
                 continue
 
             # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
+            # BOM 기준수량을 완제품 UoM 으로 변환 (라인/BOM 이 다른 단위로 등록돼도 정확)
+            bom_qty_base = bom.product_uom_id._compute_quantity(
+                bom.product_qty, bom.product_tmpl_id.uom_id, round=False) or 1.0
             for line in bom.bom_line_ids:
                 # [G1] 비사출 구성품(외주 체결구·클립 등)은 사출 계획에서 제외
                 if not _is_inj(line.product_id):
                     continue
-                qty_per = line.product_qty / (bom.product_qty or 1)
+                line_qty = line.product_uom_id._compute_quantity(
+                    line.product_qty, line.product_id.uom_id, round=False)
+                qty_per = line_qty / bom_qty_base
                 part_demands[(line.product_id.id, str(demand.demand_date))] += (
                     demand.quantity * qty_per
                 )
@@ -557,8 +586,24 @@ class PlanningRun(models.Model):
         products = self.env["product.product"].browse(list(product_ids))
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
 
-        # running_stock: 생산·소비 모두 반영하는 실시간 재고
+        # running_stock: 생산·소비 모두 반영하는 실시간 재고.
+        # 진행 중 사출 MO(확정~완료대기)의 미완 잔량을 예정 입고로 가산 —
+        # 미차감 시 어제 확정한 MO 물량을 오늘 재계획이 또 잡는 이중 계획 발생.
         running_stock = {p.id: p.qty_available for p in products}
+        open_mo_domain = [
+            ("product_id", "in", list(product_ids)),
+            ("state", "in", ("confirmed", "progress", "to_close")),
+        ]
+        MO = self.env["mrp.production"]
+        if "is_ip_unit_mo" in MO._fields:
+            open_mo_domain.append(("is_ip_unit_mo", "=", False))
+        for mo in MO.search(open_mo_domain):
+            pending = (mo.product_qty or 0.0) - (mo.qty_produced or 0.0)
+            if pending > 0:
+                running_stock[mo.product_id.id] = (
+                    running_stock.get(mo.product_id.id, 0.0) + pending)
+                _logger.info("[순수요] 진행 MO 예정입고 가산: %s +%.1f (%s)",
+                             mo.product_id.default_code, pending, mo.name)
 
         for p in products:
             _logger.info(
@@ -720,25 +765,19 @@ class PlanningRun(models.Model):
         # 기본 교대 시간 (가동일정 미등록 시 사용)
         default_day_h = config.day_shift_hours or 8.0
         default_night_h = config.night_shift_hours or 8.0
-        day_start = int(config.day_shift_start or 8)
-        night_start = int(config.night_shift_start or 20)
+        # 교대 시작 시각은 injection.planning.config의 단일 설정을 사용한다.
+        # 운영 시간이 바뀌면 생산계획 설정의 주간/야간 시작 시각만 수정한다.
+        day_start, _night_start = config.get_shift_start_hours()
+        day_start_time = config.hour_float_to_time(day_start)
         mo_split_mode = config.mo_split_mode or "none"
 
         def _get_shift(dt):
             """시간대로 교대 구분"""
-            hour = dt.hour
-            if day_start <= hour < night_start:
-                return "day"
-            return "night"
+            return config.get_shift_code(dt)
 
         def _get_shift_end(dt, shift):
             """해당 교대의 종료 시각"""
-            if shift == "day":
-                return dt.replace(hour=night_start, minute=0, second=0, microsecond=0)
-            else:
-                # 야간: 다음날 주간 시작
-                next_day = dt.date() + timedelta(days=1)
-                return datetime.combine(next_day, datetime.min.time()).replace(hour=day_start)
+            return config.get_shift_end(dt, shift)
 
         # 사출기별 가동 일정 조회
         avail_map = {}  # (wc_id, date) → availability record
@@ -888,8 +927,8 @@ class PlanningRun(models.Model):
             if wc_id not in machine_time_cursor:
                 first_date = _find_next_available(wc_id, self.plan_date_from)
                 start_dt = datetime.combine(
-                    first_date, datetime.min.time()
-                ).replace(hour=day_start)
+                    first_date, day_start_time
+                )
                 machine_time_cursor[wc_id] = start_dt
                 avail_h, _, _ = _get_available_hours(wc_id, first_date)
                 machine_day_remaining[wc_id] = avail_h
@@ -963,8 +1002,8 @@ class PlanningRun(models.Model):
                             wc_id, cursor.date() + timedelta(days=1)
                         )
                         cursor = datetime.combine(
-                            next_date, datetime.min.time()
-                        ).replace(hour=day_start)
+                            next_date, day_start_time
+                        )
                         avail_h, _, _ = _get_available_hours(
                             wc_id, next_date
                         )
@@ -1020,8 +1059,8 @@ class PlanningRun(models.Model):
                                     "initial_scrap": scrap if is_first_seg else 0,
                                     "changeover_needed": needs_changeover if is_first_seg else False,
                                     "changeover_hours": co_hours if is_first_seg else 0.0,
-                                    "start_time": seg_start,
-                                    "end_time": seg_end,
+                                    "start_time": config.shift_local_to_utc(seg_start),
+                                    "end_time": config.shift_local_to_utc(seg_end),
                                     "shift": current_shift,
                                     "current_stock": product.qty_available,
                                     "max_inventory": product.max_inventory_qty,
@@ -1047,8 +1086,8 @@ class PlanningRun(models.Model):
                             "initial_scrap": scrap,
                             "changeover_needed": needs_changeover,
                             "changeover_hours": co_hours,
-                            "start_time": start_time,
-                            "end_time": end_time,
+                            "start_time": config.shift_local_to_utc(start_time),
+                            "end_time": config.shift_local_to_utc(end_time),
                             "current_stock": product.qty_available,
                             "max_inventory": product.max_inventory_qty,
                         })
@@ -1083,9 +1122,20 @@ class PlanningRun(models.Model):
     # ─────────────────────────────────────────────
     # MO 생성
     # ─────────────────────────────────────────────
+    def _get_mo_candidate_lines(self):
+        """현재 실행에서 아직 MO로 전환되지 않은 계획 라인을 반환한다.
+
+        확인 위자드의 요약과 실제 생성 로직이 같은 대상 집합을 사용하도록
+        단일 진입점으로 둔다. 부분 실패 후 재시도할 때도 draft 라인만 남는다.
+        """
+        self.ensure_one()
+        return self.line_ids.filtered(lambda line: line.state == "draft")
+
     def action_confirm_generate_mo(self):
         """확정 → MO 일괄 생성"""
         self.ensure_one()
+        if not self._get_mo_candidate_lines():
+            raise UserError(_("MO 생성 대상 계획 라인이 없습니다."))
         return {
             "type": "ir.actions.act_window",
             "name": "MO 생성 확인",
@@ -1131,8 +1181,11 @@ class PlanningRun(models.Model):
         MO = self.env["mrp.production"]
         created_mos = self.env["mrp.production"]
         failed = []
+        candidate_lines = self._get_mo_candidate_lines()
+        if not candidate_lines:
+            raise UserError(_("MO 생성 대상 계획 라인이 없습니다."))
 
-        for line in self.line_ids.filtered(lambda l: l.state == "draft"):
+        for line in candidate_lines:
             self._validate_planning_line(line)
             bom = self.env["mrp.bom"].search([
                 "|",
@@ -1326,8 +1379,15 @@ class PlanningRun(models.Model):
             ], limit=1)
             if not bom or not bom.bom_line_ids:
                 continue
+            bom_qty_base = bom.product_uom_id._compute_quantity(
+                bom.product_qty, bom.product_tmpl_id.uom_id, round=False) or 1.0
             for bline in bom.bom_line_ids:
-                qty_per = bline.product_qty / (bom.product_qty or 1)
+                # 라인 수량을 자재 기준 UoM 으로 변환 — g 등록·kg 자재 혼용 시
+                # 숫자 나눗셈만 하면 소요가 뻥튀기/0.00 이 되는 결함(시연 이슈) 수정.
+                # round=False: UoM 정밀도 반올림(kg=0.01)이 원단위를 뭉개지 않게
+                line_qty = bline.product_uom_id._compute_quantity(
+                    bline.product_qty, bline.product_id.uom_id, round=False)
+                qty_per = line_qty / bom_qty_base
                 material_date_need[bline.product_id.id][line.plan_date] += (
                     line.planned_qty * qty_per
                 )
@@ -1498,7 +1558,9 @@ class PlanningRun(models.Model):
     @api.model
     def _cron_auto_planning(self):
         """자동 모드: Oracle 수요 → 계획 계산 → MO 생성"""
-        config = self.env["injection.planning.config"].search([], limit=1)
+        config = self.env[
+            "injection.planning.config"
+        ]._get_active_shift_config()
         if not config or not config.auto_generate_mo:
             return
 
@@ -1511,7 +1573,7 @@ class PlanningRun(models.Model):
         try:
             plan.action_fetch_demand()
             plan.action_calculate_plan()
-            if plan.line_ids:
+            if plan._get_mo_candidate_lines():
                 plan.generate_manufacturing_orders()
                 plan.state = "done"
                 _logger.info("자동 생산계획 완료: %s, MO %d건", plan.name, plan.mo_count)
