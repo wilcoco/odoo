@@ -1,0 +1,22 @@
+# 머지/재작성 후 반드시 살아있어야 하는 핵심 심볼 (wilcoco repo — 한 줄 = grep 패턴)
+# odoo_gh ci 와 동일 절차. 기능 추가 시 여기에도 추가할 것.
+_approval_apply_default_template
+action_create_invoice
+pumui_approval_state
+kr_approval_number_uniq
+residual_mismatch
+_kr_residual_mismatch_partner_ids
+kr.lock.log
+_employee_amount
+_notice_amount
+_proration_factor
+kr_auto_filled
+_kr_fill_inputs_from_attendance
+action_collect_plc_measurements
+_kr_check_held_lots
+raw_material_production_id
+action_push_demands
+action_rematch
+erp_plan_key_uniq
+_get_mo_vals
+_validate_planning_line

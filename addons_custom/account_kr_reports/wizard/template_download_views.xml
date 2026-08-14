@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_template_download_form" model="ir.ui.view">
+        <field name="name">kr.template.download.form</field>
+        <field name="model">kr.template.download</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="template_type"/>
+                    <field name="file" filename="filename" invisible="not file"/>
+                    <field name="filename" invisible="1"/>
+                </group>
+                <field name="usage" invisible="not usage" readonly="1"/>
+                <footer>
+                    <button name="action_generate" type="object" string="템플릿 생성" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_template_download" model="ir.actions.act_window">
+        <field name="name">업로드 템플릿 다운로드</field>
+        <field name="res_model">kr.template.download</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

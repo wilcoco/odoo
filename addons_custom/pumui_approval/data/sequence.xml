@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_pumui_request" model="ir.sequence">
+            <field name="name">품의서</field>
+            <field name="code">pumui.request</field>
+            <field name="prefix">PUM-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+    </data>
+</odoo>

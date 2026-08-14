@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_sales_tax_match_form" model="ir.ui.view">
+        <field name="name">kr.sales.tax.match.form</field>
+        <field name="model">kr.sales.tax.match</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="file" filename="filename"/>
+                    <field name="filename" invisible="1"/>
+                </group>
+                <field name="result" invisible="not result" readonly="1"/>
+                <footer>
+                    <button name="action_match" type="object" string="매칭 실행" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_sales_tax_match" model="ir.actions.act_window">
+        <field name="name">매출 승인번호 매칭</field>
+        <field name="res_model">kr.sales.tax.match</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

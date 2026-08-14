@@ -45,6 +45,7 @@ num2words==0.5.13 ; python_version >= '3.12'
 ofxparse==0.21
 openpyxl==3.0.9 ; python_version < '3.12'
 openpyxl==3.1.2 ; python_version >= '3.12'
+oracledb  # erp_plan_sync: 자동차 ERP(오라클) 생산계획 수신
 passlib==1.7.4 # min version = 1.7.2 (Focal with security backports)
 Pillow==9.0.1 ; python_version <= '3.10'
 Pillow==9.4.0 ; python_version > '3.10' and python_version < '3.12'

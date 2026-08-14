@@ -30,6 +30,8 @@
                 <field name="product_id"/>
                 <field name="cavity_count"/>
                 <field name="changeover_hours"/>
+                            <field name="required_clamping_ton"/>
+                <field name="required_clamping_ton" optional="show"/>
                 <field name="current_shots"/>
                 <field name="guaranteed_shots"/>
                 <field name="state" widget="badge"
