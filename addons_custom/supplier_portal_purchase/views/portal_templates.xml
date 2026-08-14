@@ -52,6 +52,11 @@
                                                 <i class="fa fa-truck me-2"/> 납품/출하 현황
                                             </a>
                                         </li>
+                                        <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/receipts?token=#{token}">
+                                                <i class="fa fa-file-pdf-o me-2"/> 납품 인수증
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <!-- 보낸 발주 (발주) -->

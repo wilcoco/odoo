@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════ 협력사 포털: 납품 인수증 목록 ═══════════ -->
+    <template id="portal_receipts" name="Supplier Portal Receipts">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa fa-file-pdf-o me-2"/>납품 인수증</h5>
+                    <span class="text-muted small">입고 확정된 납품 건의 인수확인서를 내려받을 수 있습니다</span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>입고 전표</th>
+                                <th>인수 일시</th>
+                                <th class="text-end">품목 수</th>
+                                <th class="text-center">인수확인서</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="pickings" t-as="p">
+                                <tr>
+                                    <td><t t-esc="p.name"/></td>
+                                    <td><t t-esc="p.date_done" t-options='{"widget": "datetime"}'/></td>
+                                    <td class="text-end"><t t-esc="len(p.move_line_ids)"/></td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm btn-primary"
+                                           t-attf-href="/supplier/receipt/#{p.id}/pdf?token=#{token}">
+                                            <i class="fa fa-download me-1"/>PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr t-if="not pickings">
+                                <td colspan="4" class="text-center text-muted py-4">입고 확정된 납품 건이 없습니다</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════ 인수확인서 PDF 리포트 ═══════════ -->
+    <record id="action_report_supplier_receipt" model="ir.actions.report">
+        <field name="name">납품 인수확인서</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">supplier_portal_purchase.report_supplier_receipt</field>
+        <field name="report_file">supplier_portal_purchase.report_supplier_receipt</field>
+        <field name="print_report_name">'인수확인서-%s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_supplier_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center mb-4">납 품 인 수 확 인 서</h2>
+                        <table class="table table-sm table-borderless" style="width:100%">
+                            <tr>
+                                <td style="width:50%">
+                                    <strong>공급자(협력사):</strong> <t t-esc="o.partner_id.name"/><br/>
+                                    <span t-if="o.partner_id.vat">사업자번호: <t t-esc="o.partner_id.vat"/></span>
+                                </td>
+                                <td style="width:50%">
+                                    <strong>인수자:</strong> <t t-esc="o.company_id.name"/><br/>
+                                    입고 전표: <t t-esc="o.name"/><br/>
+                                    인수 일시: <t t-esc="o.date_done" t-options='{"widget": "datetime"}'/><br/>
+                                    처리 담당: <t t-esc="(o.user_id or o.write_uid).name"/>
+                                </td>
+                            </tr>
+                        </table>
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead>
+                                <tr class="table-light">
+                                    <th>품번</th><th>품명</th><th>LOT</th>
+                                    <th class="text-end">인수 수량</th><th>단위</th><th>수입검사</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.move_line_ids" t-as="ml">
+                                    <tr>
+                                        <td><t t-esc="ml.product_id.default_code or ''"/></td>
+                                        <td><t t-esc="ml.product_id.name"/></td>
+                                        <td><t t-esc="ml.lot_id.name or '-'"/></td>
+                                        <td class="text-end"><t t-esc="ml.quantity"/></td>
+                                        <td><t t-esc="ml.product_uom_id.name"/></td>
+                                        <td><t t-esc="iqc_map.get(ml.lot_id.id, '-')"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <p class="mt-3 small text-muted">
+                            본 확인서는 상기 물품의 인수 사실을 증빙하며, 대금 정산은 당사 생산 사용 실적 기준
+                            월 정산(무발주 사용실적 정산 약정)에 따릅니다. 수입검사 결과에 따라 반품·교환될 수 있습니다.
+                        </p>
+                        <table class="table table-borderless mt-5" style="width:100%">
+                            <tr class="text-center">
+                                <td style="width:50%">공급자 확인: ______________ (인)</td>
+                                <td style="width:50%">인수자 확인: ______________ (인)</td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
