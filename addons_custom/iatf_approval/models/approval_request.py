@@ -346,11 +346,48 @@ class IatfApprovalMixin(models.AbstractModel):
             template = Template._find_for(record, record._approval_amount(), department)
             if not template:
                 continue
+            # 라인별 실제 결재자 결정(지정 사용자/작성자의 부서장). 하나라도 결정
+            # 불가면 잘못된 결재선으로 흐르지 않도록 템플릿을 적용하지 않고
+            # 수동 지정을 요구한다(조용한 부분 적용 금지).
+            resolved = []
+            unresolved = template.line_ids.browse()
+            for l in template.line_ids:
+                user = l._resolve_user(self.env.user)
+                if user:
+                    resolved.append((l.sequence, user))
+                else:
+                    unresolved |= l
+            if unresolved:
+                record.message_post(body=(
+                    "⚠️ 결재선 템플릿 '%s' 적용 불가 — 결재자를 결정할 수 없는 "
+                    "단계가 있습니다(부서장 미지정 등). 결재선을 수동 지정해 주세요."
+                    % template.name))
+                continue
             record.approval_request_id.write({"line_ids": [
-                (0, 0, {"sequence": l.sequence, "user_id": l.user_id.id})
-                for l in template.line_ids]})
+                (0, 0, {"sequence": seq, "user_id": user.id})
+                for seq, user in resolved]})
             record.message_post(body="결재선 템플릿 '%s' 자동 적용 (%d단계)"
-                                     % (template.name, len(template.line_ids)))
+                                     % (template.name, len(resolved)))
+
+    def _approval_check_approved(self, action_label=None):
+        """[공통 실행 차단 가드] 돈이 나가거나 불가역인 실행 지점(발행·확정·전기)
+        직전에 한 줄로 호출한다. 결재 미완이면 UserError 로 차단.
+
+            def action_create_bills(self):
+                self._approval_check_approved(_("계산서 발행"))
+                ...
+
+        결재 mixin 미적용 모델에서 호출하면 개발 오류이므로 그대로 AttributeError.
+        """
+        label = action_label or _("실행")
+        for record in self:
+            if record.approval_state != "approved":
+                state_label = dict(
+                    record._fields["approval_state"].related_field.selection
+                ).get(record.approval_state, record.approval_state or _("미상신"))
+                raise UserError(_(
+                    "%(doc)s: 결재 승인 후에만 %(act)s 할 수 있습니다. (현재 상태: %(st)s)"
+                ) % {"doc": record.display_name, "act": label, "st": state_label})
 
     def action_submit_approval(self):
         for record in self:

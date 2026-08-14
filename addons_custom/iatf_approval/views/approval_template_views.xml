@@ -35,7 +35,9 @@
                     <field name="line_ids">
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>
-                            <field name="user_id"/>
+                            <field name="approver_mode"/>
+                            <field name="user_id" required="approver_mode == 'user'"
+                                   readonly="approver_mode != 'user'"/>
                         </list>
                     </field>
                 </sheet>
