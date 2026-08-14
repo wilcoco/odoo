@@ -14,8 +14,12 @@ class StockMove(models.Model):
         return res
 
     def _create_traceability_record(self):
-        """로트가 있는 재고 이동 완료 시 추적 기록 자동 생성"""
-        TraceRecord = self.env["iatf.traceability.record"]
+        """로트가 있는 재고 이동 완료 시 추적 기록 자동 생성.
+
+        sudo 사용: 시스템 자동 기록이므로, 이동을 완료한 사용자(현장·입고 담당)가
+        IATF 추적성 그룹이 없어도 접근 에러 없이 기록돼야 한다. 수동 열람/편집
+        권한은 ACL(읽기=내부 사용자, 쓰기=추적성 그룹)이 계속 통제한다."""
+        TraceRecord = self.env["iatf.traceability.record"].sudo()
         for lot in self.lot_ids:
             vals = {
                 "product_id": self.product_id.id,
