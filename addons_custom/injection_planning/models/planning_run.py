@@ -79,6 +79,12 @@ class PlanningRun(models.Model):
     total_changeovers = fields.Integer(
         string="총 금형 교체", compute="_compute_stats", store=True,
     )
+    demand_source_filter = fields.Selection(
+        [("all", "전체"), ("oracle", "오라클(ERP)"), ("test", "테스트"),
+         ("manual", "수동 입력"), ("forecast", "예측"), ("order", "수주")],
+        string="수요 소스", default="all", required=True,
+        help="'수요 불러오기' 시 이 소스의 수요만 로드 — 양산 전 테스트 수요와 "
+             "오라클 실계획을 분리해 계획할 수 있다")
     notes = fields.Text(string="비고")
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
@@ -116,14 +122,20 @@ class PlanningRun(models.Model):
         self.ensure_one()
         Demand = self.env["production.demand"]
 
-        demands = Demand.search([
+        domain = [
             ("demand_date", ">=", self.plan_date_from),
             ("demand_date", "<=", self.plan_date_to),
             ("state", "in", ("draft", "confirmed")),
-        ])
+        ]
+        if self.demand_source_filter and self.demand_source_filter != "all":
+            domain.append(("source", "=", self.demand_source_filter))
+        demands = Demand.search(domain)
 
         self.demand_ids = [(6, 0, demands.ids)]
-        self.message_post(body=_("수요 데이터 %d건 로드") % len(demands))
+        self.message_post(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
+            len(demands),
+            dict(self._fields["demand_source_filter"].selection).get(
+                self.demand_source_filter, "전체")))
         return True
 
     def action_fetch_demand(self):

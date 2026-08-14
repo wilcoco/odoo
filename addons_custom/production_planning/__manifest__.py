@@ -14,6 +14,7 @@
     "author": "wilcoco",
     "depends": ["product", "mrp"],
     "data": [
+        "wizard/test_demand_wizard_views.xml",
         "security/ir.model.access.csv",
         "views/production_demand_views.xml",
         "views/menu.xml",

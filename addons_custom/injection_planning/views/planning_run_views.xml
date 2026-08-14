@@ -23,6 +23,7 @@
                 <field name="name"/>
                 <field name="plan_date_from"/>
                 <field name="plan_date_to"/>
+                <field name="demand_source_filter"/>
                 <field name="total_planned_qty"/>
                 <field name="total_changeovers"/>
                 <field name="mo_count"/>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_test_demand_wizard_form" model="ir.ui.view">
+        <field name="name">production.test.demand.wizard.form</field>
+        <field name="model">production.test.demand.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="note"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="product_id"/>
+                        <field name="demand_date"/>
+                        <field name="quantity"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_create" type="object" string="수요 생성" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_test_demand_wizard" model="ir.actions.act_window">
+        <field name="name">테스트 수요 입력</field>
+        <field name="res_model">production.test.demand.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

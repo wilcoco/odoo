@@ -21,7 +21,9 @@ class TestPlanningAudit(TransactionCase):
 
     def _make_inj(self, name, code):
         inj = self.env["product.product"].create({"name": name, "is_storable": True})
-        inj.product_tmpl_id.is_injection_part = True
+        # worksite 미설치 환경(계획 단독 CI)엔 필드가 없음 — capability 보유로도 사출품 판정됨
+        if "is_injection_part" in inj.product_tmpl_id._fields:
+            inj.product_tmpl_id.is_injection_part = True
         # 원단위는 g 등록 관례 — kg(정밀도 2자리) 등록 시 0.784→0.78 로 저장되는 함정
         self.env["mrp.bom"].create({
             "product_tmpl_id": inj.product_tmpl_id.id, "product_qty": 1,

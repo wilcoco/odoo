@@ -104,4 +104,7 @@
               parent="menu_planning_config_parent"
               action="action_generate_demo"
               sequence="90"/>
+    <menuitem id="menu_test_demand_wizard" name="테스트 수요 입력"
+              parent="menu_injection_planning_root"
+              action="production_planning.action_test_demand_wizard" sequence="45"/>
 </odoo>

@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_production_demand_user,production.demand.user,model_production_demand,mrp.group_mrp_user,1,1,1,0
 access_production_demand_manager,production.demand.manager,model_production_demand,mrp.group_mrp_manager,1,1,1,1
+access_test_demand_wizard,production.test.demand.wizard,model_production_test_demand_wizard,mrp.group_mrp_user,1,1,1,1
+access_test_demand_wizard_line,production.test.demand.wizard.line,model_production_test_demand_wizard_line,mrp.group_mrp_user,1,1,1,1

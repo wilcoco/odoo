@@ -46,6 +46,7 @@ class ProductionDemand(models.Model):
             ("manual", "수동 입력"),
             ("forecast", "예측"),
             ("order", "수주"),
+            ("test", "테스트"),
         ],
         string="데이터 소스",
         default="manual",

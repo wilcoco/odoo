@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 기본 기준: 재고·구매=kg, BOM 원단위·실측=g, 수량=개. 회사 결정으로 화면 수정 가능 -->
+    <record id="policy_stock_material" model="escon.uom.policy">
+        <field name="sequence">10</field>
+        <field name="area">stock_material</field>
+        <field name="category_id" ref="uom.product_uom_categ_kgm"/>
+        <field name="standard_uom_id" ref="uom.product_uom_kgm"/>
+        <field name="note">수지·마스터배치 재고/구매/톤정산 표시 기준</field>
+    </record>
+    <record id="policy_bom_weight" model="escon.uom.policy">
+        <field name="sequence">20</field>
+        <field name="area">bom_weight</field>
+        <field name="category_id" ref="uom.product_uom_categ_kgm"/>
+        <field name="standard_uom_id" ref="uom.product_uom_gram"/>
+        <field name="note">원단위는 g 입력 — kg 입력 시 소수 정밀도로 값 잘림(0.784→0.78)</field>
+    </record>
+    <record id="policy_measure_weight" model="escon.uom.policy">
+        <field name="sequence">30</field>
+        <field name="area">measure_weight</field>
+        <field name="category_id" ref="uom.product_uom_categ_kgm"/>
+        <field name="standard_uom_id" ref="uom.product_uom_gram"/>
+        <field name="note">PLC 실측중량·SPC 기록 기준 (production.record.measured_weight)</field>
+    </record>
+    <record id="policy_product_count" model="escon.uom.policy">
+        <field name="sequence">40</field>
+        <field name="area">product_count</field>
+        <field name="category_id" ref="uom.product_uom_categ_unit"/>
+        <field name="standard_uom_id" ref="uom.product_uom_unit"/>
+        <field name="note">사출품·완제품 수량</field>
+    </record>
+</odoo>
