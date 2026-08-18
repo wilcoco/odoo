@@ -65,6 +65,19 @@ class ErpPlanSync(models.Model):
             import oracledb
         except ImportError:
             raise UserError(_("python 패키지 oracledb 가 필요합니다 (pip install oracledb)."))
+        # 구형 오라클 서버는 thick 모드 필요 — Instant Client 경로를 시스템 파라미터
+        # erp_plan_sync.thick_lib_dir 로 지정하면 초기화한다. ("auto"=기본 탐색)
+        # 재호출 시 "already initialized" 는 정상이므로 무시.
+        lib_dir = (get("erp_plan_sync.thick_lib_dir") or "").strip()
+        if lib_dir and hasattr(oracledb, "init_oracle_client"):
+            try:
+                oracledb.init_oracle_client(
+                    lib_dir=None if lib_dir == "auto" else lib_dir)
+            except Exception as exc:
+                if "already initialized" not in str(exc).lower():
+                    raise UserError(_(
+                        "Oracle thick 모드 초기화 실패: %s\n"
+                        "Instant Client 설치 경로(erp_plan_sync.thick_lib_dir)를 확인하세요.") % exc)
         return oracledb.connect(user=user, password=password, dsn=dsn)
 
     def action_fetch(self):
