@@ -127,8 +127,24 @@ class PlanningRun(models.Model):
         return True
 
     def action_fetch_demand(self):
-        """Oracle에서 수요 데이터 로드"""
+        """Oracle에서 수요 데이터 로드.
+
+        erp_plan_sync 설치 시: 수신을 그 원장(스테이징+멱등 갱신)에 위임한다 —
+        오라클 수요의 정본은 하나(이중 수신·이중 계상 방지). 이 버튼은 수동
+        트리거 역할만 하고, 아래 직접 조회 로직은 모듈 미설치 환경의 폴백이다.
+        """
         self.ensure_one()
+        if "erp.plan.sync" in self.env:
+            sync = self.env["erp.plan.sync"].create({})
+            sync.action_fetch()
+            sync.action_push_demands()
+            self.action_load_demands()
+            self.message_post(body=_(
+                "ERP 수요 수신을 erp_plan_sync 원장에 위임 — 배치 %(name)s "
+                "(수요 생성 %(c)d·갱신 %(u)d, 품번 미매칭 %(m)d)") % {
+                    "name": sync.name, "c": sync.demand_created,
+                    "u": sync.demand_updated, "m": sync.unmatched_count})
+            return True
         config = self._get_config()
 
         unmapped = {}
