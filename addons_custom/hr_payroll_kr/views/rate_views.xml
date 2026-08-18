@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_payroll_rate_list" model="ir.ui.view">
+        <field name="name">kr.payroll.rate.list</field>
+        <field name="model">kr.payroll.rate</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="code"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="employee_rate"/>
+                <field name="company_rate"/>
+                <field name="min_base"/>
+                <field name="max_base"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_kr_payroll_rate" model="ir.actions.act_window">
+        <field name="name">4대보험 요율</field>
+        <field name="res_model">kr.payroll.rate</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">요율을 입력하세요</p>
+            <p>매년 요율 변경 시 기존 행의 '적용 종료'를 채우고 새 기간 행을 추가합니다. 코드 수정 불필요.</p>
+        </field>
+    </record>
+
+    <record id="view_kr_income_tax_bracket_list" model="ir.ui.view">
+        <field name="name">kr.income.tax.bracket.list</field>
+        <field name="model">kr.income.tax.bracket</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="income_from"/>
+                <field name="income_to"/>
+                <field name="dependents"/>
+                <field name="tax_amount"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_kr_income_tax_bracket" model="ir.actions.act_window">
+        <field name="name">간이세액표</field>
+        <field name="res_model">kr.income.tax.bracket</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">간이세액표를 적재하세요</p>
+            <p>국세청 간이세액표를 '가져오기(Import)'로 업로드 — 컬럼: date_from, income_from, income_to, dependents, tax_amount. 미입력 시 소득세 0으로 계산됩니다.</p>
+        </field>
+    </record>
+
+    <!-- 급여 루트 바로 아래 "기준정보 입력" — 급여 담당자가 바로 찾도록 (설정 메뉴 아님) -->
+    <menuitem id="menu_kr_payroll_master_root" name="기준정보 입력"
+              parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root" sequence="35"
+              groups="hr_payroll.group_hr_payroll_user"/>
+    <menuitem id="menu_kr_payroll_rate" name="4대보험 요율"
+              parent="menu_kr_payroll_master_root" action="action_kr_payroll_rate" sequence="10"/>
+    <menuitem id="menu_kr_income_tax_bracket" name="간이세액표"
+              parent="menu_kr_payroll_master_root" action="action_kr_income_tax_bracket" sequence="20"/>
+</odoo>

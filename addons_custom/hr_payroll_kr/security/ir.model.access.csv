@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_kr_payroll_rate_user,kr.payroll.rate user,model_kr_payroll_rate,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_payroll_rate_mgr,kr.payroll.rate manager,model_kr_payroll_rate,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_income_tax_user,kr.income.tax.bracket user,model_kr_income_tax_bracket,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_income_tax_mgr,kr.income.tax.bracket manager,model_kr_income_tax_bracket,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_severance_user,kr.severance user,model_kr_severance_estimate,hr_payroll.group_hr_payroll_user,1,1,1,0
+access_kr_severance_mgr,kr.severance manager,model_kr_severance_estimate,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_retirement_user,kr.retirement user,model_kr_retirement_contribution,hr_payroll.group_hr_payroll_user,1,1,1,0
+access_kr_retirement_mgr,kr.retirement manager,model_kr_retirement_contribution,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_insurance_notice_user,kr.insurance.notice user,model_kr_insurance_notice,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_kr_insurance_notice_mgr,kr.insurance.notice manager,model_kr_insurance_notice,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_att_sheet_user,kr.attendance.sheet user,model_kr_attendance_sheet,hr_payroll.group_hr_payroll_user,1,1,1,0
+access_kr_att_sheet_mgr,kr.attendance.sheet manager,model_kr_attendance_sheet,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_att_line_user,kr.attendance.sheet.line user,model_kr_attendance_sheet_line,hr_payroll.group_hr_payroll_user,1,1,1,1
+access_kr_att_line_mgr,kr.attendance.sheet.line manager,model_kr_attendance_sheet_line,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_edi_import,kr.edi.notice.import,model_kr_edi_notice_import,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_kr_withholding,kr.withholding.report,model_kr_withholding_report,hr_payroll.group_hr_payroll_user,1,1,1,1
