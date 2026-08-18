@@ -48,4 +48,25 @@ class IatfApprovalTemplateLine(models.Model):
 
     template_id = fields.Many2one("iatf.approval.template", required=True, ondelete="cascade")
     sequence = fields.Integer(default=10)
-    user_id = fields.Many2one("res.users", string="결재자", required=True)
+    approver_mode = fields.Selection([
+        ("user", "지정 사용자"),
+        ("manager", "작성자의 부서장"),
+    ], string="결재자 방식", default="user", required=True,
+        help="'작성자의 부서장'은 상신 시점에 상신자 소속 부서의 부서장으로 결정됩니다. "
+             "부서장 미지정 등으로 결정할 수 없으면 템플릿을 적용하지 않고 수동 지정을 요구합니다.")
+    user_id = fields.Many2one("res.users", string="결재자")
+
+    _sql_constraints = [
+        ("user_required_when_fixed",
+         "CHECK (approver_mode != 'user' OR user_id IS NOT NULL)",
+         "'지정 사용자' 방식 라인에는 결재자를 지정해야 합니다."),
+    ]
+
+    def _resolve_user(self, requester):
+        """상신자 기준으로 이 라인의 실제 결재자를 결정. 결정 불가 시 빈 recordset."""
+        self.ensure_one()
+        if self.approver_mode == "manager":
+            emp = requester.employee_id
+            mgr = emp.department_id.manager_id if emp and emp.department_id else False
+            return mgr.user_id if mgr and mgr.user_id else self.env["res.users"]
+        return self.user_id
