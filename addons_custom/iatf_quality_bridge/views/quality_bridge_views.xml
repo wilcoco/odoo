@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- IATF 부적합 폼: 품질경보 생성 버튼 + 링크 -->
+    <record id="view_iatf_nonconformity_form_bridge" model="ir.ui.view">
+        <field name="name">iatf.nonconformity.form.quality.bridge</field>
+        <field name="model">iatf.nonconformity</field>
+        <field name="inherit_id" ref="iatf_nonconformity.view_iatf_nonconformity_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_create_quality_alert" string="품질경보 생성" type="object"
+                        class="btn-secondary" invisible="quality_alert_id"/>
+                <button name="action_create_quality_alert" string="품질경보 열기" type="object"
+                        class="btn-secondary" invisible="not quality_alert_id"/>
+                <field name="quality_alert_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Quality Alert 폼: IATF 부적합 승격 버튼 + 링크 -->
+    <record id="view_quality_alert_form_bridge" model="ir.ui.view">
+        <field name="name">quality.alert.form.iatf.bridge</field>
+        <field name="model">quality.alert</field>
+        <field name="inherit_id" ref="quality_control.quality_alert_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_promote_to_nonconformity" string="IATF 부적합 승격" type="object"
+                        class="btn-secondary" invisible="iatf_nonconformity_id"/>
+                <button name="action_promote_to_nonconformity" string="IATF 부적합 열기" type="object"
+                        class="btn-secondary" invisible="not iatf_nonconformity_id"/>
+                <field name="iatf_nonconformity_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

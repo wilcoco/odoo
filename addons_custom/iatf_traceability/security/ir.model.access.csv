@@ -1,4 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_iatf_traceability_record_readonly,iatf.traceability.record.readonly,model_iatf_traceability_record,base.group_user,1,0,0,0
+access_iatf_traceability_parameter_readonly,iatf.traceability.parameter.readonly,model_iatf_traceability_parameter,base.group_user,1,0,0,0
 access_iatf_traceability_record_user,iatf.traceability.record.user,model_iatf_traceability_record,group_traceability_user,1,1,1,0
 access_iatf_traceability_record_manager,iatf.traceability.record.manager,model_iatf_traceability_record,group_traceability_manager,1,1,1,1
 access_iatf_traceability_parameter_user,iatf.traceability.parameter.user,model_iatf_traceability_parameter,group_traceability_user,1,1,1,0

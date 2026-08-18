@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_reliability_test_user,iatf.reliability.test.user,model_iatf_reliability_test,group_coating_test_user,1,1,1,0
+access_reliability_test_manager,iatf.reliability.test.manager,model_iatf_reliability_test,group_coating_test_manager,1,1,1,1
+access_adhesion_test_user,iatf.adhesion.test.user,model_iatf_adhesion_test,group_coating_test_user,1,1,1,0
+access_adhesion_test_manager,iatf.adhesion.test.manager,model_iatf_adhesion_test,group_coating_test_manager,1,1,1,1
+access_color_measurement_user,iatf.color.measurement.user,model_iatf_color_measurement,group_coating_test_user,1,1,1,0
+access_color_measurement_manager,iatf.color.measurement.manager,model_iatf_color_measurement,group_coating_test_manager,1,1,1,1
+access_coating_thickness_user,iatf.coating.thickness.user,model_iatf_coating_thickness,group_coating_test_user,1,1,1,0
+access_coating_thickness_manager,iatf.coating.thickness.manager,model_iatf_coating_thickness,group_coating_test_manager,1,1,1,1

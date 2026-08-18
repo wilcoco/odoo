@@ -18,7 +18,7 @@ class MrpWorkcenter(models.Model):
     def _compute_control_plans(self):
         CP = self.env.get("iatf.control.plan")
         for wc in self:
-            if CP:
+            if CP is not None:
                 # CP 라인에서 이 작업장의 설비를 참조하는 CP 찾기
                 cps = CP.search([
                     ("line_ids.machine_device", "ilike", wc.name),

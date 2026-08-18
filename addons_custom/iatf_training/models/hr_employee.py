@@ -21,7 +21,7 @@ class HrEmployee(models.Model):
     def _compute_training_records(self):
         TR = self.env.get("iatf.training.record")
         for emp in self:
-            if TR:
+            if TR is not None:
                 recs = TR.search([("employee_ids", "in", emp.id)])
                 emp.training_record_ids = recs
                 emp.training_count = len(recs)

@@ -44,7 +44,7 @@ class ProductTemplate(models.Model):
             PQC = self.env.get("iatf.process.inspection")
             IQC = self.env.get("iatf.incoming.inspection")
             insp = 0
-            if PQC:
+            if PQC is not None:
                 insp += PQC.search_count([("product_id", "in", pids)])
             if IQC:
                 insp += IQC.search_count([("product_id", "in", pids)])

@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfScar(models.Model):
     _name = "iatf.scar"
     _description = "Supplier Corrective Action Request (SCAR)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(

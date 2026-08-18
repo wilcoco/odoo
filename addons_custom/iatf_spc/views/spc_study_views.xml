@@ -53,6 +53,9 @@
                 <header>
                     <button name="action_start_collecting" string="Start Collecting" type="object" class="oe_highlight"
                             invisible="state != 'draft'"/>
+                    <button name="action_collect_plc_measurements" string="PLC 실측 수집" type="object"
+                            invisible="state in ('done', 'cancel')"
+                            help="사출 PLC 실측중량을 부분군으로 자동 수집 (재실행 시 이어서 수집)"/>
                     <button name="action_calculate" string="Calculate" type="object" class="oe_highlight"
                             invisible="state not in ('collecting', 'analyzed')"/>
                     <button name="action_close" string="Close" type="object"
@@ -60,6 +63,18 @@
                     <button name="action_reset_draft" string="Reset" type="object"
                             invisible="state in ('draft',)"
                             groups="iatf_spc.group_spc_manager"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object"
+                            class="btn-primary" invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object"
+                            class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,collecting,analyzed,closed"/>
                 </header>
@@ -70,12 +85,15 @@
                     </div>
                     <group>
                         <group string="Study Setup">
+                            <field name="analysis_date"/>
                             <field name="chart_type"/>
                             <field name="product_id"/>
                             <field name="part_number"/>
                             <field name="characteristic_name"/>
                             <field name="unit"/>
+                            <field name="process_name"/>
                             <field name="subgroup_size"/>
+                            <field name="sample_size"/>
                         </group>
                         <group string="Specification Limits">
                             <field name="usl"/>
@@ -147,6 +165,15 @@
                                     <field name="ooc_count"/>
                                 </group>
                             </group>
+                        </page>
+                        <page string="결재선" name="approval">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Notes" name="notes">
                             <field name="notes"/>

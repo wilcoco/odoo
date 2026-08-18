@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===== 지그 ===== -->
+    <record id="view_jig_list" model="ir.ui.view">
+        <field name="name">iatf.jig.list</field>
+        <field name="model">iatf.jig</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="jig_type"/>
+                <field name="process_name"/>
+                <field name="product_id"/>
+                <field name="record_count"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_jig_form" model="ir.ui.view">
+        <field name="name">iatf.jig.form</field>
+        <field name="model">iatf.jig</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="사용" type="object" class="btn-success"
+                            invisible="state in ('active','disposed')"/>
+                    <button name="action_inactive" string="비사용" type="object"
+                            invisible="state in ('inactive','disposed','draft')"/>
+                    <button name="action_dispose" string="폐기" type="object"
+                            invisible="state == 'disposed'"/>
+                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="code" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="jig_type"/>
+                            <field name="process_name"/>
+                        </group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="점검 기록">
+                            <field name="record_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="record_type"/>
+                                    <field name="record_date"/>
+                                    <field name="status"/>
+                                    <field name="performer_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="결재선">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고"><field name="notes"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_jig" model="ir.actions.act_window">
+        <field name="name">지그 대장</field>
+        <field name="res_model">iatf.jig</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===== 지그 점검 기록 ===== -->
+    <record id="view_jig_record_list" model="ir.ui.view">
+        <field name="name">iatf.jig.record.list</field>
+        <field name="model">iatf.jig.record</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="jig_id"/>
+                <field name="record_type"/>
+                <field name="record_date"/>
+                <field name="status" widget="badge"/>
+                <field name="performer_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_jig_record_form" model="ir.ui.view">
+        <field name="name">iatf.jig.record.form</field>
+        <field name="model">iatf.jig.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <button name="action_reject_approval" string="반려" type="object"
+                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" widget="badge"
+                           decoration-success="approval_state == 'approved'"
+                           decoration-danger="approval_state == 'rejected'"
+                           decoration-info="approval_state == 'in_progress'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="jig_id"/>
+                            <field name="record_type"/>
+                            <field name="record_date"/>
+                        </group>
+                        <group>
+                            <field name="status"/>
+                            <field name="performer_id"/>
+                        </group>
+                    </group>
+                    <group string="측정값 / 비고">
+                        <field name="measured_values"/>
+                        <field name="remarks"/>
+                    </group>
+                    <notebook>
+                        <page string="결재선">
+                            <field name="approval_line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_jig_record" model="ir.actions.act_window">
+        <field name="name">지그 점검 기록</field>
+        <field name="res_model">iatf.jig.record</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

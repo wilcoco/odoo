@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfMeasurementEquipment(models.Model):
     _name = "iatf.measurement.equipment"
     _description = "Measurement Equipment (IATF 16949 §7.1.5)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "equipment_id_number"
 
     name = fields.Char(string="장비명", required=True, tracking=True)

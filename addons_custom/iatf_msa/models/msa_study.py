@@ -6,7 +6,7 @@ import math
 class IatfMsaStudy(models.Model):
     _name = "iatf.msa.study"
     _description = "MSA Study — Gage R&R (IATF 16949 §7.1.5.1.1)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -14,6 +14,8 @@ class IatfMsaStudy(models.Model):
         default=lambda self: _("New"),
     )
     title = fields.Char(string="제목", required=True, tracking=True)
+    study_date = fields.Date(string="연구일", default=fields.Date.today, tracking=True)
+    product_id = fields.Many2one("product.product", string="제품 / 부품", tracking=True)
     study_type = fields.Selection(
         [
             ("grr_crossed", "Gage R&R (Crossed)"),
@@ -26,6 +28,8 @@ class IatfMsaStudy(models.Model):
     )
 
     # ── Gage info ──
+    instrument_id = fields.Many2one("iatf.measurement.equipment", string="측정 장비",
+                                     help="교정관리 대상 측정장비 (회사양식 instrument)")
     gage_name = fields.Char(string="게이지 / 측정기명", required=True)
     gage_id_number = fields.Char(string="게이지 ID")
     gage_resolution = fields.Float(string="게이지 분해능", digits=(16, 6))
@@ -33,6 +37,7 @@ class IatfMsaStudy(models.Model):
     # ── Characteristic ──
     characteristic_name = fields.Char(string="특성")
     unit = fields.Char(string="단위")
+    specification = fields.Float(string="기준값 (nominal)", digits=(16, 4))
     usl = fields.Float(string="USL (상한)")
     lsl = fields.Float(string="LSL (하한)")
     tolerance = fields.Float(string="공차", compute="_compute_tolerance", store=True)

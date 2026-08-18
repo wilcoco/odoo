@@ -20,7 +20,7 @@ class MrpBom(models.Model):
         # 미승인 CR 존재 시 BOM 변경 차단
         if trigger_fields and "change_locked" not in vals:
             CR = self.env.get("iatf.change.request")
-            if CR:
+            if CR is not None:
                 for rec in self:
                     pending_crs = CR.search([
                         ("affected_product_ids", "in", rec.product_tmpl_id.product_variant_ids.ids),

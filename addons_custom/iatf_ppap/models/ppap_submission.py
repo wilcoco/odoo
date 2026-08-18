@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfPpapSubmission(models.Model):
     _name = "iatf.ppap.submission"
     _description = "PPAP Submission (IATF 16949 §8.3.4.4)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(
@@ -14,8 +14,14 @@ class IatfPpapSubmission(models.Model):
     )
     title = fields.Char(string="제목", required=True, tracking=True)
     product_id = fields.Many2one("product.product", string="제품", tracking=True)
+    bom_id = fields.Many2one("mrp.bom", string="BOM", help="이 제품의 BOM 구조 (G1 연동)")
     part_number = fields.Char(string="부품 번호")
     customer_id = fields.Many2one("res.partner", string="고객", tracking=True)
+
+    @api.onchange("product_id")
+    def _onchange_product_id_bom(self):
+        if self.product_id and not self.bom_id:
+            self.bom_id = self.env["mrp.bom"]._bom_find(self.product_id).get(self.product_id)
 
     submission_level = fields.Selection(
         [
@@ -45,8 +51,8 @@ class IatfPpapSubmission(models.Model):
 
     # ── 18 Elements ──
     element_ids = fields.One2many("iatf.ppap.element", "submission_id", string="PPAP 요소")
-    element_complete_count = fields.Integer(compute="_compute_element_stats")
-    element_total_count = fields.Integer(compute="_compute_element_stats")
+    element_complete_count = fields.Integer(compute="_compute_element_stats", store=True)
+    element_total_count = fields.Integer(compute="_compute_element_stats", store=True)
     progress = fields.Float(compute="_compute_element_stats", store=True)
 
     # ── Customer Decision ──

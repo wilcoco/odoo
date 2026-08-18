@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_iatf_coating_root" name="도장 특화 시험"
+              parent="iatf_document_control.menu_iatf_root" sequence="35"/>
+    <menuitem id="menu_iatf_reliability_test" name="신뢰성 시험"
+              parent="menu_iatf_coating_root" action="action_reliability_test" sequence="10"/>
+    <menuitem id="menu_iatf_adhesion_test" name="밀착성 시험"
+              parent="menu_iatf_coating_root" action="action_adhesion_test" sequence="20"/>
+    <menuitem id="menu_iatf_color_measurement" name="색상 측정"
+              parent="menu_iatf_coating_root" action="action_color_measurement" sequence="30"/>
+    <menuitem id="menu_iatf_coating_thickness" name="도막두께 측정"
+              parent="menu_iatf_coating_root" action="action_coating_thickness" sequence="40"/>
+</odoo>

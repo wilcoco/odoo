@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfContingencyPlan(models.Model):
     _name = "iatf.contingency.plan"
     _description = "Contingency Plan (IATF 16949 §6.1.2.3)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(

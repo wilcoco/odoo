@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 class IatfManagementReview(models.Model):
     _name = "iatf.management.review"
     _description = "Management Review (IATF 16949 §9.3)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "meeting_date desc"
 
     name = fields.Char(
@@ -87,7 +87,7 @@ class IatfManagementReview(models.Model):
 
         # 심사 결과
         Audit = self.env.get("iatf.audit")
-        if Audit:
+        if Audit is not None:
             audits = Audit.search([("actual_date", ">=", period_start), ("state", "=", "closed")])
             total_findings = sum(len(a.finding_ids) for a in audits if hasattr(a, "finding_ids"))
             parts.append("<p><b>심사:</b> %d건 완료, 지적 %d건</p>" % (len(audits), total_findings))
@@ -96,7 +96,7 @@ class IatfManagementReview(models.Model):
         # 고객 불만
         CC = self.env.get("iatf.customer.complaint")
         cc_parts = []
-        if CC:
+        if CC is not None:
             complaints = CC.search([("received_date", ">=", period_start)])
             closed = complaints.filtered(lambda c: c.state == "closed")
             total_cost = sum(c.cost_total for c in complaints)
@@ -107,7 +107,7 @@ class IatfManagementReview(models.Model):
         # 부적합/시정조치
         NC = self.env.get("iatf.nonconformity")
         nc_parts = []
-        if NC:
+        if NC is not None:
             ncs = NC.search([("detection_date", ">=", period_start)])
             by_type = {}
             for nc in ncs:
@@ -123,7 +123,7 @@ class IatfManagementReview(models.Model):
         # 공정 성과
         SPC = self.env.get("iatf.spc.study")
         spc_parts = []
-        if SPC:
+        if SPC is not None:
             studies = SPC.search([("state", "=", "analyzed")])
             capable = studies.filtered(lambda s: s.capability_status == "capable")
             spc_parts.append("<p><b>SPC:</b> %d건 분석, 공정능력 적합 %d건 (%.0f%%)</p>" % (
@@ -133,7 +133,7 @@ class IatfManagementReview(models.Model):
         # 업체 성과
         SE = self.env.get("iatf.supplier.evaluation")
         se_parts = []
-        if SE:
+        if SE is not None:
             evals = SE.search([("evaluation_date", ">=", period_start), ("state", "=", "confirmed")])
             d_grade = evals.filtered(lambda e: e.grade == "d")
             se_parts.append("<p><b>업체 평가:</b> %d건, D등급(부적격) %d건</p>" % (len(evals), len(d_grade)))
