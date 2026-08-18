@@ -44,6 +44,7 @@
         "views/menu.xml",
         # Portal Templates
         "views/portal_templates.xml",
+        "views/portal_receipt_templates.xml",
         "views/portal_supplier_order_templates.xml",
         # Wizards
         "wizards/purchase_reject_wizard_views.xml",
