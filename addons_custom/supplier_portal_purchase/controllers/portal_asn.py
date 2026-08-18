@@ -67,3 +67,43 @@ class SupplierPortalAsnController(http.Controller):
             "line_ids": lines,
         })
         return request.redirect("/supplier/asn?token=%s&success=1" % token)
+
+
+class SupplierAsnQrController(http.Controller):
+    """납품 패스(QR) — 기사 제시용 화면 + 사내 스캔 진입."""
+
+    @http.route("/supplier/asn/<int:asn_id>/pass", type="http", auth="public", website=True)
+    def asn_pass(self, asn_id, token=None, **kwargs):
+        """협력사(기사) 제시용 납품 패스 — 큰 QR + 납품 요약."""
+        try:
+            partner = SupplierPortalController()._validate_portal_access(token)
+        except AccessDenied as e:
+            return request.render(
+                "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
+        asn = request.env["supplier.asn"].sudo().browse(asn_id).exists()
+        if not asn or asn.partner_id != partner:
+            return request.render(
+                "supplier_portal_purchase.portal_access_denied",
+                {"error": "해당 납품 예정에 접근할 수 없습니다."})
+        scan_url = "%sasn/scan/%d/%s" % (
+            request.httprequest.host_url, asn.id, asn.qr_token)
+        return request.render("supplier_portal_purchase.portal_asn_pass", {
+            "partner": partner, "token": token, "asn": asn,
+            "scan_url": scan_url, "page_name": "asn",
+        })
+
+    @http.route("/asn/scan/<int:asn_id>/<string:qr_token>",
+                type="http", auth="user")
+    def asn_scan(self, asn_id, qr_token, **kwargs):
+        """사내 스캔 진입(입고 담당자, 로그인 필요) — QR 찍으면 전표까지 자동."""
+        asn = request.env["supplier.asn"].sudo().browse(asn_id).exists()
+        if not asn or not qr_token or asn.qr_token != qr_token:
+            return request.not_found()
+        if asn.state == "announced" and not asn.picking_id:
+            # 담당자 권한으로 전표 생성(감사 추적 — sudo 아님)
+            request.env["supplier.asn"].browse(asn.id).action_create_picking()
+            asn.invalidate_recordset(["picking_id"])
+        if asn.picking_id:
+            return request.redirect(
+                "/odoo/action-stock.action_picking_tree_all/%d" % asn.picking_id.id)
+        return request.redirect("/odoo")

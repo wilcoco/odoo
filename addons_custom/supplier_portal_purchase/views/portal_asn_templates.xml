@@ -58,7 +58,7 @@
                 <div class="card-header"><h5 class="mb-0">납품 예정 이력</h5></div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light"><tr><th>번호</th><th>도착 예정</th><th>품목 수</th><th>상태</th><th>입고 전표</th></tr></thead>
+                        <thead class="table-light"><tr><th>번호</th><th>도착 예정</th><th>품목 수</th><th>상태</th><th>입고 전표</th><th></th></tr></thead>
                         <tbody>
                             <t t-foreach="asns" t-as="a">
                                 <tr>
@@ -71,9 +71,15 @@
                                         <span t-if="a.state == 'cancelled'" class="badge bg-secondary">취소</span>
                                     </td>
                                     <td><t t-esc="a.picking_id.name or '-'"/></td>
+                                    <td>
+                                        <a t-if="a.state == 'announced'" class="btn btn-sm btn-outline-primary"
+                                           t-attf-href="/supplier/asn/#{a.id}/pass?token=#{token}">
+                                            <i class="fa fa-qrcode me-1"/>납품 패스
+                                        </a>
+                                    </td>
                                 </tr>
                             </t>
-                            <tr t-if="not asns"><td colspan="5" class="text-center text-muted py-4">등록된 납품 예정이 없습니다</td></tr>
+                            <tr t-if="not asns"><td colspan="6" class="text-center text-muted py-4">등록된 납품 예정이 없습니다</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -137,5 +143,34 @@
     <menuitem id="menu_supplier_asn" name="납품 예정(ASN)"
               parent="purchase.menu_procurement_management"
               action="action_supplier_asn" sequence="12"/>
+
+    <!-- ═══════════ 기사 제시용 납품 패스(QR) ═══════════ -->
+    <template id="portal_asn_pass" name="Supplier ASN Pass (QR)">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fa fa-qrcode me-2"/>납품 패스 — <t t-esc="asn.name"/></h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">도착 시 이 화면을 입고 담당자에게 보여주세요. 담당자가 QR을 스캔하면 입고가 시작됩니다.</p>
+                    <img t-att-src="'/report/barcode/QR/%s?width=280&amp;height=280' % scan_url"
+                         alt="납품 패스 QR" style="max-width:280px"/>
+                    <table class="table table-sm mt-3 mb-0">
+                        <thead><tr class="table-light"><th>품목</th><th class="text-end">수량</th><th>LOT</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="asn.line_ids" t-as="l">
+                                <tr><td><t t-esc="l.product_id.display_name"/></td>
+                                    <td class="text-end"><t t-esc="l.qty"/></td>
+                                    <td><t t-esc="l.lot_name or '-'"/></td></tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <p class="small text-muted mt-2 mb-0">
+                        도착 예정: <t t-esc="asn.expected_date"/> · <t t-esc="asn.note or ''"/>
+                    </p>
+                </div>
+            </div>
+        </t>
+    </template>
 
 </odoo>

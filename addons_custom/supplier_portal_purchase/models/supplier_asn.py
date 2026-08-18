@@ -1,3 +1,5 @@
+import secrets
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -25,6 +27,9 @@ class SupplierAsn(models.Model):
     ], default="announced", tracking=True, index=True)
     line_ids = fields.One2many("supplier.asn.line", "asn_id", string="납품 품목")
     picking_id = fields.Many2one("stock.picking", string="입고 전표", readonly=True, copy=False)
+    qr_token = fields.Char(string="납품패스 토큰", readonly=True, copy=False,
+                           default=lambda self: secrets.token_urlsafe(16),
+                           help="기사 제시용 QR 의 건별 토큰 — 포털 토큰과 분리(화면 노출 안전)")
 
     @api.model_create_multi
     def create(self, vals_list):
