@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="seq_supplier_asn" model="ir.sequence">
+        <field name="name">납품 예정(ASN)</field>
+        <field name="code">supplier.asn</field>
+        <field name="prefix">ASN-%(y)s-</field>
+        <field name="padding">4</field>
+    </record>
+
+    <!-- ═══════════ 협력사 포털: 납품 예정 등록·조회 ═══════════ -->
+    <template id="portal_asn_list" name="Supplier Portal ASN">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div t-if="request.params.get('success')" class="alert alert-success">
+                납품 예정이 등록되었습니다. 도착 시 입고 담당자가 바로 처리합니다.
+            </div>
+            <div t-if="request.params.get('error')" class="alert alert-danger">
+                납품 품목을 1개 이상 입력해 주세요.
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fa fa-truck me-2"/>납품 예정 등록 (종이 명세서 대체)</h5></div>
+                <div class="card-body">
+                    <form method="post" t-attf-action="/supplier/asn/new?token=#{token}">
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <label class="form-label">도착 예정일</label>
+                                <input type="date" name="expected_date" class="form-control" t-att-value="today" required="required"/>
+                            </div>
+                            <div class="col-8">
+                                <label class="form-label">비고 (차량번호·기사 연락처 등)</label>
+                                <input type="text" name="note" class="form-control"/>
+                            </div>
+                        </div>
+                        <table class="table table-sm">
+                            <thead><tr class="table-light"><th style="width:45%">품목</th><th style="width:20%">수량</th><th style="width:35%">LOT 번호(해당 시)</th></tr></thead>
+                            <tbody>
+                                <t t-foreach="range(1, 6)" t-as="i">
+                                    <tr>
+                                        <td>
+                                            <select t-attf-name="product_#{i}" class="form-select form-select-sm">
+                                                <option value="">— 선택 —</option>
+                                                <t t-foreach="products" t-as="p">
+                                                    <option t-att-value="p.id"><t t-esc="p.display_name"/></option>
+                                                </t>
+                                            </select>
+                                        </td>
+                                        <td><input type="number" step="any" min="0" t-attf-name="qty_#{i}" class="form-control form-control-sm"/></td>
+                                        <td><input type="text" t-attf-name="lot_#{i}" class="form-control form-control-sm"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane me-1"/>납품 예정 등록</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">납품 예정 이력</h5></div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>번호</th><th>도착 예정</th><th>품목 수</th><th>상태</th><th>입고 전표</th></tr></thead>
+                        <tbody>
+                            <t t-foreach="asns" t-as="a">
+                                <tr>
+                                    <td><t t-esc="a.name"/></td>
+                                    <td><t t-esc="a.expected_date"/></td>
+                                    <td><t t-esc="len(a.line_ids)"/></td>
+                                    <td>
+                                        <span t-if="a.state == 'announced'" class="badge bg-info">납품 예정</span>
+                                        <span t-if="a.state == 'received'" class="badge bg-success">입고 완료</span>
+                                        <span t-if="a.state == 'cancelled'" class="badge bg-secondary">취소</span>
+                                    </td>
+                                    <td><t t-esc="a.picking_id.name or '-'"/></td>
+                                </tr>
+                            </t>
+                            <tr t-if="not asns"><td colspan="5" class="text-center text-muted py-4">등록된 납품 예정이 없습니다</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ═══════════ 사내: ASN 목록/폼 ═══════════ -->
+    <record id="view_supplier_asn_list" model="ir.ui.view">
+        <field name="name">supplier.asn.list</field>
+        <field name="model">supplier.asn</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'announced'" decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="expected_date"/>
+                <field name="note"/>
+                <field name="state"/>
+                <field name="picking_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_supplier_asn_form" model="ir.ui.view">
+        <field name="name">supplier.asn.form</field>
+        <field name="model">supplier.asn</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_picking" type="object" string="입고전표 생성(도착)"
+                            class="btn-primary" invisible="state != 'announced'"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state != 'announced'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <h2><field name="name" readonly="1"/></h2>
+                    <group>
+                        <group><field name="partner_id"/><field name="expected_date"/></group>
+                        <group><field name="note"/><field name="picking_id"/></group>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="product_id"/>
+                            <field name="qty"/>
+                            <field name="lot_name"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_supplier_asn" model="ir.actions.act_window">
+        <field name="name">납품 예정(ASN)</field>
+        <field name="res_model">supplier.asn</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_supplier_asn" name="납품 예정(ASN)"
+              parent="purchase.menu_procurement_management"
+              action="action_supplier_asn" sequence="12"/>
+
+</odoo>
