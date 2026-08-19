@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_uom_policy_user,escon.uom.policy user,model_escon_uom_policy,base.group_user,1,0,0,0
+access_uom_policy_mgr,escon.uom.policy mgr,model_escon_uom_policy,mrp.group_mrp_manager,1,1,1,1
+access_uom_audit,escon.uom.audit,model_escon_uom_audit,mrp.group_mrp_user,1,1,1,1

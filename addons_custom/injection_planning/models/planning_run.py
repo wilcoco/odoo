@@ -79,6 +79,12 @@ class PlanningRun(models.Model):
     total_changeovers = fields.Integer(
         string="총 금형 교체", compute="_compute_stats", store=True,
     )
+    demand_source_filter = fields.Selection(
+        [("all", "전체"), ("oracle", "오라클(ERP)"), ("test", "테스트"),
+         ("manual", "수동 입력"), ("forecast", "예측"), ("order", "수주")],
+        string="수요 소스", default="all", required=True,
+        help="'수요 불러오기' 시 이 소스의 수요만 로드 — 양산 전 테스트 수요와 "
+             "오라클 실계획을 분리해 계획할 수 있다")
     notes = fields.Text(string="비고")
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
@@ -116,14 +122,20 @@ class PlanningRun(models.Model):
         self.ensure_one()
         Demand = self.env["production.demand"]
 
-        demands = Demand.search([
+        domain = [
             ("demand_date", ">=", self.plan_date_from),
             ("demand_date", "<=", self.plan_date_to),
             ("state", "in", ("draft", "confirmed")),
-        ])
+        ]
+        if self.demand_source_filter and self.demand_source_filter != "all":
+            domain.append(("source", "=", self.demand_source_filter))
+        demands = Demand.search(domain)
 
         self.demand_ids = [(6, 0, demands.ids)]
-        self.message_post(body=_("수요 데이터 %d건 로드") % len(demands))
+        self.message_post(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
+            len(demands),
+            dict(self._fields["demand_source_filter"].selection).get(
+                self.demand_source_filter, "전체")))
         return True
 
     def action_fetch_demand(self):
@@ -530,6 +542,12 @@ class PlanningRun(models.Model):
                     "다중 활성 BOM %d개: %s (첫 번째 사용 — ALC/버전 확인 필요)"
                     % (len(boms), demand.product_id.default_code or demand.product_id.name))
 
+            # 수요 제품 자체가 사출품이면 BOM(원재료) 보유 여부와 무관하게 자체 수요.
+            # (기존: BOM 있으면 하위만 추출 → 원재료 BOM 가진 사출품 수요가 소실되던 결함)
+            if _is_inj(demand.product_id):
+                part_demands[(demand.product_id.id, str(demand.demand_date))] += demand.quantity
+                demand.state = "confirmed"
+                continue
             if not bom or not bom.bom_line_ids:
                 # BOM 없으면: 사출품이면 자체 수요로 간주, 비사출이면 제외+경고
                 if _is_inj(demand.product_id):
@@ -543,11 +561,16 @@ class PlanningRun(models.Model):
                 continue
 
             # BOM 라인에서 사출 부품 추출 → 사출품 기준으로 합산
+            # BOM 기준수량을 완제품 UoM 으로 변환 (라인/BOM 이 다른 단위로 등록돼도 정확)
+            bom_qty_base = bom.product_uom_id._compute_quantity(
+                bom.product_qty, bom.product_tmpl_id.uom_id, round=False) or 1.0
             for line in bom.bom_line_ids:
                 # [G1] 비사출 구성품(외주 체결구·클립 등)은 사출 계획에서 제외
                 if not _is_inj(line.product_id):
                     continue
-                qty_per = line.product_qty / (bom.product_qty or 1)
+                line_qty = line.product_uom_id._compute_quantity(
+                    line.product_qty, line.product_id.uom_id, round=False)
+                qty_per = line_qty / bom_qty_base
                 part_demands[(line.product_id.id, str(demand.demand_date))] += (
                     demand.quantity * qty_per
                 )
@@ -575,8 +598,24 @@ class PlanningRun(models.Model):
         products = self.env["product.product"].browse(list(product_ids))
         max_inv_map = {p.id: p.max_inventory_qty for p in products}
 
-        # running_stock: 생산·소비 모두 반영하는 실시간 재고
+        # running_stock: 생산·소비 모두 반영하는 실시간 재고.
+        # 진행 중 사출 MO(확정~완료대기)의 미완 잔량을 예정 입고로 가산 —
+        # 미차감 시 어제 확정한 MO 물량을 오늘 재계획이 또 잡는 이중 계획 발생.
         running_stock = {p.id: p.qty_available for p in products}
+        open_mo_domain = [
+            ("product_id", "in", list(product_ids)),
+            ("state", "in", ("confirmed", "progress", "to_close")),
+        ]
+        MO = self.env["mrp.production"]
+        if "is_ip_unit_mo" in MO._fields:
+            open_mo_domain.append(("is_ip_unit_mo", "=", False))
+        for mo in MO.search(open_mo_domain):
+            pending = (mo.product_qty or 0.0) - (mo.qty_produced or 0.0)
+            if pending > 0:
+                running_stock[mo.product_id.id] = (
+                    running_stock.get(mo.product_id.id, 0.0) + pending)
+                _logger.info("[순수요] 진행 MO 예정입고 가산: %s +%.1f (%s)",
+                             mo.product_id.default_code, pending, mo.name)
 
         for p in products:
             _logger.info(
@@ -1352,8 +1391,15 @@ class PlanningRun(models.Model):
             ], limit=1)
             if not bom or not bom.bom_line_ids:
                 continue
+            bom_qty_base = bom.product_uom_id._compute_quantity(
+                bom.product_qty, bom.product_tmpl_id.uom_id, round=False) or 1.0
             for bline in bom.bom_line_ids:
-                qty_per = bline.product_qty / (bom.product_qty or 1)
+                # 라인 수량을 자재 기준 UoM 으로 변환 — g 등록·kg 자재 혼용 시
+                # 숫자 나눗셈만 하면 소요가 뻥튀기/0.00 이 되는 결함(시연 이슈) 수정.
+                # round=False: UoM 정밀도 반올림(kg=0.01)이 원단위를 뭉개지 않게
+                line_qty = bline.product_uom_id._compute_quantity(
+                    bline.product_qty, bline.product_id.uom_id, round=False)
+                qty_per = line_qty / bom_qty_base
                 material_date_need[bline.product_id.id][line.plan_date] += (
                     line.planned_qty * qty_per
                 )

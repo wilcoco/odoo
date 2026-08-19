@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_uom_policy_list" model="ir.ui.view">
+        <field name="name">escon.uom.policy.list</field>
+        <field name="model">escon.uom.policy</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="area"/>
+                <field name="category_id"/>
+                <field name="standard_uom_id"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_uom_policy" model="ir.actions.act_window">
+        <field name="name">단위 기준 정책</field>
+        <field name="res_model">escon.uom.policy</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">영역별 기준 단위를 정하세요</p>
+            <p>BOM 원단위·재고·실측 등 영역별 기준 단위 — 전 영역 정합은 '단위 정합 점검'으로 검증합니다.</p>
+        </field>
+    </record>
+
+    <record id="view_uom_audit_form" model="ir.ui.view">
+        <field name="name">escon.uom.audit.form</field>
+        <field name="model">escon.uom.audit</field>
+        <field name="arch" type="xml">
+            <form>
+                <button name="action_audit" type="object" string="점검 실행" class="btn-primary"/>
+                <group>
+                    <label for="bom_weight_violations"/>
+                    <div><field name="bom_weight_violations" class="oe_inline"/> 건
+                        <button name="action_view_bom_violations" type="object" string="보기"
+                                class="btn-link" invisible="bom_weight_violations == 0"/></div>
+                    <label for="material_uom_violations"/>
+                    <div><field name="material_uom_violations" class="oe_inline"/> 건
+                        <button name="action_view_material_violations" type="object" string="보기"
+                                class="btn-link" invisible="material_uom_violations == 0"/></div>
+                    <field name="precision_warning"/>
+                </group>
+                <field name="result_note" readonly="1"/>
+            </form>
+        </field>
+    </record>
+    <record id="action_uom_audit" model="ir.actions.act_window">
+        <field name="name">단위 정합 점검</field>
+        <field name="res_model">escon.uom.audit</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_uom_standard" name="단위 기준"
+              parent="injection_planning.menu_planning_master" sequence="80"/>
+    <menuitem id="menu_uom_policy" name="단위 기준 정책" parent="menu_uom_standard"
+              action="action_uom_policy" sequence="10"/>
+    <menuitem id="menu_uom_audit" name="단위 정합 점검" parent="menu_uom_standard"
+              action="action_uom_audit" sequence="20"/>
+</odoo>
