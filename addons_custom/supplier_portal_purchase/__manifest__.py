@@ -20,6 +20,7 @@
         "production_planning",
         "purchase",
         "stock",
+        "purchase_stock",   # picking.purchase_id / po.picking_ids (입고 확정 → 납품완료 전이)
         "portal",
         "website",
         "mail",

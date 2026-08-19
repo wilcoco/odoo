@@ -144,6 +144,11 @@ class StockPickingAsn(models.Model):
     def button_validate(self):
         res = super().button_validate()
         for picking in self:
-            if picking.state == "done" and picking.asn_ids:
+            if picking.state != "done":
+                continue
+            if picking.asn_ids:
                 picking.asn_ids._mark_received_from_picking(picking)
+            # 발주 연동 입고: 모든 입고 완료(receipt_status=full) 시 포탈 상태 '납품완료' 자동 전이
+            if picking.purchase_id:
+                picking.purchase_id.sudo()._portal_mark_done_from_receipt()
         return res

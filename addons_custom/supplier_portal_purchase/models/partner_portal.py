@@ -48,12 +48,9 @@ class ResPartner(models.Model):
         PO = self.env["purchase.order"]
         for partner in self:
             if partner.is_supplier_portal:
-                partner.supplier_po_count = PO.search_count([
-                    ("partner_id", "=", partner.id),
-                    ("auto_generated", "=", True),
-                ])
-                partner.supplier_pending_count = PO.search_count([
-                    ("partner_id", "=", partner.id),
+                base = PO._portal_visible_domain(partner.id)
+                partner.supplier_po_count = PO.search_count(base)
+                partner.supplier_pending_count = PO.search_count(base + [
                     ("portal_state", "=", "new"),
                 ])
             else:
@@ -96,9 +93,6 @@ class ResPartner(models.Model):
             "name": f"{self.name} 발주 목록",
             "res_model": "purchase.order",
             "view_mode": "list,form",
-            "domain": [
-                ("partner_id", "=", self.id),
-                ("auto_generated", "=", True),
-            ],
+            "domain": self.env["purchase.order"]._portal_visible_domain(self.id),
             "context": {"default_partner_id": self.id},
         }

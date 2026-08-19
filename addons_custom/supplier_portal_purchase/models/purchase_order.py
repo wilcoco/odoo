@@ -17,6 +17,12 @@ class PurchaseOrder(models.Model):
         readonly=True,
         help="생산계획에서 자동으로 생성된 발주서",
     )
+    is_portal_po = fields.Boolean(
+        string="포탈 대상 발주",
+        related="partner_id.is_supplier_portal",
+        store=True,
+        help="협력사 포탈을 사용하는 업체 앞 발주 — 자동/수동 구분 없이 포탈 목록·통계·리마인더의 단일 기준",
+    )
     portal_state = fields.Selection(
         [
             ("new", "응답 대기"),
@@ -104,6 +110,45 @@ class PurchaseOrder(models.Model):
             else:
                 po.portal_url = False
 
+    @api.model
+    def _portal_visible_domain(self, partner_id=None):
+        """협력사 포탈에 노출되는 발주의 단일 기준 — 대시보드 집계·목록·납품현황·리마인더가 모두 이 도메인을 쓴다.
+
+        - 자동발주(auto_generated): 초안 상태부터 노출 (협력사 응답 → 승인 시 확정되는 흐름)
+        - 수동발주: 구매담당자가 확정(purchase/done)한 뒤에만 노출 (작성 중 RFQ 가 협력사에 보이면 안 됨)
+        - 취소 발주 제외
+        """
+        domain = [
+            ("is_portal_po", "=", True),
+            ("state", "!=", "cancel"),
+            "|", ("auto_generated", "=", True), ("state", "in", ("purchase", "done")),
+        ]
+        if partner_id:
+            domain.insert(0, ("partner_id", "=", partner_id))
+        return domain
+
+    def button_confirm(self):
+        """수동 발주도 포탈 협력사에게 '새 발주' 알림 — 자동발주(_create_purchase_order)는 이미 보냈으므로 제외."""
+        res = super().button_confirm()
+        Notification = self.env["supplier.portal.notification"].sudo()
+        for po in self.filtered(lambda p: p.is_portal_po and not p.auto_generated):
+            already = Notification.search_count([
+                ("purchase_order_id", "=", po.id),
+                ("notification_type", "=", "new_po"),
+            ])
+            if not already:
+                po._create_portal_notification("new_po", partner=po.partner_id)
+        return res
+
+    def _portal_mark_done_from_receipt(self):
+        """입고 전표 확정 훅에서 호출 — 모든 입고가 완료된 포탈 발주를 '납품완료'로 자동 전이."""
+        for po in self.filtered(lambda p: p.is_portal_po and p.portal_state != "done"):
+            pickings = po.picking_ids
+            # purchase_stock 의 receipt_status='full' 과 동일 판정을 인라인으로 (recompute 타이밍 비의존)
+            if pickings and all(p.state in ("done", "cancel") for p in pickings) \
+                    and any(p.state == "done" for p in pickings):
+                po.action_mark_done()
+
     def action_approve_response(self):
         """협력사 응답 승인"""
         self.ensure_one()
@@ -181,8 +226,7 @@ class PurchaseOrder(models.Model):
         target_date = fields.Date.today() + timedelta(days=reminder_days)
 
         # date_planned는 PO Line에 있으므로 서브쿼리로 최소 납기일 확인
-        pending_pos = self.search([
-            ("auto_generated", "=", True),
+        pending_pos = self.search(self._portal_visible_domain() + [
             ("portal_state", "=", "new"),
         ])
 

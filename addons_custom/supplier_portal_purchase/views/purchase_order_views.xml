@@ -11,7 +11,7 @@
             <button name="action_rfq_send" position="before">
                 <field name="portal_state" widget="statusbar"
                        statusbar_visible="new,responded,approved,done"
-                       invisible="not auto_generated"/>
+                       invisible="not is_portal_po"/>
             </button>
 
             <!-- 승인/반려 버튼 -->
@@ -29,8 +29,9 @@
 
             <!-- 포탈 정보 그룹 추가 (Other Information 탭 내 other_info 그룹 앞에) -->
             <group name="other_info" position="before">
-                <group string="외주 발주 정보" invisible="not auto_generated" colspan="2">
+                <group string="외주 발주 정보" invisible="not is_portal_po" colspan="2">
                     <group>
+                        <field name="is_portal_po" readonly="1"/>
                         <field name="auto_generated" readonly="1"/>
                         <field name="outsource_planning_run_id" readonly="1"/>
                         <field name="buyer_id"/>
@@ -50,7 +51,7 @@
             <!-- 응답 내역 탭 -->
             <page name="purchase_delivery_invoice" position="after">
                 <page string="협력사 응답" name="supplier_response"
-                      invisible="not auto_generated">
+                      invisible="not is_portal_po">
                     <field name="response_ids" readonly="1"/>
                 </page>
             </page>
@@ -74,6 +75,7 @@
                        decoration-warning="production_impact == 'warning'"
                        decoration-danger="production_impact == 'critical'"/>
                 <field name="auto_generated" optional="hide"/>
+                <field name="is_portal_po" optional="hide"/>
             </field>
         </field>
     </record>
@@ -86,6 +88,8 @@
         <field name="arch" type="xml">
             <filter name="approved" position="after">
                 <separator/>
+                <filter name="portal_po" string="포탈 대상 발주"
+                        domain="[('is_portal_po', '=', True)]"/>
                 <filter name="auto_generated" string="자동 생성 발주"
                         domain="[('auto_generated', '=', True)]"/>
                 <filter name="portal_new" string="응답 대기"
@@ -115,17 +119,17 @@
         <field name="name">외주 발주 관리</field>
         <field name="res_model">purchase.order</field>
         <field name="view_mode">list,form,pivot,graph</field>
-        <field name="domain">[('auto_generated', '=', True)]</field>
+        <field name="domain">[('is_portal_po', '=', True)]</field>
         <field name="context">{
             'search_default_portal_new': 1,
             'search_default_portal_responded': 1,
         }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                자동 생성된 외주 발주가 없습니다
+                협력사 포탈 대상 발주가 없습니다
             </p>
             <p>
-                생산계획 확정 시 외주 부품에 대한 발주서가 자동으로 생성됩니다.
+                생산계획 확정 시 외주 부품 발주가 자동 생성되며, 포탈 사용 협력사 앞 수동 발주도 여기에 표시됩니다.
             </p>
         </field>
     </record>
@@ -136,7 +140,7 @@
         <field name="res_model">purchase.order</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[
-            ('auto_generated', '=', True),
+            ('is_portal_po', '=', True),
             ('portal_state', '=', 'responded'),
         ]</field>
         <field name="help" type="html">

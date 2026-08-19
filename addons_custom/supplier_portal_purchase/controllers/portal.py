@@ -58,6 +58,10 @@ class SupplierPortalController(http.Controller):
         if po.partner_id.id != partner.id:
             raise AccessDenied(_("이 발주서에 대한 접근 권한이 없습니다."))
 
+        # 목록·집계와 같은 노출 기준 — 작성 중(미확정) 수동 RFQ 등은 상세 URL 로도 열리지 않게
+        if not po.search_count(po._portal_visible_domain(partner.id) + [("id", "=", po.id)]):
+            raise AccessDenied(_("아직 포탈에 공개되지 않은 발주서입니다."))
+
         return partner, po
 
     # ─────────────────────────────────────────────
@@ -76,28 +80,11 @@ class SupplierPortalController(http.Controller):
         PO = request.env["purchase.order"].sudo()
         Notification = request.env["supplier.portal.notification"].sudo()
 
-        # 발주 현황 통계
+        # 발주 현황 통계 — 목록(/supplier/po/list)과 동일한 기준(_portal_visible_domain)으로 집계
+        base = PO._portal_visible_domain(partner.id)
         po_stats = {
-            "new": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "new"),
-            ]),
-            "responded": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "responded"),
-            ]),
-            "approved": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "approved"),
-            ]),
-            "rejected": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "rejected"),
-            ]),
-            "done": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "done"),
-            ]),
+            key: PO.search_count(base + [("portal_state", "=", key)])
+            for key in ("new", "responded", "approved", "rejected", "done")
         }
 
         # 알림 목록
@@ -107,8 +94,7 @@ class SupplierPortalController(http.Controller):
         # 금주 납품 일정
         today = fields.Date.today()
         week_later = fields.Date.add(today, days=7)
-        upcoming_pos = PO.search([
-            ("partner_id", "=", partner.id),
+        upcoming_pos = PO.search(base + [
             ("portal_state", "in", ["approved", "responded"]),
             ("date_planned", ">=", today),
             ("date_planned", "<=", week_later),
@@ -138,10 +124,7 @@ class SupplierPortalController(http.Controller):
 
         PO = request.env["purchase.order"].sudo()
 
-        domain = [
-            ("partner_id", "=", partner.id),
-            ("auto_generated", "=", True),
-        ]
+        domain = PO._portal_visible_domain(partner.id)
 
         if state and state != "all":
             domain.append(("portal_state", "=", state))
@@ -308,15 +291,14 @@ class SupplierPortalController(http.Controller):
         PO = request.env["purchase.order"].sudo()
 
         # 납품 예정
-        upcoming = PO.search([
-            ("partner_id", "=", partner.id),
+        base = PO._portal_visible_domain(partner.id)
+        upcoming = PO.search(base + [
             ("portal_state", "=", "approved"),
         ], order="date_planned asc")
 
         # 납품 완료 (최근 30일)
         thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
-        completed = PO.search([
-            ("partner_id", "=", partner.id),
+        completed = PO.search(base + [
             ("portal_state", "=", "done"),
             ("date_planned", ">=", thirty_days_ago),
         ], order="date_planned desc", limit=20)
