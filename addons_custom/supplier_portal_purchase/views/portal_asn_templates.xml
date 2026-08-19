@@ -142,6 +142,7 @@
 
     <menuitem id="menu_supplier_asn" name="납품 예정(ASN)"
               parent="purchase.menu_procurement_management"
+              groups="purchase.group_purchase_user"
               action="action_supplier_asn" sequence="12"/>
 
     <!-- ═══════════ 기사 제시용 납품 패스(QR) ═══════════ -->

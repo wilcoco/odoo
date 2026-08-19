@@ -60,8 +60,8 @@
 ```
 
 **테스트 URL:**
-- 한국브라켓: `/supplier/portal?token=demo_token_hanbracket_2026`
-- 삼성캡: `/supplier/portal?token=demo_token_sscap_2026`
+- `/supplier/portal?token=<협력사 포탈 접근 토큰>` — 토큰은 백오피스 구매 › 외주 관리 › 협력사 관리에서 복사
+  (데모 토큰 `demo_token_*` 은 서버가 거부함. 발급 시 만료 180일 자동 설정)
 
 **참고 문서:** `TEST_SCENARIO.md`
 

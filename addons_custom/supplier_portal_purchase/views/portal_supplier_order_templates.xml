@@ -120,6 +120,22 @@
     <template id="portal_new_order" name="Portal - New Order">
         <t t-call="supplier_portal_purchase.portal_layout">
             <h2 class="mb-4"><i class="fa fa-plus me-2"/> 새 발주 작성</h2>
+            <!-- 서버측 검증/상태 오류 안내 (컨트롤러 redirect ?error=...) -->
+            <t t-set="_err" t-value="request.params.get('error')"/>
+            <t t-if="_err">
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <t t-if="_err == 'missing_fields'">필수 항목(공급업체·제품·수량·납기일)을 모두 입력하세요.</t>
+                    <t t-elif="_err == 'invalid_seller'">선택한 공급업체가 유효하지 않습니다.</t>
+                    <t t-elif="_err == 'invalid_product'">선택한 제품이 유효하지 않습니다.</t>
+                    <t t-elif="_err == 'invalid_quantity'">수량은 0보다 커야 합니다.</t>
+                    <t t-elif="_err == 'invalid_date'">납기일 형식이 올바르지 않거나 오늘 이전입니다.</t>
+                    <t t-elif="_err == 'invalid_state'">현재 상태에서는 처리할 수 없는 작업입니다. 화면을 새로고침한 뒤 다시 확인하세요.</t>
+                    <t t-elif="_err == 'access_denied'">해당 발주에 접근할 수 없습니다.</t>
+                    <t t-else="">요청을 처리하지 못했습니다.</t>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"/>
+                </div>
+            </t>
 
             <div class="card">
                 <div class="card-body">
@@ -182,6 +198,22 @@
     <!-- 발주/수주 상세 (공통) -->
     <template id="portal_order_detail" name="Portal - Order Detail">
         <t t-call="supplier_portal_purchase.portal_layout">
+            <!-- 서버측 검증/상태 오류 안내 (컨트롤러 redirect ?error=...) -->
+            <t t-set="_err" t-value="request.params.get('error')"/>
+            <t t-if="_err">
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <t t-if="_err == 'missing_fields'">필수 항목(공급업체·제품·수량·납기일)을 모두 입력하세요.</t>
+                    <t t-elif="_err == 'invalid_seller'">선택한 공급업체가 유효하지 않습니다.</t>
+                    <t t-elif="_err == 'invalid_product'">선택한 제품이 유효하지 않습니다.</t>
+                    <t t-elif="_err == 'invalid_quantity'">수량은 0보다 커야 합니다.</t>
+                    <t t-elif="_err == 'invalid_date'">납기일 형식이 올바르지 않거나 오늘 이전입니다.</t>
+                    <t t-elif="_err == 'invalid_state'">현재 상태에서는 처리할 수 없는 작업입니다. 화면을 새로고침한 뒤 다시 확인하세요.</t>
+                    <t t-elif="_err == 'access_denied'">해당 발주에 접근할 수 없습니다.</t>
+                    <t t-else="">요청을 처리하지 못했습니다.</t>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"/>
+                </div>
+            </t>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>
                     <t t-if="is_buyer">

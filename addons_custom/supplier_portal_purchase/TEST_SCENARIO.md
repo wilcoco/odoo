@@ -80,8 +80,13 @@ production.demand → outsource.planning → purchase.order → 응답/승인 �
 
 ### 2.1 한국브라켓 포탈 접속
 
+> **포탈 URL 확인 방법** — 데모 토큰(`demo_token_…`)은 보안상 서버가 거부합니다.
+> 실제 URL 은 백오피스 **구매 › 외주 관리 › 마스터 데이터 › 협력사 관리** 에서 협력사를 열어
+> "포탈 접근 토큰" 을 복사하거나, 발주서의 "포탈 URL" 필드에서 확인하세요.
+> (토큰이 없으면 [토큰 재생성] 버튼 — 발급 시 만료일 180일이 자동 설정됩니다.)
+
 ```
-URL: http://localhost:8069/supplier/portal?token=demo_token_hanbracket_2026
+URL: http://localhost:8069/supplier/portal?token=<한국브라켓 포탈 접근 토큰>
 ```
 
 ### 2.2 에스콘에서 받은 발주 확인
@@ -128,7 +133,7 @@ URL: http://localhost:8069/supplier/portal?token=demo_token_hanbracket_2026
 ### 3.1 삼성캡 포탈 접속
 
 ```
-URL: http://localhost:8069/supplier/portal?token=demo_token_sscap_2026
+URL: http://localhost:8069/supplier/portal?token=<삼성캡 포탈 접근 토큰>
 ```
 
 ### 3.2 받은 발주 확인
@@ -241,11 +246,14 @@ URL: http://localhost:8069/supplier/portal?token=demo_token_sscap_2026
 
 ## 포탈 URL 요약
 
-| 협력사 | URL |
+| 협력사 | URL (토큰은 협력사 관리 화면에서 복사) |
 |--------|-----|
-| 한국브라켓 | `http://localhost:8069/supplier/portal?token=demo_token_hanbracket_2026` |
-| 대한하우징 | `http://localhost:8069/supplier/portal?token=demo_token_dhhousing_2026` |
-| 삼성캡 | `http://localhost:8069/supplier/portal?token=demo_token_sscap_2026` |
+| 한국브라켓 | `http://localhost:8069/supplier/portal?token=<한국브라켓 토큰>` |
+| 대한하우징 | `http://localhost:8069/supplier/portal?token=<대한하우징 토큰>` |
+| 삼성캡 | `http://localhost:8069/supplier/portal?token=<삼성캡 토큰>` |
+
+> 데모 토큰(`demo_token_…`)은 서버가 거부합니다("접근 토큰이 필요합니다"). 데모 데이터 설치 시에도
+> 강한 랜덤 토큰이 자동 발급되므로 반드시 화면에서 복사하세요.
 
 ---
 

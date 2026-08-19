@@ -25,6 +25,16 @@
             <field name="comment">외주 발주 조회, 응답 승인/반려 권한</field>
         </record>
 
+        <!-- 외주 관리자는 담당자 권한을 포함 -->
+        <record id="group_outsource_manager" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_outsource_user'))]"/>
+        </record>
+
+        <!-- 시스템 관리자(Settings)는 자동으로 외주 관리자 — 메뉴 gating 으로 관리자가 잠기지 않도록 -->
+        <record id="base.group_system" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_outsource_manager'))]"/>
+        </record>
+
     </data>
 
     <data noupdate="1">

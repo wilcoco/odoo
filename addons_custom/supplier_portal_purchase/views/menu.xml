@@ -2,9 +2,12 @@
 <odoo>
 
     <!-- 메인 메뉴: 구매 하위에 외주 관리 추가 -->
+    <!-- 외주 담당자/관리자 그룹에게만 노출 (역할 분리). 업그레이드 시 기존 구매 사용자에게는
+         마이그레이션이 그룹을 자동 부여하므로 아무도 메뉴를 잃지 않는다. -->
     <menuitem id="menu_outsource_root"
               name="외주 관리"
               parent="purchase.menu_purchase_root"
+              groups="group_outsource_user,group_outsource_manager"
               sequence="20"/>
 
     <!-- 외주 조달 계획 -->
@@ -61,6 +64,7 @@
               name="외주 조달 설정"
               parent="menu_outsource_master"
               action="action_outsource_planning_config"
+              groups="group_outsource_manager"
               sequence="30"/>
 
     <!-- 알림 -->

@@ -36,5 +36,7 @@ access_supplier_order_portal,supplier.order.portal,model_supplier_order,base.gro
 access_supplier_inventory_user,supplier.inventory.user,model_supplier_inventory,purchase.group_purchase_user,1,1,0,0
 access_supplier_inventory_manager,supplier.inventory.manager,model_supplier_inventory,purchase.group_purchase_manager,1,1,1,1
 access_supplier_inventory_portal,supplier.inventory.portal,model_supplier_inventory,base.group_portal,1,1,1,0
-access_supplier_asn_user,supplier.asn user,model_supplier_asn,base.group_user,1,1,1,0
-access_supplier_asn_line_user,supplier.asn.line user,model_supplier_asn_line,base.group_user,1,1,1,1
+access_supplier_asn_user,supplier.asn.user,model_supplier_asn,purchase.group_purchase_user,1,1,1,0
+access_supplier_asn_manager,supplier.asn.manager,model_supplier_asn,purchase.group_purchase_manager,1,1,1,1
+access_supplier_asn_line_user,supplier.asn.line.user,model_supplier_asn_line,purchase.group_purchase_user,1,1,1,1
+access_supplier_asn_line_manager,supplier.asn.line.manager,model_supplier_asn_line,purchase.group_purchase_manager,1,1,1,1

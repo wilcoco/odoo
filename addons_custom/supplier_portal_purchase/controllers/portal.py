@@ -3,7 +3,7 @@ from datetime import datetime
 
 from odoo import http, fields, _
 from odoo.http import request
-from odoo.exceptions import AccessDenied, ValidationError
+from odoo.exceptions import AccessDenied, UserError, ValidationError
 
 
 def _to_int(value, default=0):
@@ -625,6 +625,16 @@ class SupplierPortalController(http.Controller):
         if not all([seller_id, product_id, quantity, date_required]):
             return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
 
+        # 입력 검증: 수량은 양수, 납기일은 YYYY-MM-DD 이며 오늘 이후
+        if quantity <= 0:
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_quantity")
+        try:
+            date_required = datetime.strptime(date_required, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_date")
+        if date_required < fields.Date.today():
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_date")
+
         # 스푸핑 방지: 판매자·품목이 폼 허용집합(new_order_form)에 속하는지 서버측 재검증.
         seller = request.env["res.partner"].sudo().browse(seller_id)
         if not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id:
@@ -685,7 +695,10 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.buyer_partner_id.id == partner.id:
-            order.action_receive()
+            try:
+                order.action_receive()
+            except UserError:
+                return request.redirect(f"/supplier/orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/orders/{order_id}?token={token}")
 
@@ -770,7 +783,10 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_confirm()
+            try:
+                order.action_confirm()
+            except UserError:
+                return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
@@ -789,7 +805,10 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_ship()
+            try:
+                order.action_ship()
+            except UserError:
+                return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
@@ -876,7 +895,7 @@ class SupplierPortalController(http.Controller):
         product_id = _to_int(post.get("product_id"))
         quantity = _to_float(post.get("quantity"))
 
-        if product_id:
+        if product_id and quantity >= 0:
             inv = Inventory.search([
                 ("partner_id", "=", partner.id),
                 ("product_id", "=", product_id),

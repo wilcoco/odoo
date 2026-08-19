@@ -8,7 +8,6 @@
             <field name="company_type">company</field>
             <field name="supplier_rank">1</field>
             <field name="is_supplier_portal">True</field>
-            <field name="supplier_portal_token">demo_token_hanbracket_2026</field>
             <field name="portal_language">ko_KR</field>
             <field name="email">contact@hanbracket.co.kr</field>
             <field name="portal_notify_email">park@hanbracket.co.kr</field>
@@ -34,7 +33,6 @@
             <field name="company_type">company</field>
             <field name="supplier_rank">1</field>
             <field name="is_supplier_portal">True</field>
-            <field name="supplier_portal_token">demo_token_dhhousing_2026</field>
             <field name="portal_language">ko_KR</field>
             <field name="email">contact@dhhousing.co.kr</field>
             <field name="portal_notify_email">lee@dhhousing.co.kr</field>
@@ -60,7 +58,6 @@
             <field name="company_type">company</field>
             <field name="supplier_rank">1</field>
             <field name="is_supplier_portal">True</field>
-            <field name="supplier_portal_token">demo_token_sscap_2026</field>
             <field name="portal_language">ko_KR</field>
             <field name="email">contact@sscap.co.kr</field>
             <field name="portal_notify_email">kim@sscap.co.kr</field>

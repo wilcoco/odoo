@@ -73,8 +73,14 @@ class ResPartner(models.Model):
         """협력사 포털 사용 파트너는 항상 강한 랜덤 토큰을 갖도록 보장.
         (토큰 미생성 상태로 포털이 열리는 프로비저닝 갭 방지)"""
         for partner in self:
-            if partner.is_supplier_portal and not partner.supplier_portal_token:
+            if not partner.is_supplier_portal:
+                continue
+            if not partner.supplier_portal_token:
                 partner.supplier_portal_token = secrets.token_urlsafe(32)
+                partner.supplier_portal_token_expiry = fields.Date.add(
+                    fields.Date.context_today(partner), days=180)
+            elif not partner.supplier_portal_token_expiry:
+                # 토큰은 있는데 만료일이 없는(무기한) 경우 — 보안 수칙대로 180일 부여
                 partner.supplier_portal_token_expiry = fields.Date.add(
                     fields.Date.context_today(partner), days=180)
 

@@ -1,5 +1,6 @@
 import logging
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -103,9 +104,18 @@ class SupplierOrder(models.Model):
     # ─────────────────────────────────────────────
     # 발주업체 액션 (삼성캡이 소재공업에게)
     # ─────────────────────────────────────────────
+    # 상태 전이 가드 — 화면 버튼은 상태별로만 보이지만, URL 직접 호출로 단계를 건너뛰는 것을 서버가 막는다
+    def _check_transition(self, allowed_from, action_label):
+        self.ensure_one()
+        if self.state not in allowed_from:
+            raise UserError(_("%(action)s 할 수 없는 상태입니다 (현재: %(state)s).") % {
+                "action": action_label,
+                "state": dict(self._fields["state"].selection).get(self.state, self.state),
+            })
+
     def action_send(self):
         """발주 전송"""
-        self.ensure_one()
+        self._check_transition(("draft",), _("발주 전송"))
         self.state = "sent"
         # 공급업체에게 알림
         self.env["supplier.portal.notification"].create({
@@ -127,14 +137,14 @@ class SupplierOrder(models.Model):
     # ─────────────────────────────────────────────
     def action_confirm(self):
         """발주 확정 (공급업체)"""
-        self.ensure_one()
+        self._check_transition(("sent",), _("확정"))
         self.state = "confirmed"
         self.date_confirmed = fields.Date.today()
         return True
 
     def action_ship(self):
         """출하 처리 (공급업체)"""
-        self.ensure_one()
+        self._check_transition(("confirmed",), _("출하 처리"))
         self.state = "shipped"
         self.date_shipped = fields.Date.today()
         # 발주업체에게 출하 알림
@@ -156,7 +166,7 @@ class SupplierOrder(models.Model):
     # ─────────────────────────────────────────────
     def action_receive(self):
         """입고 확인 (발주업체)"""
-        self.ensure_one()
+        self._check_transition(("shipped",), _("입고 확인"))
         self.state = "received"
         self.date_received = fields.Date.today()
 
@@ -167,8 +177,8 @@ class SupplierOrder(models.Model):
         return True
 
     def action_cancel(self):
-        """취소"""
-        self.ensure_one()
+        """취소 — 입고 완료 건은 취소 불가"""
+        self._check_transition(("draft", "sent", "confirmed", "shipped"), _("취소"))
         self.state = "cancelled"
         return True
 
