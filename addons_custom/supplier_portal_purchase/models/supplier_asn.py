@@ -1,7 +1,10 @@
+import logging
 import secrets
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class SupplierAsn(models.Model):
@@ -36,7 +39,13 @@ class SupplierAsn(models.Model):
         seq = self.env["ir.sequence"]
         for vals in vals_list:
             if vals.get("name", "신규") == "신규":
-                vals["name"] = seq.next_by_code("supplier.asn") or "ASN"
+                name = seq.next_by_code("supplier.asn")
+                if not name:
+                    # 시퀀스 미등록 → 모든 ASN 이 "ASN" 으로 겹친다. 조용히 넘기지 않고 로그로 드러낸다.
+                    _logger.warning("ir.sequence 'supplier.asn' 미등록 — ASN 번호가 고유하지 않습니다 "
+                                    "(-u supplier_portal_purchase 로 data/sequence.xml 반영 필요)")
+                    name = "ASN"
+                vals["name"] = name
         return super().create(vals_list)
 
     def action_create_picking(self):
@@ -48,14 +57,21 @@ class SupplierAsn(models.Model):
             raise UserError(_("납품 품목이 없습니다."))
         wh = self.env["stock.warehouse"].search(
             [("company_id", "=", self.env.company.id)], limit=1)
+        if not wh or not wh.in_type_id or not wh.lot_stock_id:
+            raise UserError(_("회사 창고(입고 작업유형/재고 위치)가 설정되어 있지 않아 입고 전표를 만들 수 없습니다."))
         sup_loc = self.env.ref("stock.stock_location_suppliers")
         Lot = self.env["stock.lot"]
-        move_vals = []
+        # 품목별 1 move (같은 품목 LOT 여러 줄 → 수량 합산). action_confirm 이 동일 품목 move 를
+        # 병합하므로 애초에 품목 단위로 만들어 라인↔move 대응을 순서에 의존하지 않게 한다.
+        qty_by_product = {}
         for line in self.line_ids:
+            qty_by_product[line.product_id] = qty_by_product.get(line.product_id, 0.0) + line.qty
+        move_vals = []
+        for product, qty in qty_by_product.items():
             move_vals.append((0, 0, {
-                "name": "%s/%s" % (self.name, line.product_id.default_code or ""),
-                "product_id": line.product_id.id,
-                "product_uom_qty": line.qty,
+                "name": "%s/%s" % (self.name, product.default_code or ""),
+                "product_id": product.id,
+                "product_uom_qty": qty,
                 "location_id": sup_loc.id,
                 "location_dest_id": wh.lot_stock_id.id,
             }))
@@ -69,23 +85,28 @@ class SupplierAsn(models.Model):
         })
         # 확정(예약 재생성) 후에 라인을 채워야 수량·LOT 프리필이 유지된다
         picking.action_confirm()
-        for line, move in zip(self.line_ids, picking.move_ids):
-            ml = {"product_id": move.product_id.id,
-                  "quantity": line.qty,
-                  "location_id": sup_loc.id,
-                  "location_dest_id": wh.lot_stock_id.id}
-            # 협력사가 LOT 을 기재했으면 추적설정과 무관하게 부여 —
-            # 수입검사(IQC) 보류가 LOT 에 걸리므로 추적 사슬의 열쇠다
-            if line.lot_name:
-                lot = Lot.search([("name", "=", line.lot_name),
-                                  ("product_id", "=", line.product_id.id)], limit=1)
-                if not lot:
-                    lot = Lot.create({"name": line.lot_name,
-                                      "product_id": line.product_id.id,
-                                      "company_id": self.env.company.id})
-                ml["lot_id"] = lot.id
-            move.move_line_ids.unlink()
-            move.write({"move_line_ids": [(0, 0, ml)]})
+        for move in picking.move_ids:
+            # 이 move 품목의 ASN 라인 전부 → 라인(LOT)마다 상세 작업 1줄
+            ml_vals = []
+            for line in self.line_ids.filtered(lambda l: l.product_id == move.product_id):
+                ml = {"product_id": move.product_id.id,
+                      "quantity": line.qty,
+                      "location_id": sup_loc.id,
+                      "location_dest_id": wh.lot_stock_id.id}
+                # 협력사가 LOT 을 기재했으면 추적설정과 무관하게 부여 —
+                # 수입검사(IQC) 보류가 LOT 에 걸리므로 추적 사슬의 열쇠다
+                if line.lot_name:
+                    lot = Lot.search([("name", "=", line.lot_name),
+                                      ("product_id", "=", line.product_id.id)], limit=1)
+                    if not lot:
+                        lot = Lot.create({"name": line.lot_name,
+                                          "product_id": line.product_id.id,
+                                          "company_id": self.env.company.id})
+                    ml["lot_id"] = lot.id
+                ml_vals.append((0, 0, ml))
+            if ml_vals:
+                move.move_line_ids.unlink()
+                move.write({"move_line_ids": ml_vals})
         self.write({"picking_id": picking.id})
         self.message_post(body=_("입고 전표 %s 생성 — 실물 대조 후 확정하세요.") % picking.name)
         return {"type": "ir.actions.act_window", "res_model": "stock.picking",

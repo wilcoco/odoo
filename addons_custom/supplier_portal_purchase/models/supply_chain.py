@@ -65,7 +65,7 @@ class SupplyChainRoute(models.Model):
             "type": "ir.actions.act_window",
             "name": _("공급 단계: %s") % self.name,
             "res_model": "supply.chain.tier",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("route_id", "=", self.id)],
             "context": {"default_route_id": self.id},
         }

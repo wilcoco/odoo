@@ -26,5 +26,14 @@
             <field name="padding">4</field>
         </record>
 
+        <!-- 납품 예정(ASN) 시퀀스 — supplier.asn.create() 의 next_by_code("supplier.asn")
+             운영 DB 에 수동 등록돼 있던 레코드와 동일 XML ID/값 → 업그레이드 시 충돌 없이 유지 -->
+        <record id="seq_supplier_asn" model="ir.sequence">
+            <field name="name">납품 예정(ASN)</field>
+            <field name="code">supplier.asn</field>
+            <field name="prefix">ASN-%(y)s-</field>
+            <field name="padding">4</field>
+        </record>
+
     </data>
 </odoo>
