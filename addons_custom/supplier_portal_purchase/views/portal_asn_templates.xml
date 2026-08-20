@@ -15,7 +15,11 @@
                 납품 예정이 등록되었습니다. 도착 시 입고 담당자가 바로 처리합니다.
             </div>
             <div t-if="request.params.get('error')" class="alert alert-danger">
-                납품 품목을 1개 이상 입력해 주세요.
+                <t t-if="request.params.get('error') == 'bad_rows'">
+                    <t t-esc="request.params.get('rows')"/>번째 행에 오류가 있어 등록되지 않았습니다 —
+                    품목 선택과 수량(0보다 큰 값)을 확인 후 다시 등록해 주세요.
+                </t>
+                <t t-else="">납품 품목을 1개 이상 입력해 주세요.</t>
             </div>
             <div class="card mb-4">
                 <div class="card-header"><h5 class="mb-0"><i class="fa fa-truck me-2"/>납품 예정 등록 (종이 명세서 대체)</h5></div>

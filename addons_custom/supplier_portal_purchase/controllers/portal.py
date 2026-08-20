@@ -3,7 +3,7 @@ from datetime import datetime
 
 from odoo import http, fields, _
 from odoo.http import request
-from odoo.exceptions import AccessDenied, ValidationError
+from odoo.exceptions import AccessDenied, UserError, ValidationError
 
 
 def _to_int(value, default=0):
@@ -76,28 +76,14 @@ class SupplierPortalController(http.Controller):
         PO = request.env["purchase.order"].sudo()
         Notification = request.env["supplier.portal.notification"].sudo()
 
-        # 발주 현황 통계
+        # 발주 현황 통계 — 발주 목록(po_list)과 같은 기준(auto_generated)으로 집계
+        base_domain = [
+            ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
+        ]
         po_stats = {
-            "new": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "new"),
-            ]),
-            "responded": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "responded"),
-            ]),
-            "approved": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "approved"),
-            ]),
-            "rejected": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "rejected"),
-            ]),
-            "done": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "done"),
-            ]),
+            state: PO.search_count(base_domain + [("portal_state", "=", state)])
+            for state in ("new", "responded", "approved", "rejected", "done")
         }
 
         # 알림 목록
@@ -107,8 +93,7 @@ class SupplierPortalController(http.Controller):
         # 금주 납품 일정
         today = fields.Date.today()
         week_later = fields.Date.add(today, days=7)
-        upcoming_pos = PO.search([
-            ("partner_id", "=", partner.id),
+        upcoming_pos = PO.search(base_domain + [
             ("portal_state", "in", ["approved", "responded"]),
             ("date_planned", ">=", today),
             ("date_planned", "<=", week_later),
@@ -307,9 +292,10 @@ class SupplierPortalController(http.Controller):
 
         PO = request.env["purchase.order"].sudo()
 
-        # 납품 예정
+        # 납품 예정 — 대시보드·목록과 같은 기준(auto_generated)
         upcoming = PO.search([
             ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
             ("portal_state", "=", "approved"),
         ], order="date_planned asc")
 
@@ -317,6 +303,7 @@ class SupplierPortalController(http.Controller):
         thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
         completed = PO.search([
             ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
             ("portal_state", "=", "done"),
             ("date_planned", ">=", thirty_days_ago),
         ], order="date_planned desc", limit=20)
@@ -643,6 +630,16 @@ class SupplierPortalController(http.Controller):
         if not all([seller_id, product_id, quantity, date_required]):
             return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
 
+        # 입력값 검증 — 음수·0 수량, 형식 오류·과거 납기 차단
+        if quantity <= 0:
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_qty")
+        try:
+            req_date = datetime.strptime(date_required, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_date")
+        if req_date < fields.Date.today():
+            return request.redirect(f"/supplier/orders/new?token={token}&error=past_date")
+
         # 스푸핑 방지: 판매자·품목이 폼 허용집합(new_order_form)에 속하는지 서버측 재검증.
         seller = request.env["res.partner"].sudo().browse(seller_id)
         if not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id:
@@ -703,7 +700,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.buyer_partner_id.id == partner.id:
-            order.action_receive()
+            try:
+                order.action_receive()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/orders/{order_id}?token={token}")
 
@@ -788,7 +789,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_confirm()
+            try:
+                order.action_confirm()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
@@ -807,7 +812,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_ship()
+            try:
+                order.action_ship()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 

@@ -1,5 +1,6 @@
 import logging
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -100,12 +101,30 @@ class SupplierOrder(models.Model):
                 )
         return super().create(vals_list)
 
+    # 상태 전이 허용표 — 목표 상태: 허용 출발 상태
+    _ALLOWED_TRANSITIONS = {
+        "sent": ("draft",),
+        "confirmed": ("sent",),
+        "shipped": ("confirmed",),
+        "received": ("shipped",),
+        "cancelled": ("draft", "sent", "confirmed"),
+    }
+
+    def _check_transition(self, target):
+        """허용되지 않은 상태 전이 차단 (포털 URL 직접 호출·중복 클릭 방어)."""
+        for order in self:
+            if order.state not in self._ALLOWED_TRANSITIONS[target]:
+                raise UserError(_(
+                    "%(name)s: '%(state)s' 상태에서는 이 처리를 할 수 없습니다.")
+                    % {"name": order.name, "state": order.state})
+
     # ─────────────────────────────────────────────
     # 발주업체 액션 (삼성캡이 소재공업에게)
     # ─────────────────────────────────────────────
     def action_send(self):
         """발주 전송"""
         self.ensure_one()
+        self._check_transition("sent")
         self.state = "sent"
         # 공급업체에게 알림
         self.env["supplier.portal.notification"].create({
@@ -128,6 +147,7 @@ class SupplierOrder(models.Model):
     def action_confirm(self):
         """발주 확정 (공급업체)"""
         self.ensure_one()
+        self._check_transition("confirmed")
         self.state = "confirmed"
         self.date_confirmed = fields.Date.today()
         return True
@@ -135,6 +155,7 @@ class SupplierOrder(models.Model):
     def action_ship(self):
         """출하 처리 (공급업체)"""
         self.ensure_one()
+        self._check_transition("shipped")
         self.state = "shipped"
         self.date_shipped = fields.Date.today()
         # 발주업체에게 출하 알림
@@ -157,6 +178,7 @@ class SupplierOrder(models.Model):
     def action_receive(self):
         """입고 확인 (발주업체)"""
         self.ensure_one()
+        self._check_transition("received")
         self.state = "received"
         self.date_received = fields.Date.today()
 
@@ -167,8 +189,9 @@ class SupplierOrder(models.Model):
         return True
 
     def action_cancel(self):
-        """취소"""
+        """취소 — 출하 이후는 실물 회수가 필요하므로 취소 불가"""
         self.ensure_one()
+        self._check_transition("cancelled")
         self.state = "cancelled"
         return True
 

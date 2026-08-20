@@ -36,7 +36,16 @@ class SupplierAsn(models.Model):
         seq = self.env["ir.sequence"]
         for vals in vals_list:
             if vals.get("name", "신규") == "신규":
-                vals["name"] = seq.next_by_code("supplier.asn") or "ASN"
+                name = seq.next_by_code("supplier.asn")
+                if not name:
+                    # 시퀀스 부재 시(데이터 미적재 등) 상수 폴백으로 중복 채번되지 않게
+                    # 규칙(ASN-%(y)s-)대로 즉석 생성 후 재채번
+                    seq.sudo().create({
+                        "name": "납품 예정(ASN)", "code": "supplier.asn",
+                        "prefix": "ASN-%(y)s-", "padding": 4,
+                    })
+                    name = seq.next_by_code("supplier.asn")
+                vals["name"] = name
         return super().create(vals_list)
 
     def action_create_picking(self):
@@ -69,8 +78,16 @@ class SupplierAsn(models.Model):
         })
         # 확정(예약 재생성) 후에 라인을 채워야 수량·LOT 프리필이 유지된다
         picking.action_confirm()
-        for line, move in zip(self.line_ids, picking.move_ids):
-            ml = {"product_id": move.product_id.id,
+        # 짝맞추기는 순서가 아니라 품목 기준 — 같은 품목 여러 줄이면
+        # action_confirm 이 move 를 병합해 순서 zip 이 어긋난다
+        moves_by_product = {m.product_id.id: m for m in picking.move_ids}
+        picking.move_ids.move_line_ids.unlink()
+        for line in self.line_ids:
+            move = moves_by_product.get(line.product_id.id)
+            if move is None:
+                raise UserError(_("전표 라인 매칭 실패(%s) — 전표를 확인하세요.")
+                                % line.product_id.display_name)
+            ml = {"product_id": line.product_id.id,
                   "quantity": line.qty,
                   "location_id": sup_loc.id,
                   "location_dest_id": wh.lot_stock_id.id}
@@ -84,7 +101,6 @@ class SupplierAsn(models.Model):
                                       "product_id": line.product_id.id,
                                       "company_id": self.env.company.id})
                 ml["lot_id"] = lot.id
-            move.move_line_ids.unlink()
             move.write({"move_line_ids": [(0, 0, ml)]})
         self.write({"picking_id": picking.id})
         self.message_post(body=_("입고 전표 %s 생성 — 실물 대조 후 확정하세요.") % picking.name)
@@ -123,6 +139,13 @@ class StockPickingAsn(models.Model):
     def button_validate(self):
         res = super().button_validate()
         for picking in self:
-            if picking.state == "done" and picking.asn_ids:
+            if picking.state != "done":
+                continue
+            if picking.asn_ids:
                 picking.asn_ids._mark_received_from_picking(picking)
+            # 발주 연동 입고면 포탈 상태도 납품완료로 — 협력사 화면 정합
+            if "purchase_id" in picking._fields and picking.purchase_id:
+                po = picking.purchase_id
+                if po.auto_generated and po.portal_state == "approved":
+                    po.action_mark_done()
         return res
