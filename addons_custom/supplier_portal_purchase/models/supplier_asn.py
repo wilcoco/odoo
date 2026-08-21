@@ -38,12 +38,14 @@ class SupplierAsn(models.Model):
             if vals.get("name", "신규") == "신규":
                 name = seq.next_by_code("supplier.asn")
                 if not name:
-                    # 시퀀스 부재 시(데이터 미적재 등) 상수 폴백으로 중복 채번되지 않게
-                    # 규칙(ASN-%(y)s-)대로 즉석 생성 후 재채번
-                    seq.sudo().create({
-                        "name": "납품 예정(ASN)", "code": "supplier.asn",
-                        "prefix": "ASN-%(y)s-", "padding": 4,
-                    })
+                    # 안전망: 시퀀스 data(data/sequence.xml)가 없는 예외 상황.
+                    # 동시 생성 레이스로 같은 code 시퀀스가 2개 생기지 않게 조회 후 생성.
+                    if not seq.sudo().search(
+                            [("code", "=", "supplier.asn")], limit=1):
+                        seq.sudo().create({
+                            "name": "납품 예정(ASN)", "code": "supplier.asn",
+                            "prefix": "ASN-%(y)s-", "padding": 4,
+                        })
                     name = seq.next_by_code("supplier.asn")
                 vals["name"] = name
         return super().create(vals_list)
@@ -143,9 +145,13 @@ class StockPickingAsn(models.Model):
                 continue
             if picking.asn_ids:
                 picking.asn_ids._mark_received_from_picking(picking)
-            # 발주 연동 입고면 포탈 상태도 납품완료로 — 협력사 화면 정합
+            # 발주 연동 입고면 포탈 상태도 납품완료로 — 협력사 화면 정합.
+            # 단, 분할 납품이면 잔여 전표가 남으므로 모든 입고가 완료/취소된 뒤에만
+            # 납품완료로 전환한다(부분입고 1회에 조기 완료되지 않게).
             if "purchase_id" in picking._fields and picking.purchase_id:
                 po = picking.purchase_id
-                if po.auto_generated and po.portal_state == "approved":
+                if (po.auto_generated and po.portal_state == "approved"
+                        and all(p.state in ("done", "cancel")
+                                for p in po.picking_ids)):
                     po.action_mark_done()
         return res

@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="seq_supplier_asn" model="ir.sequence">
-        <field name="name">납품 예정(ASN)</field>
-        <field name="code">supplier.asn</field>
-        <field name="prefix">ASN-%(y)s-</field>
-        <field name="padding">4</field>
-    </record>
+    <!-- 납품 예정(ASN) 시퀀스는 data/sequence.xml 로 이전(다른 3개 시퀀스와 동일 위치) -->
 
     <!-- ═══════════ 협력사 포털: 납품 예정 등록·조회 ═══════════ -->
     <template id="portal_asn_list" name="Supplier Portal ASN">

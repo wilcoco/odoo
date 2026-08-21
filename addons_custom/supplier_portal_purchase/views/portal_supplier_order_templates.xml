@@ -121,6 +121,16 @@
         <t t-call="supplier_portal_purchase.portal_layout">
             <h2 class="mb-4"><i class="fa fa-plus me-2"/> 새 발주 작성</h2>
 
+            <div t-if="request.params.get('error')" class="alert alert-danger">
+                <t t-if="request.params.get('error') == 'missing_fields'">필수 항목을 모두 입력해 주세요.</t>
+                <t t-elif="request.params.get('error') == 'invalid_qty'">수량은 0보다 커야 합니다.</t>
+                <t t-elif="request.params.get('error') == 'invalid_date'">납기일 형식이 올바르지 않습니다.</t>
+                <t t-elif="request.params.get('error') == 'past_date'">납기일은 오늘 이후여야 합니다.</t>
+                <t t-elif="request.params.get('error') == 'invalid_seller'">선택한 공급업체가 올바르지 않습니다.</t>
+                <t t-elif="request.params.get('error') == 'invalid_product'">선택한 제품이 올바르지 않습니다.</t>
+                <t t-else="">입력을 확인해 주세요.</t>
+            </div>
+
             <div class="card">
                 <div class="card-body">
                     <form t-attf-action="/supplier/orders/create?token=#{token}" method="post">
@@ -195,6 +205,10 @@
                    class="btn btn-outline-secondary">
                     <i class="fa fa-arrow-left me-1"/> 목록으로
                 </a>
+            </div>
+
+            <div t-if="request.params.get('error') == 'invalid_state'" class="alert alert-danger">
+                현재 상태에서는 요청한 처리를 할 수 없습니다. 목록을 새로고침해 최신 상태를 확인해 주세요.
             </div>
 
             <div class="row">
