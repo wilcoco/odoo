@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="escon_mainmenu.Home">
+    <div class="o_escon_mainmenu">
+        <div class="emm-inner">
+
+            <!-- ═══════════════ 홈 화면 ═══════════════ -->
+            <t t-if="state.view === 'home'">
+                <div class="emm-header">
+                    <div>
+                        <h1 class="emm-title">ESCON ERP</h1>
+                        <div class="emm-subtitle" t-esc="today"/>
+                    </div>
+                </div>
+
+                <!-- 즐겨찾기 앱 -->
+                <div t-if="favoriteApps.length" class="emm-favs">
+                    <t t-foreach="favoriteApps" t-as="app" t-key="app.id">
+                        <a class="emm-fav" href="#" t-on-click.prevent="() => this.openMenu(app)" t-att-title="app.name">
+                            <img class="emm-fav-icon" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                            <span class="emm-fav-name" t-esc="app.name"/>
+                        </a>
+                    </t>
+                </div>
+
+                <div class="emm-grid">
+                    <t t-foreach="categories" t-as="cat" t-key="cat.key">
+                        <div class="emm-card" t-att-style="'--emm-accent: ' + cat.color">
+                            <div class="emm-card-head"
+                                 t-att-class="cat.items.length ? '' : 'emm-disabled'"
+                                 t-on-click="() => this.onHeadClick(cat)">
+                                <span class="emm-icon"><i t-att-class="'fa fa-fw ' + cat.icon"/></span>
+                                <span class="emm-card-title" t-esc="cat.title"/>
+                            </div>
+                            <div class="emm-links">
+                                <t t-foreach="cat.items" t-as="item" t-key="item.xmlid">
+                                    <a class="emm-link" href="#" t-on-click.prevent="() => this.openMenu(item.menu)">
+                                        <span t-esc="item.label"/>
+                                        <i class="fa fa-angle-right"/>
+                                    </a>
+                                </t>
+                                <div t-if="!cat.items.length" class="emm-empty">
+                                    사용 가능한 메뉴가 없습니다
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- 전체 메뉴 타일 -->
+                    <div class="emm-card emm-card-all" style="--emm-accent: #475569">
+                        <div class="emm-card-head" t-on-click="toggleAllApps">
+                            <span class="emm-icon"><i class="fa fa-fw fa-th"/></span>
+                            <span class="emm-card-title">전체 메뉴</span>
+                            <i t-att-class="'fa emm-caret ' + (state.config.showAllApps ? 'fa-angle-up' : 'fa-angle-down')"/>
+                        </div>
+                        <div class="emm-links">
+                            <a t-if="hasOdooHome" class="emm-link" href="#" t-on-click.prevent="openOdooHome">
+                                <span>Odoo 기본 홈 보기</span>
+                                <i class="fa fa-angle-right"/>
+                            </a>
+                            <a class="emm-link" href="#" t-on-click.prevent="openSettings">
+                                <span>메뉴 설정</span>
+                                <i class="fa fa-angle-right"/>
+                            </a>
+                            <a class="emm-link" href="#" t-on-click.prevent="toggleAllApps">
+                                <span>설치된 모든 앱 <t t-esc="state.config.showAllApps ? '숨기기' : '보기'"/> (<t t-esc="orderedApps.length"/>개)</span>
+                                <i t-att-class="'fa ' + (state.config.showAllApps ? 'fa-toggle-on' : 'fa-toggle-off')"/>
+                            </a>
+                            <a class="emm-link" href="#" t-on-click.prevent="openAccountSettings">
+                                <span>계정 설정</span>
+                                <i class="fa fa-angle-right"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 전체 앱 그리드 (기본 펼침) -->
+                <div t-if="state.config.showAllApps" class="emm-apps">
+                    <t t-foreach="orderedApps" t-as="app" t-key="app.id">
+                        <a class="emm-app" href="#" t-on-click.prevent="() => this.openMenu(app)">
+                            <img class="emm-app-icon" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                            <span class="emm-app-name" t-esc="app.name"/>
+                        </a>
+                    </t>
+                </div>
+            </t>
+
+            <!-- ═══════════════ 메뉴 설정 화면 ═══════════════ -->
+            <t t-if="state.view === 'settings' and state.draft">
+                <div class="emm-header">
+                    <div>
+                        <h1 class="emm-title">메뉴 설정</h1>
+                        <div class="emm-subtitle">이 설정은 로그인한 계정(<t t-esc="userLogin"/>)에 적용됩니다.</div>
+                    </div>
+                    <div class="emm-actions">
+                        <button class="btn btn-secondary" t-on-click="resetSettings">기본값 복원</button>
+                        <button class="btn btn-secondary" t-on-click="cancelSettings">취소</button>
+                        <button class="btn btn-primary" t-on-click="saveSettings">저장</button>
+                    </div>
+                </div>
+
+                <div class="emm-set-layout">
+                    <!-- 좌측: 설정 네비 -->
+                    <div class="emm-set-nav">
+                        <a href="#" t-att-class="'emm-set-nav-item ' + (state.settingsSection === 'favs' ? 'emm-set-nav-active' : '')"
+                           t-on-click.prevent="() => this.scrollToSection('favs')">
+                            <i class="fa fa-fw fa-star"/> 즐겨찾기 앱
+                        </a>
+                        <a href="#" t-att-class="'emm-set-nav-item ' + (state.settingsSection === 'groups' ? 'emm-set-nav-active' : '')"
+                           t-on-click.prevent="() => this.scrollToSection('groups')">
+                            <i class="fa fa-fw fa-th-large"/> 메뉴 그룹
+                        </a>
+                        <a href="#" t-att-class="'emm-set-nav-item ' + (state.settingsSection === 'order' ? 'emm-set-nav-active' : '')"
+                           t-on-click.prevent="() => this.scrollToSection('order')">
+                            <i class="fa fa-fw fa-sort"/> 전체 메뉴 순서
+                        </a>
+                    </div>
+
+                    <!-- 우측: 설정 항목 -->
+                    <div class="emm-set-main">
+
+                        <!-- 1. 즐겨찾기 앱 -->
+                        <div class="emm-set-section" id="emm-sec-favs">
+                            <h2 class="emm-set-title">즐겨찾기 앱</h2>
+                            <div class="emm-set-hint">별표를 누르면 홈 화면 상단에 아이콘으로 표시됩니다.</div>
+                            <div class="emm-apps emm-set-apps">
+                                <t t-foreach="draftOrderedApps" t-as="app" t-key="app.id">
+                                    <div class="emm-app emm-set-app" t-on-click="() => this.toggleFavorite(app.xmlid)">
+                                        <i t-att-class="'emm-star fa ' + (isFavorite(app.xmlid) ? 'fa-star' : 'fa-star-o')"/>
+                                        <img class="emm-app-icon" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                                        <span class="emm-app-name" t-esc="app.name"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- 2. 메뉴 그룹 (카테고리) -->
+                        <div class="emm-set-section" id="emm-sec-groups">
+                            <h2 class="emm-set-title">메뉴 그룹</h2>
+                            <div class="emm-set-hint">그룹과 그룹에 들어갈 메뉴를 자유롭게 구성하세요. ☰ 핸들을 잡고 끌면 순서가 바뀝니다. 설치되지 않았거나 권한이 없는 메뉴는 홈에서 자동으로 숨겨집니다.</div>
+                            <div class="emm-set-cats">
+                                <t t-foreach="state.draft.categories" t-as="cat" t-key="cat.key">
+                                    <div class="emm-set-cat" t-att-style="'--emm-accent: ' + cat.color"
+                                         t-on-dragover="(ev) => this.onRowDragOver(ev, 'cat', cat_index)"
+                                         t-on-drop="onRowDrop">
+                                        <div class="emm-set-cat-head">
+                                            <span class="emm-drag-handle" draggable="true" title="끌어서 순서 변경"
+                                                  t-on-dragstart="(ev) => this.onHandleDragStart(ev, 'cat', cat_index)"
+                                                  t-on-dragend="onDragEnd">
+                                                <i class="fa fa-bars"/>
+                                            </span>
+                                            <div class="emm-icon-picker">
+                                                <button class="emm-icon-btn" title="아이콘 선택" t-on-click="() => this.toggleIconPicker(cat.key)">
+                                                    <span class="emm-icon"><i t-att-class="'fa fa-fw ' + cat.icon"/></span>
+                                                    <i class="fa fa-caret-down"/>
+                                                </button>
+                                                <t t-if="state.iconPickerFor === cat.key">
+                                                    <div class="emm-icon-backdrop" t-on-click="() => this.toggleIconPicker(cat.key)"/>
+                                                    <div class="emm-icon-pop">
+                                                        <t t-foreach="iconChoices" t-as="ic" t-key="ic">
+                                                            <button t-att-class="'emm-icon-cell ' + (cat.icon === ic ? 'emm-icon-cell-active' : '')"
+                                                                    t-att-title="ic.replace('fa-','')"
+                                                                    t-on-click="() => this.pickIcon(cat, ic)">
+                                                                <i t-att-class="'fa fa-fw ' + ic"/>
+                                                            </button>
+                                                        </t>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                            <input class="emm-set-input emm-set-cat-title" type="text" t-att-value="cat.title"
+                                                   t-on-input="(ev) => cat.title = ev.target.value"/>
+                                            <input class="emm-set-color" type="color" t-att-value="cat.color"
+                                                   t-on-input="(ev) => cat.color = ev.target.value"/>
+                                            <span class="emm-set-btns">
+                                                <button class="btn btn-sm emm-danger" title="그룹 삭제" t-on-click="() => this.removeCategory(cat_index)"><i class="fa fa-trash-o"/></button>
+                                            </span>
+                                        </div>
+                                        <div class="emm-set-items">
+                                            <t t-foreach="cat.items" t-as="item" t-key="item.xmlid">
+                                                <div class="emm-set-item" t-att-class="isMenuAlive(item.xmlid) ? '' : 'emm-set-item-dead'"
+                                                     t-on-dragover="(ev) => this.onRowDragOver(ev, 'item', item_index, cat_index)"
+                                                     t-on-drop="onRowDrop">
+                                                    <span class="emm-drag-handle" draggable="true" title="끌어서 순서 변경"
+                                                          t-on-dragstart="(ev) => this.onHandleDragStart(ev, 'item', item_index, cat_index)"
+                                                          t-on-dragend="onDragEnd">
+                                                        <i class="fa fa-bars"/>
+                                                    </span>
+                                                    <input class="emm-set-input" type="text" t-att-value="item.label"
+                                                           t-on-input="(ev) => item.label = ev.target.value"/>
+                                                    <span class="emm-set-xmlid" t-esc="item.xmlid" t-att-title="isMenuAlive(item.xmlid) ? '' : '이 DB에 없거나 권한이 없어 홈에서 숨겨집니다'"/>
+                                                    <span class="emm-set-btns">
+                                                        <button class="btn btn-sm emm-danger" title="삭제" t-on-click="() => this.removeItem(cat, item_index)"><i class="fa fa-trash-o"/></button>
+                                                    </span>
+                                                </div>
+                                            </t>
+                                            <select class="emm-set-add-sel" t-on-change="(ev) => this.onAddItem(cat, ev)">
+                                                <option value="">+ 메뉴 추가...</option>
+                                                <t t-foreach="allMenuChoices" t-as="choice" t-key="choice.xmlid">
+                                                    <option t-att-value="choice.xmlid" t-esc="choice.label"/>
+                                                </t>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                            <button class="btn btn-secondary emm-set-addcat" t-on-click="addCategory">
+                                <i class="fa fa-plus"/> 그룹 추가
+                            </button>
+                        </div>
+
+                        <!-- 3. 전체 메뉴(앱) 순서 -->
+                        <div class="emm-set-section" id="emm-sec-order">
+                            <h2 class="emm-set-title">전체 메뉴 순서</h2>
+                            <div class="emm-set-order-mode">
+                                <label class="emm-radio">
+                                    <input type="radio" name="emm_order_mode" t-att-checked="state.draft.appOrderMode === 'odoo' ? 'checked' : undefined"
+                                           t-on-change="() => this.setAppOrderMode('odoo')"/>
+                                    Odoo 홈 순서 연동 <span class="emm-set-hint-inline">(Odoo 기본 홈에서 드래그한 순서를 그대로 따름)</span>
+                                </label>
+                                <label class="emm-radio">
+                                    <input type="radio" name="emm_order_mode" t-att-checked="state.draft.appOrderMode === 'custom' ? 'checked' : undefined"
+                                           t-on-change="() => this.setAppOrderMode('custom')"/>
+                                    직접 지정
+                                </label>
+                            </div>
+                            <div class="emm-set-hint" t-if="state.draft.appOrderMode === 'custom'">☰ 핸들을 잡고 끌면 순서가 바뀝니다.</div>
+                            <div class="emm-set-order-list" t-att-class="state.draft.appOrderMode === 'custom' ? '' : 'emm-set-order-disabled'">
+                                <t t-foreach="draftOrderedApps" t-as="app" t-key="app.id">
+                                    <div class="emm-set-order-row"
+                                         t-on-dragover="(ev) => this.onRowDragOver(ev, 'app', app_index)"
+                                         t-on-drop="onRowDrop">
+                                        <span t-if="state.draft.appOrderMode === 'custom'" class="emm-drag-handle" draggable="true" title="끌어서 순서 변경"
+                                              t-on-dragstart="(ev) => this.onHandleDragStart(ev, 'app', app_index)"
+                                              t-on-dragend="onDragEnd">
+                                            <i class="fa fa-bars"/>
+                                        </span>
+                                        <span class="emm-set-order-num" t-esc="app_index + 1"/>
+                                        <img class="emm-app-icon emm-app-icon-sm" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                                        <span class="emm-set-order-name" t-esc="app.name"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="emm-set-footer">
+                            <button class="btn btn-secondary" t-on-click="cancelSettings">취소</button>
+                            <button class="btn btn-primary" t-on-click="saveSettings">저장</button>
+                        </div>
+
+                    </div>
+                </div>
+            </t>
+
+        </div>
+    </div>
+</t>
+
+</templates>

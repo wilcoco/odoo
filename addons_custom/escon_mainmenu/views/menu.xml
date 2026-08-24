@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_escon_mainmenu" model="ir.actions.client">
+        <field name="name">메인 메뉴</field>
+        <field name="tag">escon_mainmenu.home</field>
+    </record>
+
+    <!-- sequence 1: 앱 목록 맨 앞 → action_id 미지정 사용자도 로그인 시 첫 화면 -->
+    <menuitem id="menu_escon_mainmenu_root"
+              name="홈"
+              sequence="1"
+              web_icon="escon_mainmenu,static/description/icon.png"
+              action="action_escon_mainmenu"/>
+</odoo>
