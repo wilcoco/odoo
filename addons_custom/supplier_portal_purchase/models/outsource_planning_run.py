@@ -150,23 +150,37 @@ class OutsourcePlanningRun(models.Model):
         return True
 
     def _get_confirmed_incoming(self, product_id):
-        """기존 확정된 PO에서 입고예정 수량 조회"""
+        """기존 PO에서 미입고 잔여(입고예정) 수량 조회.
+
+        [정확화] 종전 두 가지 오차 수정:
+        ① 확정(purchase) PO만 집계 → 협력사 응답 대기 중인 자동발주(draft/sent)가
+           빠져 재계획 시 같은 물량이 이중 발주되던 결함
+        ② product_qty 전량 집계 → 이미 입고된(qty_received) 물량까지 입고예정으로
+           잡혀 순소요가 과소 계산되던 결함 → 미입고 잔여만 집계
+        """
         # 구조: {date: qty}
         incoming = defaultdict(float)
 
-        # 확정된 PO (purchase 상태) 중 해당 제품 라인 조회
+        date_to_excl = fields.Datetime.to_datetime(self.plan_date_to) + timedelta(days=1)
         po_lines = self.env["purchase.order.line"].search([
             ("product_id", "=", product_id),
-            ("order_id.state", "=", "purchase"),  # 확정된 PO만
-            ("date_planned", ">=", self.plan_date_from),
-            ("date_planned", "<=", self.plan_date_to),
+            # 확정 PO + 응답 대기 중인 자동발주(draft/sent)도 입고예정으로 간주
+            "|",
+            ("order_id.state", "=", "purchase"),
+            "&",
+            ("order_id.state", "in", ("draft", "sent")),
+            ("order_id.auto_generated", "=", True),
+            ("date_planned", ">=", fields.Datetime.to_datetime(self.plan_date_from)),
+            ("date_planned", "<", date_to_excl),  # 종료일 당일의 시각 포함
         ])
 
         for line in po_lines:
             # date_planned은 Datetime, date로 변환
             planned_date = line.date_planned.date() if line.date_planned else None
             if planned_date:
-                incoming[planned_date] += line.product_qty
+                remaining = line.product_qty - line.qty_received
+                if remaining > 0:
+                    incoming[planned_date] += remaining
 
         return incoming
 
