@@ -45,9 +45,10 @@ class KrCloseChecklist(models.TransientModel):
             rec.no_pumui_moves = AM.search_count([
                 ("move_type", "in", ("out_invoice", "in_invoice")),
                 ("state", "!=", "cancel"), ("pumui_id", "=", False)])
+            # amount_total_signed 는 매입청구서에서 항상 음수 → 전건 오탐이던 결함
             rec.negative_invoices = AM.search_count([
                 ("move_type", "in", ("out_invoice", "in_invoice")),
-                ("state", "!=", "cancel"), ("amount_total_signed", "<", 0)])
+                ("state", "!=", "cancel"), ("amount_total", "<", 0)])
 
     # ── 드릴다운 ──
     def _act(self, name, model, domain):
@@ -92,7 +93,7 @@ class KrCloseChecklist(models.TransientModel):
     def action_negative(self):
         return self._act(_("음수 금액 일반 청구서"), "account.move",
                          [("move_type", "in", ("out_invoice", "in_invoice")),
-                          ("state", "!=", "cancel"), ("amount_total_signed", "<", 0)])
+                          ("state", "!=", "cancel"), ("amount_total", "<", 0)])
 
     @api.model
     def action_open(self):
