@@ -57,6 +57,7 @@
                         <group string="계획 기간">
                             <field name="plan_date_from"/>
                             <field name="plan_date_to"/>
+                            <field name="demand_source_filter"/>
                         </group>
                         <group string="통계">
                             <field name="total_outsource_products"/>

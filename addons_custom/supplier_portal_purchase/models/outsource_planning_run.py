@@ -46,6 +46,13 @@ class OutsourcePlanningRun(models.Model):
         "demand_id",
         string="수요 데이터",
     )
+    # 사출 계획(injection.planning.run)과 동일 규약 — 테스트/오라클 수요 분리 로드
+    demand_source_filter = fields.Selection(
+        [("all", "전체"), ("oracle", "오라클(ERP)"), ("test", "테스트"),
+         ("manual", "수동 입력"), ("forecast", "예측"), ("order", "수주")],
+        string="수요 소스", default="all", required=True,
+        help="'수요 로드' 시 이 소스의 수요만 로드 — 양산 전 테스트 수요가 "
+             "실제 외주 발주로 이어지는 사고를 방지한다")
 
     line_ids = fields.One2many(
         "outsource.planning.line", "planning_run_id", string="조달 계획 라인",
@@ -102,18 +109,24 @@ class OutsourcePlanningRun(models.Model):
     # 수요 데이터 로드 (production.demand 사용)
     # ─────────────────────────────────────────────
     def action_load_demands(self):
-        """기간 내 수요 데이터 로드"""
+        """기간 내 수요 데이터 로드 (선택한 소스만)"""
         self.ensure_one()
         Demand = self.env["production.demand"]
 
-        demands = Demand.search([
+        domain = [
             ("demand_date", ">=", self.plan_date_from),
             ("demand_date", "<=", self.plan_date_to),
             ("state", "in", ("draft", "confirmed")),
-        ])
+        ]
+        if self.demand_source_filter and self.demand_source_filter != "all":
+            domain.append(("source", "=", self.demand_source_filter))
+        demands = Demand.search(domain)
 
         self.demand_ids = [(6, 0, demands.ids)]
-        self.message_post(body=_("수요 데이터 %d건 로드") % len(demands))
+        self.message_post(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
+            len(demands),
+            dict(self._fields["demand_source_filter"].selection).get(
+                self.demand_source_filter, "전체")))
         return True
 
     # ─────────────────────────────────────────────
