@@ -12,3 +12,5 @@ from . import supply_chain  # Multi-tier supply chain
 from . import supplier_order  # Supplier-to-supplier orders
 from . import supplier_receipt_report
 from . import supplier_asn
+from . import supplier_demand_forecast
+from . import res_config_settings

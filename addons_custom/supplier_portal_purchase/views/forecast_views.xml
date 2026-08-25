@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 사내: 소요 전망 스냅샷 조회 -->
+    <record id="view_supplier_demand_forecast_list" model="ir.ui.view">
+        <field name="name">supplier.demand.forecast.list</field>
+        <field name="model">supplier.demand.forecast</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="qty_shortfall &gt; 0" create="false" edit="false">
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="date"/>
+                <field name="qty_required" sum="합계"/>
+                <field name="cum_required"/>
+                <field name="qty_onhand"/>
+                <field name="qty_incoming"/>
+                <field name="qty_shortfall"/>
+                <field name="snapshot_at" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_supplier_demand_forecast" model="ir.actions.act_window">
+        <field name="name">협력사 소요 전망</field>
+        <field name="res_model">supplier.demand.forecast</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="action_refresh_supplier_forecast" model="ir.actions.server">
+        <field name="name">소요 전망 지금 갱신</field>
+        <field name="model_id" ref="model_supplier_demand_forecast"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_generate_forecast()</field>
+    </record>
+
+    <menuitem id="menu_supplier_demand_forecast" name="협력사 소요 전망"
+              parent="purchase.menu_procurement_management"
+              action="action_supplier_demand_forecast" sequence="13"/>
+    <menuitem id="menu_supplier_forecast_refresh" name="소요 전망 지금 갱신"
+              parent="purchase.menu_procurement_management"
+              action="action_refresh_supplier_forecast" sequence="14"/>
+
+    <!-- 설정 화면: 기간·주기 -->
+    <record id="res_config_settings_view_form_forecast" model="ir.ui.view">
+        <field name="name">res.config.settings.supplier.forecast</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <block name="purchase_setting_container" position="inside">
+                <setting string="협력사 소요 전망" help="협력사 포탈에 노출할 비구속 소요 전망의 기간과 자동 갱신 주기">
+                    <div class="row mt8">
+                        <label for="supplier_forecast_horizon_days" class="col-lg-4"/>
+                        <field name="supplier_forecast_horizon_days" class="col-lg-2"/>
+                    </div>
+                    <div class="row">
+                        <label for="supplier_forecast_interval_number" class="col-lg-4"/>
+                        <field name="supplier_forecast_interval_number" class="col-lg-2"/>
+                        <field name="supplier_forecast_interval_type" class="col-lg-3"/>
+                    </div>
+                </setting>
+            </block>
+        </field>
+    </record>
+
+</odoo>
