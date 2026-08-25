@@ -144,8 +144,12 @@ class PurchaseOrder(models.Model):
         }
 
     def action_mark_done(self):
-        """납품 완료 처리"""
+        """납품 완료 처리 — 실입고가 있어야 완료로 넘긴다."""
         self.ensure_one()
+        if not any(self.order_line.mapped("qty_received")):
+            raise UserError(_(
+                "입고 수량이 0입니다. 입고 전표를 확정한 뒤 납품 완료 처리하세요.\n"
+                "(부분 입고라도 수량이 잡혀 있으면 완료 처리할 수 있습니다.)"))
         self.portal_state = "done"
         self._create_portal_notification("delivery_done", partner=self.partner_id)
         return True
