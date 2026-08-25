@@ -14,3 +14,4 @@ from . import supplier_receipt_report
 from . import supplier_asn
 from . import supplier_demand_forecast
 from . import res_config_settings
+from . import supplier_supply_status

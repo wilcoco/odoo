@@ -1,6 +1,6 @@
 {
     "name": "외주 자동발주 및 협력사 포탈",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "summary": "생산계획 기반 외주 자동발주 + 협력사 포탈 (응답/승인 워크플로우)",
     "description": """
 외주 자동발주 및 협력사 포탈 시스템
@@ -50,6 +50,7 @@
         "views/portal_receipt_templates.xml",
         "views/portal_asn_templates.xml",
         "views/portal_forecast_templates.xml",
+        "views/portal_supply_status_templates.xml",
         "views/portal_supplier_order_templates.xml",
         # Wizards
         "wizards/purchase_reject_wizard_views.xml",
