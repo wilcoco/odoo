@@ -30,6 +30,10 @@
                                     class="btn-link"
                                     invisible="not supplier_portal_token"
                                     confirm="기존 토큰이 무효화됩니다. 재생성하시겠습니까?"/>
+                            <button name="action_grant_portal_login"
+                                    string="아이디/비번 로그인 부여" type="object"
+                                    class="btn-primary"
+                                    help="이메일을 로그인 ID 로 포탈 계정을 만들고 비밀번호 설정 초대를 보냅니다"/>
                         </group>
                     </group>
                     <group string="통계" invisible="not is_supplier_portal">
