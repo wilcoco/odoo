@@ -1,6 +1,6 @@
 {
     "name": "외주 자동발주 및 협력사 포탈",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "summary": "생산계획 기반 외주 자동발주 + 협력사 포탈 (응답/승인 워크플로우)",
     "description": """
 외주 자동발주 및 협력사 포탈 시스템
@@ -31,6 +31,8 @@
         # Data
         "data/sequence.xml",
         "data/cron.xml",
+        # 파트너 폼이 이 액션을 버튼으로 참조하므로 먼저 로드해야 한다
+        "wizards/portal_credential_wizard_views.xml",
         # Views - Models
         "views/product_outsource_views.xml",
         "views/partner_portal_views.xml",

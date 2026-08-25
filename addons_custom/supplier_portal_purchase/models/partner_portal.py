@@ -37,6 +37,24 @@ class ResPartner(models.Model):
         string="포탈 언어",
         default="ko_KR",
     )
+    portal_login = fields.Char(
+        string="포탈 아이디",
+        compute="_compute_portal_login",
+        help="이 협력사가 로그인에 쓰는 아이디. "
+             "설정 > 사용자로 들어가지 않아도 여기서 확인할 수 있다.")
+
+    def _compute_portal_login(self):
+        """협력사에 연결된 포탈 계정의 아이디.
+
+        res.users 는 일반 사용자가 읽을 수 없으므로 sudo 로 조회한다.
+        아이디만 노출하며 비밀번호와는 무관하다.
+        """
+        Users = self.env["res.users"].sudo().with_context(active_test=False)
+        for partner in self:
+            user = Users.search([("partner_id", "=", partner.id)], limit=1) \
+                if partner.id else Users.browse()
+            partner.portal_login = user.login or False
+
     # 통계 필드
     supplier_po_count = fields.Integer(
         string="발주 건수",

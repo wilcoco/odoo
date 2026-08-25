@@ -38,3 +38,4 @@ access_supplier_inventory_manager,supplier.inventory.manager,model_supplier_inve
 access_supplier_inventory_portal,supplier.inventory.portal,model_supplier_inventory,base.group_portal,1,1,1,0
 access_supplier_asn_user,supplier.asn user,model_supplier_asn,base.group_user,1,1,1,0
 access_supplier_asn_line_user,supplier.asn.line user,model_supplier_asn_line,base.group_user,1,1,1,1
+access_supplier_portal_credential_wizard,supplier.portal.credential.wizard,model_supplier_portal_credential_wizard,base.group_erp_manager,1,1,1,1
