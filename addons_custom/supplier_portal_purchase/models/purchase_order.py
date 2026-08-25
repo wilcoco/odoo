@@ -152,6 +152,10 @@ class PurchaseOrder(models.Model):
 
     def _create_portal_notification(self, notification_type, partner=None, user=None):
         """포탈 알림 생성"""
+        # translate._get_uid 가 프레임 로컬 'user'(None)를 uid 로 오인해
+        # int(None) 크래시 — 이름을 옮기고 지운다 (lang 컨텍스트 없는 cron/테스트 경로)
+        target_user = user
+        del user
         message_map = {
             "new_po": _("새로운 발주가 도착했습니다."),
             "confirm_request": _("응답을 제출해 주세요."),
@@ -163,7 +167,7 @@ class PurchaseOrder(models.Model):
 
         self.env["supplier.portal.notification"].create({
             "partner_id": partner.id if partner else False,
-            "user_id": user.id if user else False,
+            "user_id": target_user.id if target_user else False,
             "notification_type": notification_type,
             "purchase_order_id": self.id,
             "message": message_map.get(notification_type, ""),
