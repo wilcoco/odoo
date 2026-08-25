@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -300,22 +301,35 @@ class OutsourcePlanningRun(models.Model):
     # 발주 생성
     # ─────────────────────────────────────────────
     def action_generate_purchase_orders(self):
-        """발주서 생성"""
+        """발주서 생성 — draft 라인만 대상, 발주된 라인은 ordered 로 마킹.
+
+        [중복 방지] 버튼 재클릭·재진입 시 이미 발주된 라인이 다시 발주서로
+        만들어지던 결함 수정: 발주 성공한 라인은 state='ordered' 로 전환하고,
+        대상은 draft 라인으로 한정한다 (선언만 있고 기록되지 않던 상태 필드 활성화).
+        """
         self.ensure_one()
 
         if self.state not in ("review", "confirmed"):
-            raise models.UserError(_("검토 또는 확정 상태에서만 발주를 생성할 수 있습니다."))
+            raise UserError(_("검토 또는 확정 상태에서만 발주를 생성할 수 있습니다."))
 
-        # 협력사별로 그룹핑
+        # 협력사별로 그룹핑 (미발주 draft 라인만)
         partner_lines = defaultdict(list)
-        for line in self.line_ids.filtered(lambda l: l.partner_id and l.order_qty > 0):
+        for line in self.line_ids.filtered(
+            lambda l: l.partner_id and l.order_qty > 0 and l.state == "draft"
+        ):
             partner_lines[line.partner_id.id].append(line)
+
+        if not partner_lines:
+            raise UserError(_(
+                "발주할 계획 라인이 없습니다 (이미 발주되었거나 발주량 0 또는 협력사 미지정)."))
 
         created_pos = self.env["purchase.order"]
 
         for partner_id, lines in partner_lines.items():
             po = self._create_purchase_order(partner_id, lines)
             created_pos |= po
+            for line in lines:
+                line.state = "ordered"
 
         if created_pos:
             self.message_post(
