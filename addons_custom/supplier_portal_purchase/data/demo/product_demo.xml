@@ -101,7 +101,7 @@
         <!-- 공급업체 가격 정보 -->
         <record id="supplierinfo_brk_001" model="product.supplierinfo">
             <field name="partner_id" ref="partner_supplier_hanbracket"/>
-            <field name="product_tmpl_id" ref="product_out_brk_001" eval="obj().env.ref('supplier_portal_purchase.product_out_brk_001').product_tmpl_id.id"/>
+            <field name="product_tmpl_id" model="product.product" eval="obj(ref('product_out_brk_001')).product_tmpl_id.id"/>
             <field name="price">1200</field>
             <field name="min_qty">100</field>
             <field name="delay">3</field>
@@ -109,7 +109,7 @@
 
         <record id="supplierinfo_brk_002" model="product.supplierinfo">
             <field name="partner_id" ref="partner_supplier_hanbracket"/>
-            <field name="product_tmpl_id" ref="product_out_brk_002" eval="obj().env.ref('supplier_portal_purchase.product_out_brk_002').product_tmpl_id.id"/>
+            <field name="product_tmpl_id" model="product.product" eval="obj(ref('product_out_brk_002')).product_tmpl_id.id"/>
             <field name="price">1500</field>
             <field name="min_qty">100</field>
             <field name="delay">3</field>
@@ -117,7 +117,7 @@
 
         <record id="supplierinfo_hsg_001" model="product.supplierinfo">
             <field name="partner_id" ref="partner_supplier_dhhousing"/>
-            <field name="product_tmpl_id" ref="product_out_hsg_001" eval="obj().env.ref('supplier_portal_purchase.product_out_hsg_001').product_tmpl_id.id"/>
+            <field name="product_tmpl_id" model="product.product" eval="obj(ref('product_out_hsg_001')).product_tmpl_id.id"/>
             <field name="price">2500</field>
             <field name="min_qty">50</field>
             <field name="delay">5</field>
@@ -125,7 +125,7 @@
 
         <record id="supplierinfo_cap_001" model="product.supplierinfo">
             <field name="partner_id" ref="partner_supplier_sscap"/>
-            <field name="product_tmpl_id" ref="product_out_cap_001" eval="obj().env.ref('supplier_portal_purchase.product_out_cap_001').product_tmpl_id.id"/>
+            <field name="product_tmpl_id" model="product.product" eval="obj(ref('product_out_cap_001')).product_tmpl_id.id"/>
             <field name="price">750</field>
             <field name="min_qty">200</field>
             <field name="delay">2</field>
