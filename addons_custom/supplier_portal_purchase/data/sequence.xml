@@ -26,5 +26,13 @@
             <field name="padding">4</field>
         </record>
 
+        <!-- 납품 예정(ASN) 시퀀스 — 협력사 납품서 번호(2자리 연도, 짧은 표기 의도) -->
+        <record id="seq_supplier_asn" model="ir.sequence">
+            <field name="name">납품 예정(ASN)</field>
+            <field name="code">supplier.asn</field>
+            <field name="prefix">ASN-%(y)s-</field>
+            <field name="padding">4</field>
+        </record>
+
     </data>
 </odoo>
