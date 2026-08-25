@@ -4,6 +4,7 @@ from datetime import datetime
 from odoo import http, fields, _
 from odoo.http import request
 from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.addons.portal.controllers.portal import CustomerPortal
 
 
 def _to_int(value, default=0):
@@ -26,10 +27,23 @@ class SupplierPortalController(http.Controller):
     """협력사 포탈 컨트롤러"""
 
     def _validate_portal_access(self, token):
-        """토큰 검증 및 협력사 반환"""
-        # 예측가능/약한 토큰 방어: 빈 값·데모 토큰·짧은 토큰은 즉시 거부.
+        """협력사 반환 — 아이디/비번 로그인 우선, 없으면 토큰(공존).
+
+        1) 로그인한 포탈 유저면 그 유저의 협력사를 사용(아이디/비번 방식).
+           토큰 없이도 /supplier/* 접근 가능하고, 링크의 token 파라미터는 무시된다.
+        2) 로그인 안 됐으면 기존 토큰 검증(공유 링크 방식) — UAT·기존 흐름 유지.
+        토큰 방식은 권한 전면정리 시 폐기 예정.
+        """
+        # 1) 로그인 우선 — public(비로그인) 이 아니면 실제 유저
+        user = request.env.user
+        if user and not user._is_public():
+            partner = user.partner_id.commercial_partner_id
+            if partner.is_supplier_portal:
+                return partner
+            # 로그인은 됐으나 협력사 계정이 아니면(내부/타 포탈) 토큰으로 재시도
+        # 2) 토큰 방식 (기존) — 빈 값·데모·짧은 토큰 거부
         if not token or token.startswith("demo_token_") or len(token) < 20:
-            raise AccessDenied(_("접근 토큰이 필요합니다."))
+            raise AccessDenied(_("접근 토큰이 필요하거나, 협력사 계정으로 로그인해 주세요."))
 
         partner = request.env["res.partner"].sudo().search([
             ("supplier_portal_token", "=", token),
@@ -922,3 +936,16 @@ class SupplierPortalController(http.Controller):
                 })
 
         return request.redirect(f"/supplier/my-inventory?token={token}")
+
+
+class SupplierCustomerPortal(CustomerPortal):
+    """로그인한 협력사가 /my 홈에 오면 협력사 포탈로 보낸다(아이디/비번 진입 동선)."""
+
+    @http.route()
+    def home(self, **kw):
+        user = request.env.user
+        if user and not user._is_public():
+            partner = user.partner_id.commercial_partner_id
+            if partner.is_supplier_portal:
+                return request.redirect("/supplier/portal")
+        return super().home(**kw)

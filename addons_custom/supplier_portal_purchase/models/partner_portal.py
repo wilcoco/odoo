@@ -1,6 +1,10 @@
+import logging
 import secrets
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class ResPartner(models.Model):
@@ -87,6 +91,45 @@ class ResPartner(models.Model):
             partner.supplier_portal_token = secrets.token_urlsafe(32)
         self.supplier_portal_token_expiry = fields.Date.add(fields.Date.context_today(self), days=180)
         return True
+
+    def action_grant_portal_login(self):
+        """협력사에 아이디/비번 포탈 로그인 부여 (토큰과 공존).
+
+        이메일을 로그인 ID 로 포탈 유저를 만들고(이미 있으면 포탈 그룹 보장),
+        비밀번호 설정 초대 메일을 보낸다. 메일서버가 없으면 계정만 만들고
+        설정>사용자에서 비번을 직접 지정하도록 안내(계정은 유지).
+        """
+        self.ensure_one()
+        if not self.email:
+            raise UserError(_("포탈 로그인 부여에는 이메일(로그인 ID)이 필요합니다."))
+        if not self.is_supplier_portal:
+            raise UserError(_("협력사 포탈 사용이 켜진 파트너에만 부여할 수 있습니다."))
+        Users = self.env["res.users"].sudo()
+        portal_group = self.env.ref("base.group_portal")
+        user = Users.with_context(active_test=False).search(
+            [("partner_id", "=", self.id)], limit=1)
+        if user:
+            vals = {"groups_id": [(4, portal_group.id)]}
+            if not user.active:
+                vals["active"] = True
+            user.write(vals)
+        else:
+            user = Users.with_context(no_reset_password=True).create({
+                "login": self.email, "name": self.name, "partner_id": self.id,
+                "email": self.email, "groups_id": [(6, 0, [portal_group.id])],
+            })
+        try:
+            user.action_reset_password()
+            msg = _("포탈 로그인 부여 완료 — 비밀번호 설정 초대 메일을 발송했습니다.")
+        except Exception as e:  # 메일서버 미구성 등 — 계정은 유지
+            _logger.warning("포탈 초대 메일 실패(%s): %s", self.email, e)
+            msg = _("포탈 로그인 계정을 만들었습니다. 메일 발송이 안 돼 "
+                    "설정 > 사용자에서 비밀번호를 직접 지정해 주세요.")
+        return {
+            "type": "ir.actions.client", "tag": "display_notification",
+            "params": {"title": _("협력사 포탈 로그인"), "message": msg,
+                       "type": "success", "sticky": False},
+        }
 
     def action_view_supplier_pos(self):
         """협력사의 발주 목록 보기"""
