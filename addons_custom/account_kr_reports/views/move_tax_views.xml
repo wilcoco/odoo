@@ -11,8 +11,7 @@
                 <field name="kr_tax_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
                 <field name="kr_approval_number" invisible="kr_doc_type not in ('tax_invoice','invoice')"/>
                 <field name="kr_is_correction" invisible="not kr_is_correction"/>
-                <field name="kr_origin_number" invisible="not kr_is_correction"
-                       required="kr_is_correction and kr_doc_type == 'tax_invoice'"/>
+                <field name="kr_origin_number" invisible="not kr_is_correction"/>
             </xpath>
         </field>
     </record>
