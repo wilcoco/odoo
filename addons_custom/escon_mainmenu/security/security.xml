@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 자기 설정만 읽고 쓸 수 있다 -->
+    <record id="rule_escon_mainmenu_profile_own" model="ir.rule">
+        <field name="name">메인메뉴 설정: 본인 것만</field>
+        <field name="model_id" ref="model_escon_mainmenu_profile"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>
