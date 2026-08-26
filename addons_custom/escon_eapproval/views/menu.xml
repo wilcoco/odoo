@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 대시보드 (OWL 클라이언트 액션) -->
+    <record id="action_eapproval_dashboard" model="ir.actions.client">
+        <field name="name">전자결재 대시보드</field>
+        <field name="tag">escon_eapproval.dashboard</field>
+    </record>
+
+    <!-- ───────────── 앱 루트 ─────────────
+         품의서 작성(10)/내 결재함(20)/결재 대기(30) 메뉴는 pumui_approval 이 이 아래에 단다. -->
+    <menuitem id="menu_eapproval_root"
+              name="에스콘 전자결재"
+              sequence="46"
+              web_icon="escon_eapproval,static/description/icon.png"/>
+
+    <menuitem id="menu_eapproval_dashboard"
+              name="대시보드"
+              parent="menu_eapproval_root"
+              action="action_eapproval_dashboard"
+              sequence="1"/>
+
+    <!-- ───────────── 휴가 (hr_holidays 연동) ───────────── -->
+    <menuitem id="menu_eapproval_leave" name="휴가" parent="menu_eapproval_root" sequence="40"/>
+
+    <menuitem id="menu_eapproval_leave_request"
+              name="휴가 신청"
+              parent="menu_eapproval_leave"
+              action="hr_holidays.hr_leave_action_new_request"
+              sequence="10"/>
+
+    <menuitem id="menu_eapproval_leave_my"
+              name="내 휴가"
+              parent="menu_eapproval_leave"
+              action="hr_holidays.hr_leave_action_my"
+              sequence="20"/>
+
+    <menuitem id="menu_eapproval_leave_approve"
+              name="휴가 승인"
+              parent="menu_eapproval_leave"
+              action="hr_holidays.hr_leave_action_action_approve_department"
+              groups="hr_holidays.group_hr_holidays_responsible"
+              sequence="30"/>
+
+    <!-- ───────────── 설정 ───────────── -->
+    <menuitem id="menu_eapproval_config" name="설정" parent="menu_eapproval_root"
+              groups="escon_eapproval.group_eapproval_manager" sequence="90"/>
+
+    <menuitem id="menu_eapproval_config_template"
+              name="결재선 템플릿"
+              parent="menu_eapproval_config"
+              action="iatf_approval.action_iatf_approval_template"
+              sequence="10"/>
+
+    <menuitem id="menu_eapproval_config_employee"
+              name="직원 부서/직급"
+              parent="menu_eapproval_config"
+              action="action_eapproval_employee_assign"
+              sequence="20"/>
+
+    <menuitem id="menu_eapproval_config_department"
+              name="부서"
+              parent="menu_eapproval_config"
+              action="action_eapproval_department"
+              sequence="30"/>
+
+    <menuitem id="menu_eapproval_config_grade"
+              name="직급"
+              parent="menu_eapproval_config"
+              action="action_escon_job_grade"
+              sequence="40"/>
+
+    <menuitem id="menu_eapproval_config_requests"
+              name="결재 요청 전체"
+              parent="menu_eapproval_config"
+              action="action_eapproval_requests"
+              groups="base.group_system"
+              sequence="50"/>
+</odoo>

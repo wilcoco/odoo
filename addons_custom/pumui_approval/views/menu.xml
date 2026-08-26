@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_pumui_root" name="품의서" sequence="47"/>
+    <!-- ───────────── 품의서 작성 (에스콘 전자결재 앱 하위) ─────────────
+         menu_pumui_root 는 과거 최상위 앱 메뉴였다 — 같은 xml id 를 유지한 채
+         "품의서 작성" 하위 메뉴로 재배치해 업그레이드 시 잔존 메뉴가 남지 않게 한다. -->
+    <menuitem id="menu_pumui_root" name="품의서 작성"
+              parent="escon_eapproval.menu_eapproval_root" sequence="10"/>
+
     <menuitem id="menu_pumui_request" name="품의서 목록" parent="menu_pumui_root"
               action="action_pumui_request" sequence="10"/>
+
     <record id="action_moves_no_pumui" model="ir.actions.act_window">
         <field name="name">품의 미연계 청구서</field>
         <field name="res_model">account.move</field>
@@ -11,4 +17,37 @@
     </record>
     <menuitem id="menu_moves_no_pumui" name="품의 미연계 청구서" parent="menu_pumui_root"
               action="action_moves_no_pumui" sequence="20"/>
+
+    <!-- ───────────── 내 결재함 (내가 작성한 품의서) ───────────── -->
+    <record id="action_pumui_my_inbox" model="ir.actions.act_window">
+        <field name="name">내 결재함</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pumui_request_search"/>
+        <field name="domain">[('requester_id','=',uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">아직 작성한 품의서가 없습니다</p>
+            <p>여기에는 내가 기안(상신)한 품의서가 결재 상태와 함께 표시됩니다.</p>
+        </field>
+    </record>
+    <menuitem id="menu_pumui_my_inbox" name="내 결재함"
+              parent="escon_eapproval.menu_eapproval_root"
+              action="action_pumui_my_inbox" sequence="20"/>
+
+    <!-- ───────────── 결재 대기 (내가 결재할 차례인 품의서) ───────────── -->
+    <record id="action_pumui_to_approve" model="ir.actions.act_window">
+        <field name="name">결재 대기</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pumui_request_search"/>
+        <field name="domain">[('approval_state','=','in_progress'),('approval_current_approver_id','=',uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">결재할 품의서가 없습니다</p>
+            <p>결재 순서가 나에게 도착한 품의서가 여기에 표시됩니다.
+               문서를 열어 승인 또는 반려하세요.</p>
+        </field>
+    </record>
+    <menuitem id="menu_pumui_to_approve" name="결재 대기"
+              parent="escon_eapproval.menu_eapproval_root"
+              action="action_pumui_to_approve" sequence="30"/>
 </odoo>

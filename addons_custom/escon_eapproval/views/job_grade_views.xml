@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ───────────── 직급 ───────────── -->
+    <record id="view_escon_job_grade_list" model="ir.ui.view">
+        <field name="name">escon.job.grade.list</field>
+        <field name="model">escon.job.grade</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="note"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_escon_job_grade" model="ir.actions.act_window">
+        <field name="name">직급</field>
+        <field name="res_model">escon.job.grade</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">직급을 등록하세요</p>
+            <p>예: 대표이사 · 이사 · 부장 · 차장 · 과장 · 대리 · 사원.
+               결재선 템플릿의 "부서 내 직급자" 방식이 이 직급으로 결재자를 찾습니다.</p>
+        </field>
+    </record>
+
+    <!-- ───────────── 직원 부서/직급 배치 ───────────── -->
+    <record id="view_employee_eapproval_list" model="ir.ui.view">
+        <field name="name">hr.employee.eapproval.assign.list</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="false" delete="false">
+                <field name="name" readonly="1"/>
+                <field name="user_id" readonly="1" string="사용자 계정"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="job_grade_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_eapproval_employee_assign" model="ir.actions.act_window">
+        <field name="name">직원 부서/직급</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_employee_eapproval_list"/>
+        <field name="context">{'search_default_group_department': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">직원별 부서와 직급을 설정하세요</p>
+            <p>여기서 설정한 부서/직급이 결재선 자동 구성(부서장·부서 내 직급자)에 사용됩니다.</p>
+        </field>
+    </record>
+
+    <record id="action_eapproval_department" model="ir.actions.act_window">
+        <field name="name">부서</field>
+        <field name="res_model">hr.department</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">부서를 등록하세요</p>
+            <p>부서장(관리자)을 지정해 두면 결재선 템플릿의 "작성자의 부서장" 방식이 동작합니다.</p>
+        </field>
+    </record>
+
+    <!-- 직원 폼에 직급 추가 (직책 아래) -->
+    <record id="view_employee_form_job_grade" model="ir.ui.view">
+        <field name="name">hr.employee.form.job.grade</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="job_grade_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

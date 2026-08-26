@@ -1,0 +1,556 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 에스콘 전자결재 대시보드 (injection_worksite 대시보드 디자인 차용 · 라이트)
+// 프리픽스: .eap-   |  토큰: --eap-*  |  Odoo/Bootstrap 변수 미사용
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Odoo 액션 컨테이너의 overflow hidden 을 무시하고 자체 스크롤
+.o_action_manager:has(.eap-dashboard),
+.o_action:has(.eap-dashboard),
+.o_content:has(.eap-dashboard) {
+    overflow: auto !important;
+    overflow-y: auto !important;
+}
+
+.eap-dashboard {
+    // 디자인 토큰 (injection_worksite --ijd-* 와 동일 팔레트)
+    --eap-bg: #f6f7f9;
+    --eap-surface: #ffffff;
+    --eap-surface-2: #f8f9fa;
+    --eap-border: #e3e6ea;
+    --eap-border-strong: #d2d6db;
+    --eap-text: #1f1f1f;
+    --eap-text-2: #3c4043;
+    --eap-muted: #5f6368;
+    --eap-primary: #1a73e8;
+    --eap-primary-bg: #e8f0fe;
+    --eap-accent: #f5820d;
+    --eap-accent-bg: #fef1e2;
+    --eap-ok: #188038;
+    --eap-ok-bg: #e6f4ea;
+    --eap-warn: #e37400;
+    --eap-warn-bg: #fef7e0;
+    --eap-danger: #d93025;
+    --eap-danger-bg: #fce8e6;
+    --eap-radius: 12px;
+    --eap-radius-sm: 8px;
+    // hover 는 그림자 대신 은은한 배경 하이라이트
+    --eap-hover: #f4f8fe;
+    --eap-hover-strong: #edf3fd;
+    --eap-hover-border: #d3e3fb;
+    --eap-font: "Google Sans", "Pretendard", "Noto Sans KR", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+    --eap-fs-xs: 12.5px;
+    --eap-fs-sm: 13.5px;
+    --eap-fs-base: 15px;
+    --eap-fs-md: 16px;
+    --eap-fs-lg: 18px;
+    --eap-fs-xl: 21px;
+    --eap-fs-kpi: 34px;
+
+    position: relative;
+    height: 100%;
+    overflow-y: auto !important;
+    box-sizing: border-box;
+    background: var(--eap-bg);
+    color: var(--eap-text);
+    font-family: var(--eap-font);
+    font-size: var(--eap-fs-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    h1, h2, h3, h4, p, ul, dl, dd, figure {
+        margin: 0;
+    }
+
+    ul {
+        padding: 0;
+        list-style: none;
+    }
+
+    button {
+        font-family: inherit;
+    }
+}
+
+// ───────────── 공통 유틸 ─────────────
+.eap-muted { color: var(--eap-muted); }
+.eap-num { text-align: right; font-variant-numeric: tabular-nums; }
+.eap-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.eap-link {
+    color: var(--eap-primary);
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    &:hover { text-decoration: underline; color: var(--eap-primary); }
+}
+
+.eap-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid var(--eap-border-strong);
+    border-radius: 999px;
+    background: var(--eap-surface);
+    color: var(--eap-primary);
+    font-size: var(--eap-fs-sm);
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s ease, border-color 0.18s ease;
+
+    &:hover { background: var(--eap-hover-strong); border-color: var(--eap-hover-border); }
+    &--primary {
+        border-color: var(--eap-primary);
+        background: var(--eap-primary);
+        color: #fff;
+        &:hover { background: #1b6fdc; border-color: #1b6fdc; }
+    }
+}
+
+.eap-iconbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--eap-muted);
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+    &:hover { background: var(--eap-hover-strong); color: var(--eap-primary); }
+}
+
+.eap-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: var(--eap-surface-2);
+    color: var(--eap-text-2);
+    font-size: var(--eap-fs-sm);
+    font-weight: 500;
+    white-space: nowrap;
+
+    &--xs { height: 22px; padding: 0 9px; font-size: var(--eap-fs-xs); }
+    &--muted { background: var(--eap-surface-2); color: var(--eap-muted); }
+    &--running { background: var(--eap-primary-bg); color: var(--eap-primary); }
+    &--ok { background: var(--eap-ok-bg); color: var(--eap-ok); }
+    &--danger { background: var(--eap-danger-bg); color: var(--eap-danger); }
+    &--warn { background: var(--eap-warn-bg); color: var(--eap-warn); }
+    &--accent { background: var(--eap-accent-bg); color: var(--eap-accent); }
+}
+
+.eap-meter {
+    position: relative;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e8eaed;
+    &--thin { height: 5px; }
+    &__bar {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--eap-primary);
+        transition: width 0.4s ease;
+        &--primary { background: var(--eap-primary); }
+        &--ok { background: var(--eap-ok); }
+        &--warn { background: var(--eap-warn); }
+        &--danger { background: var(--eap-danger); }
+    }
+}
+
+.eap-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 96px;
+    padding: 16px;
+    border: 1px dashed var(--eap-border);
+    border-radius: var(--eap-radius-sm);
+    color: var(--eap-muted);
+    font-size: var(--eap-fs-sm);
+    &--ok { color: var(--eap-ok); border-color: #c8e6c9; background: #f4fbf5; }
+    &--page {
+        flex-direction: column;
+        min-height: 240px;
+        border-style: solid;
+        background: var(--eap-surface);
+        i { font-size: 28px; color: var(--eap-danger); }
+    }
+}
+
+.eap-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: var(--eap-radius-sm);
+    &--warn { background: var(--eap-warn-bg); color: var(--eap-warn); }
+    code { padding: 1px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.06); color: inherit; }
+}
+
+.eap-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: #eceff1;
+    border-radius: var(--eap-radius);
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+        animation: eap-shimmer 1.4s infinite;
+    }
+}
+@keyframes eap-shimmer { to { transform: translateX(100%); } }
+
+// ───────────── 오른쪽 벽 고정 도크 (새로고침 · 갱신 시각) ─────────────
+.eap-dock {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    height: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    pointer-events: none;
+
+    &__pill {
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 14px 20px 0 0;
+        padding: 6px 7px 6px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px) saturate(180%);
+        -webkit-backdrop-filter: blur(14px) saturate(180%);
+        box-shadow:
+            0 6px 18px rgba(60, 64, 67, 0.16),
+            0 1px 3px rgba(60, 64, 67, 0.10),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+        transition: background 0.22s ease, box-shadow 0.22s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow:
+                0 10px 26px rgba(60, 64, 67, 0.2),
+                0 2px 5px rgba(60, 64, 67, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        }
+
+        .eap-iconbtn { width: 30px; height: 30px; font-size: 13px; }
+    }
+}
+
+.eap-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--eap-muted);
+    font-size: var(--eap-fs-sm);
+    white-space: nowrap;
+    &__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--eap-ok);
+        box-shadow: 0 0 0 0 rgba(24, 128, 56, 0.5);
+        animation: eap-pulse 2s infinite;
+    }
+    &.is-loading &__dot { background: var(--eap-primary); animation-duration: 0.8s; }
+}
+@keyframes eap-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(24, 128, 56, 0.45); }
+    70% { box-shadow: 0 0 0 6px rgba(24, 128, 56, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(24, 128, 56, 0); }
+}
+
+// ───────────── 왼쪽 위 (인사 + 빠른 작성) ─────────────
+.eap-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 16px 24px 0;
+    padding-right: 260px; // 도크와 겹치지 않도록
+
+    &__title {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        h1 { font-size: var(--eap-fs-xl); font-weight: 500; }
+    }
+    &__who { color: var(--eap-muted); font-size: var(--eap-fs-sm); }
+    &__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+}
+
+// ───────────── 본문 레이아웃 ─────────────
+.eap-body {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px 24px 48px;
+}
+
+.eap-row {
+    display: grid;
+    gap: 20px;
+    &--8-4 { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
+}
+
+.eap-card {
+    border: 1px solid var(--eap-border);
+    border-radius: var(--eap-radius);
+    background: var(--eap-surface);
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.06);
+}
+
+.eap-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 18px 20px 20px;
+    &__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        h3 { font-size: var(--eap-fs-lg); font-weight: 500; }
+        p {
+            color: var(--eap-muted);
+            font-size: var(--eap-fs-sm);
+            margin-top: 2px;
+            b { color: var(--eap-text); font-weight: 600; }
+        }
+        .eap-link { white-space: nowrap; font-size: var(--eap-fs-sm); }
+    }
+    &__foot {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--eap-border);
+        font-size: var(--eap-fs-sm);
+        b { font-weight: 600; }
+    }
+}
+
+// ───────────── KPI ─────────────
+.eap-kpis {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.eap-kpi {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "label icon" "value icon" "sub sub";
+    align-content: start;
+    gap: 2px 8px;
+    padding: 16px 18px 14px;
+    border: 1px solid var(--eap-border);
+    border-radius: var(--eap-radius);
+    background: var(--eap-surface);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    min-height: 124px;
+
+    &:hover { background: var(--eap-hover); border-color: var(--eap-hover-border); }
+
+    &__icon {
+        grid-area: icon;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        font-size: 17px;
+        &--primary { background: var(--eap-primary-bg); color: var(--eap-primary); }
+        &--accent { background: var(--eap-accent-bg); color: var(--eap-accent); }
+        &--ok { background: var(--eap-ok-bg); color: var(--eap-ok); }
+        &--warn { background: var(--eap-warn-bg); color: var(--eap-warn); }
+        &--danger { background: var(--eap-danger-bg); color: var(--eap-danger); }
+        &--muted { background: var(--eap-surface-2); color: var(--eap-muted); }
+    }
+    &__label { grid-area: label; color: var(--eap-muted); font-size: var(--eap-fs-sm); font-weight: 500; }
+    &__value {
+        grid-area: value;
+        color: var(--eap-text);
+        font-size: var(--eap-fs-kpi);
+        font-weight: 400;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+        small { margin-left: 5px; color: var(--eap-muted); font-size: var(--eap-fs-sm); font-weight: 500; }
+    }
+    &__sub {
+        grid-area: sub;
+        margin-top: 6px;
+        color: var(--eap-muted);
+        font-size: var(--eap-fs-xs);
+        b { color: var(--eap-text-2); font-weight: 600; }
+    }
+}
+
+// ───────────── 테이블 ─────────────
+.eap-table-wrap {
+    overflow: auto;
+    max-height: 480px;
+    border: 1px solid var(--eap-border);
+    border-radius: var(--eap-radius-sm);
+}
+
+.eap-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--eap-fs-sm);
+
+    th, td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--eap-border);
+        text-align: left;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--eap-surface-2);
+        color: var(--eap-muted);
+        font-size: var(--eap-fs-xs);
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    td.eap-ellipsis { max-width: 260px; }
+    &__row {
+        cursor: pointer;
+        td { transition: background 0.18s ease; }
+        &:hover td { background: var(--eap-hover-strong); }
+    }
+}
+
+// ───────────── 리스트 ─────────────
+.eap-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 420px;
+    overflow: auto;
+    &--tight .eap-list__item { padding: 8px 6px; }
+    &__item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 6px;
+        border-bottom: 1px solid var(--eap-border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.18s ease;
+        &:last-child { border-bottom: 0; }
+        &:hover { background: var(--eap-hover-strong); }
+    }
+    &__body { flex: 1 1 auto; min-width: 0; }
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        overflow: hidden;
+        > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    }
+    &__meta {
+        color: var(--eap-muted);
+        font-size: var(--eap-fs-xs);
+        margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    &__side {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        flex: none;
+        font-size: var(--eap-fs-xs);
+        color: var(--eap-text-2);
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// ───────────── 휴가 잔여 게이지 ─────────────
+.eap-balance {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: var(--eap-radius-sm);
+    background: var(--eap-surface-2);
+
+    &__item { min-width: 0; }
+    &__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+        font-size: var(--eap-fs-sm);
+        b { font-weight: 600; }
+        > span:last-child { flex: none; font-variant-numeric: tabular-nums; color: var(--eap-muted); }
+    }
+}
+
+// ───────────── 반응형 ─────────────
+@media (max-width: 1440px) {
+    .eap-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1200px) {
+    .eap-row--8-4 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 1024px) {
+    .eap-topbar { padding: 12px 16px 0; }
+    .eap-dock__pill { margin: 8px 12px 0 0; }
+    .eap-body { padding: 16px; gap: 16px; }
+    .eap-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+    .eap-kpis { grid-template-columns: 1fr; }
+}

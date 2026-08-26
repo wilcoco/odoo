@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_eapproval" model="ir.module.category">
+        <field name="name">에스콘 전자결재</field>
+        <field name="sequence">51</field>
+    </record>
+
+    <record id="group_eapproval_user" model="res.groups">
+        <field name="name">전자결재 사용자</field>
+        <field name="category_id" ref="module_category_eapproval"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- 관리자는 결재선 템플릿과 직원 부서/직급 배치를 관리해야 하므로
+         HR 담당자(hr.group_hr_user) 권한을 함께 부여한다. -->
+    <record id="group_eapproval_manager" model="res.groups">
+        <field name="name">전자결재 관리자</field>
+        <field name="category_id" ref="module_category_eapproval"/>
+        <field name="implied_ids"
+               eval="[(4, ref('group_eapproval_user')), (4, ref('hr.group_hr_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+</odoo>
