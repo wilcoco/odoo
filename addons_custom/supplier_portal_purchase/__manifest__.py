@@ -1,6 +1,6 @@
 {
     "name": "외주 자동발주 및 협력사 포탈",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.3.0",
     "summary": "생산계획 기반 외주 자동발주 + 협력사 포탈 (응답/승인 워크플로우)",
     "description": """
 외주 자동발주 및 협력사 포탈 시스템
@@ -18,6 +18,7 @@
     "author": "DevSanx",
     "depends": [
         "production_planning",
+        "mrp",
         "purchase",
         "stock",
         "portal",
@@ -31,6 +32,7 @@
         # Data
         "data/sequence.xml",
         "data/cron.xml",
+        "data/forecast_cron.xml",
         # Views - Models
         "views/product_outsource_views.xml",
         "views/partner_portal_views.xml",
@@ -41,11 +43,14 @@
         "views/outsource_planning_views.xml",
         "views/supply_chain_views.xml",
         "views/supplier_order_views.xml",
+        "views/forecast_views.xml",
         "views/menu.xml",
         # Portal Templates
         "views/portal_templates.xml",
         "views/portal_receipt_templates.xml",
         "views/portal_asn_templates.xml",
+        "views/portal_forecast_templates.xml",
+        "views/portal_supply_status_templates.xml",
         "views/portal_supplier_order_templates.xml",
         # Wizards
         "wizards/purchase_reject_wizard_views.xml",

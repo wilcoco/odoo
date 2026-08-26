@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 협력사 포탈: 소요 전망(비구속) -->
+    <template id="portal_forecast" name="Supplier Portal Demand Forecast">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="alert alert-warning">
+                <i class="fa fa-info-circle me-2"/>
+                <strong>비구속 소요 전망입니다.</strong>
+                당사 생산계획을 기준으로 계산한 예상 소요이며 <strong>확정 발주가 아닙니다</strong>.
+                실제 납품 의무는 발주(또는 별도 합의)로만 발생하며, 계획 변경에 따라 수시로 달라질 수 있습니다.
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fa fa-line-chart me-2"/>소요 전망 — 귀사 공급 품목</h4>
+                <small class="text-muted" t-if="snapshot_at">
+                    기준 시각: <t t-esc="snapshot_at" t-options="{'widget': 'datetime'}"/>
+                </small>
+            </div>
+
+            <t t-if="by_product">
+                <t t-foreach="by_product.items()" t-as="entry">
+                    <t t-set="product" t-value="entry[0]"/>
+                    <t t-set="rows" t-value="entry[1]"/>
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between">
+                            <span>
+                                <strong>[<t t-esc="product.default_code or '-'"/>]</strong>
+                                <t t-esc="product.name"/>
+                            </span>
+                            <span class="small">
+                                우리 보유재고 <strong><t t-esc="rows[0].qty_onhand"/></strong>
+                                · 입고예정 <strong><t t-esc="rows[0].qty_incoming"/></strong>
+                                <t t-esc="product.uom_id.name"/>
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>소요일</th>
+                                        <th class="text-end">일 소요량</th>
+                                        <th class="text-end">누적 소요</th>
+                                        <th class="text-end">누적 부족(예상)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="rows" t-as="line">
+                                        <tr t-attf-class="#{line.qty_shortfall &gt; 0 and 'table-danger' or ''}">
+                                            <td><t t-esc="line.date"/></td>
+                                            <td class="text-end"><t t-esc="line.qty_required"/></td>
+                                            <td class="text-end"><t t-esc="line.cum_required"/></td>
+                                            <td class="text-end">
+                                                <strong t-if="line.qty_shortfall &gt; 0" class="text-danger">
+                                                    <t t-esc="line.qty_shortfall"/>
+                                                </strong>
+                                                <span t-else="" class="text-muted">-</span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card-footer small text-muted">
+                            붉은 행 = 그 날짜까지의 누적 소요가 당사 보유+입고예정을 초과할 것으로 예상 —
+                            납품 계획 수립에 참고해 주세요.
+                        </div>
+                    </div>
+                </t>
+            </t>
+            <t t-else="">
+                <div class="text-center py-5 text-muted">
+                    <i class="fa fa-line-chart fa-3x mb-3 d-block"/>
+                    현재 게시된 소요 전망이 없습니다. (전망은 당사가 설정한 주기로 자동 갱신됩니다)
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>
