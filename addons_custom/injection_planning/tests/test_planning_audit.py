@@ -74,3 +74,33 @@ class TestPlanningAudit(TransactionCase):
         run = self._run(inj2, 300, date="2026-08-25")
         self.assertGreater(sum(run.line_ids.mapped("planned_qty")), 0,
                            "원재료 BOM 보유 사출품의 직접 수요 소실 결함 회귀 방지")
+
+    def test_material_po_portal_exposure(self):
+        # UAT 이슈 #1 회귀 방지: 포털 협력사의 원재료 발주는 포털 노출+알림,
+        # 비포털 협력사는 종전과 동일
+        portal_vendor = self.env["res.partner"].create({"name": "T-원재료사"})
+        if "is_supplier_portal" not in portal_vendor._fields:
+            self.skipTest("supplier_portal_purchase 미설치 — 가드 경로만 유효")
+        portal_vendor.is_supplier_portal = True
+        plain_vendor = self.env["res.partner"].create({"name": "T-첨가제사"})
+        self.env["product.supplierinfo"].create({
+            "partner_id": portal_vendor.id,
+            "product_tmpl_id": self.resin.product_tmpl_id.id, "price": 1.5})
+        self.env["product.supplierinfo"].create({
+            "partner_id": plain_vendor.id,
+            "product_tmpl_id": self.mb.product_tmpl_id.id, "price": 9.0})
+        inj3 = self._make_inj("T-사출품3", "TM-3")
+        run = self._run(inj3, 300, date="2026-08-26")
+        run.action_create_material_po()
+        pos = self.env["purchase.order"].search(
+            [("injection_planning_run_id", "=", run.id)])
+        portal_po = pos.filtered(lambda p: p.partner_id == portal_vendor)
+        plain_po = pos.filtered(lambda p: p.partner_id == plain_vendor)
+        self.assertTrue(portal_po and plain_po, "공급사별 발주 생성")
+        self.assertTrue(portal_po.auto_generated, "포털 협력사 발주는 포털 노출")
+        self.assertEqual(portal_po.portal_state, "new")
+        self.assertTrue(self.env["supplier.portal.notification"].search_count([
+            ("partner_id", "=", portal_vendor.id),
+            ("purchase_order_id", "=", portal_po.id),
+            ("notification_type", "=", "new_po")]), "포털 알림 발송")
+        self.assertFalse(plain_po.auto_generated, "비포털 협력사는 종전과 동일")

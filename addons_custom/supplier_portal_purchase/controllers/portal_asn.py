@@ -43,20 +43,28 @@ class SupplierPortalAsnController(http.Controller):
             return request.render(
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         allowed = {p.id for p in self._supplier_products(partner)}
-        lines = []
+        lines, bad_rows = [], []
         for i in range(1, 6):  # 폼 최대 5라인
             pid = post.get("product_%d" % i)
             qty = post.get("qty_%d" % i)
-            if not pid or not qty:
-                continue
+            if not pid and not qty:
+                continue  # 완전히 빈 행만 무시
             try:
                 pid, qty = int(pid), float(qty)
             except (TypeError, ValueError):
+                bad_rows.append(i)
                 continue
             if pid not in allowed or qty <= 0:
-                continue  # 매핑 밖 품목·이상 수량은 조용히 버리지 않고 아래에서 검증
+                bad_rows.append(i)
+                continue
             lines.append((0, 0, {"product_id": pid, "qty": qty,
                                  "lot_name": (post.get("lot_%d" % i) or "").strip()}))
+        # 이상 행이 하나라도 있으면 전체 거부 — 일부만 조용히 등록되면
+        # 협력사는 전부 접수된 줄 알게 된다 (부분 등록 금지)
+        if bad_rows:
+            return request.redirect(
+                "/supplier/asn?token=%s&error=bad_rows&rows=%s"
+                % (token, ",".join(map(str, bad_rows))))
         if not lines:
             return request.redirect(
                 "/supplier/asn?token=%s&error=no_lines" % token)

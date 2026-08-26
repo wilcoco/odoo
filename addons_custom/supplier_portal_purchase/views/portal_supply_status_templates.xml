@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         협력사 포탈 — 공급 현황 (그래픽)
+         원재료(사일로)와 부품이 같은 카드 구조를 쓴다. 다른 것은 임계선의
+         값과, 원재료에만 붙는 '보충 요청' 배지뿐이다.
+         차트는 서버에서 그린 SVG — 협력사 단말에서 실패할 여지가 없다.
+         ══════════════════════════════════════════════════════════════ -->
+    <template id="portal_supply_status" name="공급 현황">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="container my-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h3 class="mb-0">공급 현황</h3>
+                        <div class="text-muted small">
+                            <t t-esc="partner.name"/> — 당사 재고·생산계획 기준 예측
+                        </div>
+                    </div>
+                    <div t-if="urgent_count" class="badge bg-danger fs-6 p-2">
+                        조치 필요 <t t-esc="urgent_count"/>건
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary small" role="note">
+                    <b>이 화면의 성격</b> — 당사 생산계획을 근거로 계산한 예측입니다.
+                    <span class="text-danger fw-bold">보충 요청</span> 배지가 붙은 항목만
+                    당사가 명시적으로 요청드린 건이며, 나머지는 납품 계획 수립에 참고하실
+                    비구속 자료입니다. 실제 납품 수량·시점은 귀사 판단에 따릅니다.
+                </div>
+
+                <t t-if="not blocks">
+                    <div class="alert alert-info">
+                        게시된 공급 현황이 없습니다. (당사 생산계획이 확정되면 자동으로 갱신됩니다)
+                    </div>
+                </t>
+
+                <t t-foreach="blocks" t-as="b">
+                    <t t-set="alert" t-value="b['alert']"/>
+                    <t t-set="border_cls"
+                       t-value="'border-danger' if alert['level'] == 'danger' else ('border-warning' if alert['level'] == 'warning' else '')"/>
+                    <div t-attf-class="card mb-4 #{border_cls}">
+
+                        <!-- 카드 헤더: 품목 + 알람 -->
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <span class="badge bg-secondary me-2"><t t-esc="b['kind_label']"/></span>
+                                    <span class="fw-bold"><t t-esc="b['product'].default_code or ''"/></span>
+                                    <span class="ms-1"><t t-esc="b['product'].name"/></span>
+                                    <div t-if="b['silo']" class="text-muted small mt-1">
+                                        사일로 <t t-esc="b['silo'].name"/>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <t t-if="alert['level'] == 'danger'">
+                                        <span class="badge bg-danger fs-6 p-2">
+                                            <t t-if="alert['has_request']">■ 보충 요청</t>
+                                            <t t-else="">■ 조치 필요</t>
+                                        </span>
+                                    </t>
+                                    <t t-elif="alert['level'] == 'warning'">
+                                        <span class="badge bg-warning text-dark fs-6 p-2">▲ 임박</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge bg-success fs-6 p-2">● 여유</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- 알람 본문 -->
+                            <div t-if="alert['level'] != 'ok'"
+                                 t-attf-class="alert #{'alert-danger' if alert['level'] == 'danger' else 'alert-warning'} d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold"><t t-esc="alert['title']"/></div>
+                                    <div class="small"><t t-esc="alert['detail']"/></div>
+                                </div>
+                                <div t-if="alert['qty']" class="text-end">
+                                    <div class="fs-4 fw-bold">
+                                        <t t-esc="'{:,.0f}'.format(alert['qty'])"/>
+                                        <span class="fs-6"><t t-esc="alert['uom']"/></span>
+                                    </div>
+                                    <div t-if="alert['due_date']" class="small">
+                                        기한 <t t-esc="alert['due_date']"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 현재 수준: 원재료는 사일로 게이지, 부품은 재고 카드 -->
+                            <div class="row g-3 mb-3">
+                                <t t-if="b['silo']">
+                                    <div class="col-md-6">
+                                        <div class="small text-muted mb-1">사일로 충전 상태</div>
+                                        <div class="progress" style="height:26px;">
+                                            <div t-attf-class="progress-bar #{'bg-danger' if alert['level'] == 'danger' else ('bg-warning' if alert['level'] == 'warning' else 'bg-success')}"
+                                                 t-attf-style="width:#{min(b['fill_percent'], 100)}%;">
+                                                <t t-esc="'{:,.0f}'.format(b['fill_percent'])"/>%
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small mt-1">
+                                            <span>잔량 <b><t t-esc="'{:,.0f}'.format(b['onhand'])"/></b> <t t-esc="b['uom']"/></span>
+                                            <span class="text-muted">용량 <t t-esc="'{:,.0f}'.format(b['capacity'])"/></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="small text-muted mb-1">재주문점</div>
+                                        <div class="fs-5 fw-bold text-danger">
+                                            <t t-esc="'{:,.0f}'.format(b['threshold'])"/> <t t-esc="b['uom']"/>
+                                            <span class="fs-6 fw-normal text-muted ms-2">이하 시 보충 요청 발행</span>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">당사 보유재고</div>
+                                        <div class="fs-5 fw-bold">
+                                            <t t-esc="'{:,.0f}'.format(b['onhand'])"/> <t t-esc="b['uom']"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">입고 예정</div>
+                                        <div class="fs-5 fw-bold">
+                                            <t t-esc="'{:,.0f}'.format(b.get('incoming') or 0)"/> <t t-esc="b['uom']"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="small text-muted">부족 기준선</div>
+                                        <div class="fs-5 fw-bold text-danger">0 <span class="fs-6 fw-normal text-muted">아래로 내려가면 부족</span></div>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- ═══ 차트 ═══ -->
+                            <t t-set="c" t-value="b['chart']"/>
+                            <div t-if="c" class="border rounded p-2 bg-light">
+                                <div class="small text-muted mb-1">
+                                    <span class="d-inline-block me-3">
+                                        <svg width="18" height="8" style="vertical-align:middle;"><line x1="0" y1="4" x2="18" y2="4" stroke="#0d6efd" stroke-width="2.5"/></svg>
+                                        <t t-if="b['silo']">예상 사일로 잔량</t><t t-else="">예상 가용 (보유+입고예정 − 누적소요)</t>
+                                    </span>
+                                    <span class="d-inline-block me-3">
+                                        <svg width="12" height="10" style="vertical-align:middle;"><rect x="2" y="1" width="8" height="9" fill="#adb5bd"/></svg>
+                                        일 소요량
+                                    </span>
+                                    <span class="d-inline-block">
+                                        <svg width="18" height="8" style="vertical-align:middle;"><line x1="0" y1="4" x2="18" y2="4" stroke="#dc3545" stroke-width="2" stroke-dasharray="4 3"/></svg>
+                                        <t t-esc="b['threshold_label']"/>
+                                    </span>
+                                </div>
+
+                                <svg t-attf-viewBox="0 0 #{c['width']} #{c['height']}"
+                                     style="width:100%;height:auto;" preserveAspectRatio="xMidYMid meet">
+                                    <!-- y 눈금 + 격자 -->
+                                    <t t-foreach="c['grid']" t-as="g">
+                                        <line t-att-x1="c['plot_x']" t-att-y1="g['y']"
+                                              t-att-x2="c['plot_x'] + c['plot_w']" t-att-y2="g['y']"
+                                              stroke="#dee2e6" stroke-width="1"/>
+                                        <text t-att-x="c['plot_x'] - 6" t-att-y="g['y'] + 3"
+                                              text-anchor="end" font-size="9" fill="#6c757d">
+                                            <t t-esc="g['label']"/>
+                                        </text>
+                                    </t>
+
+                                    <!-- 일 소요 막대 -->
+                                    <t t-foreach="c['bars']" t-as="bar">
+                                        <rect t-att-x="bar['x']" t-att-y="bar['y']"
+                                              t-att-width="bar['w']" t-att-height="bar['h']"
+                                              fill="#adb5bd" opacity="0.65">
+                                            <title><t t-esc="bar['label']"/>: <t t-esc="'{:,.0f}'.format(bar['value'])"/></title>
+                                        </rect>
+                                    </t>
+
+                                    <!-- 잔량 곡선 -->
+                                    <polygon t-att-points="c['area']" fill="#0d6efd" opacity="0.10"/>
+                                    <polyline t-att-points="c['points']" fill="none"
+                                              stroke="#0d6efd" stroke-width="2.5"
+                                              stroke-linejoin="round" stroke-linecap="round"/>
+
+                                    <!-- 0 기준선 -->
+                                    <line t-att-x1="c['plot_x']" t-att-y1="c['baseline_y']"
+                                          t-att-x2="c['plot_x'] + c['plot_w']" t-att-y2="c['baseline_y']"
+                                          stroke="#6c757d" stroke-width="1"/>
+
+                                    <!-- 임계선 (원재료=재주문점 / 부품=0) -->
+                                    <t t-if="c['threshold_y'] is not False">
+                                        <line t-att-x1="c['plot_x']" t-att-y1="c['threshold_y']"
+                                              t-att-x2="c['plot_x'] + c['plot_w']" t-att-y2="c['threshold_y']"
+                                              stroke="#dc3545" stroke-width="2" stroke-dasharray="5 4"/>
+                                        <text t-att-x="c['plot_x'] + c['plot_w']" t-att-y="c['threshold_y'] - 4"
+                                              text-anchor="end" font-size="10" fill="#dc3545" font-weight="bold">
+                                            <t t-esc="b['threshold_label']"/> <t t-esc="c['threshold_label']"/>
+                                        </text>
+                                    </t>
+
+                                    <!-- x 라벨 -->
+                                    <t t-foreach="c['ticks']" t-as="tk">
+                                        <text t-att-x="tk['x']" t-att-y="c['height'] - 8"
+                                              text-anchor="middle" font-size="9" fill="#6c757d">
+                                            <t t-esc="tk['label']"/>
+                                        </text>
+                                    </t>
+                                </svg>
+                            </div>
+                            <div t-else="" class="text-muted small fst-italic">
+                                아직 예측 데이터가 없습니다.
+                            </div>
+
+                            <!-- 상세 표 (접이식) -->
+                            <details t-if="b['series']" class="mt-2">
+                                <summary class="small text-primary" style="cursor:pointer;">일자별 숫자 보기</summary>
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm table-bordered small mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>일자</th>
+                                                <th class="text-end">일 소요</th>
+                                                <th t-if="b['silo']" class="text-end">예정 보충</th>
+                                                <th class="text-end">
+                                                    <t t-if="b['silo']">예상 잔량</t><t t-else="">예상 가용</t>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="b['series']" t-as="s"
+                                                t-attf-class="#{'table-danger' if s['stock'] &lt;= b['threshold'] else ''}">
+                                                <td><t t-esc="s['date']"/></td>
+                                                <td class="text-end"><t t-esc="'{:,.0f}'.format(s['required'])"/></td>
+                                                <td t-if="b['silo']" class="text-end">
+                                                    <t t-if="s['refill']"><t t-esc="'{:,.0f}'.format(s['refill'])"/></t>
+                                                    <t t-else="">-</t>
+                                                </td>
+                                                <td class="text-end fw-bold"><t t-esc="'{:,.0f}'.format(s['stock'])"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- 포탈 메뉴에 진입점 추가 -->
+    <template id="portal_supply_status_menu"
+              inherit_id="supplier_portal_purchase.portal_layout"
+              name="공급 현황 메뉴">
+        <xpath expr="//a[@t-attf-href='/supplier/my-inventory?token=#{token}']/.." position="before">
+            <li class="nav-item">
+                <a class="nav-link" t-attf-href="/supplier/supply-status?token=#{token}">
+                    <i class="fa fa-line-chart me-1"/> 공급 현황
+                </a>
+            </li>
+        </xpath>
+    </template>
+</odoo>

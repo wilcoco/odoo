@@ -47,9 +47,11 @@ class AccountMove(models.Model):
             else:
                 mv.kr_tax_type = "zero"
 
-    @api.depends("move_type", "amount_total_signed")
+    @api.depends("move_type", "amount_total")
     def _compute_kr_correction(self):
+        # amount_total_signed 는 매입청구서(in_invoice)에서 항상 음수(오두 부호 규약)라
+        # 정상 매입분이 전부 수정분으로 오판됐다 → 부호 없는 amount_total 로 판정
         for mv in self:
             mv.kr_is_correction = (
                 mv.move_type in ("out_refund", "in_refund")
-                or (mv.move_type in ("out_invoice", "in_invoice") and mv.amount_total_signed < 0))
+                or (mv.move_type in ("out_invoice", "in_invoice") and mv.amount_total < 0))

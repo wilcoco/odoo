@@ -3,7 +3,8 @@ from datetime import datetime
 
 from odoo import http, fields, _
 from odoo.http import request
-from odoo.exceptions import AccessDenied, ValidationError
+from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.addons.portal.controllers.portal import CustomerPortal
 
 
 def _to_int(value, default=0):
@@ -26,10 +27,23 @@ class SupplierPortalController(http.Controller):
     """협력사 포탈 컨트롤러"""
 
     def _validate_portal_access(self, token):
-        """토큰 검증 및 협력사 반환"""
-        # 예측가능/약한 토큰 방어: 빈 값·데모 토큰·짧은 토큰은 즉시 거부.
+        """협력사 반환 — 아이디/비번 로그인 우선, 없으면 토큰(공존).
+
+        1) 로그인한 포탈 유저면 그 유저의 협력사를 사용(아이디/비번 방식).
+           토큰 없이도 /supplier/* 접근 가능하고, 링크의 token 파라미터는 무시된다.
+        2) 로그인 안 됐으면 기존 토큰 검증(공유 링크 방식) — UAT·기존 흐름 유지.
+        토큰 방식은 권한 전면정리 시 폐기 예정.
+        """
+        # 1) 로그인 우선 — public(비로그인) 이 아니면 실제 유저
+        user = request.env.user
+        if user and not user._is_public():
+            partner = user.partner_id.commercial_partner_id
+            if partner.is_supplier_portal:
+                return partner
+            # 로그인은 됐으나 협력사 계정이 아니면(내부/타 포탈) 토큰으로 재시도
+        # 2) 토큰 방식 (기존) — 빈 값·데모·짧은 토큰 거부
         if not token or token.startswith("demo_token_") or len(token) < 20:
-            raise AccessDenied(_("접근 토큰이 필요합니다."))
+            raise AccessDenied(_("접근 토큰이 필요하거나, 협력사 계정으로 로그인해 주세요."))
 
         partner = request.env["res.partner"].sudo().search([
             ("supplier_portal_token", "=", token),
@@ -76,28 +90,14 @@ class SupplierPortalController(http.Controller):
         PO = request.env["purchase.order"].sudo()
         Notification = request.env["supplier.portal.notification"].sudo()
 
-        # 발주 현황 통계
+        # 발주 현황 통계 — 발주 목록(po_list)과 같은 기준(auto_generated)으로 집계
+        base_domain = [
+            ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
+        ]
         po_stats = {
-            "new": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "new"),
-            ]),
-            "responded": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "responded"),
-            ]),
-            "approved": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "approved"),
-            ]),
-            "rejected": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "rejected"),
-            ]),
-            "done": PO.search_count([
-                ("partner_id", "=", partner.id),
-                ("portal_state", "=", "done"),
-            ]),
+            state: PO.search_count(base_domain + [("portal_state", "=", state)])
+            for state in ("new", "responded", "approved", "rejected", "done")
         }
 
         # 알림 목록
@@ -107,8 +107,7 @@ class SupplierPortalController(http.Controller):
         # 금주 납품 일정
         today = fields.Date.today()
         week_later = fields.Date.add(today, days=7)
-        upcoming_pos = PO.search([
-            ("partner_id", "=", partner.id),
+        upcoming_pos = PO.search(base_domain + [
             ("portal_state", "in", ["approved", "responded"]),
             ("date_planned", ">=", today),
             ("date_planned", "<=", week_later),
@@ -307,9 +306,10 @@ class SupplierPortalController(http.Controller):
 
         PO = request.env["purchase.order"].sudo()
 
-        # 납품 예정
+        # 납품 예정 — 대시보드·목록과 같은 기준(auto_generated)
         upcoming = PO.search([
             ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
             ("portal_state", "=", "approved"),
         ], order="date_planned asc")
 
@@ -317,6 +317,7 @@ class SupplierPortalController(http.Controller):
         thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
         completed = PO.search([
             ("partner_id", "=", partner.id),
+            ("auto_generated", "=", True),
             ("portal_state", "=", "done"),
             ("date_planned", ">=", thirty_days_ago),
         ], order="date_planned desc", limit=20)
@@ -643,6 +644,16 @@ class SupplierPortalController(http.Controller):
         if not all([seller_id, product_id, quantity, date_required]):
             return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
 
+        # 입력값 검증 — 음수·0 수량, 형식 오류·과거 납기 차단
+        if quantity <= 0:
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_qty")
+        try:
+            req_date = datetime.strptime(date_required, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_date")
+        if req_date < fields.Date.today():
+            return request.redirect(f"/supplier/orders/new?token={token}&error=past_date")
+
         # 스푸핑 방지: 판매자·품목이 폼 허용집합(new_order_form)에 속하는지 서버측 재검증.
         seller = request.env["res.partner"].sudo().browse(seller_id)
         if not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id:
@@ -703,7 +714,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.buyer_partner_id.id == partner.id:
-            order.action_receive()
+            try:
+                order.action_receive()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/orders/{order_id}?token={token}")
 
@@ -788,7 +803,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_confirm()
+            try:
+                order.action_confirm()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
@@ -807,7 +826,11 @@ class SupplierPortalController(http.Controller):
         order = Order.browse(order_id)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
-            order.action_ship()
+            try:
+                order.action_ship()
+            except UserError:
+                return request.redirect(
+                    f"/supplier/incoming-orders/{order_id}?token={token}&error=invalid_state")
 
         return request.redirect(f"/supplier/incoming-orders/{order_id}?token={token}")
 
@@ -913,3 +936,16 @@ class SupplierPortalController(http.Controller):
                 })
 
         return request.redirect(f"/supplier/my-inventory?token={token}")
+
+
+class SupplierCustomerPortal(CustomerPortal):
+    """로그인한 협력사가 /my 홈에 오면 협력사 포탈로 보낸다(아이디/비번 진입 동선)."""
+
+    @http.route()
+    def home(self, **kw):
+        user = request.env.user
+        if user and not user._is_public():
+            partner = user.partner_id.commercial_partner_id
+            if partner.is_supplier_portal:
+                return request.redirect("/supplier/portal")
+        return super().home(**kw)

@@ -48,6 +48,11 @@
                                         </li>
                                         <li><hr class="dropdown-divider"/></li>
                                         <li>
+                                            <a class="dropdown-item" t-attf-href="/supplier/forecast?token=#{token}">
+                                                <i class="fa fa-line-chart me-2"/> 소요 전망(비구속)
+                                            </a>
+                                        </li>
+                                        <li>
                                             <a class="dropdown-item" t-attf-href="/supplier/delivery?token=#{token}">
                                                 <i class="fa fa-truck me-2"/> 납품/출하 현황
                                             </a>

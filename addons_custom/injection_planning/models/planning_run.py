@@ -1527,6 +1527,13 @@ class PlanningRun(models.Model):
                 })
             created |= po
 
+        # SCM 포털 연동 (supplier_portal_purchase 설치 시에만 — 필드 존재 가드):
+        # 포털 사용 협력사의 원재료 발주도 외주 발주와 동일하게 포털 노출 + 알림
+        if created and "auto_generated" in created._fields:
+            for po in created.filtered(lambda p: p.partner_id.is_supplier_portal):
+                po.write({"auto_generated": True, "portal_state": "new"})
+                po._create_portal_notification("new_po", partner=po.partner_id)
+
         msg = f"원재료 부족분 발주서 {len(created)}건 생성: {', '.join(created.mapped('name'))}"
         if no_vendor:
             msg += (

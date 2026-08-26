@@ -30,6 +30,19 @@
                                     class="btn-link"
                                     invisible="not supplier_portal_token"
                                     confirm="기존 토큰이 무효화됩니다. 재생성하시겠습니까?"/>
+                            <field name="portal_login" readonly="1"
+                                   invisible="not portal_login"/>
+                            <!-- 기본 경로. 메일서버 없이도 끝까지 간다. -->
+                            <button name="%(supplier_portal_purchase.action_portal_credential_wizard)d"
+                                    string="아이디/비밀번호 직접 설정" type="action"
+                                    class="btn-primary"
+                                    context="{'active_id': id, 'active_model': 'res.partner'}"
+                                    help="관리자가 아이디와 비밀번호를 그 자리에서 지정합니다. 초대 메일이 필요 없습니다."/>
+                            <!-- 메일서버가 있을 때만 쓸모 있는 대체 경로 -->
+                            <button name="action_grant_portal_login"
+                                    string="초대 메일로 부여" type="object"
+                                    class="btn-link"
+                                    help="이메일을 로그인 ID 로 포탈 계정을 만들고 비밀번호 설정 초대 메일을 보냅니다 (발신 메일서버 필요)"/>
                         </group>
                     </group>
                     <group string="통계" invisible="not is_supplier_portal">

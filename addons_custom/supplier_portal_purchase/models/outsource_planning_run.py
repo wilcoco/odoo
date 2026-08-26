@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -45,6 +46,13 @@ class OutsourcePlanningRun(models.Model):
         "demand_id",
         string="수요 데이터",
     )
+    # 사출 계획(injection.planning.run)과 동일 규약 — 테스트/오라클 수요 분리 로드
+    demand_source_filter = fields.Selection(
+        [("all", "전체"), ("oracle", "오라클(ERP)"), ("test", "테스트"),
+         ("manual", "수동 입력"), ("forecast", "예측"), ("order", "수주")],
+        string="수요 소스", default="all", required=True,
+        help="'수요 로드' 시 이 소스의 수요만 로드 — 양산 전 테스트 수요가 "
+             "실제 외주 발주로 이어지는 사고를 방지한다")
 
     line_ids = fields.One2many(
         "outsource.planning.line", "planning_run_id", string="조달 계획 라인",
@@ -101,18 +109,24 @@ class OutsourcePlanningRun(models.Model):
     # 수요 데이터 로드 (production.demand 사용)
     # ─────────────────────────────────────────────
     def action_load_demands(self):
-        """기간 내 수요 데이터 로드"""
+        """기간 내 수요 데이터 로드 (선택한 소스만)"""
         self.ensure_one()
         Demand = self.env["production.demand"]
 
-        demands = Demand.search([
+        domain = [
             ("demand_date", ">=", self.plan_date_from),
             ("demand_date", "<=", self.plan_date_to),
             ("state", "in", ("draft", "confirmed")),
-        ])
+        ]
+        if self.demand_source_filter and self.demand_source_filter != "all":
+            domain.append(("source", "=", self.demand_source_filter))
+        demands = Demand.search(domain)
 
         self.demand_ids = [(6, 0, demands.ids)]
-        self.message_post(body=_("수요 데이터 %d건 로드") % len(demands))
+        self.message_post(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
+            len(demands),
+            dict(self._fields["demand_source_filter"].selection).get(
+                self.demand_source_filter, "전체")))
         return True
 
     # ─────────────────────────────────────────────
@@ -149,23 +163,37 @@ class OutsourcePlanningRun(models.Model):
         return True
 
     def _get_confirmed_incoming(self, product_id):
-        """기존 확정된 PO에서 입고예정 수량 조회"""
+        """기존 PO에서 미입고 잔여(입고예정) 수량 조회.
+
+        [정확화] 종전 두 가지 오차 수정:
+        ① 확정(purchase) PO만 집계 → 협력사 응답 대기 중인 자동발주(draft/sent)가
+           빠져 재계획 시 같은 물량이 이중 발주되던 결함
+        ② product_qty 전량 집계 → 이미 입고된(qty_received) 물량까지 입고예정으로
+           잡혀 순소요가 과소 계산되던 결함 → 미입고 잔여만 집계
+        """
         # 구조: {date: qty}
         incoming = defaultdict(float)
 
-        # 확정된 PO (purchase 상태) 중 해당 제품 라인 조회
+        date_to_excl = fields.Datetime.to_datetime(self.plan_date_to) + timedelta(days=1)
         po_lines = self.env["purchase.order.line"].search([
             ("product_id", "=", product_id),
-            ("order_id.state", "=", "purchase"),  # 확정된 PO만
-            ("date_planned", ">=", self.plan_date_from),
-            ("date_planned", "<=", self.plan_date_to),
+            # 확정 PO + 응답 대기 중인 자동발주(draft/sent)도 입고예정으로 간주
+            "|",
+            ("order_id.state", "=", "purchase"),
+            "&",
+            ("order_id.state", "in", ("draft", "sent")),
+            ("order_id.auto_generated", "=", True),
+            ("date_planned", ">=", fields.Datetime.to_datetime(self.plan_date_from)),
+            ("date_planned", "<", date_to_excl),  # 종료일 당일의 시각 포함
         ])
 
         for line in po_lines:
             # date_planned은 Datetime, date로 변환
             planned_date = line.date_planned.date() if line.date_planned else None
             if planned_date:
-                incoming[planned_date] += line.product_qty
+                remaining = line.product_qty - line.qty_received
+                if remaining > 0:
+                    incoming[planned_date] += remaining
 
         return incoming
 
@@ -300,22 +328,35 @@ class OutsourcePlanningRun(models.Model):
     # 발주 생성
     # ─────────────────────────────────────────────
     def action_generate_purchase_orders(self):
-        """발주서 생성"""
+        """발주서 생성 — draft 라인만 대상, 발주된 라인은 ordered 로 마킹.
+
+        [중복 방지] 버튼 재클릭·재진입 시 이미 발주된 라인이 다시 발주서로
+        만들어지던 결함 수정: 발주 성공한 라인은 state='ordered' 로 전환하고,
+        대상은 draft 라인으로 한정한다 (선언만 있고 기록되지 않던 상태 필드 활성화).
+        """
         self.ensure_one()
 
         if self.state not in ("review", "confirmed"):
-            raise models.UserError(_("검토 또는 확정 상태에서만 발주를 생성할 수 있습니다."))
+            raise UserError(_("검토 또는 확정 상태에서만 발주를 생성할 수 있습니다."))
 
-        # 협력사별로 그룹핑
+        # 협력사별로 그룹핑 (미발주 draft 라인만)
         partner_lines = defaultdict(list)
-        for line in self.line_ids.filtered(lambda l: l.partner_id and l.order_qty > 0):
+        for line in self.line_ids.filtered(
+            lambda l: l.partner_id and l.order_qty > 0 and l.state == "draft"
+        ):
             partner_lines[line.partner_id.id].append(line)
+
+        if not partner_lines:
+            raise UserError(_(
+                "발주할 계획 라인이 없습니다 (이미 발주되었거나 발주량 0 또는 협력사 미지정)."))
 
         created_pos = self.env["purchase.order"]
 
         for partner_id, lines in partner_lines.items():
             po = self._create_purchase_order(partner_id, lines)
             created_pos |= po
+            for line in lines:
+                line.state = "ordered"
 
         if created_pos:
             self.message_post(

@@ -30,6 +30,9 @@ class SupplierPortalNotification(models.Model):
             ("supply_chain_issue", "공급망 이슈"),
             ("supplier_order_new", "협력사 발주"),
             ("supplier_order_shipped", "협력사 출하"),
+            # 원재료(사일로 재주문점)와 부품(누적 부족)이 공유하는 단일 알람 유형.
+            # 임계를 재는 방식만 다를 뿐 공급사가 받는 신호는 같아야 한다.
+            ("replenish_request", "보충 요청"),
         ],
         string="알림 유형",
         required=True,
@@ -37,6 +40,15 @@ class SupplierPortalNotification(models.Model):
     purchase_order_id = fields.Many2one(
         "purchase.order",
         string="관련 발주",
+    )
+    product_id = fields.Many2one(
+        "product.product",
+        string="관련 품목",
+        help="보충 요청 알림의 대상 품목",
+    )
+    due_date = fields.Date(
+        string="기한",
+        help="이 날까지 납품되지 않으면 당사 생산에 영향이 생기는 날",
     )
     message = fields.Text(
         string="메시지",

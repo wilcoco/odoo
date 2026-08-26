@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="cron_supplier_demand_forecast" model="ir.cron">
+            <field name="name">협력사 소요 전망 갱신</field>
+            <field name="model_id" ref="model_supplier_demand_forecast"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_generate_forecast()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- 보충 요청 알림 — 원재료(사일로 재주문점)와 부품(누적 부족)을
+             구분 없이 같은 포탈 알림으로 발행한다. 소요 전망 갱신 뒤에 돌도록
+             주기를 같게 두되 우선순위를 낮춘다. -->
+        <record id="cron_supplier_replenish_notify" model="ir.cron">
+            <field name="name">협력사 보충 요청 알림 발행</field>
+            <field name="model_id" ref="model_supplier_supply_status"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_notify_replenishment()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="priority">20</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

@@ -144,14 +144,22 @@ class PurchaseOrder(models.Model):
         }
 
     def action_mark_done(self):
-        """납품 완료 처리"""
+        """납품 완료 처리 — 실입고가 있어야 완료로 넘긴다."""
         self.ensure_one()
+        if not any(self.order_line.mapped("qty_received")):
+            raise UserError(_(
+                "입고 수량이 0입니다. 입고 전표를 확정한 뒤 납품 완료 처리하세요.\n"
+                "(부분 입고라도 수량이 잡혀 있으면 완료 처리할 수 있습니다.)"))
         self.portal_state = "done"
         self._create_portal_notification("delivery_done", partner=self.partner_id)
         return True
 
     def _create_portal_notification(self, notification_type, partner=None, user=None):
         """포탈 알림 생성"""
+        # translate._get_uid 가 프레임 로컬 'user'(None)를 uid 로 오인해
+        # int(None) 크래시 — 이름을 옮기고 지운다 (lang 컨텍스트 없는 cron/테스트 경로)
+        target_user = user
+        del user
         message_map = {
             "new_po": _("새로운 발주가 도착했습니다."),
             "confirm_request": _("응답을 제출해 주세요."),
@@ -163,7 +171,7 @@ class PurchaseOrder(models.Model):
 
         self.env["supplier.portal.notification"].create({
             "partner_id": partner.id if partner else False,
-            "user_id": user.id if user else False,
+            "user_id": target_user.id if target_user else False,
             "notification_type": notification_type,
             "purchase_order_id": self.id,
             "message": message_map.get(notification_type, ""),
