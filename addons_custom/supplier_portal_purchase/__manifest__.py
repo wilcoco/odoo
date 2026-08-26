@@ -33,6 +33,8 @@
         "data/sequence.xml",
         "data/cron.xml",
         "data/forecast_cron.xml",
+        # 파트너 폼이 이 액션을 버튼으로 참조하므로 먼저 로드해야 한다
+        "wizards/portal_credential_wizard_views.xml",
         # Views - Models
         "views/product_outsource_views.xml",
         "views/partner_portal_views.xml",

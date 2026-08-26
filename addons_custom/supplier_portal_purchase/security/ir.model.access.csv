@@ -46,3 +46,4 @@ access_supplier_asn_line_purchase,supplier.asn.line purchase,model_supplier_asn_
 access_supplier_asn_line_outsource_mgr,supplier.asn.line outsource manager,model_supplier_asn_line,group_outsource_manager,1,1,1,1
 access_supplier_demand_forecast_read,supplier.demand.forecast read,model_supplier_demand_forecast,base.group_user,1,0,0,0
 access_supplier_demand_forecast_mgr,supplier.demand.forecast manager,model_supplier_demand_forecast,purchase.group_purchase_manager,1,1,1,1
+access_supplier_portal_credential_wizard,supplier.portal.credential.wizard,model_supplier_portal_credential_wizard,base.group_erp_manager,1,1,1,1
