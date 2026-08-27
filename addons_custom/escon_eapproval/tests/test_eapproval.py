@@ -227,3 +227,48 @@ class TestApprovalsIntegration(TransactionCase):
         mine = [r for r in data_owner["my_requests"]
                 if r["doc_model"] == "approval.request" and r["doc_id"] == request.id]
         self.assertTrue(mine)
+
+
+@tagged("post_install", "-at_install")
+class TestSettingGovernance(TransactionCase):
+    """표준 설정 거버넌스: UI 수정 차단 + 업그레이드 시 스펙 정합."""
+
+    def test_protected_category_write_blocked(self):
+        from odoo.exceptions import UserError
+        category = self.env.ref("escon_eapproval.category_general")
+        with self.assertRaises(UserError):
+            category.write({"approval_minimum": 3})
+        with self.assertRaises(UserError):
+            category.write({"requirer_document": "required"})
+        with self.assertRaises(UserError):
+            category.unlink()
+        # 운영 재량 필드는 허용
+        category.write({"description": "설명 변경 테스트", "sequence": 99})
+
+    def test_protected_leave_type_write_blocked(self):
+        from odoo.exceptions import UserError
+        leave_type = self.env.ref("escon_eapproval.leave_type_annual")
+        with self.assertRaises(UserError):
+            leave_type.write({"request_unit": "day"})
+        with self.assertRaises(UserError):
+            leave_type.unlink()
+        leave_type.write({"color": 3})  # 재량 필드 허용
+
+    def test_unmanaged_records_not_blocked(self):
+        """Odoo 기본 유형(escon 관리 아님)은 가드 대상이 아니다."""
+        default = self.env.ref(
+            "approvals.approval_category_data_general_approval")
+        default.with_context(active_test=False).write({"approval_minimum": 2})
+
+    def test_enforce_reverts_drift(self):
+        from odoo.addons.escon_eapproval.models.setup import SETUP_CTX
+        category = self.env.ref("escon_eapproval.category_expense")
+        category.with_context(**{SETUP_CTX: True}).write(
+            {"approval_minimum": 5, "requirer_document": "optional"})
+        result = self.env["escon.eapproval.setup"].apply_odoo_defaults()
+        self.assertTrue(result["fixed"])
+        self.assertEqual(category.approval_minimum, 1)
+        self.assertEqual(category.requirer_document, "required")
+        # 재실행 시 변경 없음 (멱등)
+        self.assertFalse(
+            self.env["escon.eapproval.setup"].apply_odoo_defaults()["fixed"])
