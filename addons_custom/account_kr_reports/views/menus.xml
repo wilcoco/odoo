@@ -58,5 +58,6 @@
     <menuitem id="menu_kr_lock_log" name="마감 잠금 변경 이력" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_lock_log" sequence="87" groups="account.group_account_manager"/>
     <menuitem id="menu_kr_sales_tax_match" name="매출 승인번호 매칭" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_sales_tax_match" sequence="89"/>
     <menuitem id="menu_kr_tax_invoice_import" name="세금계산서 파일 반입(홈택스·스마트빌)" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_tax_invoice_import" sequence="88"/>
+    <menuitem id="menu_kr_approval_merge" name="승인번호 필드 통합" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_approval_number_merge" sequence="91" groups="account.group_account_manager"/>
     <menuitem id="menu_kr_template_download" name="업로드 템플릿 다운로드" parent="account_kr_guard.menu_kr_guard_root" action="action_kr_template_download" sequence="90"/>
 </odoo>

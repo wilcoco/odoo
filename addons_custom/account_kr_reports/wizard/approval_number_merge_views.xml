@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_approval_number_merge_form" model="ir.ui.view">
+        <field name="name">kr.approval.number.merge.form</field>
+        <field name="model">kr.approval.number.merge</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-warning" role="alert">
+                    승인번호가 여러 필드로 흩어진 것을 <b>정본(세금계산서 승인번호)</b> 하나로 모읍니다.<br/>
+                    <b>먼저 미리보기</b>로 건수·충돌을 확인한 뒤 '실제로 적용'을 켜고 다시 실행하세요.
+                    <br/>※ 업체 청구서 참조(ref)는 <b>국세청 승인번호 형식일 때만</b> 옮깁니다.
+                </div>
+                <group>
+                    <field name="source" widget="radio"/>
+                    <field name="overwrite"/>
+                    <field name="apply_now"/>
+                </group>
+                <field name="result" invisible="not result" readonly="1"/>
+                <footer>
+                    <button name="action_run" type="object" string="실행" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_approval_number_merge" model="ir.actions.act_window">
+        <field name="name">승인번호 필드 통합</field>
+        <field name="res_model">kr.approval.number.merge</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
