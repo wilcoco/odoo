@@ -36,6 +36,9 @@
                 <field name="department_id"/>
                 <field name="job_id"/>
                 <field name="job_grade_id"/>
+                <field name="eap_hire_date"/>
+                <field name="first_contract_date" string="첫 계약일" optional="hide"/>
+                <field name="leave_manager_id" string="휴가 승인자(1차)" optional="show"/>
             </list>
         </field>
     </record>
@@ -70,6 +73,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='job_id']" position="after">
                 <field name="job_grade_id"/>
+                <field name="eap_hire_date"/>
             </xpath>
         </field>
     </record>

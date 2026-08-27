@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from odoo.tests.common import TransactionCase, tagged
 
@@ -94,3 +95,79 @@ class TestEapproval(TransactionCase):
             self.user_writer).get_dashboard_data()
         self.assertEqual(data_writer["kpi"]["my_in_progress"], 1)
         json.dumps(data_writer)
+
+
+@tagged("post_install", "-at_install")
+class TestAnnualLeave(TransactionCase):
+    """에스콘 연차 규정 (입사일 기준, 첫해 월 1일 최대 11 / 1년 15 / 3년 이상 16, 미이월)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.Engine = cls.env["escon.annual.leave"]
+        cls.leave_type = cls.env.ref("escon_eapproval.leave_type_annual")
+        cls.Allocation = cls.env["hr.leave.allocation"]
+        cls.today = date(2026, 8, 27)
+
+    def _emp(self, name, hire):
+        return self.env["hr.employee"].create(
+            {"name": name, "eap_hire_date": hire})
+
+    def _allocs(self, emp):
+        return self.Allocation.search(
+            [("employee_id", "=", emp.id),
+             ("holiday_status_id", "=", self.leave_type.id)],
+            order="date_from")
+
+    def test_first_year_monthly(self):
+        """입사 첫해: 경과 개월수만큼 발생, 최대 11일. 실행 멱등 + 개월 증가 반영."""
+        emp = self._emp("첫해", date(2025, 11, 1))
+        self.Engine.update_annual_allocations(employees=emp, today=date(2026, 1, 15))
+        alloc = self._allocs(emp)
+        self.assertEqual(len(alloc), 1)
+        self.assertEqual(alloc.number_of_days, 2)  # 12/1, 1/1
+        self.assertEqual(alloc.date_from, date(2025, 11, 1))
+        self.assertEqual(alloc.date_to, date(2026, 10, 31))
+        self.assertEqual(alloc.state, "validate")
+        # 9개월 경과 시점 → 9일로 증가, 배정은 여전히 1건
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        alloc = self._allocs(emp)
+        self.assertEqual(len(alloc), 1)
+        self.assertEqual(alloc.number_of_days, 9)
+        # 11개월 상한
+        self.Engine.update_annual_allocations(employees=emp, today=date(2026, 10, 30))
+        self.assertEqual(self._allocs(emp).number_of_days, 11)
+
+    def test_after_first_anniversary(self):
+        """1년 후: 기념일에 15일, 유효기간은 다음 기념일 전날까지 (미이월)."""
+        emp = self._emp("2년차", date(2024, 6, 15))
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        alloc = self._allocs(emp)
+        self.assertEqual(len(alloc), 1)
+        self.assertEqual(alloc.number_of_days, 15)
+        self.assertEqual(alloc.date_from, date(2026, 6, 15))
+        self.assertEqual(alloc.date_to, date(2027, 6, 14))
+
+    def test_senior_16_days(self):
+        """근속 3년 이상: 16일."""
+        emp = self._emp("4년차", date(2023, 8, 27))
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        alloc = self._allocs(emp)
+        self.assertEqual(alloc.number_of_days, 16)
+        self.assertEqual(alloc.date_from, date(2026, 8, 27))
+
+    def test_no_hire_date_skipped(self):
+        emp = self.env["hr.employee"].create({"name": "입사일없음"})
+        summary = self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        self.assertIn("입사일없음", summary["no_hire_date"])
+        self.assertFalse(self._allocs(emp))
+
+    def test_manual_increase_not_reduced(self):
+        """관리자가 수동으로 늘린 배정 일수는 줄이지 않는다."""
+        emp = self._emp("수동조정", date(2026, 2, 1))
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        alloc = self._allocs(emp)
+        alloc.write({"number_of_days": 10})
+        self.Engine.update_annual_allocations(employees=emp, today=self.today)
+        self.assertEqual(self._allocs(emp).number_of_days, 10)

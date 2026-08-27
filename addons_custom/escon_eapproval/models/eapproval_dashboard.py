@@ -165,32 +165,21 @@ class EsconEapprovalDashboard(models.AbstractModel):
         leaves = safe("leaves", _leaves, [])
 
         def _leave_balance():
+            """유형별 배정/사용/잔여 — Odoo 표준 계산을 그대로 사용.
+            (배정 유효기간을 존중하므로 기간 만료된 연차는 자동으로 빠진다)"""
             if not employee:
                 return []
-            Allocation = self.env["hr.leave.allocation"]
-            allocated = {
-                lt.id: (lt.name, total)
-                for lt, total in Allocation._read_group(
-                    [("employee_id", "=", employee.id), ("state", "=", "validate")],
-                    groupby=["holiday_status_id"], aggregates=["number_of_days:sum"])
-                if lt
-            }
-            used = {
-                lt.id: total
-                for lt, total in Leave._read_group(
-                    [("employee_id", "=", employee.id), ("state", "=", "validate"),
-                     ("holiday_status_id", "in", list(allocated))],
-                    groupby=["holiday_status_id"], aggregates=["number_of_days:sum"])
-                if lt
-            }
             balance = []
-            for type_id, (name, total) in allocated.items():
-                taken = used.get(type_id, 0.0)
+            types = self.env["hr.leave.type"].with_context(
+                employee_id=employee.id).search([("requires_allocation", "=", "yes")])
+            for lt in types:
+                if not lt.max_leaves:
+                    continue
                 balance.append({
-                    "type": name,
-                    "allocated": round(total, 2),
-                    "used": round(taken, 2),
-                    "remaining": round(total - taken, 2),
+                    "type": lt.name,
+                    "allocated": round(lt.max_leaves, 2),
+                    "used": round(lt.leaves_taken, 2),
+                    "remaining": round(lt.virtual_remaining_leaves, 2),
                 })
             return balance
 
