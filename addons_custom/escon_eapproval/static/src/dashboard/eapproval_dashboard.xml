@@ -59,25 +59,25 @@
                 <t t-else="">
                     <!-- KPI -->
                     <div class="eap-kpis">
-                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('pumui_pending')">
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_review')">
                             <span class="eap-kpi__icon" t-att-class="kpi.to_approve ? 'eap-kpi__icon--danger' : 'eap-kpi__icon--ok'"><i class="fa fa-inbox"/></span>
                             <span class="eap-kpi__label">결재 대기</span>
                             <span class="eap-kpi__value"><t t-esc="num(kpi.to_approve)"/><small>건</small></span>
                             <span class="eap-kpi__sub">내가 결재할 차례인 문서</span>
                         </button>
-                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('pumui_inbox')">
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
                             <span class="eap-kpi__icon eap-kpi__icon--primary"><i class="fa fa-paper-plane"/></span>
                             <span class="eap-kpi__label">결재 진행 중</span>
                             <span class="eap-kpi__value"><t t-esc="num(kpi.my_in_progress)"/><small>건</small></span>
                             <span class="eap-kpi__sub">내가 상신한 문서</span>
                         </button>
-                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('pumui_inbox')">
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
                             <span class="eap-kpi__icon eap-kpi__icon--ok"><i class="fa fa-check-circle"/></span>
                             <span class="eap-kpi__label">승인 (30일)</span>
                             <span class="eap-kpi__value"><t t-esc="num(kpi.my_approved_30d)"/><small>건</small></span>
                             <span class="eap-kpi__sub">최근 30일 승인 완료</span>
                         </button>
-                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('pumui_inbox')">
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
                             <span class="eap-kpi__icon" t-att-class="kpi.my_rejected_30d ? 'eap-kpi__icon--warn' : 'eap-kpi__icon--muted'"><i class="fa fa-undo"/></span>
                             <span class="eap-kpi__label">반려 (30일)</span>
                             <span class="eap-kpi__value"><t t-esc="num(kpi.my_rejected_30d)"/><small>건</small></span>
@@ -141,9 +141,9 @@
                 </div>
                 <span class="eap-panel__links">
                     <a t-if="hasXml('approvals_review')" href="#" class="eap-link"
-                       t-on-click.prevent="() => this.openXml('approvals_review')">전자결재 →</a>
+                       t-on-click.prevent="() => this.openXml('approvals_review')">결재 대기 품의서 →</a>
                     <a t-if="hasXml('pumui_pending')" href="#" class="eap-link"
-                       t-on-click.prevent="() => this.openXml('pumui_pending')">품의서 →</a>
+                       t-on-click.prevent="() => this.openXml('pumui_pending')">청구 연계 →</a>
                 </span>
             </div>
             <t t-if="!data.to_approve.length">
@@ -228,8 +228,8 @@
         <section class="eap-card eap-panel">
             <div class="eap-panel__head">
                 <div>
-                    <h3>품의서 현황</h3>
-                    <p>내 품의서 — 결재 중 <b t-esc="num(pumui.counts.in_progress)"/> · 승인 <b t-esc="num(pumui.counts.approved)"/> · 반려 <b t-esc="num(pumui.counts.rejected)"/></p>
+                    <h3>품의서 (청구 연계) 현황</h3>
+                    <p>청구 연계 품의 — 결재 중 <b t-esc="num(pumui.counts.in_progress)"/> · 승인 <b t-esc="num(pumui.counts.approved)"/> · 반려 <b t-esc="num(pumui.counts.rejected)"/></p>
                 </div>
                 <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('pumui_list')">품의서 목록 →</a>
             </div>
@@ -278,10 +278,10 @@
             <div class="eap-panel__head">
                 <div>
                     <h3>내 최근 상신</h3>
-                    <p>결재를 올린 모든 문서 (품의서 외 포함)</p>
+                    <p>내가 결재를 올린 모든 문서</p>
                 </div>
-                <a t-if="hasXml('pumui_inbox')" href="#" class="eap-link"
-                   t-on-click.prevent="() => this.openXml('pumui_inbox')">내 결재함 →</a>
+                <a t-if="hasXml('approvals_my')" href="#" class="eap-link"
+                   t-on-click.prevent="() => this.openXml('approvals_my')">내 품의서 →</a>
             </div>
             <t t-if="!data.my_requests.length">
                 <div class="eap-empty">상신한 문서가 없습니다.</div>
