@@ -171,3 +171,59 @@ class TestAnnualLeave(TransactionCase):
         alloc.write({"number_of_days": 10})
         self.Engine.update_annual_allocations(employees=emp, today=self.today)
         self.assertEqual(self._allocs(emp).number_of_days, 10)
+
+
+@tagged("post_install", "-at_install")
+class TestApprovalsIntegration(TransactionCase):
+    """Odoo Approvals 연동: 기본 유형 보관 + 우리 유형 활성 + 대시보드 합산."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        Users = cls.env["res.users"].with_context(no_reset_password=True)
+        cls.owner = Users.create({
+            "name": "요청자", "login": "apr_owner", "email": "o@t.kr",
+            "groups_id": [(4, cls.env.ref("base.group_user").id)],
+        })
+        cls.approver = Users.create({
+            "name": "승인자", "login": "apr_approver", "email": "a@t.kr",
+            "groups_id": [(4, cls.env.ref("base.group_user").id)],
+        })
+
+    def test_default_categories_archived(self):
+        """설치/업그레이드 시 Odoo 기본 유형은 보관, 우리 유형은 활성."""
+        self.env["escon.eapproval.setup"].apply_odoo_defaults()  # 멱등 재실행
+        default = self.env.ref("approvals.approval_category_data_general_approval")
+        self.assertFalse(default.active)
+        for xmlid in ("category_general", "category_expense", "category_trip",
+                      "category_car", "category_gate", "category_rfq"):
+            category = self.env.ref("escon_eapproval.%s" % xmlid)
+            self.assertTrue(category.active, xmlid)
+        self.assertEqual(
+            self.env.ref("escon_eapproval.category_rfq").approval_type, "purchase")
+        root_menu = self.env.ref("approvals.approvals_menu_root")
+        self.assertFalse(root_menu.active)
+
+    def test_dashboard_includes_approvals(self):
+        request = self.env["approval.request"].create({
+            "name": "통합 테스트 일반결재",
+            "category_id": self.env.ref("escon_eapproval.category_general").id,
+            "request_owner_id": self.owner.id,
+            "approver_ids": [(0, 0, {"user_id": self.approver.id})],
+        })
+        request.with_user(self.owner).action_confirm()
+        self.assertEqual(request.request_status, "pending")
+
+        Dashboard = self.env["escon.eapproval.dashboard"]
+        data = Dashboard.with_user(self.approver).get_dashboard_data()
+        rows = [r for r in data["to_approve"] if r["doc_model"] == "approval.request"]
+        self.assertTrue(rows)
+        self.assertEqual(rows[0]["doc_id"], request.id)
+        self.assertEqual(rows[0]["doc_label"], "일반 결재")
+        json.dumps(data)
+
+        data_owner = Dashboard.with_user(self.owner).get_dashboard_data()
+        self.assertGreaterEqual(data_owner["kpi"]["my_in_progress"], 1)
+        mine = [r for r in data_owner["my_requests"]
+                if r["doc_model"] == "approval.request" and r["doc_id"] == request.id]
+        self.assertTrue(mine)

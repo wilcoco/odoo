@@ -26,7 +26,11 @@
                     <span class="eap-topbar__who" t-if="greeting" t-esc="greeting"/>
                 </div>
                 <div class="eap-topbar__actions">
-                    <button t-if="pumui.installed" type="button" class="eap-btn eap-btn--primary"
+                    <button t-if="hasXml('approvals_new')" type="button" class="eap-btn eap-btn--primary"
+                            t-on-click="() => this.openXml('approvals_new')">
+                        <i class="fa fa-edit"/> 전자결재 작성
+                    </button>
+                    <button t-if="pumui.installed" type="button" class="eap-btn"
                             t-on-click="() => this.newPumui()">
                         <i class="fa fa-pencil"/> 품의서 작성
                     </button>
@@ -135,8 +139,12 @@
                     <h3>결재 대기 문서</h3>
                     <p>내가 결재할 차례인 문서 <b t-esc="data.to_approve.length"/>건 — 행을 누르면 문서가 열립니다.</p>
                 </div>
-                <a t-if="hasXml('pumui_pending')" href="#" class="eap-link"
-                   t-on-click.prevent="() => this.openXml('pumui_pending')">품의서 결재 대기 →</a>
+                <span class="eap-panel__links">
+                    <a t-if="hasXml('approvals_review')" href="#" class="eap-link"
+                       t-on-click.prevent="() => this.openXml('approvals_review')">전자결재 →</a>
+                    <a t-if="hasXml('pumui_pending')" href="#" class="eap-link"
+                       t-on-click.prevent="() => this.openXml('pumui_pending')">품의서 →</a>
+                </span>
             </div>
             <t t-if="!data.to_approve.length">
                 <div class="eap-empty eap-empty--ok"><i class="fa fa-check"/>결재할 문서가 없습니다.</div>

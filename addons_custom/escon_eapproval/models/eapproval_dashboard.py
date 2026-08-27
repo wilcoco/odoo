@@ -19,6 +19,15 @@ _logger = logging.getLogger(__name__)
 
 APPROVAL_STATES = ("draft", "in_progress", "approved", "rejected")
 
+# Odoo 전자결재(approval.request) 상태 → 공통 상태 키 (클라이언트 칩 공유)
+APPROVALS_STATE_MAP = {
+    "new": "draft",
+    "pending": "in_progress",
+    "approved": "approved",
+    "refused": "rejected",
+    "cancel": "cancel",
+}
+
 # 클라이언트 드릴다운용 액션 xml id (설치 안 된 모듈 것은 페이로드에서 빠진다)
 DRILL_XML_IDS = {
     "pumui_list": "pumui_approval.action_pumui_request",
@@ -29,6 +38,9 @@ DRILL_XML_IDS = {
     "leave_my": "hr_holidays.hr_leave_action_my",
     "leave_approve": "hr_holidays.hr_leave_action_action_approve_department",
     "templates": "iatf_approval.action_iatf_approval_template",
+    "approvals_new": "approvals.approval_category_action_new_request",
+    "approvals_my": "approvals.approval_request_action",
+    "approvals_review": "approvals.approval_request_action_to_review",
 }
 
 
@@ -78,6 +90,26 @@ class EsconEapprovalDashboard(models.AbstractModel):
             "step_done": len(lines.filtered(lambda l: l.state == "approved")),
             "step_total": len(lines),
             "current_approver": request.current_approver_id.name or "-",
+        }
+
+    def _approvals_row(self, request):
+        """Odoo 전자결재(approval.request) 1건을 결재 대기/내 상신 공통 행으로 직렬화."""
+        approvers = request.approver_ids
+        pending = approvers.filtered(lambda a: a.status == "pending")[:1]
+        return {
+            # iatf 요청 id 와 t-key 충돌을 피하려고 음수 id 사용
+            "id": -request.id,
+            "doc_model": "approval.request",
+            "doc_id": request.id,
+            "doc_ok": True,
+            "doc_label": request.category_id.name or "전자결재",
+            "doc_name": request.name or request.display_name,
+            "requester": request.request_owner_id.name or "-",
+            "state": APPROVALS_STATE_MAP.get(request.request_status, "draft"),
+            "date": _dt(request.create_date),
+            "step_done": len(approvers.filtered(lambda a: a.status == "approved")),
+            "step_total": len(approvers),
+            "current_approver": pending.user_id.name if pending else "-",
         }
 
     # ------------------------------------------------------------------
@@ -144,6 +176,47 @@ class EsconEapprovalDashboard(models.AbstractModel):
         my_counts = safe("my_counts", _my_counts,
                          dict.fromkeys(APPROVAL_STATES, 0)
                          | {"approved_30d": 0, "rejected_30d": 0})
+
+        # ── Odoo 전자결재(approvals) 통합 — 같은 리스트/KPI 에 합산 ─────
+        appr_counts = {"in_progress": 0, "approved_30d": 0, "rejected_30d": 0}
+        if "approval.request" in self.env:
+            ApprovalRequest = self.env["approval.request"]
+
+            def _appr_to_approve():
+                lines = self.env["approval.approver"].search(
+                    [("user_id", "=", user.id), ("status", "=", "pending")], limit=50)
+                requests = lines.mapped("request_id").filtered(
+                    lambda r: r.request_status == "pending")
+                return [self._approvals_row(r) for r in requests]
+
+            def _appr_mine():
+                return [
+                    self._approvals_row(r)
+                    for r in ApprovalRequest.search(
+                        [("request_owner_id", "=", user.id)],
+                        order="id desc", limit=limit)
+                ]
+
+            def _appr_counts():
+                base = [("request_owner_id", "=", user.id)]
+                return {
+                    "in_progress": ApprovalRequest.search_count(
+                        base + [("request_status", "=", "pending")]),
+                    "approved_30d": ApprovalRequest.search_count(
+                        base + [("request_status", "=", "approved"),
+                                ("date_confirmed", ">=", _dt(d30))]),
+                    "rejected_30d": ApprovalRequest.search_count(
+                        base + [("request_status", "=", "refused"),
+                                ("write_date", ">=", _dt(d30))]),
+                }
+
+            to_approve += safe("approvals_to_approve", _appr_to_approve, [])
+            my_requests += safe("approvals_my_requests", _appr_mine, [])
+            appr_counts = safe("approvals_counts", _appr_counts, appr_counts)
+
+        to_approve.sort(key=lambda r: r["date"] or "", reverse=True)
+        my_requests.sort(key=lambda r: r["date"] or "", reverse=True)
+        my_requests = my_requests[:limit]
 
         # ── 휴가 (hr_holidays) ─────────────────────────────────────────
         Leave = self.env["hr.leave"]
@@ -258,9 +331,12 @@ class EsconEapprovalDashboard(models.AbstractModel):
             },
             "kpi": {
                 "to_approve": len(to_approve),
-                "my_in_progress": my_counts.get("in_progress", 0),
-                "my_approved_30d": my_counts.get("approved_30d", 0),
-                "my_rejected_30d": my_counts.get("rejected_30d", 0),
+                "my_in_progress": my_counts.get("in_progress", 0)
+                                  + appr_counts.get("in_progress", 0),
+                "my_approved_30d": my_counts.get("approved_30d", 0)
+                                   + appr_counts.get("approved_30d", 0),
+                "my_rejected_30d": my_counts.get("rejected_30d", 0)
+                                   + appr_counts.get("rejected_30d", 0),
                 "leave_remaining": round(
                     sum(b["remaining"] for b in leave_balance), 2),
                 "leave_pending": leave_pending,

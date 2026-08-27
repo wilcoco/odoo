@@ -12,6 +12,7 @@ const APPROVAL_STATE = {
     in_progress: { label: "결재 중", cls: "running" },
     approved: { label: "승인", cls: "ok" },
     rejected: { label: "반려", cls: "danger" },
+    cancel: { label: "취소", cls: "muted" },
 };
 
 const LEAVE_STATE = {

@@ -11,14 +11,15 @@
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
-    <!-- 관리자는 결재선 템플릿·직원 부서/직급 배치·연차 배정을 관리해야 하므로
-         HR 담당자(hr.group_hr_user)와 휴가 담당자(hr_holidays.group_hr_holidays_user)
-         권한을 함께 부여한다 (후자가 전자를 포함). -->
+    <!-- 관리자는 결재선 템플릿·직원 부서/직급 배치·연차 배정·전자결재 유형을 관리해야
+         하므로 HR 담당자(hr.group_hr_user)·휴가 담당자(hr_holidays.group_hr_holidays_user)·
+         Odoo 전자결재 관리자(approvals.group_approval_manager) 권한을 함께 부여한다. -->
     <record id="group_eapproval_manager" model="res.groups">
         <field name="name">전자결재 관리자</field>
         <field name="category_id" ref="module_category_eapproval"/>
         <field name="implied_ids"
-               eval="[(4, ref('group_eapproval_user')), (4, ref('hr_holidays.group_hr_holidays_user'))]"/>
+               eval="[(4, ref('group_eapproval_user')), (4, ref('hr_holidays.group_hr_holidays_user')),
+                      (4, ref('approvals.group_approval_manager'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 </odoo>

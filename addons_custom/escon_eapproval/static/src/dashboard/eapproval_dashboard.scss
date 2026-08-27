@@ -355,6 +355,7 @@
         }
         .eap-link { white-space: nowrap; font-size: var(--eap-fs-sm); }
     }
+    &__links { display: flex; align-items: center; gap: 12px; flex: none; }
     &__foot {
         margin-top: 12px;
         padding-top: 10px;

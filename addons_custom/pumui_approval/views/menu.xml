@@ -30,9 +30,9 @@
             <p>여기에는 내가 기안(상신)한 품의서가 결재 상태와 함께 표시됩니다.</p>
         </field>
     </record>
-    <menuitem id="menu_pumui_my_inbox" name="내 결재함"
-              parent="escon_eapproval.menu_eapproval_root"
-              action="action_pumui_my_inbox" sequence="20"/>
+    <menuitem id="menu_pumui_my_inbox" name="품의서"
+              parent="escon_eapproval.menu_eapproval_inbox"
+              action="action_pumui_my_inbox" sequence="10"/>
 
     <!-- ───────────── 결재 대기 (내가 결재할 차례인 품의서) ───────────── -->
     <record id="action_pumui_to_approve" model="ir.actions.act_window">
@@ -47,7 +47,7 @@
                문서를 열어 승인 또는 반려하세요.</p>
         </field>
     </record>
-    <menuitem id="menu_pumui_to_approve" name="결재 대기"
-              parent="escon_eapproval.menu_eapproval_root"
-              action="action_pumui_to_approve" sequence="30"/>
+    <menuitem id="menu_pumui_to_approve" name="품의서"
+              parent="escon_eapproval.menu_eapproval_pending"
+              action="action_pumui_to_approve" sequence="10"/>
 </odoo>

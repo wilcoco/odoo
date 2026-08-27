@@ -19,6 +19,34 @@
               action="action_eapproval_dashboard"
               sequence="1"/>
 
+    <!-- ───────────── 전자결재 작성 (Odoo Approvals 연동) ─────────────
+         일반 결재/경비청구서/출장/자동차 대여/출입신청/RFQ 카드 대시보드 -->
+    <menuitem id="menu_eapproval_write"
+              name="전자결재 작성"
+              parent="menu_eapproval_root"
+              action="approvals.approval_category_action_new_request"
+              sequence="5"/>
+
+    <!-- ───────────── 내 결재함 / 결재 대기 ─────────────
+         하위: 품의서(pumui_approval 이 제공) + 전자결재 요청(approvals) -->
+    <menuitem id="menu_eapproval_inbox" name="내 결재함"
+              parent="menu_eapproval_root" sequence="20"/>
+
+    <menuitem id="menu_eapproval_inbox_requests"
+              name="전자결재 요청"
+              parent="menu_eapproval_inbox"
+              action="approvals.approval_request_action"
+              sequence="20"/>
+
+    <menuitem id="menu_eapproval_pending" name="결재 대기"
+              parent="menu_eapproval_root" sequence="30"/>
+
+    <menuitem id="menu_eapproval_pending_requests"
+              name="전자결재 요청"
+              parent="menu_eapproval_pending"
+              action="approvals.approval_request_action_to_review"
+              sequence="20"/>
+
     <!-- ───────────── 휴가 (hr_holidays 연동) ───────────── -->
     <menuitem id="menu_eapproval_leave" name="휴가" parent="menu_eapproval_root" sequence="40"/>
 
@@ -86,12 +114,24 @@
               action="action_escon_job_grade"
               sequence="40"/>
 
+    <menuitem id="menu_eapproval_config_categories"
+              name="전자결재 유형"
+              parent="menu_eapproval_config"
+              action="approvals.approval_category_action"
+              sequence="45"/>
+
     <menuitem id="menu_eapproval_config_requests"
               name="결재 요청 전체"
               parent="menu_eapproval_config"
               action="action_eapproval_requests"
               groups="base.group_system"
               sequence="50"/>
+
+    <menuitem id="menu_eapproval_config_approvals_all"
+              name="전자결재 전체 요청"
+              parent="menu_eapproval_config"
+              action="approvals.approval_request_action_all"
+              sequence="55"/>
 
     <menuitem id="menu_eapproval_config_allocations"
               name="연차/휴가 배정 현황"
@@ -110,4 +150,10 @@
               parent="menu_eapproval_config"
               action="action_server_annual_leave_update"
               sequence="80"/>
+
+    <menuitem id="menu_eapproval_config_odoo_defaults"
+              name="Odoo 전자결재 기본 셋팅 재적용"
+              parent="menu_eapproval_config"
+              action="action_server_apply_odoo_defaults"
+              sequence="85"/>
 </odoo>
