@@ -7,7 +7,7 @@
     </record>
 
     <!-- ───────────── 앱 루트 ─────────────
-         품의서 작성(10)/내 결재함(20)/결재 대기(30) 메뉴는 pumui_approval 이 이 아래에 단다. -->
+         상위 바: 대시보드(1) / 전자결재 관리(5) / 휴가(40) / 설정(90) -->
     <menuitem id="menu_eapproval_root"
               name="에스콘 전자결재"
               sequence="46"
@@ -19,18 +19,28 @@
               action="action_eapproval_dashboard"
               sequence="1"/>
 
-    <!-- ───────────── 전자결재 작성 (Odoo Approvals 연동) ─────────────
-         일반 결재/경비청구서/출장/자동차 대여/출입신청/RFQ 카드 대시보드 -->
-    <menuitem id="menu_eapproval_write"
-              name="전자결재 작성"
-              parent="menu_eapproval_root"
-              action="approvals.approval_category_action_new_request"
-              sequence="5"/>
+    <!-- ───────────── 전자결재 관리 ─────────────
+         품의서 작성(Odoo Approvals 카드) / 내 결재함 / 결재 대기 / 품의서 목록 /
+         품의 미연계 청구서 를 한 드롭다운으로 묶는다.
+         (품의서 목록·품의 미연계 청구서 메뉴는 pumui_approval 이 이 아래에 단다) -->
+    <menuitem id="menu_eapproval_manage" name="전자결재 관리"
+              parent="menu_eapproval_root" sequence="5"/>
 
-    <!-- ───────────── 내 결재함 / 결재 대기 ─────────────
-         하위: 품의서(pumui_approval 이 제공) + 전자결재 요청(approvals) -->
+    <!-- 일반 결재/경비청구서/출장/자동차 대여/출입신청/RFQ 유형 카드 (OWL 커스텀 화면) -->
+    <record id="action_eapproval_compose" model="ir.actions.client">
+        <field name="name">품의서 작성</field>
+        <field name="tag">escon_eapproval.compose</field>
+    </record>
+
+    <menuitem id="menu_eapproval_write"
+              name="품의서 작성"
+              parent="menu_eapproval_manage"
+              action="action_eapproval_compose"
+              sequence="10"/>
+
+    <!-- 내 결재함 / 결재 대기 — 하위: 품의서(pumui_approval 제공) + 전자결재 요청 -->
     <menuitem id="menu_eapproval_inbox" name="내 결재함"
-              parent="menu_eapproval_root" sequence="20"/>
+              parent="menu_eapproval_manage" sequence="20"/>
 
     <menuitem id="menu_eapproval_inbox_requests"
               name="전자결재 요청"
@@ -39,7 +49,7 @@
               sequence="20"/>
 
     <menuitem id="menu_eapproval_pending" name="결재 대기"
-              parent="menu_eapproval_root" sequence="30"/>
+              parent="menu_eapproval_manage" sequence="30"/>
 
     <menuitem id="menu_eapproval_pending_requests"
               name="전자결재 요청"

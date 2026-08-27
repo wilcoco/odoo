@@ -38,7 +38,7 @@ DRILL_XML_IDS = {
     "leave_my": "hr_holidays.hr_leave_action_my",
     "leave_approve": "hr_holidays.hr_leave_action_action_approve_department",
     "templates": "iatf_approval.action_iatf_approval_template",
-    "approvals_new": "approvals.approval_category_action_new_request",
+    "approvals_new": "escon_eapproval.action_eapproval_compose",
     "approvals_my": "approvals.approval_request_action",
     "approvals_review": "approvals.approval_request_action_to_review",
 }
@@ -55,6 +55,41 @@ def _dt(value):
 class EsconEapprovalDashboard(models.AbstractModel):
     _name = "escon.eapproval.dashboard"
     _description = "에스콘 전자결재 대시보드 집계"
+
+    # ------------------------------------------------------------------
+    # 품의서 작성 화면 (OWL) — 유형 카드 목록
+    # ------------------------------------------------------------------
+    @api.model
+    def get_compose_data(self):
+        user = self.env.user
+        categories = []
+        counts = {}
+        Request = self.env["approval.request"]
+        for category, count in Request._read_group(
+                [("request_owner_id", "=", user.id),
+                 ("request_status", "in", ("new", "pending"))],
+                groupby=["category_id"], aggregates=["__count"]):
+            counts[category.id] = count
+        for category in self.env["approval.category"].search([]):
+            image = category.image
+            categories.append({
+                "id": category.id,
+                "name": category.name,
+                "description": category.description or "",
+                "image": image.decode("ascii") if isinstance(image, bytes)
+                         else (image or ""),
+                "my_open": counts.get(category.id, 0),
+            })
+        xml_ids = {}
+        for key in ("leave_dashboard", "pumui_list"):
+            xmlid = DRILL_XML_IDS[key]
+            if self.env.ref(xmlid, raise_if_not_found=False):
+                xml_ids[key] = xmlid
+        return {
+            "categories": categories,
+            "pumui": {"installed": "pumui.request" in self.env},
+            "drill": {"xml_ids": xml_ids},
+        }
 
     # ------------------------------------------------------------------
     # 결재 요청 → 화면 행

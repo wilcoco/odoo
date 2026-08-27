@@ -28,11 +28,11 @@
                 <div class="eap-topbar__actions">
                     <button t-if="hasXml('approvals_new')" type="button" class="eap-btn eap-btn--primary"
                             t-on-click="() => this.openXml('approvals_new')">
-                        <i class="fa fa-edit"/> 전자결재 작성
+                        <i class="fa fa-edit"/> 품의서 작성
                     </button>
                     <button t-if="pumui.installed" type="button" class="eap-btn"
                             t-on-click="() => this.newPumui()">
-                        <i class="fa fa-pencil"/> 품의서 작성
+                        <i class="fa fa-pencil"/> 품의서 (청구 연계)
                     </button>
                     <button type="button" class="eap-btn" t-on-click="() => this.newLeave()">
                         <i class="fa fa-plane"/> 휴가 신청

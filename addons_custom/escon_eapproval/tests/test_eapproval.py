@@ -272,3 +272,15 @@ class TestSettingGovernance(TransactionCase):
         # 재실행 시 변경 없음 (멱등)
         self.assertFalse(
             self.env["escon.eapproval.setup"].apply_odoo_defaults()["fixed"])
+
+
+@tagged("post_install", "-at_install")
+class TestComposeScreen(TransactionCase):
+    def test_compose_payload(self):
+        data = self.env["escon.eapproval.dashboard"].get_compose_data()
+        json.dumps(data)
+        names = [c["name"] for c in data["categories"]]
+        for expected in ("일반 결재", "경비청구서", "출장", "자동차 대여",
+                         "출입신청", "견적 요청서 (RFQ)"):
+            self.assertIn(expected, names)
+        self.assertTrue(data["pumui"]["installed"])

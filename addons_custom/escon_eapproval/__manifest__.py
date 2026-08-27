@@ -1,6 +1,6 @@
 {
     "name": "에스콘 전자결재",
-    "version": "18.0.3.1.0",
+    "version": "18.0.3.2.0",
     "summary": "통합 전자결재 앱 — 결재 대시보드(OWL)·부서/직급 기반 결재선·품의서/휴가 연동 뼈대",
     "description": """
 에스콘 전자결재
@@ -33,6 +33,8 @@
             "escon_eapproval/static/src/dashboard/eapproval_dashboard.js",
             "escon_eapproval/static/src/dashboard/eapproval_dashboard.xml",
             "escon_eapproval/static/src/dashboard/eapproval_dashboard.scss",
+            "escon_eapproval/static/src/dashboard/eapproval_compose.js",
+            "escon_eapproval/static/src/dashboard/eapproval_compose.xml",
         ],
     },
     "installable": True,
