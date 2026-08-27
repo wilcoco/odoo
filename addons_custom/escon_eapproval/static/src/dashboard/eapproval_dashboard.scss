@@ -545,7 +545,9 @@
 }
 
 @media (max-width: 1024px) {
-    .eap-topbar { padding: 12px 16px 0; }
+    // 오른쪽 도크 알약(갱신/새로고침)과 "품의서 작성" 등 퀵버튼이 겹치지 않게
+    // 좁은 화면에서도 도크 폭만큼 오른쪽 여백을 유지한다.
+    .eap-topbar { padding: 12px 16px 0; padding-right: 185px; }
     .eap-dock__pill { margin: 8px 12px 0 0; }
     .eap-body { padding: 16px; gap: 16px; }
     .eap-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
