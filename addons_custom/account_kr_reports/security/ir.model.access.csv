@@ -11,3 +11,4 @@ access_kr_template_download,kr.template.download,model_kr_template_download,acco
 access_kr_lock_log,kr.lock.log readonly,model_kr_lock_log,account.group_account_invoice,1,0,0,0
 access_kr_sales_tax_match,kr.sales.tax.match,model_kr_sales_tax_match,account.group_account_invoice,1,1,1,1
 access_kr_tax_invoice_import,kr.tax.invoice.import,model_kr_tax_invoice_import,account.group_account_invoice,1,1,1,1
+access_kr_approval_number_merge,kr.approval.number.merge,model_kr_approval_number_merge,account.group_account_manager,1,1,1,1

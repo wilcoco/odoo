@@ -249,6 +249,7 @@ class KrTaxInvoiceImport(models.TransientModel):
                 "kr_approval_number": approval,
                 "kr_doc_type": doc_type,
                 "kr_tax_type": kr_tax_type,
+                "kr_tax_type_manual": True,
                 "invoice_line_ids": [(0, 0, {
                     "name": label,
                     "quantity": 1,
