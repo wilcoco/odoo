@@ -41,7 +41,7 @@
 
     <!-- 내 결재함: 내가 상신한 품의서 (전체/결재 대기/완료/반려) -->
     <menuitem id="menu_eapproval_inbox" name="내 결재함"
-              parent="menu_eapproval_manage" sequence="20"/>
+              parent="menu_eapproval_manage" sequence="30"/>
 
     <menuitem id="menu_eapproval_inbox_requests"
               name="내 품의서"
@@ -85,9 +85,9 @@
               action="action_my_requests_refused"
               sequence="40"/>
 
-    <!-- 결재 대기: 내가 결재할 차례인 품의서 -->
+    <!-- 결재 대기: 내가 결재할 차례인 품의서 (품의서 작성 바로 아래) -->
     <menuitem id="menu_eapproval_pending" name="결재 대기"
-              parent="menu_eapproval_manage" sequence="30"/>
+              parent="menu_eapproval_manage" sequence="20"/>
 
     <menuitem id="menu_eapproval_pending_requests"
               name="결재 대기 품의서"
