@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_kr_plus_settings_form" model="ir.ui.view">
+        <field name="name">account.kr.plus.settings.form</field>
+        <field name="model">account.kr.plus.settings</field>
+        <field name="arch" type="xml">
+            <form string="한국식 회계 설정">
+                <header>
+                    <button name="action_save" type="object" string="저장"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>한국식 회계 설정</h1>
+                    </div>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="전표번호 규칙">
+                        <field name="kr_move_sequence_format" widget="radio"/>
+                        <field name="sequence_example" readonly="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        번호 형식을 변경해도 이미 발급된 전표번호는 바뀌지 않습니다.
+                        형식이나 전표유형 코드를 변경한 뒤 발급하는 번호는 해당
+                        형식·코드별로 일자 순번이 시작되거나 이어집니다.
+                    </div>
+                    <group string="회계 기준정보">
+                        <button name="action_open_sequence_journals" type="object"
+                                string="저널·전표유형 코드" class="btn-secondary"
+                                icon="oi-arrow-right"/>
+                        <button name="action_open_bank_journals" type="object"
+                                string="당좌·보통예금 은행계좌" class="btn-secondary"
+                                icon="oi-arrow-right"/>
+                        <button name="action_open_accounts" type="object"
+                                string="계정과목표" class="btn-secondary"
+                                icon="oi-arrow-right"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_kr_plus_settings" model="ir.actions.act_window">
+        <field name="name">한국식 회계 설정</field>
+        <field name="res_model">account.kr.plus.settings</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_account_kr_plus_settings_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_account_kr_plus_settings"
+              name="한국식 회계 설정"
+              parent="account.menu_finance_configuration"
+              action="action_account_kr_plus_settings"
+              groups="account.group_account_manager"
+              sequence="0"/>
+</odoo>

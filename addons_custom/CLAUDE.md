@@ -14,6 +14,7 @@
 | 결재 엔진·결재선 템플릿 | `iatf_approval` | 새 결재 붙일 땐 mixin 사용, 자체 결재 구현 금지 |
 | 품의(지출 승인→청구) | `pumui_approval` | |
 | 회계 한국화(가드/조회) | `account_kr_guard` / `account_kr_reports` | |
+| 회계 회사별 화면·전표번호·은행계좌 연결 | `account_kr_plus_patch` | reports → plus_patch 순서. `account.move.action_post`: plus_patch 은행 모호성 검사 후 pumui 승인 검사/표준 전기 호출 |
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
