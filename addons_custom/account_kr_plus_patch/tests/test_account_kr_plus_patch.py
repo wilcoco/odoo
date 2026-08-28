@@ -197,6 +197,37 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         move.action_post()
         self.assertEqual(move.name, "20240722000001GEN")
 
+    def test_legacy_settings_fields_remain_safe_during_module_upgrade(self):
+        settings_model = self.env["account.kr.plus.settings"]
+        self.assertFalse(
+            settings_model._fields["kr_use_custom_move_sequence"].store
+        )
+        self.assertFalse(settings_model._fields["kr_move_sequence_format"].store)
+
+        settings = settings_model.with_user(self.simple_accountman).create({
+            "company_id": self.company_data["company"].id,
+            "kr_use_custom_move_sequence": True,
+            "kr_move_sequence_format": "date_number",
+        })
+        settings.action_save()
+
+        self.assertEqual(settings.kr_move_sequence_rule, "date_number")
+        self.assertEqual(
+            self.company_data["company"].kr_move_sequence_rule,
+            "date_number",
+        )
+
+    def test_former_legacy_sequence_key_maps_to_current_rule(self):
+        settings = self.env["account.kr.plus.settings"].with_user(
+            self.simple_accountman
+        ).create({
+            "company_id": self.company_data["company"].id,
+            "kr_use_custom_move_sequence": True,
+            "kr_move_sequence_format": "legacy",
+        })
+
+        self.assertEqual(settings.kr_move_sequence_rule, "date_number_type")
+
     def test_regular_accountant_cannot_change_sequence_settings(self):
         accountant = new_test_user(
             self.env,

@@ -21,6 +21,23 @@ class AccountKrPlusSettings(models.TransientModel):
         required=True,
         default=lambda self: self.env.company.kr_move_sequence_rule or "odoo",
     )
+    # Keep the removed 18.0.2.1.0 field names as non-stored aliases.  A server
+    # restart can load the new Python model before the module upgrade replaces
+    # the view stored in ir_ui_view.  Without these aliases that short-lived
+    # mixed state makes the legacy view's onchange fail with a KeyError.
+    kr_use_custom_move_sequence = fields.Boolean(
+        string="한국식 전표번호 규칙 사용 (호환용)",
+        store=False,
+        default=lambda self: (
+            self.env.company.kr_move_sequence_rule or "odoo"
+        ) != "odoo",
+    )
+    kr_move_sequence_format = fields.Selection(
+        selection=KR_MOVE_SEQUENCE_RULES,
+        string="전표번호 형식 (호환용)",
+        store=False,
+        default=lambda self: self.env.company.kr_move_sequence_rule or "odoo",
+    )
     sequence_example = fields.Char(
         string="번호 예시",
         compute="_compute_sequence_example",
@@ -44,6 +61,65 @@ class AccountKrPlusSettings(models.TransientModel):
             self.kr_move_sequence_rule = (
                 self.company_id.kr_move_sequence_rule or "odoo"
             )
+            self.kr_move_sequence_format = self.kr_move_sequence_rule
+            self.kr_use_custom_move_sequence = (
+                self.kr_move_sequence_rule != "odoo"
+            )
+
+    @api.onchange("kr_move_sequence_format", "kr_use_custom_move_sequence")
+    def _onchange_legacy_sequence_fields(self):
+        """Let a cached legacy settings form safely update the new rule."""
+        if not self.kr_use_custom_move_sequence:
+            self.kr_move_sequence_rule = "odoo"
+            self.kr_move_sequence_format = "odoo"
+        else:
+            if self.kr_move_sequence_format not in dict(KR_MOVE_SEQUENCE_RULES):
+                self.kr_move_sequence_format = "date_number"
+            elif self.kr_move_sequence_format == "odoo":
+                self.kr_move_sequence_format = "date_number"
+            self.kr_move_sequence_rule = self.kr_move_sequence_format
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        return super().create([
+            self._normalize_legacy_sequence_values(vals) for vals in vals_list
+        ])
+
+    def write(self, vals):
+        return super().write(self._normalize_legacy_sequence_values(vals))
+
+    @api.model
+    def _normalize_legacy_sequence_values(self, vals):
+        """Translate values submitted by the pre-18.0.2.2.0 settings view."""
+        vals = dict(vals)
+        if "kr_move_sequence_rule" in vals:
+            canonical_rule = vals["kr_move_sequence_rule"]
+            if "kr_move_sequence_format" in vals:
+                vals["kr_move_sequence_format"] = canonical_rule
+            if "kr_use_custom_move_sequence" in vals:
+                vals["kr_use_custom_move_sequence"] = (
+                    canonical_rule != "odoo"
+                )
+            return vals
+
+        enabled = vals.get("kr_use_custom_move_sequence")
+        legacy_rule = vals.get("kr_move_sequence_format")
+        if enabled is False:
+            vals["kr_move_sequence_rule"] = "odoo"
+        elif legacy_rule:
+            # Old browser state may still submit the former selection keys.
+            mapped_rule = {
+                "legacy": "date_number_type",
+                "extended": "odoo",
+            }.get(legacy_rule, legacy_rule)
+            if mapped_rule not in dict(KR_MOVE_SEQUENCE_RULES):
+                mapped_rule = "odoo"
+            vals["kr_move_sequence_rule"] = mapped_rule
+            vals["kr_move_sequence_format"] = mapped_rule
+        elif enabled is True:
+            vals["kr_move_sequence_rule"] = "date_number"
+            vals["kr_move_sequence_format"] = "date_number"
+        return vals
 
     def _check_account_manager(self):
         if not self.env.user.has_group("account.group_account_manager"):
