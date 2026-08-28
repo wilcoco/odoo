@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 매입처 세금계산서·취소 세금계산서 전용 목록 -->
+    <record id="view_kr_vendor_tax_invoice_list" model="ir.ui.view">
+        <field name="name">account.move.kr.vendor.tax.invoice.list</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="매입처 세금계산서"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name" string="전표번호" decoration-bf="1"
+                       widget="char_with_placeholder_field" placeholder="/"/>
+                <field name="kr_approval_number" string="세금계산서승인번호"/>
+                <field name="is_manually_modified" string="수기" readonly="1"/>
+                <field name="partner_id" string="매입처"/>
+                <field name="invoice_date" string="매입일" readonly="state != 'draft'"/>
+                <field name="kr_product_names" string="품목명"/>
+                <field name="amount_untaxed" string="공급가액" sum="공급가액 합계"/>
+                <field name="amount_tax" string="세액" sum="세액 합계"/>
+                <field name="amount_total" string="합계" sum="전체 합계" decoration-bf="1"/>
+                <field name="kr_doc_type" string="증빙유형"/>
+                <field name="kr_tax_type" string="구분"/>
+                <field name="pumui_approval_state" string="결재상태" widget="badge"
+                       decoration-success="pumui_approval_state == 'approved'"
+                       decoration-danger="pumui_approval_state == 'rejected'"/>
+                <field name="kr_residual_display" string="미납금액(현 잔액)"
+                       sum="미납금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
+                <field name="kr_paid_amount" string="결제 완료 금액" sum="결제금액 합계"/>
+                <field name="state" column_invisible="True"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_vendor_tax_invoice_search" model="ir.ui.view">
+        <field name="name">account.move.kr.vendor.tax.invoice.search</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="매입처 세금계산서 검색">
+                <field name="name" string="전표번호"/>
+                <field name="kr_approval_number"/>
+                <field name="partner_id" string="매입처"/>
+                <field name="kr_product_names"/>
+                <filter name="draft" string="미결" domain="[('state', '=', 'draft')]"/>
+                <filter name="posted" string="전기됨" domain="[('state', '=', 'posted')]"/>
+                <filter name="unpaid" string="미납" domain="[('amount_residual', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="taxable" string="과세" domain="[('kr_tax_type', '=', 'taxable')]"/>
+                <filter name="zero" string="영세" domain="[('kr_tax_type', '=', 'zero')]"/>
+                <filter name="exempt" string="면세" domain="[('kr_tax_type', '=', 'exempt')]"/>
+                <filter name="invoice_month" string="매입일" date="invoice_date"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_partner" string="매입처" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_doc" string="증빙유형" context="{'group_by': 'kr_doc_type'}"/>
+                    <filter name="group_tax" string="구분" context="{'group_by': 'kr_tax_type'}"/>
+                    <filter name="group_approval" string="결재상태" context="{'group_by': 'pumui_approval_state'}"/>
+                    <filter name="group_month" string="매입월" context="{'group_by': 'invoice_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- 요청 필드만 상단에 보이고, 실제 입력에 필요한 청구/분개 라인은 유지한다. -->
+    <record id="view_move_form_kr_plus" model="ir.ui.view">
+        <field name="name">account.move.form.kr.plus</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <form string="전표" js_class="account_move_form">
+                <header>
+                    <button name="action_post" string="전기" type="object" class="oe_highlight"
+                            groups="account.group_account_invoice"
+                            context="{'validate_analytic': True}"
+                            invisible="state != 'draft' or hide_post_button"/>
+                    <button name="action_register_payment" string="결제" type="object" class="oe_highlight"
+                            groups="account.group_account_invoice"
+                            context="{'dont_redirect_to_payments': True, 'display_account_trust': True}"
+                            invisible="state != 'posted' or payment_state not in ('not_paid', 'partial', 'in_payment') or move_type == 'entry'"/>
+                    <button name="button_draft" string="초안으로 재설정" type="object"
+                            groups="account.group_account_invoice"
+                            invisible="not show_reset_to_draft_button"/>
+                    <button name="button_cancel" string="취소" type="object"
+                            groups="account.group_account_invoice"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <field name="company_id" invisible="1"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="journal_id" invisible="1"/>
+                    <field name="hide_post_button" invisible="1"/>
+                    <field name="show_reset_to_draft_button" invisible="1"/>
+                    <field name="payment_state" invisible="1"/>
+                    <field name="move_type" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name" string="전표번호"/>
+                        <h1>
+                            <field name="name" readonly="1"
+                                   widget="char_with_placeholder_field" placeholder="/"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="invoice_date" string="전표일자"
+                                   invisible="move_type == 'entry'" readonly="state != 'draft'"/>
+                            <field name="date" string="전표일자"
+                                   invisible="move_type != 'entry'" readonly="state != 'draft'"/>
+                            <field name="partner_id" string="거래처" readonly="state != 'draft'"/>
+                            <field name="kr_primary_label" string="적요" readonly="state != 'draft'"/>
+                            <field name="kr_move_type_display" string="전표유형" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="ref" string="청구서(세금계산서)"
+                                   invisible="move_type == 'entry'" readonly="state != 'draft'"/>
+                            <field name="ref" string="참조"
+                                   invisible="move_type != 'entry'" readonly="state != 'draft'"/>
+                            <field name="kr_approval_number" string="세금계산서승인번호"
+                                   invisible="move_type == 'entry'" readonly="state != 'draft'"/>
+                            <field name="amount_total" string="총계" readonly="1"/>
+                            <field name="state" string="상태" widget="badge" readonly="1"
+                                   decoration-info="state == 'draft'"
+                                   decoration-success="state == 'posted'"
+                                   decoration-muted="state == 'cancel'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="invoice_lines" string="청구 내역" invisible="move_type == 'entry'">
+                            <field name="invoice_line_ids"
+                                   context="{'default_move_type': move_type, 'journal_id': journal_id, 'default_partner_id': partner_id, 'default_currency_id': currency_id}"
+                                   readonly="state != 'draft'">
+                                <list editable="bottom" string="청구 내역">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="display_type" column_invisible="True"/>
+                                    <field name="company_id" column_invisible="True"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="product_id" string="품목"/>
+                                    <field name="name" string="라벨"/>
+                                    <field name="account_id" string="계정과목"
+                                           domain="[('deprecated', '=', False), ('company_ids', 'parent_of', company_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="quantity" string="수량"/>
+                                    <field name="price_unit" string="단가"/>
+                                    <field name="tax_ids" string="세금" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
+                                    <field name="price_subtotal" string="공급가액" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="journal_items" string="전표 항목">
+                            <field name="line_ids"
+                                   context="{'default_move_type': move_type, 'journal_id': journal_id, 'default_partner_id': partner_id, 'default_currency_id': currency_id}"
+                                   readonly="state != 'draft'">
+                                <list editable="bottom" string="전표 항목">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="display_type" column_invisible="True"/>
+                                    <field name="company_id" column_invisible="True"/>
+                                    <field name="company_currency_id" column_invisible="True"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="account_type" column_invisible="True"/>
+                                    <field name="account_id" string="계정과목"
+                                           domain="[('deprecated', '=', False), ('company_ids', 'parent_of', company_id)]"/>
+                                    <field name="kr_bank_journal_id" string="연결 은행계좌"
+                                           invisible="account_type != 'asset_cash'"
+                                           domain="[('type', '=', 'bank'), ('company_id', '=', company_id), ('default_account_id', '=', account_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="kr_bank_account_id" string="은행 계좌번호"
+                                           invisible="account_type != 'asset_cash'" readonly="1"/>
+                                    <field name="partner_id" string="거래처" optional="show"/>
+                                    <field name="name" string="라벨"/>
+                                    <field name="debit" string="차변" sum="차변 합계"/>
+                                    <field name="credit" string="대변" sum="대변 합계"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- 표준 전표 폼을 이용하는 다른 진입점에서도 은행계좌 연결을 볼 수 있게 한다. -->
+    <record id="view_move_form_kr_bank_link" model="ir.ui.view">
+        <field name="name">account.move.form.kr.bank.link</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='aml_tab']/field[@name='line_ids']/list/field[@name='account_id']" position="after">
+                <field name="kr_bank_journal_id" string="연결 은행계좌"
+                       optional="show" invisible="account_type != 'asset_cash'"
+                       domain="[('type', '=', 'bank'), ('company_id', '=', company_id), ('default_account_id', '=', account_id)]"
+                       options="{'no_create': True}"/>
+                <field name="kr_bank_account_id" string="은행 계좌번호"
+                       optional="show" invisible="account_type != 'asset_cash'" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
