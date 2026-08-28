@@ -1,5 +1,7 @@
 from odoo.tests import TransactionCase, tagged
 
+from .. import restore_uom_precision
+
 
 @tagged("post_install", "-at_install")
 class TestUomDigits(TransactionCase):
@@ -30,3 +32,19 @@ class TestUomDigits(TransactionCase):
             self.assertLess(uom.rounding, 1,
                             "%s 반올림 계수가 %s — 소수 수량이 저장 단계에서 잘린다"
                             % (uom.name, uom.rounding))
+
+    def test_restore_is_one_shot_and_respects_settings(self):
+        """0 → 2 로 올리고, 2 이상(예: 3)은 건드리지 않는다."""
+        prec = self.env["decimal.precision"].search(
+            [("name", "=", "Product Unit of Measure")], limit=1)
+        original = prec.digits
+        try:
+            prec.write({"digits": 0})
+            restore_uom_precision(self.env)
+            self.assertEqual(prec.digits, 2, "0자리를 2로 복원해야 한다")
+            prec.write({"digits": 3})
+            restore_uom_precision(self.env)
+            self.assertEqual(prec.digits, 3, "사용자가 올린 3자리를 끌어내리면 안 된다")
+        finally:
+            prec.write({"digits": original})
+
