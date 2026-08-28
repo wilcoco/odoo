@@ -42,7 +42,51 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             ],
         })
 
+    def _enable_custom_sequence(self, sequence_format="legacy"):
+        self.company_data["company"].write({
+            "kr_use_custom_move_sequence": True,
+            "kr_move_sequence_format": sequence_format,
+        })
+
+    def test_standard_sequence_is_default_for_new_vendor_bill(self):
+        self.assertFalse(
+            self.company_data["company"].kr_use_custom_move_sequence
+        )
+        bill = self.env["account.move"].new({
+            "move_type": "in_invoice",
+            "journal_id": self.company_data["default_journal_purchase"].id,
+            "date": fields.Date.to_date("2024-07-18"),
+            "invoice_date": fields.Date.to_date("2024-07-18"),
+        })
+
+        self.assertFalse(bill._kr_uses_configured_sequence())
+        starting_sequence = bill._get_starting_sequence()
+        self.assertEqual(
+            bill._deduce_sequence_number_reset(starting_sequence),
+            "month",
+        )
+
+    def test_journal_entry_action_and_vendor_list_show_requested_fields(self):
+        action = self.env.ref(
+            "account_kr_plus_patch.action_kr_journal_entries"
+        )
+        self.assertEqual(action.domain, "[]")
+
+        arch = self.env.ref(
+            "account_kr_plus_patch.view_kr_vendor_tax_invoice_list"
+        ).arch_db
+        self.assertIn('name="status_in_payment"', arch)
+        self.assertIn('name="kr_doc_type"', arch)
+        self.assertIn('name="kr_tax_type"', arch)
+        self.assertIn('string="미납금액"', arch)
+        self.assertIn('string="결제완료 금액"', arch)
+
+    def test_unlinked_approval_status_is_not_blank(self):
+        move = self._create_entry("2024-07-17")
+        self.assertEqual(move.kr_approval_status_display, "미연결")
+
     def test_daily_compact_sequence(self):
+        self._enable_custom_sequence()
         first = self._create_entry("2024-07-18")
         second = self._create_entry("2024-07-18")
         next_day = self._create_entry("2024-07-19")
@@ -56,6 +100,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertEqual(next_day.name, "20240719000001GEN")
 
     def test_refund_starting_sequence_has_r_prefix(self):
+        self._enable_custom_sequence()
         refund = self.env["account.move"].new({
             "move_type": "in_refund",
             "journal_id": self.company_data["default_journal_purchase"].id,
@@ -68,12 +113,16 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             self.simple_accountman
         ).create({
             "company_id": self.company_data["company"].id,
+            "kr_use_custom_move_sequence": True,
             "kr_move_sequence_format": "extended",
         })
         settings.action_save()
         self.assertEqual(
             self.company_data["company"].kr_move_sequence_format,
             "extended",
+        )
+        self.assertTrue(
+            self.company_data["company"].kr_use_custom_move_sequence
         )
 
         self.misc_journal.kr_sequence_code = "GENERAL01"
@@ -94,6 +143,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             })
 
     def test_historical_sequence_survives_format_and_code_change(self):
+        self._enable_custom_sequence()
         legacy_move = self._create_entry("2024-07-23")
         legacy_move.action_post()
         self.assertEqual(legacy_move.name, "20240723000001GEN")
@@ -109,14 +159,22 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertEqual(extended_move.name, "20240723000001-GENERAL01")
 
     def test_legacy_format_rejects_extended_code(self):
+        self._enable_custom_sequence()
         with self.assertRaises(ValidationError):
             self.misc_journal.kr_sequence_code = "GENERAL01"
 
     def test_cannot_restore_legacy_format_with_extended_codes(self):
-        self.company_data["company"].kr_move_sequence_format = "extended"
+        self._enable_custom_sequence(sequence_format="extended")
         self.misc_journal.kr_sequence_code = "GENERAL01"
         with self.assertRaises(ValidationError):
             self.company_data["company"].kr_move_sequence_format = "legacy"
+
+    def test_extended_code_is_not_forced_with_standard_sequence(self):
+        self.assertFalse(
+            self.company_data["company"].kr_use_custom_move_sequence
+        )
+        self.misc_journal.kr_sequence_code = "GENERAL01"
+        self.assertEqual(self.misc_journal.kr_sequence_code, "GENERAL01")
 
     def test_bank_journal_is_selected_when_mapping_is_unique(self):
         liquidity_account = self.env["account.account"].create({

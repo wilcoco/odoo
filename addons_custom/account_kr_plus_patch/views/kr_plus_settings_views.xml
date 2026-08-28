@@ -18,13 +18,15 @@
                                options="{'no_create': True}"/>
                     </group>
                     <group string="전표번호 규칙">
-                        <field name="kr_move_sequence_format" widget="radio"/>
+                        <field name="kr_use_custom_move_sequence"/>
+                        <field name="kr_move_sequence_format" widget="radio"
+                               invisible="not kr_use_custom_move_sequence"/>
                         <field name="sequence_example" readonly="1"/>
                     </group>
                     <div class="alert alert-info" role="alert">
-                        번호 형식을 변경해도 이미 발급된 전표번호는 바뀌지 않습니다.
-                        형식이나 전표유형 코드를 변경한 뒤 발급하는 번호는 해당
-                        형식·코드별로 일자 순번이 시작되거나 이어집니다.
+                        기본값은 Odoo 저널의 표준 번호 규칙입니다. 한국식 규칙이
+                        꼭 필요한 회사만 사용을 켜세요. 설정을 변경해도 이미 발급된
+                        전표번호는 바뀌지 않습니다.
                     </div>
                     <group string="회계 기준정보">
                         <button name="action_open_sequence_journals" type="object"

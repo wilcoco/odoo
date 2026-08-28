@@ -60,6 +60,10 @@ class AccountMove(models.Model):
         compute="_compute_kr_move_type_display",
         store=True,
     )
+    kr_approval_status_display = fields.Char(
+        string="결재상태",
+        compute="_compute_kr_approval_status_display",
+    )
 
     @api.depends(
         "invoice_line_ids.product_id",
@@ -84,6 +88,18 @@ class AccountMove(models.Model):
         for move in self:
             move.kr_move_type_display = KR_MOVE_TYPE_NAMES.get(
                 move.move_type, move.move_type or ""
+            )
+
+    @api.depends("pumui_id", "pumui_approval_state")
+    def _compute_kr_approval_status_display(self):
+        selection = dict(
+            self._fields["pumui_approval_state"]._description_selection(self.env)
+        )
+        for move in self:
+            move.kr_approval_status_display = (
+                selection.get(move.pumui_approval_state, move.pumui_approval_state)
+                if move.pumui_id
+                else _("미연결")
             )
 
     @api.depends(
@@ -140,6 +156,8 @@ class AccountMove(models.Model):
         """신규 전표에는 현재 설정을, 기존 전표에는 발급 당시 형식을 사용한다."""
         self.ensure_one()
         if not self.name or self.name == "/":
+            if not self.company_id.kr_use_custom_move_sequence:
+                return False
             return self._kr_get_configured_sequence_regex()
         regex = KR_MOVE_SEQUENCE_REGEXES[self._kr_get_sequence_format_for_record()]
         return regex if re.fullmatch(regex, self.name) else False

@@ -13,6 +13,14 @@ KR_MOVE_SEQUENCE_FORMATS = [
 class ResCompany(models.Model):
     _inherit = "res.company"
 
+    kr_use_custom_move_sequence = fields.Boolean(
+        string="한국식 전표번호 규칙 사용",
+        default=False,
+        help=(
+            "선택하지 않으면 Odoo 저널의 기본 전표번호 규칙을 사용합니다. "
+            "기존에 발급된 한국식 전표번호는 이 설정과 관계없이 계속 인식합니다."
+        ),
+    )
     kr_move_sequence_format = fields.Selection(
         selection=KR_MOVE_SEQUENCE_FORMATS,
         string="한국식 전표번호 형식",
@@ -24,10 +32,12 @@ class ResCompany(models.Model):
         ),
     )
 
-    @api.constrains("kr_move_sequence_format")
+    @api.constrains("kr_use_custom_move_sequence", "kr_move_sequence_format")
     def _check_kr_move_sequence_format_codes(self):
         Journal = self.env["account.journal"].sudo().with_context(active_test=False)
         for company in self:
+            if not company.kr_use_custom_move_sequence:
+                continue
             journals = Journal.search([("company_id", "=", company.id)])
             if company.kr_move_sequence_format == "legacy":
                 invalid = journals.filtered(

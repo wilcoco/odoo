@@ -15,6 +15,10 @@ class AccountKrPlusSettings(models.TransientModel):
         default=lambda self: self.env.company,
         domain=lambda self: [("id", "in", self.env.companies.ids)],
     )
+    kr_use_custom_move_sequence = fields.Boolean(
+        string="한국식 전표번호 규칙 사용",
+        default=lambda self: self.env.company.kr_use_custom_move_sequence,
+    )
     kr_move_sequence_format = fields.Selection(
         selection=KR_MOVE_SEQUENCE_FORMATS,
         string="전표번호 형식",
@@ -26,18 +30,24 @@ class AccountKrPlusSettings(models.TransientModel):
         compute="_compute_sequence_example",
     )
 
-    @api.depends("kr_move_sequence_format")
+    @api.depends("kr_use_custom_move_sequence", "kr_move_sequence_format")
     def _compute_sequence_example(self):
         for settings in self:
-            settings.sequence_example = (
-                "R20260828000001-PURCHASE"
-                if settings.kr_move_sequence_format == "extended"
-                else "R20260828000001PUR"
-            )
+            if not settings.kr_use_custom_move_sequence:
+                settings.sequence_example = _("Odoo 저널 기본 번호 사용")
+            else:
+                settings.sequence_example = (
+                    "R20260828000001-PURCHASE"
+                    if settings.kr_move_sequence_format == "extended"
+                    else "R20260828000001PUR"
+                )
 
     @api.onchange("company_id")
     def _onchange_company_id(self):
         if self.company_id:
+            self.kr_use_custom_move_sequence = (
+                self.company_id.kr_use_custom_move_sequence
+            )
             self.kr_move_sequence_format = self.company_id.kr_move_sequence_format
 
     def _check_account_manager(self):
@@ -51,6 +61,7 @@ class AccountKrPlusSettings(models.TransientModel):
         self._check_account_manager()
         # res.company 전체 쓰기 권한을 부여하지 않고 이 설정 필드만 제한적으로 저장한다.
         self.company_id.sudo().write({
+            "kr_use_custom_move_sequence": self.kr_use_custom_move_sequence,
             "kr_move_sequence_format": self.kr_move_sequence_format,
         })
         return {
@@ -59,7 +70,7 @@ class AccountKrPlusSettings(models.TransientModel):
             "params": {
                 "title": _("설정 저장 완료"),
                 "message": _(
-                    "선택한 회사의 한국식 전표번호 규칙을 저장했습니다. "
+                    "선택한 회사의 전표번호 설정을 저장했습니다. "
                     "이미 발급된 전표번호는 변경되지 않습니다."
                 ),
                 "type": "success",

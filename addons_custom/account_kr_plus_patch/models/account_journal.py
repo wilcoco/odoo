@@ -49,6 +49,8 @@ class AccountJournal(models.Model):
     @api.constrains("kr_sequence_code", "company_id")
     def _check_kr_sequence_code(self):
         for journal in self:
+            if not journal.company_id.kr_use_custom_move_sequence:
+                continue
             sequence_format = (
                 journal.company_id.kr_move_sequence_format or "legacy"
             )
