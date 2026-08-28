@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_kr_move_sequence_repair_wizard_form" model="ir.ui.view">
+        <field name="name">account.kr.move.sequence.repair.wizard.form</field>
+        <field name="model">account.kr.move.sequence.repair.wizard</field>
+        <field name="arch" type="xml">
+            <form string="전표번호 점검 및 수정">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="criteria,preview,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>전표번호 점검 및 수정</h1>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert">
+                        이 위저드는 조회와 미리보기만으로 전표를 변경하지 않습니다.
+                        변경 예정 번호와 적용 가능 여부를 확인한 뒤 마지막 단계에서
+                        명시적으로 적용해야 합니다. 회계 내용은 변경하지 않고
+                        전표번호만 수정합니다.
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="state != 'criteria'"
+                                   groups="base.group_multi_company"
+                                   options="{'no_create': True}"/>
+                            <field name="current_rule" readonly="1"/>
+                            <field name="preview_rule" invisible="state == 'criteria'"/>
+                        </group>
+                        <group invisible="state != 'criteria'">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="journal_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                            <field name="include_draft"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info" role="alert"
+                         invisible="state != 'criteria'">
+                        대상 저널을 비워두면 회사의 모든 저널을 검사합니다. Odoo 기본
+                        형식은 이 모듈이 판정하거나 수정하지 않습니다.
+                    </div>
+
+                    <group string="요약" invisible="state == 'criteria'">
+                        <group>
+                            <field name="target_count" readonly="1"/>
+                            <field name="ready_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="blocked_count" readonly="1"/>
+                            <field name="applied_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="result_message" nolabel="1" readonly="1"
+                           invisible="not result_message"/>
+
+                    <field name="line_ids" nolabel="1" readonly="1"
+                           invisible="state == 'criteria'">
+                        <list create="0" edit="0" delete="0"
+                              decoration-success="result_state == 'applied'"
+                              decoration-danger="result_state == 'blocked'"
+                              decoration-info="result_state == 'ready'">
+                            <field name="move_date"/>
+                            <field name="journal_id"/>
+                            <field name="move_id"/>
+                            <field name="partner_id" optional="show"/>
+                            <field name="current_name"/>
+                            <field name="issue_type" widget="badge"/>
+                            <field name="issue_summary" optional="hide"/>
+                            <field name="proposed_name"/>
+                            <field name="result_state" widget="badge"/>
+                            <field name="result_message"/>
+                        </list>
+                    </field>
+
+                    <div class="alert alert-success" role="alert"
+                         invisible="state != 'preview' or target_count != 0">
+                        현재 설정과 일치하지 않는 전표번호를 찾지 못했습니다.
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_scan" type="object"
+                            string="대상 찾기 및 미리보기" class="btn-primary"
+                            invisible="state != 'criteria'"/>
+                    <button name="action_apply" type="object"
+                            string="적용 가능한 전표번호 변경" class="btn-primary"
+                            invisible="state != 'preview' or ready_count == 0"
+                            confirm="미리보기에 표시된 적용 가능 전표의 번호만 변경합니다. 계속하시겠습니까?"/>
+                    <button name="action_reset" type="object"
+                            string="조건 다시 설정" class="btn-secondary"
+                            invisible="state == 'criteria'"/>
+                    <button string="닫기" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -38,12 +38,13 @@
             (0, 0, {'view_mode': 'list', 'view_id': ref('account.view_move_tree')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_move_form_kr_plus')})]"/>
         <field name="search_view_id" ref="account.view_account_move_filter"/>
-        <field name="domain">[('move_type', '=', 'entry')]</field>
+        <!-- 일반 전표뿐 아니라 Odoo 청구서·세금계산서도 함께 조회한다. -->
+        <field name="domain">[]</field>
         <field name="context">{'default_move_type': 'entry', 'view_no_maturity': True}</field>
     </record>
 
     <record id="action_kr_bank_journals" model="ir.actions.act_window">
-        <field name="name">당좌·보통예금 은행계좌</field>
+        <field name="name">계좌 설정</field>
         <field name="res_model">account.journal</field>
         <field name="view_mode">list,form</field>
         <field name="view_ids" eval="[(5, 0, 0),
@@ -68,7 +69,7 @@
     </record>
 
     <menuitem id="menu_kr_bank_journals"
-              name="당좌·보통예금 은행계좌"
+              name="계좌 설정"
               parent="account.account_banks_menu"
               action="action_kr_bank_journals"
               groups="account.group_account_manager"

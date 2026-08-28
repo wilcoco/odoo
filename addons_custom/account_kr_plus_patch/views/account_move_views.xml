@@ -18,14 +18,29 @@
                 <field name="amount_untaxed" string="공급가액" sum="공급가액 합계"/>
                 <field name="amount_tax" string="세액" sum="세액 합계"/>
                 <field name="amount_total" string="합계" sum="전체 합계" decoration-bf="1"/>
-                <field name="kr_doc_type" string="증빙유형"/>
-                <field name="kr_tax_type" string="구분"/>
-                <field name="pumui_approval_state" string="결재상태" widget="badge"
+                <field name="kr_doc_type" string="증빙유형" widget="badge"
+                       decoration-success="kr_doc_type == 'tax_invoice'"
+                       decoration-info="kr_doc_type in ('invoice', 'card')"
+                       decoration-warning="kr_doc_type == 'cash_receipt'"
+                       decoration-muted="kr_doc_type == 'etc'"/>
+                <field name="kr_tax_type" string="구분" widget="badge"
+                       decoration-danger="kr_tax_type == 'taxable'"
+                       decoration-info="kr_tax_type == 'zero'"
+                       decoration-muted="kr_tax_type == 'exempt'"/>
+                <field name="pumui_approval_state" column_invisible="True"/>
+                <field name="kr_approval_status_display" string="결재상태" widget="badge"
                        decoration-success="pumui_approval_state == 'approved'"
-                       decoration-danger="pumui_approval_state == 'rejected'"/>
-                <field name="kr_residual_display" string="미납금액(현 잔액)"
+                       decoration-danger="pumui_approval_state == 'rejected'"
+                       decoration-muted="not pumui_approval_state"/>
+                <field name="status_in_payment" string="결제상태" widget="badge"
+                       decoration-info="status_in_payment == 'draft'"
+                       decoration-warning="status_in_payment in ('not_paid', 'partial', 'in_payment')"
+                       decoration-success="status_in_payment in ('paid', 'reversed')"
+                       decoration-danger="status_in_payment == 'blocked'"
+                       decoration-muted="status_in_payment == 'cancel'"/>
+                <field name="kr_residual_display" string="미납금액"
                        sum="미납금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="kr_paid_amount" string="결제 완료 금액" sum="결제금액 합계"/>
+                <field name="kr_paid_amount" string="결제완료 금액" sum="결제금액 합계"/>
                 <field name="state" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
             </list>
@@ -109,7 +124,7 @@
                             <field name="kr_primary_label" string="적요" readonly="state != 'draft'"/>
                             <field name="kr_move_type_display" string="전표유형" readonly="1"/>
                         </group>
-                        <group>
+                        <group col="4">
                             <field name="ref" string="청구서(세금계산서)"
                                    invisible="move_type == 'entry'" readonly="state != 'draft'"/>
                             <field name="ref" string="참조"

@@ -4,3 +4,4 @@ from . import account_journal
 from . import account_move_line
 from . import account_move
 from . import kr_plus_settings
+from . import sequence_repair_wizard
