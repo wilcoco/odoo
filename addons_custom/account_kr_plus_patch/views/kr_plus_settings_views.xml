@@ -18,26 +18,44 @@
                                options="{'no_create': True}"/>
                     </group>
                     <group string="전표번호 규칙">
-                        <field name="kr_use_custom_move_sequence"/>
-                        <field name="kr_move_sequence_format" widget="radio"
-                               invisible="not kr_use_custom_move_sequence"/>
+                        <field name="kr_move_sequence_rule" widget="radio"/>
                         <field name="sequence_example" readonly="1"/>
                     </group>
+                    <group string="전표 설정">
+                        <div class="row g-2" colspan="2">
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_sequence_journals" type="object"
+                                        string="전표유형 및 코드 설정"
+                                        class="btn btn-outline-primary w-100 text-start py-3 px-4"
+                                        icon="fa-list-ol"/>
+                            </div>
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_sequence_repair" type="object"
+                                        string="전표번호 점검 및 수정"
+                                        class="btn btn-outline-primary w-100 text-start py-3 px-4"
+                                        icon="fa-wrench"/>
+                            </div>
+                        </div>
+                    </group>
                     <div class="alert alert-info" role="alert">
-                        기본값은 Odoo 저널의 표준 번호 규칙입니다. 한국식 규칙이
-                        꼭 필요한 회사만 사용을 켜세요. 설정을 변경해도 이미 발급된
-                        전표번호는 바뀌지 않습니다.
+                        Odoo 기본을 선택하면 이 모듈은 신규 전표번호 발급에 관여하지
+                        않습니다. 설정 저장만으로 기존 전표번호가 바뀌지는 않습니다.
                     </div>
                     <group string="회계 기준정보">
-                        <button name="action_open_sequence_journals" type="object"
-                                string="저널·전표유형 코드" class="btn-secondary"
-                                icon="oi-arrow-right"/>
-                        <button name="action_open_bank_journals" type="object"
-                                string="당좌·보통예금 은행계좌" class="btn-secondary"
-                                icon="oi-arrow-right"/>
-                        <button name="action_open_accounts" type="object"
-                                string="계정과목표" class="btn-secondary"
-                                icon="oi-arrow-right"/>
+                        <div class="row g-2" colspan="2">
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_bank_journals" type="object"
+                                        string="계좌 설정"
+                                        class="btn btn-outline-secondary w-100 text-start py-3 px-4"
+                                        icon="fa-university"/>
+                            </div>
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_accounts" type="object"
+                                        string="계정과목 설정"
+                                        class="btn btn-outline-secondary w-100 text-start py-3 px-4"
+                                        icon="fa-book"/>
+                            </div>
+                        </div>
                     </group>
                 </sheet>
             </form>

@@ -4,23 +4,29 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
-# 기존 형식: R(환불) + YYYYMMDD + 일자별 6자리 순번 + 영문 3자리 코드
-KR_MOVE_SEQUENCE_LEGACY_REGEX = (
+# 현재 설정에서 선택할 수 있는 두 한국식 형식
+KR_MOVE_SEQUENCE_DATE_NUMBER_REGEX = (
+    r"^(?P<prefix1>R?)(?P<year>\d{4})(?P<month>\d{2})"
+    r"(?P<prefix2>\d{2})(?P<seq>\d{6})(?P<suffix>)$"
+)
+KR_MOVE_SEQUENCE_DATE_NUMBER_TYPE_REGEX = (
     r"^(?P<prefix1>R?)(?P<year>\d{4})(?P<month>\d{2})"
     r"(?P<prefix2>\d{2})(?P<seq>\d{6})(?P<suffix>[A-Z]{3})$"
 )
-# 확장 형식: 기존 번호 본체 + 구분자 + 영문/숫자 2~10자리 코드
-KR_MOVE_SEQUENCE_EXTENDED_REGEX = (
+# 이전 버전에서 발급된 긴 코드 번호는 설정 선택지에서 제거하되 계속 열람할 수 있게 한다.
+KR_MOVE_SEQUENCE_LONG_CODE_COMPAT_REGEX = (
     r"^(?P<prefix1>R?)(?P<year>\d{4})(?P<month>\d{2})"
     r"(?P<prefix2>\d{2})(?P<seq>\d{6})(?P<suffix>-[A-Z0-9]{2,10})$"
 )
 KR_MOVE_SEQUENCE_REGEXES = {
-    "legacy": KR_MOVE_SEQUENCE_LEGACY_REGEX,
-    "extended": KR_MOVE_SEQUENCE_EXTENDED_REGEX,
+    "date_number": KR_MOVE_SEQUENCE_DATE_NUMBER_REGEX,
+    "date_number_type": KR_MOVE_SEQUENCE_DATE_NUMBER_TYPE_REGEX,
+    "long_code_compat": KR_MOVE_SEQUENCE_LONG_CODE_COMPAT_REGEX,
 }
 KR_MOVE_SEQUENCE_SQL_REGEXES = {
-    "legacy": r"^R?[0-9]{14}[A-Z]{3}$",
-    "extended": r"^R?[0-9]{14}-[A-Z0-9]{2,10}$",
+    "date_number": r"^R?[0-9]{14}$",
+    "date_number_type": r"^R?[0-9]{14}[A-Z]{3}$",
+    "long_code_compat": r"^R?[0-9]{14}-[A-Z0-9]{2,10}$",
 }
 REFUND_MOVE_TYPES = ("out_refund", "in_refund")
 INVOICE_MOVE_TYPES = (
@@ -135,32 +141,34 @@ class AccountMove(models.Model):
             lambda line: (line.sequence or 0, line._origin.id or 0)
         )[:1]
 
-    def _kr_get_configured_sequence_format(self):
+    def _kr_get_configured_sequence_rule(self):
         self.ensure_one()
-        return self.company_id.kr_move_sequence_format or "legacy"
+        return self.company_id.kr_move_sequence_rule or "odoo"
 
     def _kr_get_configured_sequence_regex(self):
         self.ensure_one()
-        return KR_MOVE_SEQUENCE_REGEXES[self._kr_get_configured_sequence_format()]
+        return KR_MOVE_SEQUENCE_REGEXES.get(
+            self._kr_get_configured_sequence_rule()
+        )
 
-    def _kr_get_sequence_format_for_record(self):
+    def _kr_get_sequence_rule_for_record(self):
         """과거 전표는 발급 당시 형식, 신규 전표는 현재 회사 설정을 반환한다."""
         self.ensure_one()
         if self.name and self.name != "/":
-            for sequence_format, regex in KR_MOVE_SEQUENCE_REGEXES.items():
+            for sequence_rule, regex in KR_MOVE_SEQUENCE_REGEXES.items():
                 if re.fullmatch(regex, self.name):
-                    return sequence_format
-        return self._kr_get_configured_sequence_format()
+                    return sequence_rule
+        return self._kr_get_configured_sequence_rule()
 
     def _kr_get_supported_sequence_regex(self):
         """신규 전표에는 현재 설정을, 기존 전표에는 발급 당시 형식을 사용한다."""
         self.ensure_one()
         if not self.name or self.name == "/":
-            if not self.company_id.kr_use_custom_move_sequence:
-                return False
             return self._kr_get_configured_sequence_regex()
-        regex = KR_MOVE_SEQUENCE_REGEXES[self._kr_get_sequence_format_for_record()]
-        return regex if re.fullmatch(regex, self.name) else False
+        regex = KR_MOVE_SEQUENCE_REGEXES.get(
+            self._kr_get_sequence_rule_for_record()
+        )
+        return regex if regex and re.fullmatch(regex, self.name) else False
 
     def _kr_uses_configured_sequence(self):
         """신규 전표와 지원하는 한국식 번호인 전표에만 새 파서를 적용한다.
@@ -208,31 +216,32 @@ class AccountMove(models.Model):
         if not self.date or not self.journal_id:
             return "WHERE FALSE", {}
 
-        sequence_format = self._kr_get_sequence_format_for_record()
+        sequence_rule = self._kr_get_sequence_rule_for_record()
         match = re.fullmatch(
-            KR_MOVE_SEQUENCE_REGEXES[sequence_format], self.name or ""
-        )
-        sequence_code = (
-            match.group("suffix").lstrip("-")
-            if match
-            else self.journal_id._kr_get_sequence_code()
-        )
-        sequence_suffix = (
-            sequence_code if sequence_format == "legacy" else "-%s" % sequence_code
+            KR_MOVE_SEQUENCE_REGEXES[sequence_rule], self.name or ""
         )
         where_string = (
             "WHERE journal_id = %(journal_id)s "
             "AND name != '/' "
             "AND date = %(sequence_date)s "
             "AND name ~ %(sequence_regex)s "
-            "AND RIGHT(name, LENGTH(%(sequence_suffix)s)) = %(sequence_suffix)s "
         )
         params = {
             "journal_id": self.journal_id.id,
             "sequence_date": self.date,
-            "sequence_regex": KR_MOVE_SEQUENCE_SQL_REGEXES[sequence_format],
-            "sequence_suffix": sequence_suffix,
+            "sequence_regex": KR_MOVE_SEQUENCE_SQL_REGEXES[sequence_rule],
         }
+        if sequence_rule != "date_number":
+            sequence_suffix = (
+                match.group("suffix")
+                if match
+                else self.journal_id._kr_get_sequence_code()
+            )
+            where_string += (
+                "AND RIGHT(name, LENGTH(%(sequence_suffix)s)) = "
+                "%(sequence_suffix)s "
+            )
+            params["sequence_suffix"] = sequence_suffix
         if self.move_type in REFUND_MOVE_TYPES:
             where_string += "AND move_type IN ('out_refund', 'in_refund') "
         else:
@@ -245,15 +254,12 @@ class AccountMove(models.Model):
             return super()._get_starting_sequence()
         move_date = self.date or self.invoice_date or fields.Date.context_today(self)
         refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
-        separator = (
-            "-" if self._kr_get_configured_sequence_format() == "extended" else ""
+        starting_sequence = "%s%s000000" % (
+            refund_prefix, move_date.strftime("%Y%m%d")
         )
-        return "%s%s000000%s%s" % (
-            refund_prefix,
-            move_date.strftime("%Y%m%d"),
-            separator,
-            self.journal_id._kr_get_sequence_code(),
-        )
+        if self._kr_get_configured_sequence_rule() == "date_number_type":
+            starting_sequence += self.journal_id._kr_get_sequence_code()
+        return starting_sequence
 
     def _sequence_matches_date(self):
         self.ensure_one()
@@ -276,6 +282,16 @@ class AccountMove(models.Model):
             == (self.move_type in REFUND_MOVE_TYPES)
         )
 
+    def _set_next_made_sequence_gap(self, made_gap):
+        if self.env.context.get("kr_sequence_repair_only_name"):
+            return
+        return super()._set_next_made_sequence_gap(made_gap)
+
+    def _inverse_name(self):
+        if self.env.context.get("kr_sequence_repair_only_name"):
+            return
+        return super()._inverse_name()
+
     def action_post(self):
         for move in self:
             ambiguous_lines = self.env["account.move.line"]
@@ -295,7 +311,7 @@ class AccountMove(models.Model):
                     ambiguous_lines.mapped("account_id.display_name")
                 )
                 raise UserError(_(
-                    "동일한 당좌·보통예금 계정과목에 은행계좌가 여러 개 연결되어 "
+                    "동일한 당좌예금 계정과목에 은행계좌가 여러 개 연결되어 "
                     "있습니다. 다음 분개 라인의 '연결 은행계좌'를 선택해주세요: %s",
                     accounts,
                 ))

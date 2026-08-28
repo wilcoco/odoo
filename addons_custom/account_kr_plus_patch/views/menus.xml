@@ -44,7 +44,7 @@
     </record>
 
     <record id="action_kr_bank_journals" model="ir.actions.act_window">
-        <field name="name">당좌·보통예금 은행계좌</field>
+        <field name="name">계좌 설정</field>
         <field name="res_model">account.journal</field>
         <field name="view_mode">list,form</field>
         <field name="view_ids" eval="[(5, 0, 0),
@@ -69,7 +69,7 @@
     </record>
 
     <menuitem id="menu_kr_bank_journals"
-              name="당좌·보통예금 은행계좌"
+              name="계좌 설정"
               parent="account.account_banks_menu"
               action="action_kr_bank_journals"
               groups="account.group_account_manager"

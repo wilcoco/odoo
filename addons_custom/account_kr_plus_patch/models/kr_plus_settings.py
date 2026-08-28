@@ -1,7 +1,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError
 
-from .res_company import KR_MOVE_SEQUENCE_FORMATS
+from .res_company import KR_MOVE_SEQUENCE_RULES
 
 
 class AccountKrPlusSettings(models.TransientModel):
@@ -15,40 +15,35 @@ class AccountKrPlusSettings(models.TransientModel):
         default=lambda self: self.env.company,
         domain=lambda self: [("id", "in", self.env.companies.ids)],
     )
-    kr_use_custom_move_sequence = fields.Boolean(
-        string="한국식 전표번호 규칙 사용",
-        default=lambda self: self.env.company.kr_use_custom_move_sequence,
-    )
-    kr_move_sequence_format = fields.Selection(
-        selection=KR_MOVE_SEQUENCE_FORMATS,
+    kr_move_sequence_rule = fields.Selection(
+        selection=KR_MOVE_SEQUENCE_RULES,
         string="전표번호 형식",
         required=True,
-        default=lambda self: self.env.company.kr_move_sequence_format,
+        default=lambda self: self.env.company.kr_move_sequence_rule or "odoo",
     )
     sequence_example = fields.Char(
         string="번호 예시",
         compute="_compute_sequence_example",
     )
 
-    @api.depends("kr_use_custom_move_sequence", "kr_move_sequence_format")
+    @api.depends("kr_move_sequence_rule")
     def _compute_sequence_example(self):
         for settings in self:
-            if not settings.kr_use_custom_move_sequence:
-                settings.sequence_example = _("Odoo 저널 기본 번호 사용")
-            else:
-                settings.sequence_example = (
-                    "R20260828000001-PURCHASE"
-                    if settings.kr_move_sequence_format == "extended"
-                    else "R20260828000001PUR"
-                )
+            examples = {
+                "date_number": "R20260828000001",
+                "date_number_type": "R20260828000001PUR",
+                "odoo": _("Odoo 저널 기본 번호 사용"),
+            }
+            settings.sequence_example = examples.get(
+                settings.kr_move_sequence_rule, examples["odoo"]
+            )
 
     @api.onchange("company_id")
     def _onchange_company_id(self):
         if self.company_id:
-            self.kr_use_custom_move_sequence = (
-                self.company_id.kr_use_custom_move_sequence
+            self.kr_move_sequence_rule = (
+                self.company_id.kr_move_sequence_rule or "odoo"
             )
-            self.kr_move_sequence_format = self.company_id.kr_move_sequence_format
 
     def _check_account_manager(self):
         if not self.env.user.has_group("account.group_account_manager"):
@@ -61,8 +56,7 @@ class AccountKrPlusSettings(models.TransientModel):
         self._check_account_manager()
         # res.company 전체 쓰기 권한을 부여하지 않고 이 설정 필드만 제한적으로 저장한다.
         self.company_id.sudo().write({
-            "kr_use_custom_move_sequence": self.kr_use_custom_move_sequence,
-            "kr_move_sequence_format": self.kr_move_sequence_format,
+            "kr_move_sequence_rule": self.kr_move_sequence_rule,
         })
         return {
             "type": "ir.actions.client",
@@ -83,7 +77,7 @@ class AccountKrPlusSettings(models.TransientModel):
         self._check_account_manager()
         return {
             "type": "ir.actions.act_window",
-            "name": _("저널·전표유형 코드"),
+            "name": _("전표유형 및 코드 설정"),
             "res_model": "account.journal",
             "view_mode": "list,form",
             "views": [
@@ -93,6 +87,21 @@ class AccountKrPlusSettings(models.TransientModel):
                 (self.env.ref("account.view_account_journal_form").id, "form"),
             ],
             "domain": [("company_id", "=", self.company_id.id)],
+            "context": {"default_company_id": self.company_id.id},
+        }
+
+    def action_open_sequence_repair(self):
+        self.ensure_one()
+        self._check_account_manager()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("전표번호 점검 및 수정"),
+            "res_model": "account.kr.move.sequence.repair.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "account_kr_plus_patch.view_account_kr_move_sequence_repair_wizard_form"
+            ).id,
+            "target": "new",
             "context": {"default_company_id": self.company_id.id},
         }
 

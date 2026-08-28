@@ -17,7 +17,7 @@ class AccountMoveLine(models.Model):
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id), "
                "('default_account_id', '=', account_id)]",
         help=(
-            "당좌·보통예금 계정과목이 어느 실제 은행계좌에 해당하는지 지정합니다. "
+            "당좌예금 계정과목이 어느 실제 은행계좌에 해당하는지 지정합니다. "
             "은행저널의 기본 계정과 현재 계정과목이 같아야 합니다."
         ),
     )
