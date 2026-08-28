@@ -51,12 +51,12 @@ Odoo 의 금액 표시 자리수는 세 곳에서 결정되고, 앞의 두 곳�
 - `product.product.value_svl`, `stock.lot.value_svl`, `stock.valuation.layer.revaluation.current_value_svl`
 - 단가 계열: `purchase.order.line.price_unit_discounted`, `purchase.bill.line.match.product_uom_price`, `sale.report.price_unit`
 
-## K-Guard 로 옮길 때 (PR 체크리스트)
+## K-Guard 로 옮길 때
 
-- `models/kr_amount_digits.py`, `data/decimal_precision.xml`, `tests/` 를 그대로 복사
-- `DISABLE_PARAM` 의 모듈 프리픽스 변경, K-Guard `__manifest__.py` 의 `data` 에 XML 추가
-- 이 모듈(`account_kr_plus_patch`)은 **먼저 제거(uninstall)** 해야 한다 —
-  두 모듈이 같이 있으면 `decimal.precision` 의 `name` unique 제약("KR Amount" 중복)에 걸린다.
+편입 절차·배포 순서·검증 포인트는 **[HANDOVER.md](HANDOVER.md)** 참조 —
+K-Guard 개발자 인수인계용 자기완결 문서. 핵심 주의 한 가지만 여기 반복한다:
+편입본 배포 전에 이 모듈을 **먼저 제거(uninstall)** 해야 한다
+(`decimal.precision` 의 `name` unique 제약 — "KR Amount" 중복).
 
 ## 검증
 
