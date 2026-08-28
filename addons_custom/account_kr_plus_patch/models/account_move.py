@@ -23,11 +23,7 @@ KR_MOVE_SEQUENCE_REGEXES = {
     "date_number_type": KR_MOVE_SEQUENCE_DATE_NUMBER_TYPE_REGEX,
     "long_code_compat": KR_MOVE_SEQUENCE_LONG_CODE_COMPAT_REGEX,
 }
-KR_MOVE_SEQUENCE_SQL_REGEXES = {
-    "date_number": r"^R?[0-9]{14}$",
-    "date_number_type": r"^R?[0-9]{14}[A-Z]{3}$",
-    "long_code_compat": r"^R?[0-9]{14}-[A-Z0-9]{2,10}$",
-}
+KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX = r"([A-Z]{3}|-[A-Z0-9]{2,10})?"
 REFUND_MOVE_TYPES = ("out_refund", "in_refund")
 INVOICE_MOVE_TYPES = (
     "out_invoice",
@@ -213,40 +209,132 @@ class AccountMove(models.Model):
         self.ensure_one()
         if not self._kr_uses_configured_sequence():
             return super()._get_last_sequence_domain(relaxed=relaxed)
-        if not self.date or not self.journal_id:
+        if not self.date or not self.company_id:
             return "WHERE FALSE", {}
 
-        sequence_rule = self._kr_get_sequence_rule_for_record()
-        match = re.fullmatch(
-            KR_MOVE_SEQUENCE_REGEXES[sequence_rule], self.name or ""
-        )
+        refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
         where_string = (
-            "WHERE journal_id = %(journal_id)s "
+            "WHERE company_id = %(company_id)s "
             "AND name != '/' "
             "AND date = %(sequence_date)s "
             "AND name ~ %(sequence_regex)s "
         )
         params = {
-            "journal_id": self.journal_id.id,
+            "company_id": self.company_id.id,
             "sequence_date": self.date,
-            "sequence_regex": KR_MOVE_SEQUENCE_SQL_REGEXES[sequence_rule],
+            "sequence_regex": (
+                r"^%s[0-9]{14}%s$"
+                % (refund_prefix, KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX)
+            ),
         }
-        if sequence_rule != "date_number":
-            sequence_suffix = (
-                match.group("suffix")
-                if match
-                else self.journal_id._kr_get_sequence_code()
-            )
-            where_string += (
-                "AND RIGHT(name, LENGTH(%(sequence_suffix)s)) = "
-                "%(sequence_suffix)s "
-            )
-            params["sequence_suffix"] = sequence_suffix
-        if self.move_type in REFUND_MOVE_TYPES:
-            where_string += "AND move_type IN ('out_refund', 'in_refund') "
-        else:
-            where_string += "AND move_type NOT IN ('out_refund', 'in_refund') "
         return where_string, params
+
+    def _kr_get_last_shared_sequence_number(self, lock=False):
+        """Return the company-wide daily number shared by every TTT code."""
+        self.ensure_one()
+        move_date = fields.Date.to_date(
+            self.date or self.invoice_date or fields.Date.context_today(self)
+        )
+        refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
+        if lock:
+            lock_name = "account_kr_plus_patch:%s:%s:%s" % (
+                self.company_id.id,
+                move_date.isoformat(),
+                refund_prefix or "N",
+            )
+            self.env.cr.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                [lock_name],
+            )
+
+        self.env["account.move"].flush_model(["name", "company_id"])
+        date_part = move_date.strftime("%Y%m%d")
+        sequence_regex = (
+            r"^%s%s[0-9]{6}%s$"
+            % (refund_prefix, date_part, KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX)
+        )
+        sequence_extract_regex = r"^%s%s([0-9]{6})" % (
+            refund_prefix, date_part
+        )
+        self.env.cr.execute(
+            """
+                SELECT COALESCE(
+                    MAX(CAST(SUBSTRING(name FROM %s) AS INTEGER)),
+                    0
+                )
+                 FROM account_move
+                 WHERE company_id = %s
+                   AND date = %s
+                   AND id != %s
+                   AND name ~ %s
+            """,
+            [
+                sequence_extract_regex,
+                self.company_id.id,
+                move_date,
+                self.id or 0,
+                sequence_regex,
+            ],
+        )
+        return self.env.cr.fetchone()[0]
+
+    def _kr_format_shared_sequence(self, sequence_number):
+        self.ensure_one()
+        move_date = fields.Date.to_date(
+            self.date or self.invoice_date or fields.Date.context_today(self)
+        )
+        refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
+        sequence = "%s%s%06d" % (
+            refund_prefix, move_date.strftime("%Y%m%d"), sequence_number
+        )
+        if self._kr_get_configured_sequence_rule() == "date_number_type":
+            sequence += self.journal_id._kr_get_sequence_code()
+        return sequence
+
+    def _get_next_sequence_format(self):
+        self.ensure_one()
+        if not self._kr_uses_configured_sequence():
+            return super()._get_next_sequence_format()
+        format_string, format_values = self._get_sequence_format_param(
+            self._get_starting_sequence()
+        )
+        format_values["seq"] = self._kr_get_last_shared_sequence_number()
+        return format_string, format_values
+
+    def _set_next_sequence(self):
+        self.ensure_one()
+        if not self._kr_uses_configured_sequence():
+            return super()._set_next_sequence()
+
+        next_number = self._kr_get_last_shared_sequence_number(lock=True) + 1
+        if next_number > 999999:
+            raise UserError(_(
+                "해당 일자의 전표번호 6자리 순번을 모두 사용했습니다."
+            ))
+        sequence = self._kr_format_shared_sequence(next_number)
+
+        registry = self.env.registry
+        triggers = registry._field_triggers[self._fields[self._sequence_field]]
+        for inverse_field, triggered_fields in triggers.items():
+            for triggered_field in triggered_fields:
+                if not triggered_field.store or not triggered_field.compute:
+                    continue
+                inverse_fields = (
+                    registry.field_inverses[inverse_field[0]]
+                    if inverse_field else [None]
+                )
+                for field in inverse_fields:
+                    records = self[field.name] if field else self
+                    self.env.add_to_compute(triggered_field, records)
+
+        self.env.cr.execute(
+            "UPDATE account_move SET name = %s WHERE id = %s",
+            [sequence, self.id],
+        )
+        self.with_context(clear_sequence_mixin_cache=False)[
+            self._sequence_field
+        ] = sequence
+        self._compute_split_sequence()
 
     def _get_starting_sequence(self):
         self.ensure_one()
@@ -285,7 +373,70 @@ class AccountMove(models.Model):
     def _set_next_made_sequence_gap(self, made_gap):
         if self.env.context.get("kr_sequence_repair_only_name"):
             return
-        return super()._set_next_made_sequence_gap(made_gap)
+
+        custom_moves = self.filtered(
+            lambda move: move._kr_uses_configured_sequence()
+        )
+        standard_moves = self - custom_moves
+        if standard_moves:
+            super(AccountMove, standard_moves)._set_next_made_sequence_gap(
+                made_gap
+            )
+
+        next_moves = self.env["account.move"]
+        named = custom_moves.filtered(lambda move: move.name and move.name != "/")
+        for (company, prefix), moves in named.grouped(
+            lambda move: (move.company_id, move.sequence_prefix)
+        ).items():
+            candidates = self.env["account.move"].sudo().search([
+                ("company_id", "=", company.id),
+                ("sequence_prefix", "=", prefix),
+                ("sequence_number", "in", [
+                    move.sequence_number + 1 for move in moves
+                ]),
+            ])
+            next_moves |= candidates.filtered(
+                lambda move: move._kr_uses_configured_sequence()
+            )
+        next_moves.made_sequence_gap = made_gap
+
+    @api.depends("journal_id", "sequence_number", "sequence_prefix", "state")
+    def _compute_made_sequence_gap(self):
+        custom_moves = self.filtered(
+            lambda move: move._kr_uses_configured_sequence()
+        )
+        standard_moves = self - custom_moves
+        if standard_moves:
+            super(AccountMove, standard_moves)._compute_made_sequence_gap()
+
+        unposted = custom_moves.filtered(
+            lambda move: move.sequence_number != 0 and move.state != "posted"
+        )
+        unposted.made_sequence_gap = True
+        posted = custom_moves - unposted
+        for (company, prefix), moves in posted.grouped(
+            lambda move: (move.company_id, move.sequence_prefix)
+        ).items():
+            candidates = self.env["account.move"].sudo().search([
+                ("company_id", "=", company.id),
+                ("sequence_prefix", "=", prefix),
+                ("sequence_number", ">=", min(
+                    moves.mapped("sequence_number")
+                ) - 1),
+                ("sequence_number", "<=", max(
+                    moves.mapped("sequence_number")
+                ) - 1),
+            ])
+            previous_numbers = set(
+                candidates.filtered(
+                    lambda move: move._kr_uses_configured_sequence()
+                ).mapped("sequence_number")
+            )
+            for move in moves:
+                move.made_sequence_gap = (
+                    move.sequence_number > 1
+                    and move.sequence_number - 1 not in previous_numbers
+                )
 
     def _inverse_name(self):
         if self.env.context.get("kr_sequence_repair_only_name"):

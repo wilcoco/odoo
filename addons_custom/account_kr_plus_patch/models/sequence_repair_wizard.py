@@ -91,14 +91,14 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         if self.company_id.id not in self.env.companies.ids:
             raise AccessError(_("접근할 수 없는 회사의 전표번호는 수정할 수 없습니다."))
 
-    def _get_move_domain(self, include_all_states=False):
+    def _get_move_domain(self, include_all_states=False, ignore_journals=False):
         self.ensure_one()
         domain = [
             ("company_id", "=", self.company_id.id),
             ("date", ">=", self.date_from),
             ("date", "<=", self.date_to),
         ]
-        if self.journal_ids:
+        if self.journal_ids and not ignore_journals:
             domain.append(("journal_id", "in", self.journal_ids.ids))
         if not include_all_states:
             if self.include_draft:
@@ -110,6 +110,55 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
             else:
                 domain.append(("state", "=", "posted"))
         return domain
+
+    def _get_shared_sequence_values(self, move):
+        for regex in KR_MOVE_SEQUENCE_REGEXES.values():
+            match = re.fullmatch(regex, move.name or "")
+            if not match:
+                continue
+            values = match.groupdict()
+            if (
+                int(values["seq"] or 0) > 0
+                and values["year"] == move.date.strftime("%Y")
+                and values["month"] == move.date.strftime("%m")
+                and values["prefix2"] == move.date.strftime("%d")
+                and bool(values["prefix1"])
+                == (move.move_type in REFUND_MOVE_TYPES)
+            ):
+                return values
+        return False
+
+    def _get_duplicate_sequence_move_ids(self):
+        """Keep one move and return later moves reusing the same daily number."""
+        self.ensure_one()
+        all_moves = self.env["account.move"].search(
+            self._get_move_domain(ignore_journals=True),
+            order="date, id",
+        )
+        moves_by_number = defaultdict(lambda: self.env["account.move"])
+        for move in all_moves:
+            values = self._get_shared_sequence_values(move)
+            if values:
+                key = (
+                    move.date,
+                    move.move_type in REFUND_MOVE_TYPES,
+                    int(values["seq"]),
+                )
+                moves_by_number[key] |= move
+
+        duplicate_ids = set()
+        for grouped_moves in moves_by_number.values():
+            if len(grouped_moves) < 2:
+                continue
+            keeper = min(
+                grouped_moves,
+                key=lambda move: (
+                    bool(self._classify_move(move)[0]),
+                    move.id,
+                ),
+            )
+            duplicate_ids.update((grouped_moves - keeper).ids)
+        return duplicate_ids
 
     def _classify_move(self, move):
         """Return the issue type and a user-facing explanation, or (False, False)."""
@@ -141,7 +190,6 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
 
     def _sequence_group_key(self, move):
         return (
-            move.journal_id.id,
             move.date,
             move.move_type in REFUND_MOVE_TYPES,
         )
@@ -179,26 +227,25 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
 
     def _build_preview_values(self, moves):
         self.ensure_one()
-        all_moves = self.env["account.move"].search(
-            self._get_move_domain(include_all_states=True),
-            order="date, journal_id, id",
-        )
+        duplicate_move_ids = self._get_duplicate_sequence_move_ids()
         next_by_group = defaultdict(int)
-        for move in all_moves:
-            issue_type, _issue_summary = self._classify_move(move)
-            if issue_type:
-                continue
-            match = re.fullmatch(
-                KR_MOVE_SEQUENCE_REGEXES[self.current_rule], move.name or ""
-            )
+        seeded_groups = set()
+        for move in moves:
             group_key = self._sequence_group_key(move)
-            next_by_group[group_key] = max(
-                next_by_group[group_key], int(match.group("seq"))
-            )
+            if group_key not in seeded_groups:
+                next_by_group[group_key] = (
+                    move._kr_get_last_shared_sequence_number()
+                )
+                seeded_groups.add(group_key)
 
         values_by_move = {}
         for move in moves.sorted(lambda item: (item.date, item.journal_id.id, item.id)):
             issue_type, issue_summary = self._classify_move(move)
+            if not issue_type and move.id in duplicate_move_ids:
+                issue_type = "duplicate_sequence"
+                issue_summary = _(
+                    "다른 전표유형과 같은 날짜·순번을 중복 사용하고 있습니다."
+                )
             if not issue_type:
                 continue
             group_key = self._sequence_group_key(move)
@@ -313,6 +360,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         if len(set(proposed_keys)) != len(proposed_keys):
             raise UserError(_("변경 예정 번호가 중복됩니다. 다시 조회해 주세요."))
 
+        duplicate_move_ids = self._get_duplicate_sequence_move_ids()
         for line in lines:
             move = line.move_id
             if (move.name or "") != line.current_name:
@@ -321,7 +369,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
                     move=move.display_name,
                 ))
             issue_type, _issue_summary = self._classify_move(move)
-            if not issue_type:
+            if not issue_type and move.id not in duplicate_move_ids:
                 raise UserError(_("이미 정리된 전표가 있습니다. 다시 조회해 주세요."))
             block_reason = self._get_block_reason(move, line.proposed_name)
             if block_reason:
@@ -399,6 +447,7 @@ class AccountKrMoveSequenceRepairLine(models.TransientModel):
             ("format_mismatch", "형식 불일치"),
             ("date_mismatch", "날짜/취소 구분 불일치"),
             ("type_mismatch", "전표유형 불일치"),
+            ("duplicate_sequence", "공통 순번 중복"),
         ],
         string="발견 유형",
         readonly=True,

@@ -18,8 +18,17 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             "company_id": cls.company_data["company"].id,
             "kr_sequence_code": "GEN",
         })
+        cls.other_misc_journal = cls.env["account.journal"].create({
+            "name": "한국식 전표 유형 교차 테스트",
+            "code": "KRS",
+            "type": "general",
+            "company_id": cls.company_data["company"].id,
+            "kr_sequence_code": "SAL",
+        })
 
-    def _create_entry(self, move_date, debit_account=None, bank_journal=None):
+    def _create_entry(
+        self, move_date, debit_account=None, bank_journal=None, journal=None
+    ):
         debit_account = debit_account or self.company_data["default_account_expense"]
         debit_values = {
             "name": "첫 번째 적요",
@@ -30,7 +39,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             debit_values["kr_bank_journal_id"] = bank_journal.id
         return self.env["account.move"].create({
             "move_type": "entry",
-            "journal_id": self.misc_journal.id,
+            "journal_id": (journal or self.misc_journal).id,
             "date": fields.Date.to_date(move_date),
             "line_ids": [
                 Command.create(debit_values),
@@ -127,6 +136,41 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
 
         self.assertEqual(move.name, "20240718000001")
 
+    def test_daily_sequence_is_shared_across_ttt_codes(self):
+        self._enable_custom_sequence()
+        general_move = self._create_entry("2024-07-26")
+        sale_code_move = self._create_entry(
+            "2024-07-26", journal=self.other_misc_journal
+        )
+        next_general_move = self._create_entry("2024-07-26")
+
+        general_move.action_post()
+        sale_code_move.action_post()
+        next_general_move.action_post()
+
+        self.assertEqual(general_move.name, "20240726000001GEN")
+        self.assertEqual(sale_code_move.name, "20240726000002SAL")
+        self.assertEqual(next_general_move.name, "20240726000003GEN")
+        self.assertFalse(any(
+            (general_move | sale_code_move | next_general_move).mapped(
+                "made_sequence_gap"
+            )
+        ))
+
+    def test_daily_sequence_is_shared_between_journals_with_same_ttt(self):
+        self._enable_custom_sequence()
+        self.other_misc_journal.kr_sequence_code = "GEN"
+        first = self._create_entry("2024-07-29")
+        second = self._create_entry(
+            "2024-07-29", journal=self.other_misc_journal
+        )
+
+        first.action_post()
+        second.action_post()
+
+        self.assertEqual(first.name, "20240729000001GEN")
+        self.assertEqual(second.name, "20240729000002GEN")
+
     def test_refund_starting_sequence_has_r_prefix(self):
         self._enable_custom_sequence()
         refund = self.env["account.move"].new({
@@ -174,11 +218,13 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.company_data["company"].kr_move_sequence_rule = "date_number"
         self.assertTrue(typed_move._sequence_matches_date())
         _where, params = typed_move._get_last_sequence_domain()
-        self.assertEqual(params["sequence_suffix"], "GEN")
+        self.assertEqual(params["company_id"], self.company_data["company"].id)
+        self.assertNotIn("journal_id", params)
+        self.assertNotIn("sequence_suffix", params)
 
         plain_move = self._create_entry("2024-07-23")
         plain_move.action_post()
-        self.assertEqual(plain_move.name, "20240723000001")
+        self.assertEqual(plain_move.name, "20240723000002")
 
     def test_type_code_rejects_more_than_three_characters(self):
         with self.assertRaises(ValidationError):
@@ -230,6 +276,67 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         })
         with self.assertRaisesRegex(UserError, "Odoo 기본"):
             wizard.action_scan()
+
+    def test_sequence_repair_proposals_share_number_across_ttt_codes(self):
+        general_move = self._create_entry("2024-07-27")
+        sale_code_move = self._create_entry(
+            "2024-07-27", journal=self.other_misc_journal
+        )
+        general_move.action_post()
+        sale_code_move.action_post()
+        self._enable_custom_sequence()
+
+        wizard = self.env[
+            "account.kr.move.sequence.repair.wizard"
+        ].with_user(self.simple_accountman).create({
+            "company_id": self.company_data["company"].id,
+            "date_from": fields.Date.to_date("2024-07-27"),
+            "date_to": fields.Date.to_date("2024-07-27"),
+            "journal_ids": [Command.set(
+                (self.misc_journal | self.other_misc_journal).ids
+            )],
+        })
+        wizard.action_scan()
+
+        general_line = wizard.line_ids.filtered(
+            lambda item: item.move_id == general_move
+        )
+        sale_code_line = wizard.line_ids.filtered(
+            lambda item: item.move_id == sale_code_move
+        )
+        self.assertEqual(general_line.proposed_name, "20240727000001GEN")
+        self.assertEqual(sale_code_line.proposed_name, "20240727000002SAL")
+
+    def test_sequence_repair_finds_existing_cross_ttt_duplicate(self):
+        general_move = self._create_entry("2024-07-28")
+        sale_code_move = self._create_entry(
+            "2024-07-28", journal=self.other_misc_journal
+        )
+        general_move.action_post()
+        sale_code_move.action_post()
+        general_move.name = "20240728000001GEN"
+        sale_code_move.name = "20240728000001SAL"
+        self._enable_custom_sequence()
+
+        wizard = self.env[
+            "account.kr.move.sequence.repair.wizard"
+        ].with_user(self.simple_accountman).create({
+            "company_id": self.company_data["company"].id,
+            "date_from": fields.Date.to_date("2024-07-28"),
+            "date_to": fields.Date.to_date("2024-07-28"),
+            "journal_ids": [Command.set(
+                (self.misc_journal | self.other_misc_journal).ids
+            )],
+        })
+        wizard.action_scan()
+
+        duplicate_line = wizard.line_ids.filtered(
+            lambda item: item.move_id == sale_code_move
+        )
+        self.assertEqual(len(wizard.line_ids), 1)
+        self.assertEqual(duplicate_line.issue_type, "duplicate_sequence")
+        self.assertEqual(duplicate_line.proposed_name, "20240728000002SAL")
+        self.assertEqual(sale_code_move.name, "20240728000001SAL")
 
     def test_sequence_repair_identifies_orphaned_number(self):
         move = self._create_entry("2024-07-25")
