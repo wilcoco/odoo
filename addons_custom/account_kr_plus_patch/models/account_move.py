@@ -183,6 +183,25 @@ class AccountMove(models.Model):
             return self._kr_get_supported_sequence_regex()
         return super()._sequence_year_range_monthly_regex
 
+    def _compute_split_sequence(self):
+        """번호가 아직 배정되지 않은 전표는 코어 파서로 처리한다.
+
+        KR 정규식은 완성된 번호(YYYYMMDD + 6자리 순번 + 유형코드)만 매칭한다.
+        초안 전표의 이름은 "/" 이므로 그대로 코어 _compute_split_sequence 에
+        넘기면 정규식 매칭이 None 이 되어 AttributeError 로 전기가 실패한다.
+
+        KR 정규식 자체는 채번 시 직전 번호를 파싱하는 데 필요하므로
+        (_get_last_sequence_domain·_deduce_sequence_number_reset) 게이트는 끄지
+        않고, 이 계산에서만 우회한다. 값은 코어가 "/" 에 대해 내는 결과와 같다.
+        """
+        pending = self.filtered(lambda move: not move.name or move.name == "/")
+        for move in pending:
+            move.sequence_prefix = ""
+            move.sequence_number = 0
+        remaining = self - pending
+        if remaining:
+            super(AccountMove, remaining)._compute_split_sequence()
+
     def _get_last_sequence_domain(self, relaxed=False):
         self.ensure_one()
         if not self._kr_uses_configured_sequence():
