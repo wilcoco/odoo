@@ -11,7 +11,17 @@
                 <field name="kr_tax_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
                 <field name="kr_approval_number" invisible="kr_doc_type not in ('tax_invoice','invoice')"/>
                 <field name="kr_is_correction" invisible="not kr_is_correction"/>
-                <field name="kr_origin_number" invisible="not kr_is_correction"/>
+                <field name="kr_origin_number" invisible="not kr_is_correction"
+                       required="kr_is_correction and kr_doc_type == 'tax_invoice'"/>
+                <field name="kr_tax_type_manual" invisible="1"/>
+            </xpath>
+            <!-- 전표 항목의 '세금 그리드'(+GT10a 등 국세청 신고서 라인 코드)는
+                 회계 담당에게 의미가 전달되지 않아 기본 숨김. 필요하면 목록 우측
+                 컬럼 선택(⚙)에서 다시 켤 수 있다. 태그 이름은 신고서가 참조하므로
+                 이름 자체는 바꾸지 않는다. -->
+            <xpath expr="//field[@name='line_ids']/list/field[@name='tax_tag_ids']"
+                   position="attributes">
+                <attribute name="optional">hide</attribute>
             </xpath>
         </field>
     </record>
