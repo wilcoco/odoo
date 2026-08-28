@@ -110,7 +110,7 @@ class PurchaseOrder(models.Model):
         if self.portal_state != "responded":
             raise UserError(_("응답 완료 상태의 발주만 승인할 수 있습니다."))
 
-        # PO Line에 확정 수량/납기 반영
+        # PO Line에 확정 수량/납기 반영 + 응답 레코드 검토상태 갱신
         if self.latest_response_id:
             for line_resp in self.latest_response_id.line_response_ids:
                 if line_resp.is_approved:
@@ -118,6 +118,12 @@ class PurchaseOrder(models.Model):
                         "product_qty": line_resp.confirmed_qty,
                         "date_planned": line_resp.confirmed_date,
                     })
+            # 응답 검토상태도 승인으로 동기화 (PO 는 approved 인데 응답이 pending 잔존하던 문제 수정)
+            self.latest_response_id.write({
+                "review_state": "approved",
+                "reviewed_by": self.env.user.id,
+                "reviewed_date": fields.Datetime.now(),
+            })
 
         # 발주 확정 (입고 대기 생성)
         if self.state in ("draft", "sent"):
