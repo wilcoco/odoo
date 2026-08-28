@@ -2,6 +2,9 @@
 
 Odoo 18의 회계 화면과 원화 표시를 회사 운영 방식에 맞추는 통합 패치 모듈입니다.
 
+회계 담당자의 화면 사용법과 운영상 주의사항은
+[`docs/ACCOUNTING_USER_GUIDE_KO.md`](docs/ACCOUNTING_USER_GUIDE_KO.md)를 참고하세요.
+
 이 모듈은 다음 두 영역을 함께 담당합니다.
 
 1. 원화 환경의 금액·단가 소수점 표시 보정
