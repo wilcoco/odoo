@@ -17,6 +17,7 @@
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
+| 홈 화면(메인 메뉴) | `escon_mainmenu` | 홈 교체(로그인 첫 화면·⊞ 버튼)는 `escon_mainmenu_do_redirect` 설치 여부로 제어 — 미설치면 기본 Odoo 홈 |
 
 ## 세션 작업 규칙
 1. 수요·정산·시리얼·결재처럼 "원장" 성격 데이터는 **만들지 말고 정본에 기록**한다.
