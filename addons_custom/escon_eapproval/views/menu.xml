@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 대시보드 (OWL 클라이언트 액션) -->
+    <record id="action_eapproval_dashboard" model="ir.actions.client">
+        <field name="name">전자결재 대시보드</field>
+        <field name="tag">escon_eapproval.dashboard</field>
+    </record>
+
+    <!-- ───────────── 앱 루트 ─────────────
+         상위 바: 대시보드(1) / 전자결재 관리(5) / 휴가(40) / 설정(90) -->
+    <menuitem id="menu_eapproval_root"
+              name="에스콘 전자결재"
+              sequence="46"
+              web_icon="escon_eapproval,static/description/icon.png"/>
+
+    <menuitem id="menu_eapproval_dashboard"
+              name="대시보드"
+              parent="menu_eapproval_root"
+              action="action_eapproval_dashboard"
+              sequence="1"/>
+
+    <!-- ───────────── 품의서 ─────────────
+         회사 용어: Odoo 전자결재(approval.request) 문서를 "품의서"라 부른다.
+         (앱 이름 "에스콘 전자결재"와 Odoo 기본 번역의 "전자결재"만 유지)
+         품의서 작성 / [내 결재함] / [결재 대기] / 전자결재 목록(관리자) /
+         품의 미연계 청구서(관리자, pumui_approval 이 단다) -->
+    <menuitem id="menu_eapproval_manage" name="품의서"
+              parent="menu_eapproval_root" sequence="5"/>
+
+    <!-- 일반 결재/경비청구서/출장/자동차 대여/출입신청/RFQ 유형 카드 (OWL 커스텀 화면) -->
+    <record id="action_eapproval_compose" model="ir.actions.client">
+        <field name="name">품의서 작성</field>
+        <field name="tag">escon_eapproval.compose</field>
+    </record>
+
+    <menuitem id="menu_eapproval_write"
+              name="품의서 작성"
+              parent="menu_eapproval_manage"
+              action="action_eapproval_compose"
+              sequence="10"/>
+
+    <!-- 내 결재함: 내가 상신한 품의서 (전체/결재 대기/완료/반려) -->
+    <menuitem id="menu_eapproval_inbox" name="내 결재함"
+              parent="menu_eapproval_manage" sequence="30"/>
+
+    <menuitem id="menu_eapproval_inbox_requests"
+              name="내 품의서"
+              parent="menu_eapproval_inbox"
+              action="approvals.approval_request_action"
+              sequence="10"/>
+
+    <record id="action_my_requests_pending" model="ir.actions.act_window">
+        <field name="name">내 품의서 (결재 대기)</field>
+        <field name="res_model">approval.request</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('request_owner_id','=',uid),('request_status','=','pending')]</field>
+    </record>
+    <menuitem id="menu_eapproval_inbox_pending"
+              name="내 품의서 (결재 대기)"
+              parent="menu_eapproval_inbox"
+              action="action_my_requests_pending"
+              sequence="20"/>
+
+    <record id="action_my_requests_approved" model="ir.actions.act_window">
+        <field name="name">내 품의서 (완료)</field>
+        <field name="res_model">approval.request</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('request_owner_id','=',uid),('request_status','=','approved')]</field>
+    </record>
+    <menuitem id="menu_eapproval_inbox_approved"
+              name="내 품의서 (완료)"
+              parent="menu_eapproval_inbox"
+              action="action_my_requests_approved"
+              sequence="30"/>
+
+    <record id="action_my_requests_refused" model="ir.actions.act_window">
+        <field name="name">내 품의서 (반려)</field>
+        <field name="res_model">approval.request</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="domain">[('request_owner_id','=',uid),('request_status','=','refused')]</field>
+    </record>
+    <menuitem id="menu_eapproval_inbox_refused"
+              name="내 품의서 (반려)"
+              parent="menu_eapproval_inbox"
+              action="action_my_requests_refused"
+              sequence="40"/>
+
+    <!-- 결재 대기: 내가 결재할 차례인 품의서 (품의서 작성 바로 아래) -->
+    <menuitem id="menu_eapproval_pending" name="결재 대기"
+              parent="menu_eapproval_manage" sequence="20"/>
+
+    <menuitem id="menu_eapproval_pending_requests"
+              name="결재 대기 품의서"
+              parent="menu_eapproval_pending"
+              action="approvals.approval_request_action_to_review"
+              sequence="10"/>
+
+    <!-- 여기서부터 관리자 전용 -->
+    <record id="action_approvals_all_list" model="ir.actions.act_window">
+        <field name="name">전자결재 목록</field>
+        <field name="res_model">approval.request</field>
+        <field name="view_mode">list,form,kanban</field>
+    </record>
+    <menuitem id="menu_eapproval_all_list"
+              name="전자결재 목록"
+              parent="menu_eapproval_manage"
+              action="action_approvals_all_list"
+              groups="escon_eapproval.group_eapproval_manager"
+              sequence="40"/>
+
+    <!-- ───────────── 휴가 (hr_holidays 연동) ───────────── -->
+    <menuitem id="menu_eapproval_leave" name="휴가" parent="menu_eapproval_root" sequence="40"/>
+
+    <!-- 커스텀 신청 흐름: 내 휴가 목록 위에 신청 폼 팝업 (views/leave_views.xml) -->
+    <menuitem id="menu_eapproval_leave_request"
+              name="휴가 신청"
+              parent="menu_eapproval_leave"
+              action="action_escon_leave_open"
+              sequence="10"/>
+
+    <menuitem id="menu_eapproval_leave_my"
+              name="내 휴가"
+              parent="menu_eapproval_leave"
+              action="action_escon_leave_my"
+              sequence="20"/>
+
+    <menuitem id="menu_eapproval_leave_approve"
+              name="휴가 승인"
+              parent="menu_eapproval_leave"
+              action="hr_holidays.hr_leave_action_action_approve_department"
+              groups="hr_holidays.group_hr_holidays_responsible"
+              sequence="30"/>
+
+    <!-- ───────────── 설정 ───────────── -->
+    <record id="action_eapproval_leave_allocations" model="ir.actions.act_window">
+        <field name="name">연차/휴가 배정 현황</field>
+        <field name="res_model">hr.leave.allocation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">휴가 배정이 아직 없습니다</p>
+            <p>연차는 매일 새벽 크론(연차 자동 발생)이 입사일 기준으로 자동 배정합니다.
+               설정 &gt; "연차 배정 지금 갱신"으로 즉시 실행할 수 있습니다.</p>
+        </field>
+    </record>
+
+    <record id="action_eapproval_leave_types" model="ir.actions.act_window">
+        <field name="name">휴가 유형</field>
+        <field name="res_model">hr.leave.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_eapproval_config" name="설정" parent="menu_eapproval_root"
+              groups="escon_eapproval.group_eapproval_manager" sequence="90"/>
+
+    <menuitem id="menu_eapproval_config_template"
+              name="결재선 템플릿"
+              parent="menu_eapproval_config"
+              action="iatf_approval.action_iatf_approval_template"
+              sequence="10"/>
+
+    <menuitem id="menu_eapproval_config_employee"
+              name="직원 부서/직급"
+              parent="menu_eapproval_config"
+              action="action_eapproval_employee_assign"
+              sequence="20"/>
+
+    <menuitem id="menu_eapproval_config_department"
+              name="부서"
+              parent="menu_eapproval_config"
+              action="action_eapproval_department"
+              sequence="30"/>
+
+    <menuitem id="menu_eapproval_config_grade"
+              name="직급"
+              parent="menu_eapproval_config"
+              action="action_escon_job_grade"
+              sequence="40"/>
+
+    <menuitem id="menu_eapproval_config_categories"
+              name="품의서 유형"
+              parent="menu_eapproval_config"
+              action="approvals.approval_category_action"
+              sequence="45"/>
+
+    <menuitem id="menu_eapproval_config_requests"
+              name="결재 요청 전체 (iatf)"
+              parent="menu_eapproval_config"
+              action="action_eapproval_requests"
+              groups="base.group_system"
+              sequence="50"/>
+
+    <menuitem id="menu_eapproval_config_allocations"
+              name="연차/휴가 배정 현황"
+              parent="menu_eapproval_config"
+              action="action_eapproval_leave_allocations"
+              sequence="60"/>
+
+    <menuitem id="menu_eapproval_config_leave_types"
+              name="휴가 유형"
+              parent="menu_eapproval_config"
+              action="action_eapproval_leave_types"
+              sequence="70"/>
+
+    <menuitem id="menu_eapproval_config_annual_update"
+              name="연차 배정 지금 갱신"
+              parent="menu_eapproval_config"
+              action="action_server_annual_leave_update"
+              sequence="80"/>
+
+    <menuitem id="menu_eapproval_config_odoo_defaults"
+              name="Odoo 전자결재 기본 셋팅 재적용"
+              parent="menu_eapproval_config"
+              action="action_server_apply_odoo_defaults"
+              sequence="85"/>
+</odoo>

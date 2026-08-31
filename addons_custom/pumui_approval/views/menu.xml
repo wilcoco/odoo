@@ -1,14 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_pumui_root" name="품의서" sequence="47"/>
-    <menuitem id="menu_pumui_request" name="품의서 목록" parent="menu_pumui_root"
-              action="action_pumui_request" sequence="10"/>
+    <!-- 회사 용어 정리(2026-08): 메뉴의 "품의서"는 Odoo 전자결재(approval.request)를
+         가리키고, 청구 연계 품의서(pumui.request)는 대시보드·품의서 작성 화면의
+         "품의서 (청구 연계)" 진입점과 아래 액션(드릴다운용)으로만 접근한다.
+         과거 메뉴(menu_pumui_root/menu_pumui_request/menu_pumui_my_inbox/
+         menu_pumui_to_approve)는 폐기 — xml 에서 제거하면 업그레이드 시 삭제된다. -->
+
+    <!-- 품의 미연계 청구서 (관리자 전용) -->
     <record id="action_moves_no_pumui" model="ir.actions.act_window">
         <field name="name">품의 미연계 청구서</field>
         <field name="res_model">account.move</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('move_type','in',('out_invoice','in_invoice')),('pumui_id','=',False)]</field>
     </record>
-    <menuitem id="menu_moves_no_pumui" name="품의 미연계 청구서" parent="menu_pumui_root"
-              action="action_moves_no_pumui" sequence="20"/>
+    <menuitem id="menu_moves_no_pumui" name="품의 미연계 청구서"
+              parent="escon_eapproval.menu_eapproval_manage"
+              action="action_moves_no_pumui"
+              groups="escon_eapproval.group_eapproval_manager"
+              sequence="50"/>
+
+    <!-- 아래 액션들은 메뉴 없이 대시보드 드릴다운에서 사용한다 -->
+    <record id="action_pumui_my_inbox" model="ir.actions.act_window">
+        <field name="name">내 품의서 (청구 연계)</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pumui_request_search"/>
+        <field name="domain">[('requester_id','=',uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">아직 작성한 품의서가 없습니다</p>
+            <p>여기에는 내가 기안(상신)한 청구 연계 품의서가 결재 상태와 함께 표시됩니다.</p>
+        </field>
+    </record>
+
+    <record id="action_pumui_to_approve" model="ir.actions.act_window">
+        <field name="name">결재 대기 품의서 (청구 연계)</field>
+        <field name="res_model">pumui.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pumui_request_search"/>
+        <field name="domain">[('approval_state','=','in_progress'),('approval_current_approver_id','=',uid)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">결재할 품의서가 없습니다</p>
+            <p>결재 순서가 나에게 도착한 품의서가 여기에 표시됩니다.
+               문서를 열어 승인 또는 반려하세요.</p>
+        </field>
+    </record>
 </odoo>
