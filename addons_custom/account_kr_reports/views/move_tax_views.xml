@@ -8,23 +8,23 @@
         <field name="arch" type="xml">
             <!-- ref는 Odoo 표준 공급업체 청구서 참조로 보존하되 세금계산서 업무
                  화면에서는 숨긴다. 공급업체 영수증에서는 표준 동작을 유지한다. -->
-            <xpath expr="//label[@for='ref' and @string='Bill Reference']"
+            <xpath expr="//group[@id='header_left_group']/label[@for='ref']"
                    position="attributes">
                 <attribute name="invisible">move_type != 'in_receipt'</attribute>
             </xpath>
-            <xpath expr="//label[@for='ref' and @string='Bill Reference']/following-sibling::field[@name='ref'][1]"
+            <xpath expr="//group[@id='header_left_group']/field[@name='ref' and @nolabel='1']"
                    position="attributes">
                 <attribute name="invisible">move_type != 'in_receipt'</attribute>
             </xpath>
-            <xpath expr="//label[@for='ref' and @string='Customer Reference']"
+            <xpath expr="//group[@name='sale_info_group']/label[@for='ref']"
                    position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//label[@for='ref' and @string='Customer Reference']/following-sibling::field[@name='ref'][1]"
+            <xpath expr="//group[@name='sale_info_group']/field[@name='ref']"
                    position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//label[@for='ref' and @string='Bill Reference']/following-sibling::field[@name='ref'][1]"
+            <xpath expr="//group[@id='header_left_group']/field[@name='ref' and @nolabel='1']"
                    position="after">
                 <field name="kr_doc_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
                 <field name="kr_tax_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
