@@ -4,14 +4,14 @@
         <field name="name">account.kr.move.sequence.repair.wizard.form</field>
         <field name="model">account.kr.move.sequence.repair.wizard</field>
         <field name="arch" type="xml">
-            <form string="전표번호 점검 및 수정">
+            <form string="전표번호 소급 변경 적용">
                 <header>
                     <field name="state" widget="statusbar"
                            statusbar_visible="criteria,preview,done"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1>전표번호 점검 및 수정</h1>
+                        <h1>전표번호 소급 변경 적용</h1>
                     </div>
 
                     <div class="alert alert-warning" role="alert">
@@ -33,6 +33,7 @@
                             <field name="date_from"/>
                             <field name="date_to"/>
                             <field name="journal_ids" widget="many2many_tags"
+                                   context="{'active_test': False}"
                                    options="{'no_create': True}"/>
                             <field name="include_draft"/>
                         </group>
@@ -40,8 +41,9 @@
 
                     <div class="alert alert-info" role="alert"
                          invisible="state != 'criteria'">
-                        대상 저널을 비워두면 회사의 모든 저널을 검사합니다. Odoo 기본
-                        형식은 이 모듈이 판정하거나 수정하지 않습니다.
+                        활성·보관 저널을 포함한 회사의 전체 저널이 기본 선택됩니다.
+                        필요하면 여러 저널을 선택한 상태로 범위를 줄일 수 있습니다.
+                        변경 예정 번호는 저장된 현재 한국식 형식으로만 생성됩니다.
                     </div>
 
                     <group string="요약" invisible="state == 'criteria'">

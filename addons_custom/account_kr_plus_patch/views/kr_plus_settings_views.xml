@@ -31,7 +31,7 @@
                             </div>
                             <div class="col-lg-6 col-12">
                                 <button name="action_open_sequence_repair" type="object"
-                                        string="전표번호 점검 및 수정"
+                                        string="전표번호 소급 변경 적용"
                                         class="btn btn-outline-primary w-100 text-start py-3 px-4"
                                         icon="fa-wrench"/>
                             </div>
@@ -40,6 +40,8 @@
                     <div class="alert alert-info" role="alert">
                         Odoo 기본을 선택하면 이 모듈은 신규 전표번호 발급에 관여하지
                         않습니다. 설정 저장만으로 기존 전표번호가 바뀌지는 않습니다.
+                        전표번호 소급 변경 적용 버튼은 현재 선택한 형식을 먼저 저장한 뒤
+                        실행됩니다.
                     </div>
                     <group string="회계 기준정보">
                         <div class="row g-2" colspan="2">

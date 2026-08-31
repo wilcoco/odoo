@@ -130,10 +130,7 @@ class AccountKrPlusSettings(models.TransientModel):
     def action_save(self):
         self.ensure_one()
         self._check_account_manager()
-        # res.company 전체 쓰기 권한을 부여하지 않고 이 설정 필드만 제한적으로 저장한다.
-        self.company_id.sudo().write({
-            "kr_move_sequence_rule": self.kr_move_sequence_rule,
-        })
+        self._apply_sequence_rule()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -147,6 +144,13 @@ class AccountKrPlusSettings(models.TransientModel):
                 "sticky": False,
             },
         }
+
+    def _apply_sequence_rule(self):
+        self.ensure_one()
+        # res.company 전체 쓰기 권한을 부여하지 않고 이 설정 필드만 제한적으로 저장한다.
+        self.company_id.sudo().write({
+            "kr_move_sequence_rule": self.kr_move_sequence_rule,
+        })
 
     def action_open_sequence_journals(self):
         self.ensure_one()
@@ -169,9 +173,26 @@ class AccountKrPlusSettings(models.TransientModel):
     def action_open_sequence_repair(self):
         self.ensure_one()
         self._check_account_manager()
+        # 폼에서 형식을 바꾼 직후 버튼을 눌러도 이전 회사 설정을 읽지 않도록
+        # 현재 선택값을 먼저 영구 설정에 반영한 뒤 위저드를 연다.
+        self._apply_sequence_rule()
+        if self.kr_move_sequence_rule == "odoo":
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("한국식 전표번호 형식을 선택해 주세요"),
+                    "message": _(
+                        "Odoo 기본은 소급 변경할 번호 형식을 정의하지 않습니다. "
+                        "날짜-번호 또는 날짜-번호-전표유형을 저장한 뒤 실행해 주세요."
+                    ),
+                    "type": "warning",
+                    "sticky": True,
+                },
+            }
         return {
             "type": "ir.actions.act_window",
-            "name": _("전표번호 점검 및 수정"),
+            "name": _("전표번호 소급 변경 적용"),
             "res_model": "account.kr.move.sequence.repair.wizard",
             "view_mode": "form",
             "view_id": self.env.ref(

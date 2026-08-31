@@ -11,7 +11,20 @@ from .res_company import KR_MOVE_SEQUENCE_RULES
 
 class AccountKrMoveSequenceRepairWizard(models.TransientModel):
     _name = "account.kr.move.sequence.repair.wizard"
-    _description = "전표번호 점검 및 수정"
+    _description = "전표번호 소급 변경 적용"
+
+    @api.model
+    def _default_journal_ids(self):
+        company_id = (
+            self.env.context.get("default_company_id") or self.env.company.id
+        )
+        if company_id not in self.env.companies.ids:
+            return self.env["account.journal"]
+        return self.env["account.journal"].with_context(
+            active_test=False
+        ).search([
+            ("company_id", "=", company_id),
+        ])
 
     state = fields.Selection(
         selection=[
@@ -52,12 +65,20 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
     journal_ids = fields.Many2many(
         comodel_name="account.journal",
         string="대상 저널",
+        required=True,
+        default=lambda self: self._default_journal_ids(),
         domain="[('company_id', '=', company_id)]",
-        help="비워두면 선택한 회사의 모든 저널을 검사합니다.",
+        help=(
+            "선택한 회사의 활성·보관 저널이 모두 기본 선택됩니다. "
+            "필요하면 여러 저널을 남겨 범위를 줄일 수 있습니다."
+        ),
     )
     include_draft = fields.Boolean(
-        string="번호가 지정된 미전기 전표 포함",
-        help="전기 전표는 항상 검사합니다. 선택하면 번호가 이미 지정된 초안·취소 전표도 검사합니다.",
+        string="직접 지정 전표도 포함",
+        help=(
+            "전기 전표는 항상 검사합니다. 선택하면 아직 전기되지 않았지만 "
+            "'/' 대신 전표번호를 직접 지정한 초안 전표도 검사합니다."
+        ),
     )
     line_ids = fields.One2many(
         comodel_name="account.kr.move.sequence.repair.line",
@@ -85,6 +106,15 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
                 wizard.line_ids.filtered(lambda line: line.result_state == "applied")
             )
 
+    @api.onchange("company_id")
+    def _onchange_company_id(self):
+        for wizard in self:
+            wizard.journal_ids = self.env["account.journal"].with_context(
+                active_test=False
+            ).search([
+                ("company_id", "=", wizard.company_id.id),
+            ])
+
     def _check_account_manager(self):
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError(_("회계 관리자만 전표번호를 점검하거나 수정할 수 있습니다."))
@@ -105,6 +135,8 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
                 domain += [
                     "|",
                     ("state", "=", "posted"),
+                    "&",
+                    ("state", "=", "draft"),
                     ("name", "not in", (False, "/")),
                 ]
             else:
@@ -312,6 +344,8 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         self._check_account_manager()
         if self.date_from > self.date_to:
             raise UserError(_("시작일은 종료일보다 늦을 수 없습니다."))
+        if not self.journal_ids:
+            raise UserError(_("대상 저널을 하나 이상 선택해 주세요."))
         if self.current_rule not in ("date_number", "date_number_type"):
             raise UserError(_(
                 "Odoo 기본은 이 모듈이 번호 형식을 정의하거나 수정하지 않는 설정입니다. "
@@ -419,7 +453,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
 
 class AccountKrMoveSequenceRepairLine(models.TransientModel):
     _name = "account.kr.move.sequence.repair.line"
-    _description = "전표번호 점검 및 수정 결과"
+    _description = "전표번호 소급 변경 적용 결과"
     _order = "id"
 
     wizard_id = fields.Many2one(

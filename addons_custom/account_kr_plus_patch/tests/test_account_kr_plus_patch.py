@@ -153,7 +153,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         ).arch_db
         self.assertIn('string="전표 설정"', settings_arch)
         self.assertIn('string="전표유형 및 코드 설정"', settings_arch)
-        self.assertIn('string="전표번호 점검 및 수정"', settings_arch)
+        self.assertIn('string="전표번호 소급 변경 적용"', settings_arch)
         self.assertIn('string="계좌 설정"', settings_arch)
 
     def test_legacy_approval_status_field_remains_for_saved_views(self):
@@ -241,6 +241,38 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         move = self._create_entry("2024-07-22")
         move.action_post()
         self.assertEqual(move.name, "20240722000001GEN")
+
+    def test_opening_retroactive_rename_saves_selected_rule_first(self):
+        settings = self.env["account.kr.plus.settings"].with_user(
+            self.simple_accountman
+        ).create({
+            "company_id": self.company_data["company"].id,
+            "kr_move_sequence_rule": "date_number",
+        })
+
+        action = settings.action_open_sequence_repair()
+
+        self.assertEqual(
+            self.company_data["company"].kr_move_sequence_rule,
+            "date_number",
+        )
+        self.assertEqual(action["name"], "전표번호 소급 변경 적용")
+
+    def test_odoo_default_does_not_open_retroactive_rename(self):
+        settings = self.env["account.kr.plus.settings"].with_user(
+            self.simple_accountman
+        ).create({
+            "company_id": self.company_data["company"].id,
+            "kr_move_sequence_rule": "odoo",
+        })
+
+        action = settings.action_open_sequence_repair()
+
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(
+            self.company_data["company"].kr_move_sequence_rule,
+            "odoo",
+        )
 
     def test_legacy_settings_fields_remain_safe_during_module_upgrade(self):
         settings_model = self.env["account.kr.plus.settings"]
@@ -352,6 +384,48 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         })
         with self.assertRaisesRegex(UserError, "Odoo 기본"):
             wizard.action_scan()
+
+    def test_sequence_repair_defaults_to_all_journals_and_manual_drafts_only(self):
+        archived_journal = self.env["account.journal"].create({
+            "name": "보관 저널 소급 테스트",
+            "code": "KRA",
+            "type": "general",
+            "company_id": self.company_data["company"].id,
+            "active": False,
+            "kr_sequence_code": "ARC",
+        })
+        manual_draft = self._create_entry("2024-07-31")
+        manual_draft.with_context(skip_is_manually_modified=True).write({
+            "name": "DIRECT-DRAFT",
+        })
+        unnamed_draft = self._create_entry("2024-07-31")
+        self._enable_custom_sequence("date_number")
+
+        wizard = self.env[
+            "account.kr.move.sequence.repair.wizard"
+        ].with_user(self.simple_accountman).with_context(
+            default_company_id=self.company_data["company"].id
+        ).create({
+            "company_id": self.company_data["company"].id,
+            "date_from": fields.Date.to_date("2024-07-31"),
+            "date_to": fields.Date.to_date("2024-07-31"),
+            "include_draft": True,
+        })
+
+        all_journals = self.env["account.journal"].with_context(
+            active_test=False
+        ).search([
+            ("company_id", "=", self.company_data["company"].id),
+        ])
+        target_moves = self.env["account.move"].search(
+            wizard._get_move_domain()
+        )
+        self.assertEqual(set(wizard.journal_ids.ids), set(all_journals.ids))
+        self.assertIn(archived_journal, wizard.journal_ids)
+        self.assertIn(manual_draft, target_moves)
+        self.assertNotIn(unnamed_draft, target_moves)
+        self.assertIn(("state", "=", "draft"), wizard._get_move_domain())
+        self.assertNotIn(("state", "=", "cancel"), wizard._get_move_domain())
 
     def test_sequence_repair_proposals_share_number_across_ttt_codes(self):
         general_move = self._create_entry("2024-07-27")
