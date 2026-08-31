@@ -88,43 +88,97 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             ],
         )
 
-    def test_journal_entry_action_and_vendor_list_show_requested_fields(self):
+    def test_invoice_lists_distinguish_collection_and_disbursement(self):
         action = self.env.ref(
             "account_kr_plus_patch.action_kr_journal_entries"
         )
         self.assertEqual(action.domain, "[]")
 
-        arch = self.env.ref(
+        customer_arch = self.env.ref(
+            "account_kr_plus_patch.view_kr_customer_tax_invoice_list"
+        ).arch_db
+        vendor_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_vendor_tax_invoice_list"
         ).arch_db
-        self.assertIn('name="status_in_payment"', arch)
-        self.assertIn('name="kr_doc_type"', arch)
-        self.assertIn('name="kr_tax_type"', arch)
-        self.assertIn('string="미납금액"', arch)
-        self.assertIn('string="결제완료 금액"', arch)
-        self.assertNotIn('name="kr_approval_status_display"', arch)
-        self.assertNotIn('name="pumui_approval_state"', arch)
+
+        for arch in (customer_arch, vendor_arch):
+            self.assertIn('name="status_in_payment"', arch)
+            self.assertIn('name="kr_doc_type"', arch)
+            self.assertIn('name="kr_tax_type"', arch)
+            self.assertLess(
+                arch.index('name="kr_residual_display"'),
+                arch.index('name="invoice_date_due"'),
+            )
+            self.assertLess(
+                arch.index('name="invoice_date_due"'),
+                arch.index('name="kr_paid_amount"'),
+            )
+            self.assertLess(
+                arch.index('name="kr_paid_amount"'),
+                arch.index('name="status_in_payment"'),
+            )
+
+        self.assertIn('string="미수금액"', customer_arch)
+        self.assertIn('string="수금기한"', customer_arch)
+        self.assertIn('string="수금완료 금액"', customer_arch)
+        self.assertIn('string="수금상태"', customer_arch)
+        self.assertNotIn('name="pumui_id"', customer_arch)
+
+        self.assertIn('name="pumui_id" string="품의서"', vendor_arch)
+        self.assertIn('string="품의 결재상태"', vendor_arch)
+        self.assertIn('string="미지급금액"', vendor_arch)
+        self.assertIn('string="지급기한"', vendor_arch)
+        self.assertIn('string="지급완료 금액"', vendor_arch)
+        self.assertIn('string="지급상태"', vendor_arch)
         self.assertLess(
-            arch.index('name="kr_residual_display"'),
-            arch.index('name="invoice_date_due"'),
+            vendor_arch.index('name="pumui_id"'),
+            vendor_arch.index('name="kr_approval_status_display"'),
         )
         self.assertLess(
-            arch.index('name="invoice_date_due"'),
-            arch.index('name="kr_paid_amount"'),
-        )
-        self.assertLess(
-            arch.index('name="kr_paid_amount"'),
-            arch.index('name="status_in_payment"'),
-        )
-        self.assertIn(
-            "column_invisible=\"context.get('default_move_type') != 'in_refund'\"",
-            arch,
+            vendor_arch.index('name="kr_approval_status_display"'),
+            vendor_arch.index('name="kr_residual_display"'),
         )
 
         search_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_vendor_tax_invoice_search"
         ).arch_db
-        self.assertNotIn('name="group_approval"', search_arch)
+        self.assertIn('name="no_pumui"', search_arch)
+        self.assertIn('name="approval_pending"', search_arch)
+        self.assertIn('name="group_approval"', search_arch)
+
+        self.assertEqual(
+            self.env.ref("account.menu_action_move_out_invoice_type").action.id,
+            self.env.ref(
+                "account_kr_plus_patch.action_kr_customer_tax_invoice"
+            ).id,
+        )
+        self.assertEqual(
+            self.env.ref("account.menu_action_move_in_invoice_type").action.id,
+            self.env.ref(
+                "account_kr_plus_patch.action_kr_vendor_tax_invoice"
+            ).id,
+        )
+        for action_xmlid, list_xmlid, search_xmlid in (
+            (
+                "account.action_move_out_invoice_type",
+                "account_kr_plus_patch.view_kr_customer_tax_invoice_list",
+                "account_kr_plus_patch.view_kr_customer_tax_invoice_search",
+            ),
+            (
+                "account.action_move_in_invoice_type",
+                "account_kr_plus_patch.view_kr_vendor_tax_invoice_list",
+                "account_kr_plus_patch.view_kr_vendor_tax_invoice_search",
+            ),
+        ):
+            dashboard_action = self.env.ref(action_xmlid)
+            self.assertIn(
+                self.env.ref(list_xmlid),
+                dashboard_action.view_ids.mapped("view_id"),
+            )
+            self.assertEqual(
+                dashboard_action.search_view_id,
+                self.env.ref(search_xmlid),
+            )
 
         payment_tail_arch = self.env.ref(
             "account_kr_plus_patch.view_invoice_tree_kr_payment_tail"
@@ -147,6 +201,25 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('string="세금계산서승인번호"', form_arch)
         self.assertIn('name="kr_origin_number"', form_arch)
         self.assertIn('string="원본 세금계산서 승인번호"', form_arch)
+        self.assertIn('name="pumui_id" string="품의서"', form_arch)
+        self.assertIn('string="품의 결재상태"', form_arch)
+        self.assertNotIn('name="other_info"', form_arch)
+
+        cleanup_arch = self.env.ref(
+            "account_kr_plus_patch.view_move_form_kr_hide_unused_invoice_info"
+        ).arch_db
+        for field_name in (
+            "delivery_date",
+            "invoice_incoterm_id",
+            "incoterm_location",
+            "qr_code_method",
+            "invoice_cash_rounding_id",
+            "invoice_source_email",
+            "auto_post",
+            "auto_post_until",
+            "checked",
+        ):
+            self.assertIn("@name='%s'" % field_name, cleanup_arch)
 
         settings_arch = self.env.ref(
             "account_kr_plus_patch.view_account_kr_plus_settings_form"

@@ -1,5 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- 매출처 세금계산서·취소 세금계산서 전용 목록: 받을 돈(수금) 관점 -->
+    <record id="view_kr_customer_tax_invoice_list" model="ir.ui.view">
+        <field name="name">account.move.kr.customer.tax.invoice.list</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="매출처 세금계산서"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'">
+                <field name="name" string="전표번호" decoration-bf="1"
+                       widget="char_with_placeholder_field" placeholder="/"/>
+                <field name="kr_approval_number" string="세금계산서승인번호"/>
+                <field name="is_manually_modified" string="수기" readonly="1"/>
+                <field name="partner_id" string="매출처"/>
+                <field name="invoice_date" string="매출일" readonly="state != 'draft'"/>
+                <field name="kr_product_names" string="품목명"/>
+                <field name="amount_untaxed" string="공급가액" sum="공급가액 합계"/>
+                <field name="amount_tax" string="세액" sum="세액 합계"/>
+                <field name="amount_total" string="합계" sum="전체 합계" decoration-bf="1"/>
+                <field name="kr_doc_type" string="증빙유형" widget="badge"
+                       decoration-success="kr_doc_type == 'tax_invoice'"
+                       decoration-info="kr_doc_type in ('invoice', 'card')"
+                       decoration-warning="kr_doc_type == 'cash_receipt'"
+                       decoration-muted="kr_doc_type == 'etc'"/>
+                <field name="kr_tax_type" string="구분" widget="badge"
+                       decoration-danger="kr_tax_type == 'taxable'"
+                       decoration-info="kr_tax_type == 'zero'"
+                       decoration-muted="kr_tax_type == 'exempt'"/>
+                <field name="kr_residual_display" string="미수금액"
+                       sum="미수금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
+                <field name="invoice_date_due" string="수금기한" widget="remaining_days"/>
+                <field name="kr_paid_amount" string="수금완료 금액" sum="수금금액 합계"/>
+                <field name="status_in_payment" string="수금상태" widget="badge"
+                       decoration-info="status_in_payment == 'draft'"
+                       decoration-warning="status_in_payment in ('not_paid', 'partial', 'in_payment')"
+                       decoration-success="status_in_payment in ('paid', 'reversed')"
+                       decoration-danger="status_in_payment == 'blocked'"
+                       decoration-muted="status_in_payment == 'cancel'"/>
+                <field name="state" column_invisible="True"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_customer_tax_invoice_search" model="ir.ui.view">
+        <field name="name">account.move.kr.customer.tax.invoice.search</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="매출처 세금계산서 검색">
+                <field name="name" string="전표번호"/>
+                <field name="kr_approval_number"/>
+                <field name="partner_id" string="매출처"/>
+                <field name="kr_product_names"/>
+                <filter name="draft" string="미결" domain="[('state', '=', 'draft')]"/>
+                <filter name="posted" string="전기됨" domain="[('state', '=', 'posted')]"/>
+                <filter name="unpaid" string="미수" domain="[('amount_residual', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="taxable" string="과세" domain="[('kr_tax_type', '=', 'taxable')]"/>
+                <filter name="zero" string="영세" domain="[('kr_tax_type', '=', 'zero')]"/>
+                <filter name="exempt" string="면세" domain="[('kr_tax_type', '=', 'exempt')]"/>
+                <filter name="invoice_month" string="매출일" date="invoice_date"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_partner" string="매출처" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_doc" string="증빙유형" context="{'group_by': 'kr_doc_type'}"/>
+                    <filter name="group_tax" string="구분" context="{'group_by': 'kr_tax_type'}"/>
+                    <filter name="group_month" string="매출월" context="{'group_by': 'invoice_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <!-- 매입처 세금계산서·취소 세금계산서 전용 목록 -->
     <record id="view_kr_vendor_tax_invoice_list" model="ir.ui.view">
         <field name="name">account.move.kr.vendor.tax.invoice.list</field>
@@ -27,12 +97,18 @@
                        decoration-danger="kr_tax_type == 'taxable'"
                        decoration-info="kr_tax_type == 'zero'"
                        decoration-muted="kr_tax_type == 'exempt'"/>
-                <field name="kr_residual_display" string="미납금액"
-                       sum="미납금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="invoice_date_due" string="결제기한" widget="remaining_days"
-                       column_invisible="context.get('default_move_type') != 'in_refund'"/>
-                <field name="kr_paid_amount" string="결제완료 금액" sum="결제금액 합계"/>
-                <field name="status_in_payment" string="결제상태" widget="badge"
+                <field name="pumui_id" string="품의서" options="{'no_create': True}"/>
+                <field name="kr_approval_status_display" string="품의 결재상태" widget="badge"
+                       decoration-success="pumui_approval_state == 'approved'"
+                       decoration-warning="pumui_id and pumui_approval_state in (False, 'draft', 'in_progress')"
+                       decoration-danger="pumui_approval_state == 'rejected'"
+                       decoration-muted="not pumui_id"/>
+                <field name="pumui_approval_state" column_invisible="True"/>
+                <field name="kr_residual_display" string="미지급금액"
+                       sum="미지급금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
+                <field name="invoice_date_due" string="지급기한" widget="remaining_days"/>
+                <field name="kr_paid_amount" string="지급완료 금액" sum="지급금액 합계"/>
+                <field name="status_in_payment" string="지급상태" widget="badge"
                        decoration-info="status_in_payment == 'draft'"
                        decoration-warning="status_in_payment in ('not_paid', 'partial', 'in_payment')"
                        decoration-success="status_in_payment in ('paid', 'reversed')"
@@ -53,9 +129,17 @@
                 <field name="kr_approval_number"/>
                 <field name="partner_id" string="매입처"/>
                 <field name="kr_product_names"/>
+                <field name="pumui_id" string="품의서"/>
                 <filter name="draft" string="미결" domain="[('state', '=', 'draft')]"/>
                 <filter name="posted" string="전기됨" domain="[('state', '=', 'posted')]"/>
-                <filter name="unpaid" string="미납" domain="[('amount_residual', '&gt;', 0)]"/>
+                <filter name="unpaid" string="미지급" domain="[('amount_residual', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="no_pumui" string="품의 미연결" domain="[('pumui_id', '=', False)]"/>
+                <filter name="has_pumui" string="품의 연결됨" domain="[('pumui_id', '!=', False)]"/>
+                <filter name="approval_pending" string="품의 결재대기"
+                        domain="[('pumui_id', '!=', False), ('pumui_approval_state', 'not in', ('approved', 'rejected'))]"/>
+                <filter name="approval_approved" string="품의 승인완료"
+                        domain="[('pumui_approval_state', '=', 'approved')]"/>
                 <separator/>
                 <filter name="taxable" string="과세" domain="[('kr_tax_type', '=', 'taxable')]"/>
                 <filter name="zero" string="영세" domain="[('kr_tax_type', '=', 'zero')]"/>
@@ -65,9 +149,47 @@
                     <filter name="group_partner" string="매입처" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_doc" string="증빙유형" context="{'group_by': 'kr_doc_type'}"/>
                     <filter name="group_tax" string="구분" context="{'group_by': 'kr_tax_type'}"/>
+                    <filter name="group_approval" string="품의 결재상태" context="{'group_by': 'pumui_approval_state'}"/>
                     <filter name="group_month" string="매입월" context="{'group_by': 'invoice_date:month'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <!-- 표준 폼으로 진입해도 국내 세금계산서 업무에 쓰지 않는 기타 정보는 숨긴다. -->
+    <record id="view_move_form_kr_hide_unused_invoice_info" model="ir.ui.view">
+        <field name="name">account.move.form.kr.hide.unused.invoice.info</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">95</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@id='other_tab']//field[@name='delivery_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='invoice_incoterm_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='incoterm_location']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='qr_code_method']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='invoice_cash_rounding_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='invoice_source_email']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='auto_post']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='auto_post_until']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='checked']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
         </field>
     </record>
 
@@ -135,6 +257,19 @@
                             <field name="date" string="전표일자"
                                    invisible="move_type != 'entry'" readonly="state != 'draft'"/>
                             <field name="partner_id" string="거래처" readonly="state != 'draft'"/>
+                            <field name="pumui_id" string="품의서"
+                                   invisible="move_type not in ('in_invoice', 'in_refund')"
+                                   readonly="state != 'draft'"
+                                   domain="[('pumui_type', '=', 'purchase'), ('company_id', '=', company_id), ('partner_id', '=', partner_id)]"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="pumui_approval_state" string="품의 결재상태" widget="badge"
+                                   invisible="move_type not in ('in_invoice', 'in_refund') or not pumui_id"
+                                   decoration-success="pumui_approval_state == 'approved'"
+                                   decoration-warning="pumui_approval_state in (False, 'draft', 'in_progress')"
+                                   decoration-danger="pumui_approval_state == 'rejected'"/>
+                            <field name="pumui_amount_diff" string="품의-청구 차이"
+                                   invisible="move_type not in ('in_invoice', 'in_refund') or not pumui_id or pumui_amount_diff == 0"
+                                   decoration-danger="pumui_amount_diff != 0"/>
                             <field name="kr_primary_label" string="적요" readonly="state != 'draft'"/>
                             <field name="kr_move_type_display" string="전표유형" readonly="1"/>
                         </group>

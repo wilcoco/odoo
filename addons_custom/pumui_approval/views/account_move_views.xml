@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 청구서 폼: 품의서 링크 + 승인상태 + 차이 (리포트 #4 일부·#6) -->
+    <!-- 공급업체 청구서 폼: 별도 작성한 청구서도 지출 품의에 연결할 수 있다. -->
     <record id="view_move_form_pumui" model="ir.ui.view">
         <field name="name">account.move.form.pumui</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='ref']" position="after">
-                <field name="pumui_id" readonly="1"
-                       invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
-                <field name="pumui_approval_state" widget="badge" invisible="not pumui_id"
+            <xpath expr="//group[@id='header_left_group']/field[@name='quick_edit_total_amount']"
+                   position="before">
+                <field name="pumui_id" string="품의서"
+                       readonly="state != 'draft'"
+                       invisible="move_type not in ('in_invoice', 'in_refund')"
+                       domain="[('pumui_type', '=', 'purchase'), ('company_id', '=', company_id), ('partner_id', '=', partner_id)]"
+                       options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="pumui_approval_state" string="품의 결재상태" widget="badge"
+                       invisible="move_type not in ('in_invoice', 'in_refund') or not pumui_id"
                        decoration-success="pumui_approval_state == 'approved'"
+                       decoration-warning="pumui_approval_state in (False, 'draft', 'in_progress')"
                        decoration-danger="pumui_approval_state == 'rejected'"/>
-                <field name="pumui_amount_diff" invisible="not pumui_id"
+                <field name="pumui_amount_diff" string="품의-청구 차이"
+                       invisible="move_type not in ('in_invoice', 'in_refund') or not pumui_id or pumui_amount_diff == 0"
                        decoration-danger="pumui_amount_diff != 0"/>
             </xpath>
         </field>
