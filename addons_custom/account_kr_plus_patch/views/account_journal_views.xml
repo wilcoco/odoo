@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_form_kr_plus" model="ir.ui.view">
+        <field name="name">account.journal.form.kr.plus</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <field name="code" position="after">
+                <field name="kr_sequence_code" string="전표유형 코드"
+                       placeholder="예: PUR, SAL, GEN, BNK"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_kr_bank_journal_list" model="ir.ui.view">
+        <field name="name">account.journal.kr.bank.list</field>
+        <field name="model">account.journal</field>
+        <field name="arch" type="xml">
+            <list string="계좌 설정">
+                <field name="sequence" widget="handle"/>
+                <field name="name" string="은행계좌/저널명"/>
+                <field name="bank_account_id" string="계좌번호"/>
+                <field name="bank_id" string="은행"/>
+                <field name="default_account_id" string="당좌예금 계정과목"/>
+                <field name="code" string="저널 코드"/>
+                <field name="kr_sequence_code" string="전표유형 코드"/>
+                <field name="currency_id" optional="hide" groups="base.group_multi_currency"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_kr_sequence_journal_list" model="ir.ui.view">
+        <field name="name">account.journal.kr.sequence.list</field>
+        <field name="model">account.journal</field>
+        <field name="arch" type="xml">
+            <list string="전표유형 및 코드 설정" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name" string="저널명"/>
+                <field name="type" string="저널 유형"/>
+                <field name="code" string="저널 코드"/>
+                <field name="kr_sequence_code" string="전표유형 코드"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+</odoo>

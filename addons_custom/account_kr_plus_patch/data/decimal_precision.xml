@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 회계 금액 자리수 — 원화는 소수 단위가 없으므로 0자리.
+         설정 > 기술 > 소수점 정확도 에서 값을 바꿀 수 있다(변경 후 서버 재시작).
+         digits 없이 선언된 Float 금액 필드가 이 값을 따른다 (models/kr_amount_digits.py).
+         noupdate: 설치 때 한 번만 심고, 이후 사용자가 바꾼 값은 모듈 업그레이드가 덮어쓰지 않는다. -->
+    <data noupdate="1">
+        <record id="decimal_kr_amount" model="decimal.precision">
+            <field name="name">KR Amount</field>
+            <field name="digits">0</field>
+        </record>
+    </data>
+</odoo>

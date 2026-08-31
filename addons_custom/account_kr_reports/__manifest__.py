@@ -15,6 +15,8 @@
         "views/lock_log_views.xml",
         "wizard/template_download_views.xml",
         "wizard/sales_tax_match_views.xml",
+        "wizard/tax_invoice_import_views.xml",
+        "wizard/approval_number_merge_views.xml",
         "views/menus.xml",
         "views/cash_status_views.xml",
     ],
