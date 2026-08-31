@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 매입/매출처 청구서 화면 정리 — 쓰지 않는 필드를 표준 폼에서 숨긴다.
+
+         모델 정의는 그대로 두고 뷰 속성(invisible)만 바꾼다. 이 뷰는
+         account.view_move_form 의 확장이므로, 그 폼을 쓰는 모든 화면
+         (고객 청구서·공급업체 청구서·표준 경로로 연 전표)에 적용된다.
+         우리 모듈의 독립 전표 폼(view_move_form_kr_plus)에는 이 필드들이
+         원래 없다.
+
+         대상 xpath 는 청구서용 '기타 정보' 탭(other_tab)으로 한정해,
+         분개(entry) 탭의 같은 이름 필드는 건드리지 않는다.
+
+         inalterable_hash 는 account_accountant, 마케팅(utm_link) 그룹은
+         sale 이 넣는 노드라 두 모듈이 depends 에 필요하다. -->
+
+    <record id="view_move_form_hide_unused_fields" model="ir.ui.view">
+        <field name="name">account.move.form.kr.hide.unused</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- 인코텀즈 / 인코텀즈 지역 -->
+            <xpath expr="//page[@id='other_tab']//field[@name='invoice_incoterm_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='incoterm_location']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 회계 포지션 (청구서 탭만 — 분개 탭 것은 유지) -->
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='fiscal_position_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 변경 불가능 해시 (account_accountant 가 회계 포지션 뒤에 추가) -->
+            <xpath expr="//page[@id='other_tab']//field[@name='inalterable_hash']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 보안 -->
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='secured']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 결제 방법 (수금용/지급용 두 노드) -->
+            <xpath expr="(//group[@name='accounting_info_group']/field[@name='preferred_payment_method_line_id'])[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="(//group[@name='accounting_info_group']/field[@name='preferred_payment_method_line_id'])[2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 자동 발행(값 '사용하지 않음' 포함) + 종료일 -->
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='auto_post']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='auto_post_until']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 확인 완료 -->
+            <xpath expr="//group[@name='accounting_info_group']/field[@name='checked']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- 마케팅 그룹 (sale 의 utm_link) -->
+            <xpath expr="//group[@name='utm_link']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
