@@ -14,7 +14,7 @@
 
 import logging
 
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
 from odoo.exceptions import UserError
 
@@ -50,31 +50,88 @@ _CATEGORY_BASE = {
     "has_location": "no", "has_product": "no",
 }
 
+# 문서 그룹 (작성 화면 섹션 구분). 순서: hr → finance → admin → sales
+ESCON_GROUPS = [
+    ("hr", "인사 및 근태 관리"),
+    ("finance", "재무 및 비용 처리"),
+    ("admin", "일반 행정 및 총무"),
+    ("sales", "영업 및 타 부서 협조"),
+]
+
 CATEGORY_SPECS = {
-    "escon_eapproval.category_general": dict(
-        _CATEGORY_BASE, name="일반 결재", sequence_code="GEN",
-        has_reference="optional"),
-    "escon_eapproval.category_expense": dict(
-        _CATEGORY_BASE, name="경비청구서", sequence_code="EXP",
-        has_date="required", has_amount="required", has_payment_method="optional",
-        has_partner="optional", requirer_document="required"),
+    # ── 인사 및 근태 관리 (근태/휴가 신청서는 휴가 메뉴·연차 엔진이 담당) ──
+    "escon_eapproval.category_overtime": dict(
+        _CATEGORY_BASE, name="초과/휴일 근무 신청서", sequence_code="OT",
+        escon_group="hr", sequence=110, has_period="required"),
+    "escon_eapproval.category_remote": dict(
+        _CATEGORY_BASE, name="재택/유연근무 신청서", sequence_code="WFH",
+        escon_group="hr", sequence=120, has_period="required"),
+    "escon_eapproval.category_cert": dict(
+        _CATEGORY_BASE, name="제증명 발급 요청", sequence_code="CERT",
+        escon_group="hr", sequence=130, has_date="optional"),
     "escon_eapproval.category_trip": dict(
-        _CATEGORY_BASE, name="출장", sequence_code="TRIP",
+        _CATEGORY_BASE, name="출장 신청·보고", sequence_code="TRIP",
+        escon_group="hr", sequence=140,
         has_period="required", has_location="required", has_partner="optional",
         has_amount="optional"),
-    "escon_eapproval.category_car": dict(
-        _CATEGORY_BASE, name="자동차 대여", sequence_code="CAR",
-        has_period="required", has_location="optional"),
-    "escon_eapproval.category_gate": dict(
-        _CATEGORY_BASE, name="출입신청", sequence_code="GATE",
-        has_period="required", has_partner="optional", has_location="optional"),
+
+    # ── 재무 및 비용 처리 (품의서(청구 연계)는 pumui_approval 전용 화면) ──
+    "escon_eapproval.category_expense": dict(
+        _CATEGORY_BASE, name="지출 결의서", sequence_code="EXP",
+        escon_group="finance", sequence=210,
+        has_date="required", has_amount="required", has_payment_method="optional",
+        has_partner="optional", requirer_document="required"),
+    "escon_eapproval.category_tax_invoice": dict(
+        _CATEGORY_BASE, name="세금계산서 발행 요청", sequence_code="TAX",
+        escon_group="finance", sequence=220,
+        has_partner="required", has_amount="required", has_reference="optional"),
     "escon_eapproval.category_rfq": dict(
         _CATEGORY_BASE, name="견적 요청서 (RFQ)", sequence_code="RFQ",
+        escon_group="finance", sequence=230,
         approval_type="purchase", has_product="required"),
+
+    # ── 일반 행정 및 총무 ──
+    "escon_eapproval.category_general": dict(
+        _CATEGORY_BASE, name="일반 기안서", sequence_code="GEN",
+        escon_group="admin", sequence=310, has_reference="optional"),
+    "escon_eapproval.category_supply": dict(
+        _CATEGORY_BASE, name="비품/기기 구매 신청", sequence_code="SUPPLY",
+        escon_group="admin", sequence=320,
+        has_product="optional", has_quantity="optional", has_amount="optional"),
+    "escon_eapproval.category_namecard": dict(
+        _CATEGORY_BASE, name="명함 제작 요청", sequence_code="CARD",
+        escon_group="admin", sequence=330,
+        has_quantity="optional", has_date="optional"),
+    "escon_eapproval.category_notice": dict(
+        _CATEGORY_BASE, name="사내 공지 승인", sequence_code="NOTICE",
+        escon_group="admin", sequence=340),
+    "escon_eapproval.category_gate": dict(
+        _CATEGORY_BASE, name="출입신청", sequence_code="GATE",
+        escon_group="admin", sequence=350,
+        has_period="required", has_partner="optional", has_location="optional"),
+    "escon_eapproval.category_car": dict(
+        _CATEGORY_BASE, name="자동차 대여", sequence_code="CAR",
+        escon_group="admin", sequence=360,
+        has_period="required", has_location="optional"),
+
+    # ── 영업 및 타 부서 협조 ──
+    "escon_eapproval.category_coop": dict(
+        _CATEGORY_BASE, name="업무 협조전", sequence_code="COOP",
+        escon_group="sales", sequence=410, has_period="optional"),
+    "escon_eapproval.category_seal": dict(
+        _CATEGORY_BASE, name="계약서 날인 요청", sequence_code="SEAL",
+        escon_group="sales", sequence=420,
+        has_partner="required", requirer_document="required"),
+    "escon_eapproval.category_quote": dict(
+        _CATEGORY_BASE, name="견적서 승인", sequence_code="QUOTE",
+        escon_group="sales", sequence=430,
+        has_partner="required", has_amount="required"),
 }
 
-# UI 수정 차단 대상(구조 설정). 운영 재량: description/image/sequence/approver_ids 등
-PROTECTED_CATEGORY_FIELDS = set(_CATEGORY_BASE) | {"name", "sequence_code"}
+# UI 수정 차단 대상(구조 설정). 운영 재량: description/image/approver_ids 등
+# (sequence 는 스펙으로 정합하되 UI 수정은 허용 — 업그레이드 때 표준 순서로 복귀)
+PROTECTED_CATEGORY_FIELDS = (set(_CATEGORY_BASE)
+                             | {"name", "sequence_code", "escon_group"})
 
 # ── 휴가 유형 표준 스펙 (data/leave_type_data.xml 과 일치 유지) ──
 LEAVE_TYPE_SPECS = {
@@ -230,6 +287,10 @@ class ApprovalCategoryGuard(models.Model):
     _inherit = ["approval.category", "escon.setting.guard.mixin"]
 
     _escon_protected_fields = frozenset(PROTECTED_CATEGORY_FIELDS)
+
+    escon_group = fields.Selection(
+        ESCON_GROUPS, string="문서 그룹", default="admin", required=True,
+        help="품의서 작성 화면의 섹션 구분 (에스콘 표준 스펙으로 관리)")
 
 
 class HrLeaveTypeGuard(models.Model):

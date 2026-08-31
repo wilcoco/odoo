@@ -32,6 +32,23 @@ export class EapprovalCompose extends Component {
         return this.state.data;
     }
 
+    /** 그룹별 유형 카드 (서버가 sequence 순으로 정렬해서 준다) */
+    categoriesFor(groupKey) {
+        return (this.state.data?.categories || []).filter(
+            (category) => category.group === groupKey);
+    }
+
+    /** 특수 카드(휴가/청구 연계 품의서)가 있는 그룹인지 */
+    hasSpecialCards(groupKey) {
+        if (groupKey === "hr") {
+            return Boolean(this.state.data?.drill?.xml_ids?.leave_dashboard);
+        }
+        if (groupKey === "finance") {
+            return Boolean(this.state.data?.pumui?.installed);
+        }
+        return false;
+    }
+
     imgSrc(category) {
         return category.image ? `data:image/png;base64,${category.image}` : null;
     }

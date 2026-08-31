@@ -219,7 +219,7 @@ class TestApprovalsIntegration(TransactionCase):
         rows = [r for r in data["to_approve"] if r["doc_model"] == "approval.request"]
         self.assertTrue(rows)
         self.assertEqual(rows[0]["doc_id"], request.id)
-        self.assertEqual(rows[0]["doc_label"], "일반 결재")
+        self.assertEqual(rows[0]["doc_label"], "일반 기안서")
         json.dumps(data)
 
         data_owner = Dashboard.with_user(self.owner).get_dashboard_data()
@@ -280,7 +280,19 @@ class TestComposeScreen(TransactionCase):
         data = self.env["escon.eapproval.dashboard"].get_compose_data()
         json.dumps(data)
         names = [c["name"] for c in data["categories"]]
-        for expected in ("일반 결재", "경비청구서", "출장", "자동차 대여",
-                         "출입신청", "견적 요청서 (RFQ)"):
+        for expected in ("일반 기안서", "지출 결의서", "출장 신청·보고", "자동차 대여",
+                         "출입신청", "견적 요청서 (RFQ)",
+                         "초과/휴일 근무 신청서", "재택/유연근무 신청서", "제증명 발급 요청",
+                         "세금계산서 발행 요청", "비품/기기 구매 신청", "명함 제작 요청",
+                         "사내 공지 승인", "업무 협조전", "계약서 날인 요청", "견적서 승인"):
             self.assertIn(expected, names)
         self.assertTrue(data["pumui"]["installed"])
+        self.assertEqual([g["key"] for g in data["groups"]],
+                         ["hr", "finance", "admin", "sales"])
+        by_group = {}
+        for c in data["categories"]:
+            by_group.setdefault(c["group"], []).append(c["name"])
+        self.assertIn("초과/휴일 근무 신청서", by_group["hr"])
+        self.assertIn("지출 결의서", by_group["finance"])
+        self.assertIn("일반 기안서", by_group["admin"])
+        self.assertIn("견적서 승인", by_group["sales"])

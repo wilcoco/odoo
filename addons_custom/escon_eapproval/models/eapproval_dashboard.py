@@ -15,6 +15,8 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
+from .setup import ESCON_GROUPS
+
 _logger = logging.getLogger(__name__)
 
 APPROVAL_STATES = ("draft", "in_progress", "approved", "rejected")
@@ -70,12 +72,13 @@ class EsconEapprovalDashboard(models.AbstractModel):
                  ("request_status", "in", ("new", "pending"))],
                 groupby=["category_id"], aggregates=["__count"]):
             counts[category.id] = count
-        for category in self.env["approval.category"].search([]):
+        for category in self.env["approval.category"].search([], order="sequence, id"):
             image = category.image
             categories.append({
                 "id": category.id,
                 "name": category.name,
                 "description": category.description or "",
+                "group": category.escon_group or "admin",
                 "image": image.decode("ascii") if isinstance(image, bytes)
                          else (image or ""),
                 "my_open": counts.get(category.id, 0),
@@ -86,6 +89,7 @@ class EsconEapprovalDashboard(models.AbstractModel):
             if self.env.ref(xmlid, raise_if_not_found=False):
                 xml_ids[key] = xmlid
         return {
+            "groups": [{"key": key, "label": label} for key, label in ESCON_GROUPS],
             "categories": categories,
             "pumui": {"installed": "pumui.request" in self.env},
             "drill": {"xml_ids": xml_ids},
