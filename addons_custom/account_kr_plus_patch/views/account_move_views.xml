@@ -27,20 +27,17 @@
                        decoration-danger="kr_tax_type == 'taxable'"
                        decoration-info="kr_tax_type == 'zero'"
                        decoration-muted="kr_tax_type == 'exempt'"/>
-                <field name="pumui_approval_state" column_invisible="True"/>
-                <field name="kr_approval_status_display" string="결재상태" widget="badge"
-                       decoration-success="pumui_approval_state == 'approved'"
-                       decoration-danger="pumui_approval_state == 'rejected'"
-                       decoration-muted="not pumui_approval_state"/>
+                <field name="kr_residual_display" string="미납금액"
+                       sum="미납금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
+                <field name="invoice_date_due" string="결제기한" widget="remaining_days"
+                       column_invisible="context.get('default_move_type') != 'in_refund'"/>
+                <field name="kr_paid_amount" string="결제완료 금액" sum="결제금액 합계"/>
                 <field name="status_in_payment" string="결제상태" widget="badge"
                        decoration-info="status_in_payment == 'draft'"
                        decoration-warning="status_in_payment in ('not_paid', 'partial', 'in_payment')"
                        decoration-success="status_in_payment in ('paid', 'reversed')"
                        decoration-danger="status_in_payment == 'blocked'"
                        decoration-muted="status_in_payment == 'cancel'"/>
-                <field name="kr_residual_display" string="미납금액"
-                       sum="미납금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="kr_paid_amount" string="결제완료 금액" sum="결제금액 합계"/>
                 <field name="state" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
             </list>
@@ -68,10 +65,25 @@
                     <filter name="group_partner" string="매입처" context="{'group_by': 'partner_id'}"/>
                     <filter name="group_doc" string="증빙유형" context="{'group_by': 'kr_doc_type'}"/>
                     <filter name="group_tax" string="구분" context="{'group_by': 'kr_tax_type'}"/>
-                    <filter name="group_approval" string="결재상태" context="{'group_by': 'pumui_approval_state'}"/>
                     <filter name="group_month" string="매입월" context="{'group_by': 'invoice_date:month'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <!-- 표준 고객·공급업체 청구서 목록의 결제 열을 같은 순서로 정리한다. -->
+    <record id="view_invoice_tree_kr_payment_tail" model="ir.ui.view">
+        <field name="name">account.move.list.kr.payment.tail</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account_kr_guard.view_invoice_tree_kr_summary"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='kr_paid_amount']" position="before">
+                <xpath expr="//field[@name='invoice_date_due']" position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='kr_paid_amount']" position="after">
+                <xpath expr="//field[@name='status_in_payment']" position="move"/>
+            </xpath>
         </field>
     </record>
 

@@ -102,6 +102,41 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('name="kr_tax_type"', arch)
         self.assertIn('string="미납금액"', arch)
         self.assertIn('string="결제완료 금액"', arch)
+        self.assertNotIn('name="kr_approval_status_display"', arch)
+        self.assertNotIn('name="pumui_approval_state"', arch)
+        self.assertLess(
+            arch.index('name="kr_residual_display"'),
+            arch.index('name="invoice_date_due"'),
+        )
+        self.assertLess(
+            arch.index('name="invoice_date_due"'),
+            arch.index('name="kr_paid_amount"'),
+        )
+        self.assertLess(
+            arch.index('name="kr_paid_amount"'),
+            arch.index('name="status_in_payment"'),
+        )
+        self.assertIn(
+            "column_invisible=\"context.get('default_move_type') != 'in_refund'\"",
+            arch,
+        )
+
+        search_arch = self.env.ref(
+            "account_kr_plus_patch.view_kr_vendor_tax_invoice_search"
+        ).arch_db
+        self.assertNotIn('name="group_approval"', search_arch)
+
+        payment_tail_arch = self.env.ref(
+            "account_kr_plus_patch.view_invoice_tree_kr_payment_tail"
+        ).arch_db
+        self.assertIn(
+            'expr="//field[@name=\'invoice_date_due\']" position="move"',
+            payment_tail_arch,
+        )
+        self.assertIn(
+            'expr="//field[@name=\'status_in_payment\']" position="move"',
+            payment_tail_arch,
+        )
 
         form_arch = self.env.ref(
             "account_kr_plus_patch.view_move_form_kr_plus"
@@ -121,7 +156,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('string="전표번호 점검 및 수정"', settings_arch)
         self.assertIn('string="계좌 설정"', settings_arch)
 
-    def test_unlinked_approval_status_is_not_blank(self):
+    def test_legacy_approval_status_field_remains_for_saved_views(self):
         move = self._create_entry("2024-07-17")
         self.assertEqual(move.kr_approval_status_display, "미연결")
 
