@@ -103,6 +103,16 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('string="미납금액"', arch)
         self.assertIn('string="결제완료 금액"', arch)
 
+        form_arch = self.env.ref(
+            "account_kr_plus_patch.view_move_form_kr_plus"
+        ).arch_db
+        self.assertNotIn('string="청구서(세금계산서)"', form_arch)
+        self.assertIn('name="ref" string="참조"', form_arch)
+        self.assertIn('name="kr_approval_number"', form_arch)
+        self.assertIn('string="세금계산서승인번호"', form_arch)
+        self.assertIn('name="kr_origin_number"', form_arch)
+        self.assertIn('string="원본 세금계산서 승인번호"', form_arch)
+
         settings_arch = self.env.ref(
             "account_kr_plus_patch.view_account_kr_plus_settings_form"
         ).arch_db

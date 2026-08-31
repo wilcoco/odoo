@@ -5,6 +5,8 @@ import io
 from odoo import fields, models, _
 from odoo.exceptions import UserError
 
+from ..tools.approval_number import normalize_approval_number
+
 # 리포트 후속(1번세션 제안 5): 매출 세금계산서 흐름.
 # 매출 청구서는 오두가 발행 주체 → 홈택스 발행분을 새로 만들지 않고
 # 기존 posted 청구서에 승인번호를 '백필 매칭'한다 (매입=생성, 매출=매칭).
@@ -36,12 +38,13 @@ class KrSalesTaxMatch(models.TransientModel):
         AM = self.env["account.move"]
         matched, dup, ambiguous, unmatched = [], [], [], []
         for row in self._parse_rows():
-            appr = (row["approval_number"] or "").strip()
+            approval_raw = (row["approval_number"] or "").strip()
+            appr = normalize_approval_number(approval_raw) or approval_raw
             vat = (row["vat"] or "").strip().replace("-", "")
             total = float(row["total"] or 0)
             if not appr:
                 continue
-            if AM.search_count([("kr_approval_number", "=", appr)]):
+            if AM.sudo()._kr_find_by_approval_number(appr, limit=1):
                 dup.append(appr)
                 continue
             domain = [
@@ -54,7 +57,10 @@ class KrSalesTaxMatch(models.TransientModel):
                 lambda m: (m.partner_id.vat or "").replace("-", "") == vat
                 and abs(abs(m.amount_total_signed) - abs(total)) < 1.0)
             if len(cands) == 1:
-                cands.write({"kr_approval_number": appr, "kr_doc_type": "tax_invoice"})
+                cands.with_context(skip_is_manually_modified=True).write({
+                    "kr_approval_number": appr,
+                    "kr_doc_type": "tax_invoice",
+                })
                 matched.append("%s → %s" % (appr, cands.name))
             elif not cands:
                 unmatched.append("%s (%s %s %s)" % (appr, vat, row["date"], total))

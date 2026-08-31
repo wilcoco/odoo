@@ -6,6 +6,8 @@ from datetime import date, datetime
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from ..tools.approval_number import normalize_approval_number
+
 # 홈택스·스마트빌 등 **외부에서 내려받은 파일을 그대로** 올린다.
 # 업체마다 헤더 문구가 달라 컬럼명을 고정할 수 없으므로, 한글 헤더를 정규화해
 # 동의어 사전으로 매핑한다. 모르는 컬럼은 무시하고, 못 찾은 필수 항목만 알려준다.
@@ -166,8 +168,11 @@ class KrTaxInvoiceImport(models.TransientModel):
         company = self.env.company
         is_sale = self.direction == "out_invoice"
 
-        # 기존 승인번호 (중복 반입 차단 — DB 제약과 별개로 미리 걸러 결과를 알려준다)
-        existing = set(Move.search([("kr_approval_number", "!=", False)]).mapped("kr_approval_number"))
+        # 전사 승인번호 키를 기준으로 중복을 먼저 안내한다. 다른 회사의 전표 상세는
+        # 노출하지 않되, 표기 형식만 다른 같은 번호도 중복으로 취급한다.
+        existing = set(Move.sudo().search([
+            ("kr_approval_number_key", "!=", False),
+        ]).mapped("kr_approval_number_key"))
 
         created, dup, skipped, errors = [], 0, [], []
         seen_in_file = set()
@@ -177,13 +182,15 @@ class KrTaxInvoiceImport(models.TransientModel):
                 pos = cmap.get(field)
                 return row[pos] if pos is not None and pos < len(row) else None
 
-            approval = str(cell("approval") or "").strip()
+            approval_raw = str(cell("approval") or "").strip()
+            approval = normalize_approval_number(approval_raw) or approval_raw
             if not approval:
                 continue  # 빈 줄·합계 줄
-            if approval in existing:
+            approval_key = Move._kr_approval_key(approval)
+            if approval_key in existing:
                 dup += 1
                 continue
-            if approval in seen_in_file:
+            if approval_key in seen_in_file:
                 dup += 1
                 continue
 
@@ -263,7 +270,7 @@ class KrTaxInvoiceImport(models.TransientModel):
             try:
                 mv = Move.create(vals)
                 created.append(mv.id)
-                seen_in_file.add(approval)
+                seen_in_file.add(approval_key)
             except Exception as e:  # noqa: BLE001 — 한 행 실패가 전체를 막지 않게
                 errors.append(_("%s행: 생성 실패 — %s") % (line_no, str(e)[:120]))
 

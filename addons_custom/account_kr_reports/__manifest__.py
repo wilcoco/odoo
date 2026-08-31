@@ -1,6 +1,6 @@
 {
     "name": "회계 한국식 조회·부가세 (K-Reports)",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.5.0",
     "summary": "매입매출장·부가세 유형·세금계산서 검증·일/월계표·수금/지급 예정표·대출관리·K-재무제표·업로드 템플릿·잔액대사·잠금이력 (리포트 P3~P4)",
     "category": "Accounting",
     "license": "LGPL-3",
@@ -9,6 +9,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/move_tax_views.xml",
+        "views/pumui_tax_views.xml",
         "views/ledger_views.xml",
         "views/loan_views.xml",
         "views/fs_views.xml",

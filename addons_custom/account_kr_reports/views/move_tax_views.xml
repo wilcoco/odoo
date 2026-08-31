@@ -6,12 +6,33 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='ref']" position="after">
+            <!-- ref는 Odoo 표준 공급업체 청구서 참조로 보존하되 세금계산서 업무
+                 화면에서는 숨긴다. 공급업체 영수증에서는 표준 동작을 유지한다. -->
+            <xpath expr="//label[@for='ref' and @string='Bill Reference']"
+                   position="attributes">
+                <attribute name="invisible">move_type != 'in_receipt'</attribute>
+            </xpath>
+            <xpath expr="//label[@for='ref' and @string='Bill Reference']/following-sibling::field[@name='ref'][1]"
+                   position="attributes">
+                <attribute name="invisible">move_type != 'in_receipt'</attribute>
+            </xpath>
+            <xpath expr="//label[@for='ref' and @string='Customer Reference']"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='ref' and @string='Customer Reference']/following-sibling::field[@name='ref'][1]"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='ref' and @string='Bill Reference']/following-sibling::field[@name='ref'][1]"
+                   position="after">
                 <field name="kr_doc_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
                 <field name="kr_tax_type" invisible="move_type not in ('out_invoice','in_invoice','out_refund','in_refund')"/>
-                <field name="kr_approval_number" invisible="kr_doc_type not in ('tax_invoice','invoice')"/>
+                <field name="kr_approval_number" string="세금계산서승인번호"
+                       invisible="kr_doc_type not in ('tax_invoice','invoice')"/>
                 <field name="kr_is_correction" invisible="not kr_is_correction"/>
-                <field name="kr_origin_number" invisible="not kr_is_correction"
+                <field name="kr_origin_number" string="원본 세금계산서 승인번호"
+                       invisible="not kr_is_correction"
                        required="kr_is_correction and kr_doc_type == 'tax_invoice'"/>
                 <field name="kr_tax_type_manual" invisible="1"/>
             </xpath>
@@ -113,6 +134,9 @@
                     <label for="correction_no_origin"/>
                     <div><field name="correction_no_origin" class="oe_inline"/> 건
                         <button name="action_correction_no_origin" type="object" string="보기" class="btn-link" invisible="correction_no_origin == 0"/></div>
+                    <label for="correction_origin_unmatched"/>
+                    <div><field name="correction_origin_unmatched" class="oe_inline"/> 건
+                        <button name="action_correction_origin_unmatched" type="object" string="보기" class="btn-link" invisible="correction_origin_unmatched == 0"/></div>
                     <label for="residual_mismatch"/>
                     <div><field name="residual_mismatch" class="oe_inline"/> 거래처
                         <button name="action_residual_mismatch" type="object" string="보기" class="btn-link" invisible="residual_mismatch == 0"/></div>

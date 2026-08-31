@@ -107,6 +107,8 @@
                     <field name="show_reset_to_draft_button" invisible="1"/>
                     <field name="payment_state" invisible="1"/>
                     <field name="move_type" invisible="1"/>
+                    <field name="kr_doc_type" invisible="1"/>
+                    <field name="kr_is_correction" invisible="1"/>
                     <div class="oe_title">
                         <label for="name" string="전표번호"/>
                         <h1>
@@ -125,12 +127,14 @@
                             <field name="kr_move_type_display" string="전표유형" readonly="1"/>
                         </group>
                         <group col="4">
-                            <field name="ref" string="청구서(세금계산서)"
-                                   invisible="move_type == 'entry'" readonly="state != 'draft'"/>
                             <field name="ref" string="참조"
                                    invisible="move_type != 'entry'" readonly="state != 'draft'"/>
                             <field name="kr_approval_number" string="세금계산서승인번호"
                                    invisible="move_type == 'entry'" readonly="state != 'draft'"/>
+                            <field name="kr_origin_number" string="원본 세금계산서 승인번호"
+                                   invisible="move_type == 'entry' or not kr_is_correction"
+                                   required="kr_is_correction and kr_doc_type == 'tax_invoice'"
+                                   readonly="state != 'draft'"/>
                             <field name="amount_total" string="총계" readonly="1"/>
                             <field name="state" string="상태" widget="badge" readonly="1"
                                    decoration-info="state == 'draft'"
