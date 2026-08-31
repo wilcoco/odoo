@@ -51,7 +51,7 @@
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_kr_bank_journal_list')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('account.view_account_journal_form')})]"/>
         <field name="domain">[('type', '=', 'bank')]</field>
-        <field name="context">{'default_type': 'bank'}</field>
+        <field name="context">{'default_type': 'bank', 'kr_bank_account_setup': True}</field>
     </record>
 
     <!-- 표준 메뉴 이름과 동작을 회사용 화면으로 교체한다. -->

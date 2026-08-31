@@ -181,6 +181,31 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
 
         self.assertEqual(move.name, "20240718000001")
 
+    def test_first_customer_and_vendor_invoice_accept_date_number_rule(self):
+        self._enable_custom_sequence("date_number")
+        invoice_date = fields.Date.to_date("2099-12-31")
+
+        for move_type, journal in (
+            ("out_invoice", self.company_data["default_journal_sale"]),
+            ("in_invoice", self.company_data["default_journal_purchase"]),
+        ):
+            invoice = self.env["account.move"].new({
+                "move_type": move_type,
+                "journal_id": journal.id,
+                "company_id": self.company_data["company"].id,
+                "invoice_date": invoice_date,
+                "date": invoice_date,
+            })
+
+            self.assertEqual(
+                invoice._deduce_sequence_number_reset(False),
+                "month",
+            )
+            self.assertEqual(
+                invoice._get_accounting_date(invoice_date, False),
+                invoice_date,
+            )
+
     def test_daily_sequence_is_shared_across_ttt_codes(self):
         self._enable_custom_sequence()
         general_move = self._create_entry("2024-07-26")
@@ -530,6 +555,34 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             lambda line: line.account_id == liquidity_account
         )
         self.assertEqual(bank_line.kr_bank_journal_id, bank_journal)
+
+    def test_bank_account_setup_creates_default_account_and_chatter_guide(self):
+        bank_journal = self.env["account.journal"].with_context(
+            kr_bank_account_setup=True
+        ).create({
+            "name": "안내 테스트은행 운영계좌",
+            "code": "KBG",
+            "company_id": self.company_data["company"].id,
+        })
+
+        self.assertEqual(bank_journal.type, "bank")
+        self.assertTrue(bank_journal.default_account_id)
+        self.assertEqual(
+            bank_journal.default_account_id.account_type,
+            "asset_cash",
+        )
+        self.assertIn("당좌예금", bank_journal.default_account_id.name)
+
+        guide_messages = bank_journal.message_ids.filtered(
+            lambda message: "계좌 설정을 만들었어요" in (message.body or "")
+        )
+        self.assertEqual(len(guide_messages), 1)
+        self.assertIn(
+            bank_journal.default_account_id.display_name,
+            guide_messages.body,
+        )
+        self.assertIn("계좌번호", guide_messages.body)
+        self.assertIn("전표유형 코드", guide_messages.body)
 
     def test_ambiguous_bank_mapping_requires_selection(self):
         liquidity_account = self.env["account.account"].create({

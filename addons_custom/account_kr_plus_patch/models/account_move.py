@@ -175,6 +175,27 @@ class AccountMove(models.Model):
         self.ensure_one()
         return bool(self._kr_get_supported_sequence_regex())
 
+    @api.model
+    def _deduce_sequence_number_reset(self, name):
+        """Treat an empty first Korean sequence as a normal new period.
+
+        Odoo asks for the reset period while computing a draft invoice's
+        accounting date.  On the first customer or vendor invoice of a day,
+        the custom daily domain has no previous name and passes ``False``.
+        The core parser rejects that value before our own sequence generator
+        can assign the first number.
+        """
+        if (
+            len(self) == 1
+            and self._kr_uses_configured_sequence()
+            and (not name or name == "/")
+        ):
+            # The core has no daily reset type.  ``month`` matches the year and
+            # month groups used for its lock-date calculation; the actual
+            # sequence still resets daily in _get_last_sequence_domain.
+            return "month"
+        return super()._deduce_sequence_number_reset(name)
+
     @property
     def _sequence_monthly_regex(self):
         if self and len(self) == 1 and self._kr_uses_configured_sequence():

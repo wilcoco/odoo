@@ -215,6 +215,7 @@ class AccountKrPlusSettings(models.TransientModel):
         action["context"] = {
             "default_company_id": self.company_id.id,
             "default_type": "bank",
+            "kr_bank_account_setup": True,
         }
         return action
 
