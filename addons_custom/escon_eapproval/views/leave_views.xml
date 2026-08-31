@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ───────────── 휴가 신청/내 휴가 — 에스콘 커스텀 화면 ─────────────
+         Odoo 기본 휴가 현황판(달력) 대신 회사 화면을 코드로 정의한다.
+         휴가 유형 6종 구성은 models/setup.py LEAVE_TYPE_SPECS(정본) 참조. -->
+
+    <!-- 휴가 신청 폼 (팝업 전용, 커스텀 정의 — hr_holidays 뷰 상속 아님) -->
+    <record id="view_escon_leave_form" model="ir.ui.view">
+        <field name="name">hr.leave.form.escon</field>
+        <field name="model">hr.leave</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="휴가 신청">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="leave_type_request_unit" invisible="1"/>
+                            <field name="holiday_status_id" string="휴가 유형"
+                                   required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="request_unit_half" string="반차"
+                                   invisible="leave_type_request_unit != 'half_day'"/>
+                            <field name="request_date_from" string="시작일" required="1"/>
+                            <field name="request_date_to" string="종료일"
+                                   invisible="request_unit_half" required="not request_unit_half"/>
+                            <field name="request_date_from_period" string="오전/오후"
+                                   invisible="not request_unit_half"
+                                   required="request_unit_half"/>
+                        </group>
+                        <group>
+                            <field name="duration_display" string="신청 일수" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="name" string="사유" placeholder="휴가 사유 (선택)"/>
+                    </group>
+                    <group string="증빙 첨부 (공가는 필수)">
+                        <field name="supported_attachment_ids" widget="many2many_binary"
+                               nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 신청 팝업 액션 (target=new → 다이얼로그) -->
+    <record id="action_escon_leave_new" model="ir.actions.act_window">
+        <field name="name">휴가 신청</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_escon_leave_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 내 휴가 리스트 (신규 버튼 대신 '휴가 신청' 팝업 버튼) -->
+    <record id="view_escon_leave_list" model="ir.ui.view">
+        <field name="name">hr.leave.list.escon</field>
+        <field name="model">hr.leave</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list create="false" js_class="escon_leave_list"
+                  decoration-success="state == 'validate'"
+                  decoration-danger="state == 'refuse'"
+                  decoration-info="state in ('confirm', 'validate1')">
+                <header>
+                    <button name="%(action_escon_leave_new)d" type="action"
+                            string="휴가 신청" class="btn-primary" display="always"/>
+                </header>
+                <field name="holiday_status_id" string="휴가 유형"/>
+                <field name="request_date_from" string="시작일"/>
+                <field name="request_date_to" string="종료일"/>
+                <field name="duration_display" string="일수"/>
+                <field name="name" string="사유" optional="show"/>
+                <field name="state" string="상태" widget="badge"
+                       decoration-success="state == 'validate'"
+                       decoration-danger="state == 'refuse'"
+                       decoration-info="state in ('confirm', 'validate1')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_escon_leave_my" model="ir.actions.act_window">
+        <field name="name">내 휴가</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id','=',uid)]</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_escon_leave_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_escon_leave_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">휴가 신청 내역이 없습니다</p>
+            <p>위의 "휴가 신청" 버튼으로 연차·반차·병가·공가 등을 신청하세요.
+               연차 잔여는 대시보드에서 확인할 수 있습니다.</p>
+        </field>
+    </record>
+
+    <!-- 휴가 신청 메뉴: 내 휴가 목록을 열고, 목록 마운트 직후 신청 폼 팝업을
+         자동으로 띄운다 (js_class escon_leave_list 가 컨텍스트 플래그 처리) -->
+    <record id="action_escon_leave_open" model="ir.actions.act_window">
+        <field name="name">휴가 신청</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('user_id','=',uid)]</field>
+        <field name="context">{'escon_open_leave_dialog': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_escon_leave_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_escon_leave_form')})]"/>
+    </record>
+</odoo>

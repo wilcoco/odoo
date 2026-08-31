@@ -552,84 +552,90 @@
     }
 }
 
-// ───────────── 품의서 작성 (유형 카드 그리드) ─────────────
+// ───────────── 품의서 작성 (유형 카드 리스트) ─────────────
+// 화면은 넓게 쓰되 항목 컨테이너는 최대 1080px 로 고정. 카드는 가로형 한 줄
+// (아이콘 | 제목/설명 각 1줄 | > 아이콘). hover 는 하이라이트 색 변화만.
 .eap-compose {
+    .eap-body {
+        max-width: 1080px;
+        margin: 0 auto;
+    }
+
     &__grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 16px;
-        &--wide { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+        gap: 12px;
     }
 
     &__card {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        min-height: 190px;
-        padding: 20px;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
         text-align: left;
         cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        transition: background 0.18s ease, border-color 0.18s ease;
 
         &:hover {
             background: var(--eap-hover);
             border-color: var(--eap-hover-border);
-            transform: translateY(-2px);
-            .eap-compose__go { color: var(--eap-primary); }
+            .eap-compose__chev { color: var(--eap-primary); }
+            .eap-compose__name { color: var(--eap-primary); }
         }
-        &--flat { min-height: 0; flex-direction: row; align-items: center; }
-        &--flat .eap-compose__foot { margin-top: 0; margin-left: auto; }
     }
 
     &__icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 56px;
-        height: 56px;
+        width: 44px;
+        height: 44px;
         flex: none;
-        border-radius: 14px;
+        border-radius: 12px;
         background: var(--eap-surface-2);
-        font-size: 22px;
+        font-size: 18px;
         color: var(--eap-primary);
-        img { width: 40px; height: 40px; object-fit: contain; }
+        img { width: 30px; height: 30px; object-fit: contain; }
         &--tint { background: var(--eap-primary-bg); }
     }
 
-    &__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    &__name { font-size: var(--eap-fs-lg); font-weight: 600; color: var(--eap-text); }
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    &__name {
+        font-size: var(--eap-fs-md);
+        font-weight: 600;
+        color: var(--eap-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: color 0.18s ease;
+    }
     &__desc {
         color: var(--eap-muted);
         font-size: var(--eap-fs-sm);
-        line-height: 1.45;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    &__foot {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        width: 100%;
-        margin-top: auto;
-    }
-    &__go {
-        margin-left: auto;
-        color: var(--eap-muted);
-        font-size: var(--eap-fs-sm);
-        font-weight: 500;
-        white-space: nowrap;
-        transition: color 0.2s ease;
-        i { font-size: 11px; margin-left: 2px; }
+    .eap-chip { flex: none; }
+
+    &__chev {
+        flex: none;
+        color: var(--eap-border-strong);
+        font-size: 13px;
+        transition: color 0.18s ease;
     }
 }
 
-@media (max-width: 560px) {
-    .eap-compose__grid, .eap-compose__grid--wide { grid-template-columns: 1fr; }
+@media (max-width: 1024px) {
+    .eap-compose__grid { grid-template-columns: 1fr; }
 }
 
 // ───────────── 반응형 ─────────────

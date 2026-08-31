@@ -296,3 +296,33 @@ class TestComposeScreen(TransactionCase):
         self.assertIn("지출 결의서", by_group["finance"])
         self.assertIn("일반 기안서", by_group["admin"])
         self.assertIn("견적서 승인", by_group["sales"])
+
+
+@tagged("post_install", "-at_install")
+class TestLeaveGovernance(TransactionCase):
+    """휴가 유형 6종 (LEAVE_GUIDE.md): 순서·보관·가드."""
+
+    def test_six_types_and_order(self):
+        self.env["escon.eapproval.setup"].apply_odoo_defaults()
+        names = self.env["hr.leave.type"].search([], order="sequence, id").mapped("name")
+        self.assertEqual(
+            names[:6], ["연차", "병가", "공가", "무급 휴가", "경조사", "대체휴무"])
+        # 미사용 기본 유형 보관
+        for xmlid in ("hr_holidays.holiday_status_cl",
+                      "hr_holidays.holiday_status_comp"):
+            self.assertFalse(self.env.ref(xmlid).active, xmlid)
+
+    def test_core_types_guarded(self):
+        """스펙 편입된 Odoo 기본 레코드(병가/무급)도 UI 수정 차단."""
+        from odoo.exceptions import UserError
+        sick = self.env.ref("hr_holidays.holiday_status_sl")
+        with self.assertRaises(UserError):
+            sick.write({"request_unit": "hour"})
+        with self.assertRaises(UserError):
+            sick.unlink()
+
+    def test_leave_actions_exist(self):
+        for xmlid in ("escon_eapproval.action_escon_leave_new",
+                      "escon_eapproval.action_escon_leave_my",
+                      "escon_eapproval.action_escon_leave_open"):
+            self.assertTrue(self.env.ref(xmlid))

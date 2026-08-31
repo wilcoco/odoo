@@ -111,16 +111,17 @@
     <!-- ───────────── 휴가 (hr_holidays 연동) ───────────── -->
     <menuitem id="menu_eapproval_leave" name="휴가" parent="menu_eapproval_root" sequence="40"/>
 
+    <!-- 커스텀 신청 흐름: 내 휴가 목록 위에 신청 폼 팝업 (views/leave_views.xml) -->
     <menuitem id="menu_eapproval_leave_request"
               name="휴가 신청"
               parent="menu_eapproval_leave"
-              action="hr_holidays.hr_leave_action_new_request"
+              action="action_escon_leave_open"
               sequence="10"/>
 
     <menuitem id="menu_eapproval_leave_my"
               name="내 휴가"
               parent="menu_eapproval_leave"
-              action="hr_holidays.hr_leave_action_my"
+              action="action_escon_leave_my"
               sequence="20"/>
 
     <menuitem id="menu_eapproval_leave_approve"

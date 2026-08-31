@@ -36,6 +36,13 @@ DEFAULT_CATEGORY_XMLIDS = [
     "approvals_purchase.approval_category_data_rfq",
 ]
 
+# 회사 미사용 Odoo 기본 휴가 유형 — 보관(비활성) 처리 (삭제 아님, 복구는 스펙/목록 수정)
+DEFAULT_LEAVE_TYPE_XMLIDS = [
+    "hr_holidays.holiday_status_cl",                       # 유급 휴가 (Paid Time Off)
+    "hr_holidays.holiday_status_comp",                     # 포상 휴가 (Compensatory Days)
+    "hr_holidays_attendance.holiday_status_extra_hours",   # 추가 시간 (Extra Hours)
+]
+
 # ── 전자결재 요청 유형 표준 스펙 (data/approval_category_data.xml 과 일치 유지) ──
 _CATEGORY_BASE = {
     "active": True,
@@ -133,29 +140,41 @@ CATEGORY_SPECS = {
 PROTECTED_CATEGORY_FIELDS = (set(_CATEGORY_BASE)
                              | {"name", "sequence_code", "escon_group"})
 
-# ── 휴가 유형 표준 스펙 (data/leave_type_data.xml 과 일치 유지) ──
+# ── 휴가 유형 표준 스펙 — 회사 휴가 유형 6종 (LEAVE_GUIDE.md 참조) ──
+# 병가/무급 휴가는 Odoo 기본 레코드를 스펙 관리 대상으로 편입 (회계 kr_plus 설정
+# 전역 단일화와 같은 패턴: 값은 코드가 정본, UI 수정 차단, 업그레이드마다 정합)
 LEAVE_TYPE_SPECS = {
     "escon_eapproval.leave_type_annual": {
-        "name": "연차", "active": True, "requires_allocation": "yes",
-        "employee_requests": "no", "allocation_validation_type": "hr",
-        "leave_validation_type": "manager", "request_unit": "half_day",
-        "support_document": False,
+        "name": "연차", "active": True, "sequence": 1,
+        "requires_allocation": "yes", "employee_requests": "no",
+        "allocation_validation_type": "hr", "leave_validation_type": "manager",
+        "request_unit": "half_day", "support_document": False,
     },
-    "escon_eapproval.leave_type_family_event": {
-        "name": "경조사", "active": True, "requires_allocation": "no",
-        "leave_validation_type": "manager", "request_unit": "day",
-        "support_document": False,
+    "hr_holidays.holiday_status_sl": {
+        "name": "병가", "active": True, "sequence": 2,
+        "requires_allocation": "no", "leave_validation_type": "hr",
+        "request_unit": "day", "support_document": False,
     },
     "escon_eapproval.leave_type_official": {
-        "name": "공가", "active": True, "requires_allocation": "no",
-        "leave_validation_type": "hr", "request_unit": "day",
-        "support_document": True,
+        "name": "공가", "active": True, "sequence": 3,
+        "requires_allocation": "no", "leave_validation_type": "hr",
+        "request_unit": "day", "support_document": True,
+    },
+    "hr_holidays.holiday_status_unpaid": {
+        "name": "무급 휴가", "active": True, "sequence": 4,
+        "requires_allocation": "no", "leave_validation_type": "hr",
+        "request_unit": "day", "support_document": False,
+    },
+    "escon_eapproval.leave_type_family_event": {
+        "name": "경조사", "active": True, "sequence": 5,
+        "requires_allocation": "no", "leave_validation_type": "manager",
+        "request_unit": "day", "support_document": False,
     },
     "escon_eapproval.leave_type_comp_off": {
-        "name": "대체휴무", "active": True, "requires_allocation": "yes",
-        "employee_requests": "no", "allocation_validation_type": "hr",
-        "leave_validation_type": "manager", "request_unit": "half_day",
-        "support_document": False,
+        "name": "대체휴무", "active": True, "sequence": 6,
+        "requires_allocation": "yes", "employee_requests": "no",
+        "allocation_validation_type": "hr", "leave_validation_type": "manager",
+        "request_unit": "half_day", "support_document": False,
     },
 }
 
@@ -204,6 +223,13 @@ class EsconEapprovalSetup(models.AbstractModel):
             root_menu.active = False
             menu_hidden = True
 
+        # 미사용 기본 휴가 유형 보관
+        for xmlid in DEFAULT_LEAVE_TYPE_XMLIDS:
+            leave_type = self.env.ref(xmlid, raise_if_not_found=False)
+            if leave_type and leave_type.active:
+                leave_type.with_context(**{SETUP_CTX: True}).active = False
+                archived.append(leave_type.name)
+
         # 표준 스펙 강제 정합 (UI 에서 바뀐 구조 설정을 되돌린다)
         fixed = self._enforce_specs(CATEGORY_SPECS)
         fixed += self._enforce_specs(LEAVE_TYPE_SPECS)
@@ -248,12 +274,21 @@ class EsconSettingGuardMixin(models.AbstractModel):
 
     _escon_protected_fields = frozenset()
 
+    def _escon_governed_xmlids(self):
+        """이 모델에서 표준 스펙 관리(=UI 수정 차단) 대상인 xml id 목록."""
+        return ()
+
     def _escon_managed_ids(self):
         rows = self.env["ir.model.data"].sudo().search_read(
             [("module", "=", "escon_eapproval"), ("model", "=", self._name),
              ("res_id", "in", self.ids)],
             ["res_id"])
-        return {row["res_id"] for row in rows}
+        managed = {row["res_id"] for row in rows}
+        for xmlid in self._escon_governed_xmlids():
+            record = self.env.ref(xmlid, raise_if_not_found=False)
+            if record is not None and record._name == self._name:
+                managed.add(record.id)
+        return managed
 
     def _escon_guard(self, touched_fields):
         if self.env.context.get(SETUP_CTX) or self.env.context.get(MODULE_UNINSTALL_FLAG):
@@ -288,6 +323,9 @@ class ApprovalCategoryGuard(models.Model):
 
     _escon_protected_fields = frozenset(PROTECTED_CATEGORY_FIELDS)
 
+    def _escon_governed_xmlids(self):
+        return tuple(CATEGORY_SPECS)
+
     escon_group = fields.Selection(
         ESCON_GROUPS, string="문서 그룹", default="admin", required=True,
         help="품의서 작성 화면의 섹션 구분 (에스콘 표준 스펙으로 관리)")
@@ -298,3 +336,6 @@ class HrLeaveTypeGuard(models.Model):
     _inherit = ["hr.leave.type", "escon.setting.guard.mixin"]
 
     _escon_protected_fields = frozenset(PROTECTED_LEAVE_TYPE_FIELDS)
+
+    def _escon_governed_xmlids(self):
+        return tuple(LEAVE_TYPE_SPECS)

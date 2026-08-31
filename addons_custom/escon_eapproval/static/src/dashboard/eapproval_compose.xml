@@ -32,9 +32,9 @@
                                     <span class="eap-compose__icon eap-compose__icon--tint"><i class="fa fa-plane"/></span>
                                     <span class="eap-compose__body">
                                         <span class="eap-compose__name">근태(휴가) 신청서</span>
-                                        <span class="eap-compose__desc">연차·반차·병가·공가·경조 휴가 — 휴가 현황판에서 신청</span>
+                                        <span class="eap-compose__desc">연차·반차·병가·공가·경조사·대체휴무 신청</span>
                                     </span>
-                                    <span class="eap-compose__foot"><span class="eap-compose__go">신청 <i class="fa fa-arrow-right"/></span></span>
+                                    <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
                                 </button>
                                 <!-- 품의서(청구 연계) — 승인 후 청구서 생성·잔액 관리 (pumui) -->
                                 <button t-if="grp.key === 'finance' &amp;&amp; data.pumui.installed" type="button"
@@ -45,7 +45,7 @@
                                         <span class="eap-compose__name">품의서 (청구 연계)</span>
                                         <span class="eap-compose__desc">지출/수금 품의 — 승인 후 청구서 생성·잔액 관리</span>
                                     </span>
-                                    <span class="eap-compose__foot"><span class="eap-compose__go">작성 <i class="fa fa-arrow-right"/></span></span>
+                                    <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
                                 </button>
 
                                 <t t-foreach="categoriesFor(grp.key)" t-as="cat" t-key="cat.id">
@@ -59,12 +59,10 @@
                                             <span class="eap-compose__name" t-esc="cat.name"/>
                                             <span class="eap-compose__desc" t-esc="cat.description"/>
                                         </span>
-                                        <span class="eap-compose__foot">
-                                            <span t-if="cat.my_open" class="eap-chip eap-chip--xs eap-chip--running">
-                                                내 진행 <t t-esc="cat.my_open"/>건
-                                            </span>
-                                            <span class="eap-compose__go">작성 <i class="fa fa-arrow-right"/></span>
+                                        <span t-if="cat.my_open" class="eap-chip eap-chip--xs eap-chip--running">
+                                            진행 <t t-esc="cat.my_open"/>건
                                         </span>
+                                        <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
                                     </button>
                                 </t>
                             </div>
