@@ -13,10 +13,6 @@
                     <div class="oe_title">
                         <h1>한국식 회계 설정</h1>
                     </div>
-                    <group>
-                        <field name="company_id" groups="base.group_multi_company"
-                               options="{'no_create': True}"/>
-                    </group>
                     <group string="전표번호 규칙">
                         <field name="kr_move_sequence_rule" widget="radio"/>
                         <field name="sequence_example" readonly="1"/>
@@ -67,6 +63,7 @@
         <field name="res_model">account.kr.plus.settings</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_account_kr_plus_settings_form"/>
+        <field name="res_id" ref="account_kr_plus_settings_global"/>
         <field name="target">current</field>
     </record>
 
