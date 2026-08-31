@@ -67,6 +67,17 @@ class TestKrReports(TransactionCase):
         company = self.env.company
         company.write({"fiscalyear_lock_date": "1999-12-31"})
         self.assertEqual(Log.search([], order="id desc", limit=1).direction, "tighten")
+        # account_safety_security 가 설치된 DB 는 잠금일자 후퇴·해제를 정책으로
+        # 차단한다 — 그 환경에서는 차단 동작 자체를 검증하고 종료한다.
+        # (loosen/release 로그 방향은 가드 없는 DB·CI 에서 검증됨)
+        safety_guard = self.env["ir.module.module"].sudo().search_count(
+            [("name", "=", "account_safety_security"), ("state", "=", "installed")])
+        if safety_guard:
+            from odoo.exceptions import UserError
+            with self.assertRaises(UserError, msg="잠금 후퇴는 안전 가드가 막아야 함"):
+                company.write({"fiscalyear_lock_date": "1999-06-30"})
+            self.assertEqual(Log.search_count([]), n0 + 1, "차단된 write 는 이력 없음")
+            return
         company.write({"fiscalyear_lock_date": "1999-06-30"})
         self.assertEqual(Log.search([], order="id desc", limit=1).direction, "loosen")
         company.write({"fiscalyear_lock_date": False})

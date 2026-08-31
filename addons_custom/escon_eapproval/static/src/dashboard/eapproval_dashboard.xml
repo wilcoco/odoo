@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ───────────────────────── 메인 ───────────────────────── -->
+    <t t-name="escon_eapproval.Dashboard" owl="1">
+        <div class="o_action eap-dashboard">
+            <!-- 오른쪽 벽 고정: 새로고침 + 갱신 시각 -->
+            <div class="eap-dock">
+                <div class="eap-dock__pill">
+                    <span class="eap-live" t-att-class="{ 'is-loading': state.loading }">
+                        <i class="eap-live__dot"/>
+                        <t t-if="state.loading">갱신 중</t>
+                        <t t-elif="lastUpdatedLabel">갱신 <t t-esc="lastUpdatedLabel"/></t>
+                        <t t-else="">대기</t>
+                    </span>
+                    <button type="button" class="eap-iconbtn" title="새로고침" t-on-click="() => this.refresh()">
+                        <i class="fa fa-refresh" t-att-class="{ 'fa-spin': state.loading }"/>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 왼쪽 위: 인사 + 빠른 작성 -->
+            <div class="eap-topbar">
+                <div class="eap-topbar__title">
+                    <h1>전자결재</h1>
+                    <span class="eap-topbar__who" t-if="greeting" t-esc="greeting"/>
+                </div>
+                <div class="eap-topbar__actions">
+                    <button t-if="hasXml('approvals_new')" type="button" class="eap-btn eap-btn--primary"
+                            t-on-click="() => this.openXml('approvals_new')">
+                        <i class="fa fa-edit"/> 품의서 작성
+                    </button>
+                    <button t-if="pumui.installed" type="button" class="eap-btn"
+                            t-on-click="() => this.newPumui()">
+                        <i class="fa fa-pencil"/> 품의서 (청구 연계)
+                    </button>
+                    <button type="button" class="eap-btn" t-on-click="() => this.newLeave()">
+                        <i class="fa fa-plane"/> 휴가 신청
+                    </button>
+                </div>
+            </div>
+
+            <div class="eap-body">
+                <t t-if="state.initialLoading">
+                    <div class="eap-kpis">
+                        <t t-foreach="[0, 1, 2, 3, 4, 5]" t-as="i" t-key="i">
+                            <div class="eap-kpi eap-skeleton" style="min-height: 124px;"/>
+                        </t>
+                    </div>
+                    <div class="eap-card eap-skeleton" style="min-height: 280px;"/>
+                </t>
+                <t t-elif="!data">
+                    <div class="eap-empty eap-empty--page">
+                        <i class="fa fa-exclamation-circle"/>
+                        <span t-esc="state.error || '표시할 데이터가 없습니다.'"/>
+                        <button class="eap-btn eap-btn--primary" t-on-click="() => this.refresh()">다시 시도</button>
+                    </div>
+                </t>
+                <t t-else="">
+                    <!-- KPI -->
+                    <div class="eap-kpis">
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_review')">
+                            <span class="eap-kpi__icon" t-att-class="kpi.to_approve ? 'eap-kpi__icon--danger' : 'eap-kpi__icon--ok'"><i class="fa fa-inbox"/></span>
+                            <span class="eap-kpi__label">결재 대기</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.to_approve)"/><small>건</small></span>
+                            <span class="eap-kpi__sub">내가 결재할 차례인 문서</span>
+                        </button>
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
+                            <span class="eap-kpi__icon eap-kpi__icon--primary"><i class="fa fa-paper-plane"/></span>
+                            <span class="eap-kpi__label">결재 진행 중</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.my_in_progress)"/><small>건</small></span>
+                            <span class="eap-kpi__sub">내가 상신한 문서</span>
+                        </button>
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
+                            <span class="eap-kpi__icon eap-kpi__icon--ok"><i class="fa fa-check-circle"/></span>
+                            <span class="eap-kpi__label">승인 (30일)</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.my_approved_30d)"/><small>건</small></span>
+                            <span class="eap-kpi__sub">최근 30일 승인 완료</span>
+                        </button>
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('approvals_my')">
+                            <span class="eap-kpi__icon" t-att-class="kpi.my_rejected_30d ? 'eap-kpi__icon--warn' : 'eap-kpi__icon--muted'"><i class="fa fa-undo"/></span>
+                            <span class="eap-kpi__label">반려 (30일)</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.my_rejected_30d)"/><small>건</small></span>
+                            <span class="eap-kpi__sub">수정 후 재상신 필요</span>
+                        </button>
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('leave_dashboard')">
+                            <span class="eap-kpi__icon eap-kpi__icon--accent"><i class="fa fa-plane"/></span>
+                            <span class="eap-kpi__label">휴가 잔여</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.leave_remaining, 1)"/><small>일</small></span>
+                            <span class="eap-kpi__sub">배정된 휴가 기준</span>
+                        </button>
+                        <button type="button" class="eap-kpi" t-on-click="() => this.openXml('leave_my')">
+                            <span class="eap-kpi__icon" t-att-class="kpi.leave_pending ? 'eap-kpi__icon--warn' : 'eap-kpi__icon--muted'"><i class="fa fa-hourglass-half"/></span>
+                            <span class="eap-kpi__label">휴가 승인 대기</span>
+                            <span class="eap-kpi__value"><t t-esc="num(kpi.leave_pending)"/><small>건</small></span>
+                            <span class="eap-kpi__sub">신청 후 승인 대기 중</span>
+                        </button>
+                    </div>
+
+                    <!-- 결재 대기 + 내 휴가 -->
+                    <div class="eap-row eap-row--8-4">
+                        <t t-call="escon_eapproval.Dashboard.ToApprove"/>
+                        <t t-call="escon_eapproval.Dashboard.Leave"/>
+                    </div>
+
+                    <!-- 품의서 현황 + 내 최근 상신 -->
+                    <div class="eap-row eap-row--8-4">
+                        <t t-if="pumui.installed" t-call="escon_eapproval.Dashboard.Pumui"/>
+                        <t t-else="">
+                            <section class="eap-card eap-panel">
+                                <div class="eap-panel__head">
+                                    <div><h3>품의서</h3></div>
+                                </div>
+                                <div class="eap-empty">품의서 모듈(pumui_approval)이 설치되어 있지 않습니다.</div>
+                            </section>
+                        </t>
+                        <t t-call="escon_eapproval.Dashboard.MyRequests"/>
+                    </div>
+
+                    <t t-if="data.errors.length">
+                        <div class="eap-note eap-note--warn">
+                            <i class="fa fa-lock"/>
+                            일부 섹션은 접근 권한이 없어 표시되지 않았습니다:
+                            <t t-foreach="data.errors" t-as="err" t-key="err_index">
+                                <code t-esc="err.section"/>
+                            </t>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- ───────────────────────── 결재 대기 ───────────────────────── -->
+    <t t-name="escon_eapproval.Dashboard.ToApprove" owl="1">
+        <section class="eap-card eap-panel">
+            <div class="eap-panel__head">
+                <div>
+                    <h3>결재 대기 문서</h3>
+                    <p>내가 결재할 차례인 문서 <b t-esc="data.to_approve.length"/>건 — 행을 누르면 문서가 열립니다.</p>
+                </div>
+                <span class="eap-panel__links">
+                    <a t-if="hasXml('approvals_review')" href="#" class="eap-link"
+                       t-on-click.prevent="() => this.openXml('approvals_review')">결재 대기 품의서 →</a>
+                    <a t-if="hasXml('pumui_pending')" href="#" class="eap-link"
+                       t-on-click.prevent="() => this.openXml('pumui_pending')">청구 연계 →</a>
+                </span>
+            </div>
+            <t t-if="!data.to_approve.length">
+                <div class="eap-empty eap-empty--ok"><i class="fa fa-check"/>결재할 문서가 없습니다.</div>
+            </t>
+            <div t-else="" class="eap-table-wrap">
+                <table class="eap-table">
+                    <thead>
+                        <tr>
+                            <th>구분</th>
+                            <th>문서</th>
+                            <th>상신자</th>
+                            <th class="eap-num">결재 단계</th>
+                            <th>상신일시</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="data.to_approve" t-as="row" t-key="row.id">
+                            <tr class="eap-table__row" t-on-click="() => this.openDoc(row)">
+                                <td><span class="eap-chip eap-chip--xs" t-esc="row.doc_label"/></td>
+                                <td class="eap-ellipsis"><span class="eap-link" t-esc="row.doc_name"/></td>
+                                <td t-esc="row.requester"/>
+                                <td class="eap-num"><t t-esc="row.step_done"/> / <t t-esc="row.step_total"/></td>
+                                <td class="eap-muted" t-esc="fmtDt(row.date)"/>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </t>
+
+    <!-- ───────────────────────── 내 휴가 ───────────────────────── -->
+    <t t-name="escon_eapproval.Dashboard.Leave" owl="1">
+        <section class="eap-card eap-panel">
+            <div class="eap-panel__head">
+                <div>
+                    <h3>내 휴가</h3>
+                    <p>잔여 <b t-esc="num(kpi.leave_remaining, 1)"/>일</p>
+                </div>
+                <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('leave_my')">전체 보기 →</a>
+            </div>
+
+            <div class="eap-balance" t-if="data.leave_balance.length">
+                <t t-foreach="data.leave_balance" t-as="bal" t-key="bal.type">
+                    <div class="eap-balance__item">
+                        <div class="eap-balance__head">
+                            <span class="eap-ellipsis" t-esc="bal.type"/>
+                            <span><b t-esc="num(bal.remaining, 1)"/> / <t t-esc="num(bal.allocated, 1)"/>일</span>
+                        </div>
+                        <div class="eap-meter eap-meter--thin">
+                            <div class="eap-meter__bar eap-meter__bar--primary" t-att-style="barStyle(usagePct(bal))"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <t t-if="!data.leaves.length">
+                <div class="eap-empty">휴가 신청 내역이 없습니다.</div>
+            </t>
+            <ul t-else="" class="eap-list eap-list--tight">
+                <t t-foreach="data.leaves" t-as="lv" t-key="lv.id">
+                    <li class="eap-list__item" t-on-click="() => this.openRecord('hr.leave', lv.id, '휴가')">
+                        <div class="eap-list__body">
+                            <div class="eap-list__title"><span t-esc="lv.type"/></div>
+                            <div class="eap-list__meta">
+                                <t t-esc="lv.date_from"/><t t-if="lv.date_to &amp;&amp; lv.date_to !== lv.date_from"> ~ <t t-esc="lv.date_to"/></t>
+                                · <t t-esc="num(lv.days, 1)"/>일
+                            </div>
+                        </div>
+                        <div class="eap-list__side">
+                            <span class="eap-chip eap-chip--xs" t-att-class="'eap-chip--' + leaveState(lv.state).cls" t-esc="leaveState(lv.state).label"/>
+                        </div>
+                    </li>
+                </t>
+            </ul>
+        </section>
+    </t>
+
+    <!-- ───────────────────────── 품의서 현황 ───────────────────────── -->
+    <t t-name="escon_eapproval.Dashboard.Pumui" owl="1">
+        <section class="eap-card eap-panel">
+            <div class="eap-panel__head">
+                <div>
+                    <h3>품의서 (청구 연계) 현황</h3>
+                    <p>청구 연계 품의 — 결재 중 <b t-esc="num(pumui.counts.in_progress)"/> · 승인 <b t-esc="num(pumui.counts.approved)"/> · 반려 <b t-esc="num(pumui.counts.rejected)"/></p>
+                </div>
+                <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('pumui_list')">품의서 목록 →</a>
+            </div>
+
+            <t t-if="!pumui.recent.length">
+                <div class="eap-empty">작성한 품의서가 없습니다. 오른쪽 위 "품의서 작성"으로 시작하세요.</div>
+            </t>
+            <div t-else="" class="eap-table-wrap">
+                <table class="eap-table">
+                    <thead>
+                        <tr>
+                            <th>품의 번호</th>
+                            <th>제목</th>
+                            <th>거래처</th>
+                            <th class="eap-num">합계금액</th>
+                            <th>결재</th>
+                            <th>청구</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="pumui.recent" t-as="row" t-key="row.id">
+                            <tr class="eap-table__row" t-on-click="() => this.openRecord('pumui.request', row.id, row.name)">
+                                <td><span class="eap-link" t-esc="row.name"/></td>
+                                <td class="eap-ellipsis" t-esc="row.title"/>
+                                <td class="eap-ellipsis" t-esc="row.partner"/>
+                                <td class="eap-num" t-esc="num(row.amount_total)"/>
+                                <td><span class="eap-chip eap-chip--xs" t-att-class="'eap-chip--' + approvalState(row.approval_state).cls" t-esc="approvalState(row.approval_state).label"/></td>
+                                <td><span class="eap-chip eap-chip--xs" t-att-class="'eap-chip--' + billingState(row.billing_status).cls" t-esc="billingState(row.billing_status).label"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="eap-panel__foot" t-if="hasXml('pumui_unlinked')">
+                <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('pumui_unlinked')">
+                    품의 미연계 청구서 <b t-esc="num(pumui.unlinked_moves)"/>건 →
+                </a>
+            </div>
+        </section>
+    </t>
+
+    <!-- ───────────────────────── 내 최근 상신 ───────────────────────── -->
+    <t t-name="escon_eapproval.Dashboard.MyRequests" owl="1">
+        <section class="eap-card eap-panel">
+            <div class="eap-panel__head">
+                <div>
+                    <h3>내 최근 상신</h3>
+                    <p>내가 결재를 올린 모든 문서</p>
+                </div>
+                <a t-if="hasXml('approvals_my')" href="#" class="eap-link"
+                   t-on-click.prevent="() => this.openXml('approvals_my')">내 품의서 →</a>
+            </div>
+            <t t-if="!data.my_requests.length">
+                <div class="eap-empty">상신한 문서가 없습니다.</div>
+            </t>
+            <ul t-else="" class="eap-list eap-list--tight">
+                <t t-foreach="data.my_requests" t-as="row" t-key="row.id">
+                    <li class="eap-list__item" t-on-click="() => this.openDoc(row)">
+                        <div class="eap-list__body">
+                            <div class="eap-list__title"><span t-esc="row.doc_name"/></div>
+                            <div class="eap-list__meta">
+                                <t t-esc="row.doc_label"/> · <t t-esc="fmtDt(row.date)"/>
+                                <t t-if="row.state === 'in_progress'"> · 현재 결재자 <t t-esc="row.current_approver"/></t>
+                            </div>
+                        </div>
+                        <div class="eap-list__side">
+                            <span class="eap-chip eap-chip--xs" t-att-class="'eap-chip--' + approvalState(row.state).cls" t-esc="approvalState(row.state).label"/>
+                            <span class="eap-muted"><t t-esc="row.step_done"/>/<t t-esc="row.step_total"/> 단계</span>
+                        </div>
+                    </li>
+                </t>
+            </ul>
+        </section>
+    </t>
+</templates>

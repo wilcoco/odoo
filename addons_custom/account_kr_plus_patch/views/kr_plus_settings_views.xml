@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_kr_plus_settings_form" model="ir.ui.view">
+        <field name="name">account.kr.plus.settings.form</field>
+        <field name="model">account.kr.plus.settings</field>
+        <field name="arch" type="xml">
+            <form string="한국식 회계 설정">
+                <header>
+                    <button name="action_save" type="object" string="저장"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>한국식 회계 설정</h1>
+                    </div>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="전표번호 규칙">
+                        <field name="kr_move_sequence_rule" widget="radio"/>
+                        <field name="sequence_example" readonly="1"/>
+                    </group>
+                    <group string="전표 설정">
+                        <div class="row g-2" colspan="2">
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_sequence_journals" type="object"
+                                        string="전표유형 및 코드 설정"
+                                        class="btn btn-outline-primary w-100 text-start py-3 px-4"
+                                        icon="fa-list-ol"/>
+                            </div>
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_sequence_repair" type="object"
+                                        string="전표번호 소급 변경 적용"
+                                        class="btn btn-outline-primary w-100 text-start py-3 px-4"
+                                        icon="fa-wrench"/>
+                            </div>
+                        </div>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Odoo 기본을 선택하면 이 모듈은 신규 전표번호 발급에 관여하지
+                        않습니다. 설정 저장만으로 기존 전표번호가 바뀌지는 않습니다.
+                        전표번호 소급 변경 적용 버튼은 현재 선택한 형식을 먼저 저장한 뒤
+                        실행됩니다.
+                    </div>
+                    <group string="회계 기준정보">
+                        <div class="row g-2" colspan="2">
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_bank_journals" type="object"
+                                        string="계좌 설정"
+                                        class="btn btn-outline-secondary w-100 text-start py-3 px-4"
+                                        icon="fa-university"/>
+                            </div>
+                            <div class="col-lg-6 col-12">
+                                <button name="action_open_accounts" type="object"
+                                        string="계정과목 설정"
+                                        class="btn btn-outline-secondary w-100 text-start py-3 px-4"
+                                        icon="fa-book"/>
+                            </div>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_kr_plus_settings" model="ir.actions.act_window">
+        <field name="name">한국식 회계 설정</field>
+        <field name="res_model">account.kr.plus.settings</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_account_kr_plus_settings_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_account_kr_plus_settings"
+              name="한국식 회계 설정"
+              parent="account.menu_finance_configuration"
+              action="action_account_kr_plus_settings"
+              groups="account.group_account_manager"
+              sequence="0"/>
+</odoo>

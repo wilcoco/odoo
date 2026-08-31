@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cron_annual_leave_update" model="ir.cron">
+            <field name="name">에스콘 전자결재: 연차 자동 발생</field>
+            <field name="model_id" ref="model_escon_annual_leave"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_update_annual_leave()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+
+    <!-- 설정 > 연차 배정 지금 갱신 (수동 실행) -->
+    <record id="action_server_annual_leave_update" model="ir.actions.server">
+        <field name="name">연차 배정 지금 갱신</field>
+        <field name="model_id" ref="model_escon_annual_leave"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_update_now()</field>
+    </record>
+</odoo>
