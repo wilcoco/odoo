@@ -14,9 +14,11 @@
 | 결재 엔진·결재선 템플릿 | `iatf_approval` | 새 결재 붙일 땐 mixin 사용, 자체 결재 구현 금지 |
 | 품의(지출 승인→청구) | `pumui_approval` | |
 | 회계 한국화(가드/조회) | `account_kr_guard` / `account_kr_reports` | |
+| 회계 회사별 화면·전표번호·은행계좌 연결 | `account_kr_plus_patch` | reports → plus_patch 순서. `account.move.action_post`: plus_patch 은행 모호성 검사 후 pumui 승인 검사/표준 전기 호출 |
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
+| 홈 화면(메인 메뉴) | `escon_mainmenu` | '홈' 앱만 제공한다. 로그인 첫 화면·⊞ 버튼 교체(리다이렉트)는 혼란 방지를 위해 도입하지 않는다 — 기본 Odoo 홈 동작 유지 |
 
 ## 세션 작업 규칙
 1. 수요·정산·시리얼·결재처럼 "원장" 성격 데이터는 **만들지 말고 정본에 기록**한다.

@@ -62,22 +62,35 @@ class PumuiRequest(models.Model):
             rec.amount_tax = sum(rec.line_ids.mapped("price_tax"))
             rec.amount_total = rec.amount_untaxed + rec.amount_tax
 
-    @api.depends("move_ids.amount_total", "move_ids.amount_residual", "move_ids.state",
-                 "line_ids.invoiced", "amount_total")
+    @api.depends(
+        "move_ids.amount_total",
+        "move_ids.amount_residual",
+        "move_ids.state",
+        "move_ids.move_type",
+        "amount_total",
+    )
     def _compute_billing(self):
         for rec in self:
             moves = rec.move_ids.filtered(lambda m: m.state != "cancel")
             rec.move_count = len(moves)
-            sign = 1
-            rec.invoiced_amount = sum(moves.mapped("amount_total")) * sign
+            rec.invoiced_amount = sum(
+                move.amount_total
+                * (-1 if move.move_type in ("out_refund", "in_refund") else 1)
+                for move in moves
+            )
             posted = moves.filtered(lambda m: m.state == "posted")
-            rec.paid_amount = sum(m.amount_total - m.amount_residual for m in posted)
-            uninvoiced_lines = rec.line_ids.filtered(lambda l: not l.invoiced)
-            rec.uninvoiced_amount = sum(uninvoiced_lines.mapped("price_total"))
-            rec.amount_diff = rec.amount_total - rec.invoiced_amount - rec.uninvoiced_amount
+            rec.paid_amount = sum(
+                (move.amount_total - move.amount_residual)
+                * (-1 if move.move_type in ("out_refund", "in_refund") else 1)
+                for move in posted
+            )
+            remaining = rec.amount_total - rec.invoiced_amount
+            rec.uninvoiced_amount = max(remaining, 0.0)
+            # 미청구분은 잔액으로 보여주고, 승인액을 초과한 경우만 차이로 경고한다.
+            rec.amount_diff = min(remaining, 0.0)
             if not moves:
                 rec.billing_status = "none"
-            elif uninvoiced_lines:
+            elif remaining > 0 and not rec.currency_id.is_zero(remaining):
                 rec.billing_status = "partial"
             elif posted and all(
                     m.currency_id.is_zero(m.amount_residual) for m in posted) and len(posted) == len(moves):
@@ -91,6 +104,15 @@ class PumuiRequest(models.Model):
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("pumui.request") or _("New")
         return super().create(vals_list)
+
+    def unlink(self):
+        linked = self.filtered(lambda request: request.move_ids)
+        if linked:
+            raise UserError(_(
+                "연결된 청구서가 있는 품의서는 삭제할 수 없습니다. 청구서와 품의서의 "
+                "감사 이력을 유지해 주세요."
+            ))
+        return super().unlink()
 
     # ── 결재 (리포트 #7: 반려 사유 필수, 승인 전 지급 차단) ──
     def action_reject_approval(self):
@@ -116,6 +138,17 @@ class PumuiRequest(models.Model):
     # ── 청구서 생성 (승인 후에만, 단계별 지원) ──
     def _get_invoiceable_lines(self, stage=False):
         self.ensure_one()
+        linked_invoice_lines = self.line_ids.mapped("invoice_line_id")
+        manually_linked_moves = self.move_ids.filtered(
+            lambda move: move.state != "cancel"
+            and not (move.invoice_line_ids & linked_invoice_lines)
+        )
+        if manually_linked_moves:
+            raise UserError(_(
+                "수동으로 연결한 청구서가 있어 품의서에서 청구서를 자동 생성할 수 "
+                "없습니다. 남은 청구서도 공급업체 청구서 화면에서 작성한 뒤 같은 "
+                "품의서를 연결해 주세요."
+            ))
         lines = self.line_ids.filtered(lambda l: not l.invoiced)
         if stage:
             lines = lines.filtered(lambda l: l.payment_stage == stage)

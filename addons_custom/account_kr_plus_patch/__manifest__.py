@@ -1,0 +1,20 @@
+{
+    "name": "회계 한국식 통합 Plus Patch",
+    "version": "18.0.2.4.7",
+    "summary": "원화 금액 표시, 매출·매입 화면, 한국식 전표번호, 은행계좌 연결",
+    "category": "Accounting",
+    "license": "LGPL-3",
+    "author": "DevSanx",
+    "depends": ["account_kr_reports"],
+    "data": [
+        "data/decimal_precision.xml",
+        "security/ir.model.access.csv",
+        "data/kr_plus_settings_data.xml",
+        "views/account_move_views.xml",
+        "views/account_journal_views.xml",
+        "views/sequence_repair_wizard_views.xml",
+        "views/kr_plus_settings_views.xml",
+        "views/menus.xml",
+    ],
+    "installable": True,
+}

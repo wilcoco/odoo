@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_approval_number_merge_form" model="ir.ui.view">
+        <field name="name">kr.approval.number.merge.form</field>
+        <field name="model">kr.approval.number.merge</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-warning" role="alert">
+                    승인번호가 여러 필드로 흩어진 것을 <b>정본(세금계산서승인번호)</b> 하나로 모읍니다.<br/>
+                    <b>먼저 미리보기</b>로 건수·충돌을 확인한 뒤 '실제로 적용'을 켜고 다시 실행하세요.
+                    <br/>※ 업체 청구서 참조(ref)는 <b>국세청 승인번호 형식일 때만</b> 옮깁니다.
+                    ref는 내부 호환용으로 보존하며 이 위저드는 값을 지우거나 정본을 덮어쓰지 않습니다.
+                </div>
+                <div class="alert alert-success" role="status"
+                     invisible="not studio_field_present or not studio_retirement_ready">
+                    전사 데이터 이관과 Odoo 내부 참조 점검을 통과했습니다. 백업과 외부 연동 확인 후
+                    시스템 관리자가 Studio 호환 필드를 제거할 수 있습니다.
+                </div>
+                <div class="alert alert-danger" role="alert"
+                     invisible="not studio_field_present or studio_retirement_ready">
+                    Studio 호환 필드는 아직 제거하면 안 됩니다. 데이터 오류와 화면·자동화·필터의
+                    남은 참조를 먼저 해결하세요.
+                </div>
+                <group>
+                    <field name="source" widget="radio"/>
+                    <field name="apply_now"/>
+                </group>
+                <group string="Studio 호환 필드 제거 점검">
+                    <field name="studio_field_present"/>
+                    <field name="studio_data_ready" invisible="not studio_field_present"/>
+                    <field name="studio_reference_count" invisible="not studio_field_present"/>
+                    <field name="studio_retirement_ready" invisible="not studio_field_present"/>
+                    <field name="confirm_studio_removal"
+                           invisible="not studio_retirement_ready"
+                           groups="base.group_system"/>
+                </group>
+                <field name="result" invisible="not result" readonly="1"/>
+                <footer>
+                    <button name="action_run" type="object" string="실행" class="btn-primary"/>
+                    <button name="action_remove_studio_field" type="object"
+                            string="Studio 호환 필드 제거" class="btn-danger"
+                            invisible="not studio_retirement_ready or not confirm_studio_removal"
+                            groups="base.group_system"
+                            confirm="x_escon_tax_approval_no 필드와 DB 컬럼을 제거합니다. 백업 및 외부 연동 확인을 마쳤습니까?"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_approval_number_merge" model="ir.actions.act_window">
+        <field name="name">승인번호 필드 통합</field>
+        <field name="res_model">kr.approval.number.merge</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
