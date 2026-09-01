@@ -112,9 +112,21 @@ class IatfEquipment(models.Model):
                          help="평균 수리 시간 = 누적 정지시간 / 완료된 고장 건수")
     # 가동시간은 외부 모델(작업장 실적)에서 오므로 저장하지 않는다.
     # 저장하면 실적이 쌓여도 갱신 트리거가 없어 옛 값이 남는다.
-    mtbf = fields.Float(string="MTBF (시간)", compute="_compute_reliability",
-                         help="평균 고장 간격 = 적용 가동시간 / 완료된 고장 건수. 가동시간이 없으면 산출하지 않는다.")
-    availability_rate = fields.Float(string="가동률 (%)", compute="_compute_reliability")
+    # 주의: 아래 두 값의 0.0 은 '0%' 가 아니라 '산출 불가' 일 수 있다. Float 이라 두 경우를
+    # 구분할 표현이 없으므로, 이 값을 읽는 쪽(리포트·엑셀·API·후속 코드)은 반드시
+    # runtime_source 를 함께 확인해야 한다. runtime_source == 'none' 이면 0.0 은 미집계다.
+    mtbf = fields.Float(
+        string="MTBF (시간)", compute="_compute_reliability",
+        help="평균 고장 간격 = 적용 가동시간 / 완료된 고장 건수.\n"
+             "가동시간이 없으면(runtime_source='none') 산출하지 않고 0.0 을 반환한다 — "
+             "이 0.0 은 '0시간' 이 아니라 '미집계' 다.",
+    )
+    availability_rate = fields.Float(
+        string="가동률 (%)", compute="_compute_reliability",
+        help="적용 가동시간 / (적용 가동시간 + 누적 정지시간) × 100.\n"
+             "가동시간이 없으면(runtime_source='none') 산출하지 않고 0.0 을 반환한다 — "
+             "이 0.0 은 '가동률 0%' 가 아니라 '미집계' 다.",
+    )
 
     # ── 관련 기록 ──
     pm_schedule_ids = fields.One2many("iatf.pm.schedule", "equipment_id", string="PM 계획/실적")

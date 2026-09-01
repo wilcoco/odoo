@@ -97,8 +97,11 @@
                     <group>
                         <group string="기본 정보">
                             <field name="node_type"/>
+                            <!-- 자기 자신뿐 아니라 자손도 후보에서 뺀다. 저장 시 순환 제약이
+                                 잡아주긴 하지만 그때는 이미 한 박자 늦다. 신규 레코드(id=False)
+                                 에서는 child_of 가 전체를 반환하므로 선택이 막히지 않는다. -->
                             <field name="parent_id"
-                                   domain="[('id', '!=', id)]"
+                                   domain="['!', ('id', 'child_of', id)]"
                                    options="{'no_create_edit': True}"/>
                             <field name="root_equipment_id" readonly="1"
                                    invisible="node_type != 'device'"/>

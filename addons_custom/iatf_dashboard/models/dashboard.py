@@ -250,12 +250,16 @@ class IatfDashboard(models.TransientModel):
                 [("result", "=", "fail")])
 
             # Equipment / TPM
+            # 설비 대장은 공장/라인/설비/장치를 한 테이블에 담는다. 타일이 말하는 '설비 수'는
+            # 설비 단위이므로 장치(DV-)·라인·공장은 세지 않는다. 이 필터가 없으면 장치를
+            # 등록하기 시작하는 순간 가동 설비 수가 부풀어 오른다.
             rec.eq_active = sc("iatf.equipment",
-                [("state", "=", "active")])
+                [("node_type", "=", "equipment"), ("state", "=", "active")])
             rec.eq_breakdown = sc("iatf.equipment",
-                [("state", "=", "breakdown")])
+                [("node_type", "=", "equipment"), ("state", "=", "breakdown")])
             rec.eq_pm_overdue = sc("iatf.equipment",
-                [("is_pm_overdue", "=", True), ("state", "=", "active")])
+                [("node_type", "=", "equipment"),
+                 ("is_pm_overdue", "=", True), ("state", "=", "active")])
 
             # Mold
             rec.mold_active = sc("iatf.mold",
@@ -377,9 +381,11 @@ class IatfDashboard(models.TransientModel):
                 "domain": [("state", "not in", ("closed",))]}
 
     def action_open_eq_breakdown(self):
+        # 타일 숫자와 목록이 어긋나지 않도록 집계와 같은 설비 단위 필터를 건다.
         return {"type": "ir.actions.act_window", "res_model": "iatf.equipment",
                 "view_mode": "list,form", "name": _("설비 고장/PM 초과"),
-                "domain": ['|', ("state", "=", "breakdown"), ("is_pm_overdue", "=", True)]}
+                "domain": [("node_type", "=", "equipment"),
+                           '|', ("state", "=", "breakdown"), ("is_pm_overdue", "=", True)]}
 
     def action_open_mold_warning(self):
         return {"type": "ir.actions.act_window", "res_model": "iatf.mold",
