@@ -52,7 +52,9 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         })
 
     def _enable_custom_sequence(self, sequence_rule="date_number_type"):
-        self.company_data["company"].write({
+        self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).write({
             "kr_move_sequence_rule": sequence_rule,
         })
 
@@ -86,6 +88,63 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
                 ("date_number_type", "날짜-번호-전표유형"),
                 ("odoo", "Odoo 기본 (관여하지 않음)"),
             ],
+        )
+
+    def test_settings_are_one_persistent_global_record(self):
+        settings_model = self.env["account.kr.plus.settings"]
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        )
+        action = self.env.ref(
+            "account_kr_plus_patch.action_account_kr_plus_settings"
+        )
+
+        self.assertFalse(settings_model.is_transient())
+        self.assertEqual(settings_model.search_count([]), 1)
+        self.assertEqual(action.res_id, settings.id)
+
+    def test_global_setting_is_applied_to_every_company(self):
+        self._enable_custom_sequence("date_number")
+
+        self.assertEqual(
+            set(self.env["res.company"].sudo().search([]).mapped(
+                "kr_move_sequence_rule"
+            )),
+            {"date_number"},
+        )
+        move = self._create_entry("2024-07-30")
+        self.assertEqual(move._kr_get_configured_sequence_rule(), "date_number")
+
+    def test_opening_retroactive_rename_applies_selected_rule_first(self):
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).with_user(self.simple_accountman)
+        settings.write({"kr_move_sequence_rule": "date_number"})
+
+        action = settings.action_open_sequence_repair()
+
+        self.assertEqual(
+            set(self.env["res.company"].sudo().search([]).mapped(
+                "kr_move_sequence_rule"
+            )),
+            {"date_number"},
+        )
+        self.assertEqual(action["name"], "전표번호 소급 변경 적용")
+
+    def test_odoo_default_does_not_open_retroactive_rename(self):
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).with_user(self.simple_accountman)
+        settings.write({"kr_move_sequence_rule": "odoo"})
+
+        action = settings.action_open_sequence_repair()
+
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(
+            set(self.env["res.company"].sudo().search([]).mapped(
+                "kr_move_sequence_rule"
+            )),
+            {"odoo"},
         )
 
     def test_invoice_lists_distinguish_collection_and_disbursement(self):
@@ -324,10 +383,10 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertEqual(refund._get_starting_sequence(), "R20240718000000PUR")
 
     def test_account_manager_can_enable_date_number_type_sequence(self):
-        settings = self.env["account.kr.plus.settings"].with_user(
-            self.simple_accountman
-        ).create({
-            "company_id": self.company_data["company"].id,
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).with_user(self.simple_accountman)
+        settings.write({
             "kr_move_sequence_rule": "date_number_type",
         })
         settings.action_save()
@@ -340,38 +399,6 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         move.action_post()
         self.assertEqual(move.name, "20240722000001GEN")
 
-    def test_opening_retroactive_rename_saves_selected_rule_first(self):
-        settings = self.env["account.kr.plus.settings"].with_user(
-            self.simple_accountman
-        ).create({
-            "company_id": self.company_data["company"].id,
-            "kr_move_sequence_rule": "date_number",
-        })
-
-        action = settings.action_open_sequence_repair()
-
-        self.assertEqual(
-            self.company_data["company"].kr_move_sequence_rule,
-            "date_number",
-        )
-        self.assertEqual(action["name"], "전표번호 소급 변경 적용")
-
-    def test_odoo_default_does_not_open_retroactive_rename(self):
-        settings = self.env["account.kr.plus.settings"].with_user(
-            self.simple_accountman
-        ).create({
-            "company_id": self.company_data["company"].id,
-            "kr_move_sequence_rule": "odoo",
-        })
-
-        action = settings.action_open_sequence_repair()
-
-        self.assertEqual(action["tag"], "display_notification")
-        self.assertEqual(
-            self.company_data["company"].kr_move_sequence_rule,
-            "odoo",
-        )
-
     def test_legacy_settings_fields_remain_safe_during_module_upgrade(self):
         settings_model = self.env["account.kr.plus.settings"]
         self.assertFalse(
@@ -379,8 +406,10 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         )
         self.assertFalse(settings_model._fields["kr_move_sequence_format"].store)
 
-        settings = settings_model.with_user(self.simple_accountman).create({
-            "company_id": self.company_data["company"].id,
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).with_user(self.simple_accountman)
+        settings.write({
             "kr_use_custom_move_sequence": True,
             "kr_move_sequence_format": "date_number",
         })
@@ -393,10 +422,10 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         )
 
     def test_former_legacy_sequence_key_maps_to_current_rule(self):
-        settings = self.env["account.kr.plus.settings"].with_user(
-            self.simple_accountman
-        ).create({
-            "company_id": self.company_data["company"].id,
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global"
+        ).with_user(self.simple_accountman)
+        settings.write({
             "kr_use_custom_move_sequence": True,
             "kr_move_sequence_format": "legacy",
         })
@@ -410,8 +439,9 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             groups="account.group_account_user",
         )
         with self.assertRaises(AccessError):
-            self.env["account.kr.plus.settings"].with_user(accountant).create({
-                "company_id": self.company_data["company"].id,
+            self.env.ref(
+                "account_kr_plus_patch.account_kr_plus_settings_global"
+            ).with_user(accountant).write({
                 "kr_move_sequence_rule": "date_number_type",
             })
 
@@ -421,7 +451,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         typed_move.action_post()
         self.assertEqual(typed_move.name, "20240723000001GEN")
 
-        self.company_data["company"].kr_move_sequence_rule = "date_number"
+        self._enable_custom_sequence("date_number")
         self.assertTrue(typed_move._sequence_matches_date())
         _where, params = typed_move._get_last_sequence_domain()
         self.assertEqual(params["company_id"], self.company_data["company"].id)

@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_account_kr_plus_settings_manager,account.kr.plus.settings.manager,model_account_kr_plus_settings,account.group_account_manager,1,1,1,1
+access_account_kr_plus_settings_manager,account.kr.plus.settings.manager,model_account_kr_plus_settings,account.group_account_manager,1,1,1,0
 access_account_kr_move_sequence_repair_wizard_manager,account.kr.move.sequence.repair.wizard.manager,model_account_kr_move_sequence_repair_wizard,account.group_account_manager,1,1,1,1
 access_account_kr_move_sequence_repair_line_manager,account.kr.move.sequence.repair.line.manager,model_account_kr_move_sequence_repair_line,account.group_account_manager,1,1,1,1

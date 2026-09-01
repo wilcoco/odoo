@@ -139,7 +139,7 @@ class AccountMove(models.Model):
 
     def _kr_get_configured_sequence_rule(self):
         self.ensure_one()
-        return self.company_id.kr_move_sequence_rule or "odoo"
+        return self.env["account.kr.plus.settings"]._get_global_rule()
 
     def _kr_get_configured_sequence_regex(self):
         self.ensure_one()

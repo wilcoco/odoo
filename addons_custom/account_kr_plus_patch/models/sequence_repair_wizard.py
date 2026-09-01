@@ -43,7 +43,8 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         domain=lambda self: [("id", "in", self.env.companies.ids)],
     )
     current_rule = fields.Selection(
-        related="company_id.kr_move_sequence_rule",
+        selection=KR_MOVE_SEQUENCE_RULES,
+        compute="_compute_current_rule",
         string="현재 전표번호 형식",
         readonly=True,
     )
@@ -91,6 +92,11 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
     blocked_count = fields.Integer(compute="_compute_counts", string="적용 불가")
     applied_count = fields.Integer(compute="_compute_counts", string="적용 완료")
     result_message = fields.Text(string="처리 결과", readonly=True)
+
+    def _compute_current_rule(self):
+        rule = self.env["account.kr.plus.settings"]._get_global_rule()
+        for wizard in self:
+            wizard.current_rule = rule
 
     @api.depends("line_ids.result_state")
     def _compute_counts(self):

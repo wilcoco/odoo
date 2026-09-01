@@ -26,6 +26,17 @@ class ResCompany(models.Model):
         ),
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        global_rule = self.env[
+            "account.kr.plus.settings"
+        ]._get_global_rule()
+        vals_list = [
+            dict(vals, kr_move_sequence_rule=global_rule)
+            for vals in vals_list
+        ]
+        return super().create(vals_list)
+
     @api.constrains("kr_move_sequence_rule")
     def _check_kr_move_sequence_rule_codes(self):
         Journal = self.env["account.journal"].sudo().with_context(active_test=False)

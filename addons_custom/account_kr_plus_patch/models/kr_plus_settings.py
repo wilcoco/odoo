@@ -4,9 +4,31 @@ from odoo.exceptions import AccessError
 from .res_company import KR_MOVE_SEQUENCE_RULES
 
 
-class AccountKrPlusSettings(models.TransientModel):
+class AccountKrPlusSettings(models.Model):
     _name = "account.kr.plus.settings"
     _description = "한국식 회계 설정"
+    _rec_name = "singleton_key"
+
+    _sql_constraints = [
+        (
+            "account_kr_plus_settings_singleton_uniq",
+            "unique(singleton_key)",
+            "한국식 회계 설정은 하나만 존재할 수 있습니다.",
+        ),
+        (
+            "account_kr_plus_settings_singleton_check",
+            "CHECK(singleton_key = 'global')",
+            "한국식 회계 설정은 전역 단일 항목이어야 합니다.",
+        ),
+    ]
+
+    singleton_key = fields.Char(
+        string="설정 키",
+        required=True,
+        default="global",
+        readonly=True,
+        copy=False,
+    )
 
     company_id = fields.Many2one(
         comodel_name="res.company",
@@ -81,12 +103,18 @@ class AccountKrPlusSettings(models.TransientModel):
 
     @api.model_create_multi
     def create(self, vals_list):
-        return super().create([
+        settings = super().create([
             self._normalize_legacy_sequence_values(vals) for vals in vals_list
         ])
+        settings._apply_global_rule()
+        return settings
 
     def write(self, vals):
-        return super().write(self._normalize_legacy_sequence_values(vals))
+        vals = self._normalize_legacy_sequence_values(vals)
+        result = super().write(vals)
+        if "kr_move_sequence_rule" in vals:
+            self._apply_global_rule()
+        return result
 
     @api.model
     def _normalize_legacy_sequence_values(self, vals):
@@ -124,20 +152,39 @@ class AccountKrPlusSettings(models.TransientModel):
     def _check_account_manager(self):
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError(_("회계 관리자만 한국식 회계 설정을 변경할 수 있습니다."))
-        if self.company_id and self.company_id.id not in self.env.companies.ids:
-            raise AccessError(_("접근할 수 없는 회사의 회계 설정은 변경할 수 없습니다."))
+
+    @api.model
+    def _get_global_settings(self):
+        settings = self.env.ref(
+            "account_kr_plus_patch.account_kr_plus_settings_global",
+            raise_if_not_found=False,
+        )
+        if settings and settings.exists():
+            return settings
+        return self.sudo().search([("singleton_key", "=", "global")], limit=1)
+
+    @api.model
+    def _get_global_rule(self):
+        settings = self.sudo()._get_global_settings()
+        return settings.kr_move_sequence_rule if settings else "odoo"
+
+    def _apply_global_rule(self):
+        self.ensure_one()
+        self.env["res.company"].sudo().search([]).write({
+            "kr_move_sequence_rule": self.kr_move_sequence_rule,
+        })
 
     def action_save(self):
         self.ensure_one()
         self._check_account_manager()
-        self._apply_sequence_rule()
+        self._apply_global_rule()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("설정 저장 완료"),
                 "message": _(
-                    "선택한 회사의 전표번호 설정을 저장했습니다. "
+                    "전역 전표번호 설정을 저장했습니다. "
                     "이미 발급된 전표번호는 변경되지 않습니다."
                 ),
                 "type": "success",
@@ -145,16 +192,10 @@ class AccountKrPlusSettings(models.TransientModel):
             },
         }
 
-    def _apply_sequence_rule(self):
-        self.ensure_one()
-        # res.company 전체 쓰기 권한을 부여하지 않고 이 설정 필드만 제한적으로 저장한다.
-        self.company_id.sudo().write({
-            "kr_move_sequence_rule": self.kr_move_sequence_rule,
-        })
-
     def action_open_sequence_journals(self):
         self.ensure_one()
         self._check_account_manager()
+        company = self.env.company
         return {
             "type": "ir.actions.act_window",
             "name": _("전표유형 및 코드 설정"),
@@ -166,16 +207,16 @@ class AccountKrPlusSettings(models.TransientModel):
                 ).id, "list"),
                 (self.env.ref("account.view_account_journal_form").id, "form"),
             ],
-            "domain": [("company_id", "=", self.company_id.id)],
-            "context": {"default_company_id": self.company_id.id},
+            "domain": [("company_id", "=", company.id)],
+            "context": {"default_company_id": company.id},
         }
 
     def action_open_sequence_repair(self):
         self.ensure_one()
         self._check_account_manager()
-        # 폼에서 형식을 바꾼 직후 버튼을 눌러도 이전 회사 설정을 읽지 않도록
-        # 현재 선택값을 먼저 영구 설정에 반영한 뒤 위저드를 연다.
-        self._apply_sequence_rule()
+        # 폼에서 형식을 바꾼 직후 버튼을 눌러도 이전 전역 설정을 읽지 않도록
+        # 현재 선택값을 먼저 모든 회사에 반영한 뒤 위저드를 연다.
+        self._apply_global_rule()
         if self.kr_move_sequence_rule == "odoo":
             return {
                 "type": "ir.actions.client",
@@ -190,6 +231,7 @@ class AccountKrPlusSettings(models.TransientModel):
                     "sticky": True,
                 },
             }
+        company = self.env.company
         return {
             "type": "ir.actions.act_window",
             "name": _("전표번호 소급 변경 적용"),
@@ -199,21 +241,22 @@ class AccountKrPlusSettings(models.TransientModel):
                 "account_kr_plus_patch.view_account_kr_move_sequence_repair_wizard_form"
             ).id,
             "target": "new",
-            "context": {"default_company_id": self.company_id.id},
+            "context": {"default_company_id": company.id},
         }
 
     def action_open_bank_journals(self):
         self.ensure_one()
         self._check_account_manager()
+        company = self.env.company
         action = self.env["ir.actions.actions"]._for_xml_id(
             "account_kr_plus_patch.action_kr_bank_journals"
         )
         action["domain"] = [
-            ("company_id", "=", self.company_id.id),
+            ("company_id", "=", company.id),
             ("type", "=", "bank"),
         ]
         action["context"] = {
-            "default_company_id": self.company_id.id,
+            "default_company_id": company.id,
             "default_type": "bank",
             "kr_bank_account_setup": True,
         }
@@ -222,8 +265,9 @@ class AccountKrPlusSettings(models.TransientModel):
     def action_open_accounts(self):
         self.ensure_one()
         self._check_account_manager()
+        company = self.env.company
         action = self.env["ir.actions.actions"]._for_xml_id(
             "account.action_account_form"
         )
-        action["domain"] = [("company_ids", "in", self.company_id.ids)]
+        action["domain"] = [("company_ids", "in", company.ids)]
         return action
