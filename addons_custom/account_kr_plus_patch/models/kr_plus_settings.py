@@ -1,7 +1,43 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 
 from .res_company import KR_MOVE_SEQUENCE_RULES
+
+
+KR_FREQUENT_OPTIONAL_SETTINGS = {
+    "asset_models": {
+        "name": "자산 모델",
+        "module_names": ("account_asset",),
+        "xmlids": (
+            "account_asset.action_account_asset_model",
+            "account_asset.action_account_asset_model_form",
+        ),
+        "res_model": "account.asset",
+        "action_tokens": ("asset_model",),
+        "domain": [("state", "=", "model")],
+        "context": {"default_state": "model"},
+    },
+    "account_reports": {
+        "name": "회계 보고서 설정",
+        "module_names": ("account_reports",),
+        "xmlids": (
+            "account_reports.action_account_report",
+            "account_reports.action_account_report_form",
+        ),
+        "res_model": "account.report",
+        "action_tokens": ("account_report",),
+    },
+    "disallowed_expense_categories": {
+        "name": "손금불산입 카테고리",
+        "module_names": ("account_disallowed_expenses",),
+        "xmlids": (
+            "account_disallowed_expenses.action_account_disallowed_expenses_category",
+            "account_disallowed_expenses.account_disallowed_expenses_category_action",
+        ),
+        "res_model": "account.disallowed.expenses.category",
+        "action_tokens": ("disallowed", "category"),
+    },
+}
 
 
 class AccountKrPlusSettings(models.Model):
@@ -271,3 +307,60 @@ class AccountKrPlusSettings(models.Model):
         )
         action["domain"] = [("company_ids", "in", company.ids)]
         return action
+
+    @api.model
+    def action_open_frequent_optional_setting(self, target):
+        """Open an Enterprise/optional setting without making it a dependency."""
+        self._check_account_manager()
+        config = KR_FREQUENT_OPTIONAL_SETTINGS.get(target)
+        if not config:
+            raise UserError(_("알 수 없는 자주 쓰는 설정 항목입니다."))
+
+        for xmlid in config["xmlids"]:
+            action = self.env.ref(xmlid, raise_if_not_found=False)
+            if (
+                action
+                and action.exists()
+                and action._name.startswith("ir.actions.")
+            ):
+                return action._get_action_dict()
+
+        actions = self.env["ir.actions.act_window"].sudo().search([
+            ("res_model", "=", config["res_model"]),
+        ])
+        external_ids = actions.get_external_id()
+        for action in actions:
+            xmlid = external_ids.get(action.id, "").lower()
+            if all(token in xmlid for token in config["action_tokens"]):
+                return action._get_action_dict()
+        if len(actions) == 1:
+            return actions._get_action_dict()
+
+        installed = self.env["ir.module.module"].sudo().search_count([
+            ("name", "in", config["module_names"]),
+            ("state", "=", "installed"),
+        ])
+        if installed and config["res_model"] in self.env:
+            return {
+                "type": "ir.actions.act_window",
+                "name": config["name"],
+                "res_model": config["res_model"],
+                "view_mode": "list,form",
+                "domain": config.get("domain", []),
+                "context": config.get("context", {}),
+            }
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("선택 모듈이 필요합니다"),
+                "message": _(
+                    "'%(setting)s' 화면을 제공하는 모듈이 설치되어 있는지 "
+                    "확인해 주세요.",
+                    setting=config["name"],
+                ),
+                "type": "warning",
+                "sticky": False,
+            },
+        }

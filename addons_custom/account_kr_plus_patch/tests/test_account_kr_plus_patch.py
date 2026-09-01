@@ -147,6 +147,69 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             {"odoo"},
         )
 
+    def test_frequent_settings_menu_has_requested_shortcuts(self):
+        frequent_root = self.env.ref(
+            "account_kr_plus_patch.menu_kr_frequent_settings_root"
+        )
+        self.assertEqual(frequent_root.name, "자주 쓰는 설정")
+        self.assertEqual(
+            frequent_root.parent_id,
+            self.env.ref("account.menu_finance"),
+        )
+        self.assertEqual(frequent_root.sequence, 5)
+        self.assertIn(
+            self.env.ref("account.group_account_manager"),
+            frequent_root.groups_id,
+        )
+        expected_children = {
+            "설정",
+            "한국식 회계 설정",
+            "은행계좌 설정",
+            "조정 방식",
+            "계정과목표",
+            "세금 종류",
+            "전표 유형",
+            "고정자산",
+            "회계 보고서 설정",
+            "손금불산입 카테고리",
+        }
+        self.assertEqual(
+            set(frequent_root.child_id.mapped("name")),
+            expected_children,
+        )
+        asset_group = self.env.ref(
+            "account_kr_plus_patch.menu_kr_frequent_assets_group"
+        )
+        self.assertFalse(asset_group.action)
+        self.assertEqual(asset_group.child_id.mapped("name"), ["자산 모델"])
+        self.assertIn(
+            self.env.ref("base.group_system"),
+            self.env.ref(
+                "account_kr_plus_patch.menu_kr_frequent_general_settings"
+            ).groups_id,
+        )
+
+        direct_actions = {
+            "menu_kr_frequent_general_settings": "account.action_account_config",
+            "menu_kr_frequent_kr_settings": (
+                "account_kr_plus_patch.action_account_kr_plus_settings"
+            ),
+            "menu_kr_frequent_bank_accounts": (
+                "account_kr_plus_patch.action_kr_bank_journals"
+            ),
+            "menu_kr_frequent_reconcile_models": (
+                "account.action_account_reconcile_model"
+            ),
+            "menu_kr_frequent_chart_of_accounts": "account.action_account_form",
+            "menu_kr_frequent_taxes": "account.action_tax_form",
+            "menu_kr_frequent_journals": "account.action_account_journal_form",
+        }
+        for menu_xmlid, action_xmlid in direct_actions.items():
+            self.assertEqual(
+                self.env.ref("account_kr_plus_patch.%s" % menu_xmlid).action,
+                self.env.ref(action_xmlid),
+            )
+
     def test_invoice_lists_distinguish_collection_and_disbursement(self):
         action = self.env.ref(
             "account_kr_plus_patch.action_kr_journal_entries"

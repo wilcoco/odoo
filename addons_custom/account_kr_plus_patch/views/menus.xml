@@ -110,6 +110,97 @@
         <field name="context">{'default_type': 'bank', 'kr_bank_account_setup': True}</field>
     </record>
 
+    <!-- 선택 Enterprise 모듈을 강제 의존하지 않는 설정 바로가기 -->
+    <record id="action_kr_frequent_asset_models" model="ir.actions.server">
+        <field name="name">자산 모델</field>
+        <field name="model_id" ref="model_account_kr_plus_settings"/>
+        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = env["account.kr.plus.settings"].action_open_frequent_optional_setting(
+    "asset_models"
+)</field>
+    </record>
+    <record id="action_kr_frequent_account_reports" model="ir.actions.server">
+        <field name="name">회계 보고서 설정</field>
+        <field name="model_id" ref="model_account_kr_plus_settings"/>
+        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = env["account.kr.plus.settings"].action_open_frequent_optional_setting(
+    "account_reports"
+)</field>
+    </record>
+    <record id="action_kr_frequent_disallowed_expense_categories" model="ir.actions.server">
+        <field name="name">손금불산입 카테고리</field>
+        <field name="model_id" ref="model_account_kr_plus_settings"/>
+        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = env["account.kr.plus.settings"].action_open_frequent_optional_setting(
+    "disallowed_expense_categories"
+)</field>
+    </record>
+
+    <!-- 회계 앱 상단에서 자주 쓰는 기준정보만 빠르게 여는 바로가기 -->
+    <menuitem id="menu_kr_frequent_settings_root"
+              name="자주 쓰는 설정"
+              parent="account.menu_finance"
+              groups="account.group_account_manager"
+              sequence="5"/>
+    <menuitem id="menu_kr_frequent_general_settings"
+              name="설정"
+              parent="menu_kr_frequent_settings_root"
+              action="account.action_account_config"
+              groups="base.group_system"
+              sequence="10"/>
+    <menuitem id="menu_kr_frequent_kr_settings"
+              name="한국식 회계 설정"
+              parent="menu_kr_frequent_settings_root"
+              action="action_account_kr_plus_settings"
+              sequence="20"/>
+    <menuitem id="menu_kr_frequent_bank_accounts"
+              name="은행계좌 설정"
+              parent="menu_kr_frequent_settings_root"
+              action="action_kr_bank_journals"
+              sequence="30"/>
+    <menuitem id="menu_kr_frequent_reconcile_models"
+              name="조정 방식"
+              parent="menu_kr_frequent_settings_root"
+              action="account.action_account_reconcile_model"
+              sequence="40"/>
+    <menuitem id="menu_kr_frequent_chart_of_accounts"
+              name="계정과목표"
+              parent="menu_kr_frequent_settings_root"
+              action="account.action_account_form"
+              sequence="50"/>
+    <menuitem id="menu_kr_frequent_taxes"
+              name="세금 종류"
+              parent="menu_kr_frequent_settings_root"
+              action="account.action_tax_form"
+              sequence="60"/>
+    <menuitem id="menu_kr_frequent_journals"
+              name="전표 유형"
+              parent="menu_kr_frequent_settings_root"
+              action="account.action_account_journal_form"
+              sequence="70"/>
+    <menuitem id="menu_kr_frequent_assets_group"
+              name="고정자산"
+              parent="menu_kr_frequent_settings_root"
+              sequence="80"/>
+    <menuitem id="menu_kr_frequent_asset_models"
+              name="자산 모델"
+              parent="menu_kr_frequent_assets_group"
+              action="action_kr_frequent_asset_models"
+              sequence="10"/>
+    <menuitem id="menu_kr_frequent_account_reports"
+              name="회계 보고서 설정"
+              parent="menu_kr_frequent_settings_root"
+              action="action_kr_frequent_account_reports"
+              sequence="90"/>
+    <menuitem id="menu_kr_frequent_disallowed_expense_categories"
+              name="손금불산입 카테고리"
+              parent="menu_kr_frequent_settings_root"
+              action="action_kr_frequent_disallowed_expense_categories"
+              sequence="100"/>
+
     <!-- 표준 메뉴 이름과 동작을 회사용 화면으로 교체한다. -->
     <record id="account.menu_action_move_out_invoice_type" model="ir.ui.menu">
         <field name="name">매출처 세금계산서</field>
