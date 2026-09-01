@@ -47,6 +47,39 @@ KR_MOVE_TYPE_NAMES = {
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    kr_move_number_display = fields.Char(
+        string="전표번호",
+        compute="_compute_kr_move_number_display",
+        help="초안은 '전기 시 자동 생성', 전기된 전표는 실제 전표번호를 표시합니다.",
+    )
+    kr_primary_partner_id = fields.Many2one(
+        "res.partner",
+        string="거래처",
+        compute="_compute_kr_primary_partner_id",
+        store=True,
+        help="전표 거래처가 없으면 첫 번째 유효 전표 항목의 거래처를 표시합니다.",
+    )
+    kr_primary_reference = fields.Char(
+        string="참조",
+        compute="_compute_kr_primary_reference",
+        store=True,
+        help="참조, 원본 문서, 결제 참조 중 처음 입력된 내용을 표시합니다.",
+    )
+    kr_bank_journal_ids = fields.Many2many(
+        "account.journal",
+        "account_move_kr_bank_journal_rel",
+        "move_id",
+        "journal_id",
+        string="보통예금 종류",
+        compute="_compute_kr_bank_journal_ids",
+        store=True,
+        check_company=True,
+        domain="[('type', '=', 'bank'), ('company_id', '=', company_id)]",
+        help=(
+            "전표의 보통예금 라인에 연결된 계좌 설정(은행 저널)을 표시합니다. "
+            "보통예금 이외의 계정과목만 사용한 전표는 비어 있습니다."
+        ),
+    )
     kr_product_names = fields.Char(
         string="품목명",
         compute="_compute_kr_product_names",
@@ -66,6 +99,59 @@ class AccountMove(models.Model):
         string="결재상태",
         compute="_compute_kr_approval_status_display",
     )
+
+    @api.depends("name", "state")
+    def _compute_kr_move_number_display(self):
+        for move in self:
+            move.kr_move_number_display = (
+                move.name
+                if move.name and move.name != "/"
+                else _("전기 시 자동 생성")
+            )
+
+    @api.depends(
+        "partner_id",
+        "line_ids.partner_id",
+        "line_ids.display_type",
+        "line_ids.sequence",
+    )
+    def _compute_kr_primary_partner_id(self):
+        for move in self:
+            partner = move.partner_id
+            if not partner:
+                lines = move.line_ids.filtered(
+                    lambda line: line.partner_id
+                    and line.display_type not in ("line_section", "line_note")
+                ).sorted(lambda line: (line.sequence or 0, line._origin.id or 0))
+                partner = lines[:1].partner_id
+            move.kr_primary_partner_id = partner
+
+    @api.depends("ref", "invoice_origin", "payment_reference")
+    def _compute_kr_primary_reference(self):
+        for move in self:
+            move.kr_primary_reference = next(
+                (
+                    value
+                    for value in (
+                        move.ref,
+                        move.invoice_origin,
+                        move.payment_reference,
+                    )
+                    if value
+                ),
+                False,
+            )
+
+    @api.depends(
+        "line_ids.account_id.account_type",
+        "line_ids.kr_bank_journal_id",
+    )
+    def _compute_kr_bank_journal_ids(self):
+        for move in self:
+            move.kr_bank_journal_ids = move.line_ids.filtered(
+                lambda line: line.account_id.account_type == "asset_cash"
+                and line.kr_bank_journal_id
+            ).mapped("kr_bank_journal_id")
 
     @api.depends(
         "invoice_line_ids.product_id",
@@ -114,16 +200,19 @@ class AccountMove(models.Model):
     )
     def _compute_kr_primary_label(self):
         for move in self:
-            line = move._kr_get_primary_label_line()
+            line = move._kr_get_primary_label_line(require_content=True)
             move.kr_primary_label = line.name if line else False
 
     def _inverse_kr_primary_label(self):
         for move in self:
-            line = move._kr_get_primary_label_line()
+            line = (
+                move._kr_get_primary_label_line(require_content=True)
+                or move._kr_get_primary_label_line()
+            )
             if line:
                 line.name = move.kr_primary_label
 
-    def _kr_get_primary_label_line(self):
+    def _kr_get_primary_label_line(self, require_content=False):
         self.ensure_one()
         if self.move_type in INVOICE_MOVE_TYPES:
             lines = self.invoice_line_ids.filtered(
@@ -133,6 +222,8 @@ class AccountMove(models.Model):
             lines = self.line_ids.filtered(
                 lambda line: line.display_type not in ("line_section", "line_note")
             )
+        if require_content:
+            lines = lines.filtered("name")
         return lines.sorted(
             lambda line: (line.sequence or 0, line._origin.id or 0)
         )[:1]

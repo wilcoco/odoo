@@ -153,6 +153,21 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         )
         self.assertEqual(action.domain, "[]")
 
+        journal_list_arch = self.env.ref(
+            "account_kr_plus_patch.view_move_tree_kr_operational_summary"
+        ).arch_db
+        for field_name in (
+            "kr_move_number_display",
+            "kr_primary_partner_id",
+            "kr_primary_label",
+            "kr_primary_reference",
+            "kr_bank_journal_ids",
+        ):
+            self.assertIn('name="%s"' % field_name, journal_list_arch)
+        self.assertIn('string="보통예금 종류"', journal_list_arch)
+        self.assertIn('name="kr_bank_journal_ids"', journal_list_arch)
+        self.assertIn('optional="show"', journal_list_arch)
+
         customer_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_customer_tax_invoice_list"
         ).arch_db
@@ -161,6 +176,8 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         ).arch_db
 
         for arch in (customer_arch, vendor_arch):
+            self.assertIn('name="kr_move_number_display"', arch)
+            self.assertIn('name="name" column_invisible="True"', arch)
             self.assertIn('name="status_in_payment"', arch)
             self.assertIn('name="kr_doc_type"', arch)
             self.assertIn('name="kr_tax_type"', arch)
@@ -260,6 +277,8 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('string="세금계산서승인번호"', form_arch)
         self.assertIn('name="kr_origin_number"', form_arch)
         self.assertIn('string="원본 세금계산서 승인번호"', form_arch)
+        self.assertIn('name="kr_move_number_display"', form_arch)
+        self.assertIn('name="name" invisible="1"', form_arch)
         self.assertIn('name="pumui_id" string="품의서"', form_arch)
         self.assertIn('string="품의 결재상태"', form_arch)
         self.assertNotIn('name="other_info"', form_arch)
@@ -305,6 +324,35 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertEqual(first.name, "20240718000001GEN")
         self.assertEqual(second.name, "20240718000002GEN")
         self.assertEqual(next_day.name, "20240719000001GEN")
+
+    def test_draft_number_uses_friendly_display_until_posting(self):
+        move = self._create_entry("2024-07-18")
+
+        self.assertEqual(move.name, "/")
+        self.assertEqual(move.kr_move_number_display, "전기 시 자동 생성")
+
+        move.action_post()
+        self.assertNotEqual(move.name, "/")
+        self.assertEqual(move.kr_move_number_display, move.name)
+
+    def test_journal_list_summaries_use_first_available_content(self):
+        first_partner = self.env["res.partner"].create({"name": "첫 거래처"})
+        second_partner = self.env["res.partner"].create({"name": "둘째 거래처"})
+        move = self._create_entry("2024-07-18")
+        lines = move.line_ids.sorted(lambda line: (line.sequence, line.id))
+        lines[0].write({"partner_id": first_partner.id, "name": False})
+        lines[1].write({"partner_id": second_partner.id, "name": "첫 유효 적요"})
+        move.ref = "전표 참조"
+
+        self.assertEqual(move.kr_primary_partner_id, first_partner)
+        self.assertEqual(move.kr_primary_label, "첫 유효 적요")
+        self.assertEqual(move.kr_primary_reference, "전표 참조")
+
+        move.kr_primary_label = "수정한 적요"
+        self.assertEqual(lines[1].name, "수정한 적요")
+
+        move.write({"ref": False, "invoice_origin": "원본 문서"})
+        self.assertEqual(move.kr_primary_reference, "원본 문서")
 
     def test_daily_date_number_sequence_without_type_code(self):
         self._enable_custom_sequence("date_number")
@@ -658,6 +706,10 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             lambda line: line.account_id == liquidity_account
         )
         self.assertEqual(bank_line.kr_bank_journal_id, bank_journal)
+        self.assertEqual(move.kr_bank_journal_ids, bank_journal)
+
+        non_bank_move = self._create_entry("2024-07-20")
+        self.assertFalse(non_bank_move.kr_bank_journal_ids)
 
     def test_bank_account_setup_creates_default_account_and_chatter_guide(self):
         bank_journal = self.env["account.journal"].with_context(

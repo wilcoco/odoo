@@ -8,8 +8,8 @@
             <list string="매출처 세금계산서"
                   decoration-info="state == 'draft'"
                   decoration-muted="state == 'cancel'">
-                <field name="name" string="전표번호" decoration-bf="1"
-                       widget="char_with_placeholder_field" placeholder="/"/>
+                <field name="name" column_invisible="True"/>
+                <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
                 <field name="kr_approval_number" string="세금계산서승인번호"/>
                 <field name="is_manually_modified" string="수기" readonly="1"/>
                 <field name="partner_id" string="매출처"/>
@@ -78,8 +78,8 @@
             <list string="매입처 세금계산서"
                   decoration-info="state == 'draft'"
                   decoration-muted="state == 'cancel'">
-                <field name="name" string="전표번호" decoration-bf="1"
-                       widget="char_with_placeholder_field" placeholder="/"/>
+                <field name="name" column_invisible="True"/>
+                <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
                 <field name="kr_approval_number" string="세금계산서승인번호"/>
                 <field name="is_manually_modified" string="수기" readonly="1"/>
                 <field name="partner_id" string="매입처"/>
@@ -209,6 +209,37 @@
         </field>
     </record>
 
+    <!-- 전표 목록은 각 전표의 첫 유효 거래처·적요·참조와 보통예금 계좌를 요약한다. -->
+    <record id="view_move_tree_kr_operational_summary" model="ir.ui.view">
+        <field name="name">account.move.list.kr.operational.summary</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_tree"/>
+        <field name="priority">95</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="kr_move_number_display" string="전표번호" optional="show"
+                       decoration-bf="1"/>
+                <field name="kr_primary_partner_id" string="거래처" optional="show"/>
+                <field name="kr_primary_label" string="적요" optional="show"/>
+                <field name="kr_primary_reference" string="참조" optional="show"/>
+                <field name="kr_bank_journal_ids" string="보통예금 종류"
+                       widget="many2many_tags" optional="show"
+                       options="{'no_create': True, 'no_create_edit': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="string">전표 거래처</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='ref']" position="attributes">
+                <attribute name="string">원본 참조</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <!-- 요청 필드만 상단에 보이고, 실제 입력에 필요한 청구/분개 라인은 유지한다. -->
     <record id="view_move_form_kr_plus" model="ir.ui.view">
         <field name="name">account.move.form.kr.plus</field>
@@ -243,11 +274,11 @@
                     <field name="move_type" invisible="1"/>
                     <field name="kr_doc_type" invisible="1"/>
                     <field name="kr_is_correction" invisible="1"/>
+                    <field name="name" invisible="1"/>
                     <div class="oe_title">
-                        <label for="name" string="전표번호"/>
+                        <label for="kr_move_number_display" string="전표번호"/>
                         <h1>
-                            <field name="name" readonly="1"
-                                   widget="char_with_placeholder_field" placeholder="/"/>
+                            <field name="kr_move_number_display" readonly="1"/>
                         </h1>
                     </div>
                     <group>
