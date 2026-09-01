@@ -326,3 +326,35 @@ class TestLeaveGovernance(TransactionCase):
                       "escon_eapproval.action_escon_leave_my",
                       "escon_eapproval.action_escon_leave_open"):
             self.assertTrue(self.env.ref(xmlid))
+
+
+@tagged("post_install", "-at_install")
+class TestMenuConsolidation(TransactionCase):
+    """품의서 메뉴 통합: 전자결재 + 청구 연계 품의서를 같은 그룹에 노출."""
+
+    def test_leave_approve_is_custom_action(self):
+        menu = self.env.ref("escon_eapproval.menu_eapproval_leave_approve")
+        action = self.env.ref("escon_eapproval.action_escon_leave_approve")
+        self.assertEqual(menu.action.id, action.id)
+        self.assertEqual(action.res_model, "hr.leave")
+        # 커스텀 승인 뷰가 액션에 묶여 있어야 한다 (기본 화면 미사용)
+        view_ids = action.view_ids.mapped("view_id")
+        self.assertIn(self.env.ref("escon_eapproval.view_escon_leave_approve_list"), view_ids)
+        self.assertIn(self.env.ref("escon_eapproval.view_escon_leave_approve_form"), view_ids)
+
+    def test_pumui_menus_in_same_groups(self):
+        """청구 연계 품의서도 결재 대기/내 결재함/목록 메뉴에 보인다."""
+        if "pumui.request" not in self.env:
+            self.skipTest("pumui_approval 미설치")
+        expected = {
+            "pumui_approval.menu_pumui_to_approve":
+                "escon_eapproval.menu_eapproval_pending",
+            "pumui_approval.menu_pumui_my_inbox":
+                "escon_eapproval.menu_eapproval_inbox",
+            "pumui_approval.menu_pumui_request":
+                "escon_eapproval.menu_eapproval_manage",
+        }
+        for menu_xmlid, parent_xmlid in expected.items():
+            menu = self.env.ref(menu_xmlid)
+            self.assertEqual(menu.parent_id, self.env.ref(parent_xmlid), menu_xmlid)
+            self.assertIn("청구 연계", menu.name, menu_xmlid)
