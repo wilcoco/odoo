@@ -17,9 +17,18 @@
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
+| 설비 예비부품 재고·부족 판정 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 발주는 아직 미구현 — 붙일 때 아래 주의 참조 |
+| 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
 
 ## 세션 작업 규칙
 1. 수요·정산·시리얼·결재처럼 "원장" 성격 데이터는 **만들지 말고 정본에 기록**한다.
 2. 같은 모델에 두 모듈이 훅을 걸면 실행 순서·중복을 검토하고 이 파일에 기록한다.
 3. 작업 단위별 브랜치 → PR. 다른 세션 활성 브랜치에 얹지 않는다.
 4. 완료 전 검증: 원격 존재(ls-remote) + 테스트 그린 + (해당 시) 심볼 스캔.
+5. **`-u` 는 미설치 모듈에 아무 일도 하지 않는다.** exit=0 을 검증으로 착각하지 말 것.
+   검증 DB 에서 `ir_module_module.state` 를 먼저 확인하고, 미설치면 `-i` 로 설치한다.
+6. **비저장 계산 필드 위에 `store=True` 를 얹지 않는다.** `product.qty_available`,
+   `iatf.equipment.mtbf` 처럼 비저장인 값에 의존하면 Odoo 가 재계산 트리거를 걸지
+   못해 값이 굳는다. 대신 비저장으로 두고 `search=` 메서드로 검색만 살린다.
+   (검색뷰 filter/group_by 도 같은 제약 — `search=` 없으면 뷰 검증에서 실패하고,
+   group_by 는 SQL 컬럼이 없어 아예 불가)

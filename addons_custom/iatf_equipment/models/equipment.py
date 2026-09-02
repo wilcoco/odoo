@@ -381,7 +381,122 @@ class IatfEquipmentSpare(models.Model):
     name = fields.Char(string="부품명", required=True)
     part_number = fields.Char(string="부품 번호")
     quantity_required = fields.Float(string="필요 수량", default=1)
-    quantity_on_hand = fields.Float(string="보유 수량")
-    supplier = fields.Char(string="공급처")
-    lead_time_days = fields.Integer(string="리드타임 (일)")
     notes = fields.Char(string="비고")
+
+    # 품목을 연결하면 재고를 실시간으로 읽는다. 연결 전 행은 수기 입력을 계속 쓴다 —
+    # 기존 데이터를 버리지 않으려고 quantity_on_hand 를 남겨둔다.
+    product_id = fields.Many2one(
+        "product.product", string="품목",
+        # 재고 추적(is_storable) 품목만 고를 수 있다. 추적하지 않는 소모품은
+        # qty_available 이 언제나 0 이라 연결하는 순간 영구 '부족' 이 되기 때문이다.
+        domain="[('is_storable', '=', True)]",
+        help="연결하면 보유 수량을 재고에서 자동으로 읽는다. 비워두면 수기 입력값을 쓴다.",
+    )
+    location_id = fields.Many2one(
+        "stock.location", string="보관 위치",
+        domain="[('usage', '=', 'internal')]",
+        help="지정하면 그 위치(하위 포함)의 재고만 센다. 비워두면 전사 내부 재고 합계다.",
+    )
+    quantity_on_hand = fields.Float(
+        string="보유 수량 (수기)",
+        help="품목을 연결하지 않은 부품의 수기 재고. 품목이 연결되면 이 값은 쓰이지 않는다.",
+    )
+
+    # 아래 4개는 저장하지 않는다. 재고(product.qty_available)가 비저장 계산 필드라
+    # store=True 로 두면 입·출고가 일어나도 Odoo 가 재계산 트리거를 걸지 못해
+    # 값이 굳어버린다. 정확도가 정렬 성능보다 중요한 화면이라 매번 계산한다.
+    qty_source = fields.Selection(
+        [("product", "재고 연동"), ("manual", "수기 입력"), ("none", "미집계")],
+        string="수량 출처", compute="_compute_qty", search="_search_qty_source",
+        help="재고 연동 = 품목의 실재고. 수기 입력 = 담당자가 적은 값. "
+             "미집계 = 품목도 없고 수기 입력도 없어 판단 근거가 없는 상태.",
+    )
+    # 주의: qty_on_hand / shortage_qty 의 0.0 은 '0개' 일 수도 '미집계' 일 수도 있다.
+    # Float 에는 두 경우를 구분할 표현이 없으므로, 이 값을 읽는 쪽(리포트·엑셀·API)은
+    # 반드시 qty_source 를 함께 확인해야 한다. qty_source == 'none' 이면 0.0 은 미집계다.
+    qty_on_hand = fields.Float(
+        string="보유 수량", compute="_compute_qty",
+        help="적용된 보유 수량. 품목 연결 시 실재고, 아니면 수기 입력값.\n"
+             "미집계(qty_source='none')면 0.0 을 반환하는데 이는 '0개' 가 아니라 '모름' 이다.",
+    )
+    is_short = fields.Boolean(
+        string="부족", compute="_compute_qty", search="_search_is_short",
+        help="보유 수량이 필요 수량에 못 미치는 상태. "
+             "미집계 부품은 판단 근거가 없으므로 부족으로 보지 않는다.",
+    )
+    shortage_qty = fields.Float(
+        string="부족 수량", compute="_compute_qty",
+        help="필요 수량 - 보유 수량. 부족하지 않거나 미집계면 0.0 이다.",
+    )
+
+    partner_id = fields.Many2one("res.partner", string="공급처")
+    # 과거 자유입력 공급처. partner_id 로 옮기기 전까지 참고용으로 남긴다.
+    supplier = fields.Char(string="공급처 (구)", help="partner_id 로 이관 전의 자유 입력값.")
+    lead_time_days = fields.Integer(string="리드타임 (일)")
+
+    @api.depends(
+        "product_id", "location_id", "quantity_on_hand", "quantity_required",
+        "product_id.qty_available", "product_id.is_storable",
+    )
+    def _compute_qty(self):
+        for spare in self:
+            # 도메인은 UI 만 막는다. 이미 저장된 행이나 API 로 들어온 행이 재고 미추적
+            # 품목을 가리킬 수 있는데, 그 품목의 qty_available 은 항상 0 이다. 그대로
+            # 쓰면 '재고 0 → 부족' 이라는 없는 사실을 만들어내므로 연동 대상에서 뺀다.
+            if spare.product_id and spare.product_id.is_storable:
+                product = spare.product_id
+                if spare.location_id:
+                    # child_internal_location_ids 는 자기 자신을 포함한다.
+                    product = product.with_context(location=spare.location_id.id)
+                spare.qty_source = "product"
+                spare.qty_on_hand = product.qty_available
+            elif spare.quantity_on_hand:
+                spare.qty_source = "manual"
+                spare.qty_on_hand = spare.quantity_on_hand
+            else:
+                # 품목도 없고 수기값도 없다. 0 이 '없음' 인지 '안 적었음' 인지 알 수 없으므로
+                # 부족 판정을 하지 않는다. 없는 근거로 발주를 부르지 않기 위해서다.
+                spare.qty_source = "none"
+                spare.qty_on_hand = 0.0
+
+            missing = (spare.quantity_required or 0.0) - spare.qty_on_hand
+            short = spare.qty_source != "none" and missing > 0
+            spare.is_short = short
+            spare.shortage_qty = missing if short else 0.0
+
+    def _search_is_short(self, operator, value):
+        """비저장 필드라 SQL 로 못 거른다. 파이썬으로 판정해 id 목록으로 돌려준다.
+
+        예비부품은 설비당 수십 건 규모라 전수 계산이 부담되지 않는다. 행이 크게
+        늘면 재고 스냅샷을 저장하는 방식으로 바꿔야 한다.
+        """
+        if operator not in ("=", "!="):
+            raise ValidationError(_("'부족' 은 = 또는 != 로만 검색할 수 있습니다."))
+        want = bool(value) if operator == "=" else not bool(value)
+        matched = self.search([]).filtered(lambda s: s.is_short == want)
+        return [("id", "in", matched.ids)]
+
+    def _search_qty_source(self, operator, value):
+        """is_short 와 같은 이유로 파이썬 판정. 검색뷰의 '미집계' 필터가 이걸 쓴다."""
+        if operator not in ("=", "!=", "in", "not in"):
+            raise ValidationError(_("'수량 출처' 는 =, !=, in, not in 으로만 검색할 수 있습니다."))
+        wanted = set(value if isinstance(value, (list, tuple)) else [value])
+        negate = operator in ("!=", "not in")
+        matched = self.search([]).filtered(lambda s: (s.qty_source in wanted) != negate)
+        return [("id", "in", matched.ids)]
+
+    @api.onchange("product_id")
+    def _onchange_product_id(self):
+        """품목을 고르면 비어 있는 항목만 채운다. 이미 적힌 값은 덮지 않는다."""
+        for spare in self:
+            if not spare.product_id:
+                continue
+            if not spare.name:
+                spare.name = spare.product_id.name
+            if not spare.part_number:
+                spare.part_number = spare.product_id.default_code
+            seller = spare.product_id.seller_ids[:1]
+            if seller and not spare.partner_id:
+                spare.partner_id = seller.partner_id
+                if not spare.lead_time_days:
+                    spare.lead_time_days = seller.delay
