@@ -17,7 +17,7 @@
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
-| 설비 예비부품 재고·부족 판정 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 발주는 아직 미구현 — 붙일 때 아래 주의 참조 |
+| 설비 예비부품 재고·부족 판정·부족 알림 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 부족 시 활동(mail.activity)만 배정하고 **PO 는 만들지 않는다** — 발주는 사람이 아래 정본 경로로 처리 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
 
 ## 세션 작업 규칙

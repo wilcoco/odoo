@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 전용 활동 유형을 두는 이유: 크론이 '내가 만든 알림' 을 정확히 골라내야
+             한다. 제목(summary) 문자열로 찾으면 사용자가 제목을 고치는 순간
+             중복 생성이 시작된다. -->
+        <record id="mail_activity_spare_shortage" model="mail.activity.type">
+            <field name="name">예비부품 부족</field>
+            <field name="icon">fa-exclamation-triangle</field>
+            <field name="res_model">iatf.equipment.spare</field>
+            <field name="delay_count">0</field>
+            <field name="sequence">20</field>
+        </record>
+    </data>
+</odoo>

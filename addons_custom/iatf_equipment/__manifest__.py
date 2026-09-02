@@ -1,6 +1,6 @@
 {
     "name": "IATF 설비 관리 / TPM",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "summary": "설비 대장, 예방보전(PM), 고장이력, TPM (IATF 16949 §8.5.1.5)",
     "category": "Quality",
     "license": "LGPL-3",
@@ -10,6 +10,7 @@
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "data/activity_type.xml",
         "data/cron.xml",
         "views/equipment_views.xml",
         "views/spare_part_views.xml",
