@@ -83,6 +83,9 @@
         <menuitem id="menu_iatf_mold" name="금형관리" parent="menu_iatf_equipment" sequence="30"
                   action="iatf_mold.action_mold"/>
 
+        <menuitem id="menu_iatf_mold_tryout" name="시사출(T/O) 보고서" parent="menu_iatf_equipment"
+                  sequence="35" action="iatf_mold.action_mold_tryout"/>
+
         <!-- 6. 구매 및 자재 관리 -->
         <menuitem id="menu_iatf_procurement" name="구매 및 자재 관리"
                   parent="iatf_document_control.menu_iatf_root" sequence="6"/>

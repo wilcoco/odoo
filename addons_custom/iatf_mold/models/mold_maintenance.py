@@ -18,6 +18,10 @@ class IatfMoldMaintenance(models.Model):
             ("repair", "수리"),
             ("modification", "개조"),
             ("inspection", "점검"),
+            # 세척은 별도 모델을 만들지 않고 이 이력에 유형으로 넣는다.
+            # iatf.mold.clean_cycle_days 와 짝이 되어 SQ 4_2(계획 대비 실적)의
+            # 실적 쪽 원장이 된다. 완료(done) 건만 실적으로 센다.
+            ("clean", "세척"),
         ],
         string="유형", required=True, default="pm",
     )
