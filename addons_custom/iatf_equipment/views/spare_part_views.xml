@@ -17,6 +17,7 @@
                 <field name="is_short" optional="hide"/>
                 <field name="quantity_on_hand" optional="hide"/>
                 <field name="partner_id"/>
+                <field name="alert_user_id" optional="hide"/>
                 <field name="lead_time_days" optional="hide"/>
                 <field name="supplier" optional="hide"/>
                 <field name="notes" optional="hide"/>
@@ -43,6 +44,12 @@
                             <field name="partner_id"/>
                             <field name="lead_time_days"/>
                             <field name="supplier" invisible="not supplier"/>
+                            <field name="alert_user_id"/>
+                            <div class="text-warning" colspan="2" invisible="has_alert_target">
+                                부족 알림 담당도 설비 담당자도 없습니다. 이 부품은 부족해져도
+                                아무에게도 알림이 가지 않습니다.
+                            </div>
+                            <field name="has_alert_target" invisible="1"/>
                         </group>
                     </group>
                     <group string="재고">
@@ -68,6 +75,7 @@
                         <field name="notes" nolabel="1"/>
                     </group>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -85,6 +93,8 @@
                 <filter name="filter_short" string="부족" domain="[('is_short', '=', True)]"/>
                 <filter name="filter_untracked" string="미집계" domain="[('qty_source', '=', 'none')]"/>
                 <filter name="filter_linked" string="재고 연동됨" domain="[('product_id', '!=', False)]"/>
+                <filter name="filter_no_alert_target" string="알림 담당 없음"
+                        domain="[('has_alert_target', '=', False)]"/>
                 <group expand="0" string="그룹">
                     <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
                     <filter name="group_partner" string="공급처" context="{'group_by': 'partner_id'}"/>

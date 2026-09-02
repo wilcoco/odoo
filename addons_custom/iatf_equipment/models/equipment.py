@@ -1,5 +1,9 @@
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 # 계층 단계. 값이 작을수록 상위다. 부모보다 반드시 아래 단계여야 한다
 # (예외: 장치→장치 는 수리성 어셈블리 분해를 위해 허용).
@@ -344,6 +348,15 @@ class IatfEquipment(models.Model):
             ("state", "=", "active"),
         ])
         for eq in overdue:
+            # 기한 초과는 해소될 때까지 매일 참이다. 아래 '임박' 쪽과 달리 중복
+            # 검사가 없어서, 한 번 초과한 설비에 활동이 매일 한 건씩 쌓이고 있었다.
+            existing = self.env["mail.activity"].search([
+                ("res_model", "=", "iatf.equipment"),
+                ("res_id", "=", eq.id),
+                ("summary", "like", "PM 기한 초과"),
+            ], limit=1)
+            if existing:
+                continue
             eq.activity_schedule(
                 "mail.mail_activity_data_todo",
                 summary=_("PM 기한 초과: %s (예정일: %s)") % (eq.name, eq.next_pm_date),
@@ -375,6 +388,7 @@ class IatfEquipment(models.Model):
 class IatfEquipmentSpare(models.Model):
     _name = "iatf.equipment.spare"
     _description = "설비 예비부품"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "equipment_id, name"
 
     equipment_id = fields.Many2one("iatf.equipment", string="설비", required=True, ondelete="cascade")
@@ -433,6 +447,111 @@ class IatfEquipmentSpare(models.Model):
     # 과거 자유입력 공급처. partner_id 로 옮기기 전까지 참고용으로 남긴다.
     supplier = fields.Char(string="공급처 (구)", help="partner_id 로 이관 전의 자유 입력값.")
     lead_time_days = fields.Integer(string="리드타임 (일)")
+
+    alert_user_id = fields.Many2one(
+        "res.users", string="부족 알림 담당",
+        help="부족이 생기면 이 사람에게 활동이 배정된다. "
+             "비워두면 설비 담당자에게 간다. 둘 다 없으면 알림이 나가지 않는다.",
+    )
+    # 알림 담당이 아무도 없는 행을 화면에서 찾아낼 수 있게 저장해 둔다.
+    # (계산 자체는 stored 두 컬럼만 보므로 굳지 않는다)
+    has_alert_target = fields.Boolean(
+        string="알림 담당 있음", compute="_compute_has_alert_target", store=True,
+        help="부족 알림을 받을 사람이 정해져 있는지. 없으면 부족해도 아무도 모른다.",
+    )
+
+    @api.depends("alert_user_id", "equipment_id.responsible_id")
+    def _compute_has_alert_target(self):
+        for spare in self:
+            spare.has_alert_target = bool(
+                spare.alert_user_id or spare.equipment_id.responsible_id
+            )
+
+    def _get_alert_user(self):
+        """알림을 받을 사람. 없으면 빈 recordset — 임의의 관리자에게 떠넘기지 않는다."""
+        self.ensure_one()
+        return self.alert_user_id or self.equipment_id.responsible_id
+
+    @api.model
+    def _cron_shortage_alert(self):
+        """부족한 예비부품에 활동을 배정하고, 해소된 건은 닫는다.
+
+        발주는 만들지 않는다. 자재 발주 정본은 injection_planning /
+        supplier_portal_purchase 이고, 여기서 PO 를 만들면 발주 경로가 둘로
+        갈라진다. 이 크론이 하는 일은 '사람에게 알리는 것' 까지다.
+        """
+        activity_type = self.env.ref(
+            "iatf_equipment.mail_activity_spare_shortage", raise_if_not_found=False
+        )
+        if not activity_type:
+            _logger.warning("예비부품 부족 알림: 활동 유형을 찾지 못해 건너뜁니다.")
+            return
+
+        # is_short 는 비저장이라 SQL 로 못 거른다. 필요수량이 있는 행만 추려
+        # 계산 대상을 줄인다(필요수량 0 은 애초에 부족이 될 수 없다).
+        candidates = self.search([("quantity_required", ">", 0)])
+        short = candidates.filtered("is_short")
+        resolved = candidates - short
+
+        Activity = self.env["mail.activity"]
+        # mail.activity 에는 미완료 건만 남는다. 즉 여기 있으면 열려 있는 알림이다.
+        open_by_res = {}
+        for act in Activity.search([
+            ("res_model", "=", self._name),
+            ("activity_type_id", "=", activity_type.id),
+            ("res_id", "in", candidates.ids),
+        ]):
+            open_by_res[act.res_id] = open_by_res.get(act.res_id, Activity) | act
+
+        created = closed = skipped = 0
+        no_target = self.env[self._name]
+
+        for spare in short:
+            user = spare._get_alert_user()
+            if not user:
+                no_target |= spare
+                skipped += 1
+                continue
+            summary = _(
+                "예비부품 부족: %(part)s (보유 %(have)s / 필요 %(need)s, 부족 %(short)s)",
+                part=spare.name,
+                have=spare.qty_on_hand,
+                need=spare.quantity_required,
+                short=spare.shortage_qty,
+            )
+            existing = open_by_res.get(spare.id)
+            if existing:
+                # 이미 열린 알림이 있으면 새로 만들지 않는다. 수치만 최신으로 고친다.
+                # (매일 도는 크론이 같은 부족으로 활동을 쌓지 않게 하려는 것)
+                existing.write({"summary": summary})
+                continue
+            # activity_schedule 은 xmlid 문자열을 받는다 (id 를 넘기면 split 에서 터진다).
+            spare.activity_schedule(
+                "iatf_equipment.mail_activity_spare_shortage",
+                summary=summary,
+                user_id=user.id,
+                date_deadline=fields.Date.today(),
+            )
+            created += 1
+
+        for spare in resolved:
+            existing = open_by_res.get(spare.id)
+            if existing:
+                # 해소되면 닫는다. 닫힌 이유가 chatter 에 남도록 feedback 을 쓴다.
+                existing.action_feedback(feedback=_("재고가 확보되어 자동 해소되었습니다."))
+                closed += len(existing)
+
+        if no_target:
+            # 조용히 삼키지 않는다. 부족한데 받을 사람이 없다는 사실 자체가 문제다.
+            _logger.warning(
+                "예비부품 부족 알림: 담당자가 없어 %s건을 보내지 못했습니다 (id=%s). "
+                "부족 알림 담당 또는 설비 담당자를 지정하십시오.",
+                len(no_target), no_target.ids,
+            )
+        _logger.info(
+            "예비부품 부족 알림: 신규 %s건, 해소 %s건, 담당없음 %s건",
+            created, closed, skipped,
+        )
 
     @api.depends(
         "product_id", "location_id", "quantity_on_hand", "quantity_required",
