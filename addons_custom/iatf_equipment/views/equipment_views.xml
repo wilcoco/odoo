@@ -204,14 +204,21 @@
                         </page>
                         <page string="예비부품">
                             <field name="spare_part_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-danger="is_short">
+                                    <field name="product_id"/>
                                     <field name="name"/>
-                                    <field name="part_number"/>
+                                    <field name="part_number" optional="show"/>
+                                    <field name="location_id" optional="hide"/>
                                     <field name="quantity_required"/>
-                                    <field name="quantity_on_hand"/>
-                                    <field name="supplier"/>
-                                    <field name="lead_time_days"/>
-                                    <field name="notes"/>
+                                    <field name="qty_on_hand"/>
+                                    <field name="qty_source" widget="badge"/>
+                                    <field name="shortage_qty" optional="show"/>
+                                    <field name="is_short" optional="hide"/>
+                                    <field name="quantity_on_hand" optional="hide"/>
+                                    <field name="partner_id"/>
+                                    <field name="lead_time_days" optional="hide"/>
+                                    <field name="supplier" optional="hide"/>
+                                    <field name="notes" optional="hide"/>
                                 </list>
                             </field>
                         </page>

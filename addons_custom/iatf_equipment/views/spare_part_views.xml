@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_equipment_spare_list" model="ir.ui.view">
+        <field name="name">iatf.equipment.spare.list</field>
+        <field name="model">iatf.equipment.spare</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-danger="is_short">
+                <field name="equipment_id"/>
+                <field name="product_id"/>
+                <field name="name"/>
+                <field name="part_number" optional="show"/>
+                <field name="location_id" optional="hide"/>
+                <field name="quantity_required"/>
+                <field name="qty_on_hand"/>
+                <field name="qty_source" widget="badge"/>
+                <field name="shortage_qty"/>
+                <field name="is_short" optional="hide"/>
+                <field name="quantity_on_hand" optional="hide"/>
+                <field name="partner_id"/>
+                <field name="lead_time_days" optional="hide"/>
+                <field name="supplier" optional="hide"/>
+                <field name="notes" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_equipment_spare_form" model="ir.ui.view">
+        <field name="name">iatf.equipment.spare.form</field>
+        <field name="model">iatf.equipment.spare</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="부품명"/></h1>
+                    </div>
+                    <group>
+                        <group string="식별">
+                            <field name="equipment_id"/>
+                            <field name="product_id"/>
+                            <field name="part_number"/>
+                        </group>
+                        <group string="공급">
+                            <field name="partner_id"/>
+                            <field name="lead_time_days"/>
+                            <field name="supplier" invisible="not supplier"/>
+                        </group>
+                    </group>
+                    <group string="재고">
+                        <group>
+                            <field name="quantity_required"/>
+                            <!-- product_id 유무가 아니라 실제로 적용된 출처를 기준으로 감춘다.
+                                 재고 미추적 품목이 연결된 행은 품목이 있어도 수기값을 쓴다. -->
+                            <field name="location_id" invisible="qty_source != 'product'"/>
+                            <field name="quantity_on_hand" invisible="qty_source == 'product'"/>
+                        </group>
+                        <group>
+                            <field name="qty_source"/>
+                            <field name="qty_on_hand"/>
+                            <field name="is_short"/>
+                            <field name="shortage_qty" invisible="not is_short"/>
+                            <div class="text-muted" colspan="2" invisible="qty_source != 'none'">
+                                품목을 연결하거나 보유 수량을 입력하기 전에는 부족 여부를
+                                판단하지 않습니다. 지금 보이는 0 은 '0개' 가 아니라 '미집계' 입니다.
+                            </div>
+                        </group>
+                    </group>
+                    <group string="비고">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_equipment_spare_search" model="ir.ui.view">
+        <field name="name">iatf.equipment.spare.search</field>
+        <field name="model">iatf.equipment.spare</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="부품"
+                       filter_domain="['|', '|', ('name', 'ilike', self), ('part_number', 'ilike', self), ('product_id', 'ilike', self)]"/>
+                <field name="equipment_id"/>
+                <field name="partner_id"/>
+                <separator/>
+                <filter name="filter_short" string="부족" domain="[('is_short', '=', True)]"/>
+                <filter name="filter_untracked" string="미집계" domain="[('qty_source', '=', 'none')]"/>
+                <filter name="filter_linked" string="재고 연동됨" domain="[('product_id', '!=', False)]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="group_partner" string="공급처" context="{'group_by': 'partner_id'}"/>
+                    <!-- qty_source·is_short 은 비저장이라 group_by 대상이 될 수 없다.
+                         (SQL GROUP BY 를 걸 컬럼이 없다) 필터로만 쓴다. -->
+                    <filter name="group_product" string="품목" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_equipment_spare" model="ir.actions.act_window">
+        <field name="name">예비부품</field>
+        <field name="res_model">iatf.equipment.spare</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_equipment_spare_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">설비별 예비부품을 등록하십시오.</p>
+            <p>품목을 연결하면 보유 수량을 재고에서 자동으로 읽어 부족 여부를 판정합니다.
+               연결하지 않으면 수기 입력값을 씁니다.</p>
+        </field>
+    </record>
+</odoo>

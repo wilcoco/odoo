@@ -10,4 +10,6 @@
               parent="menu_iatf_equipment_root" action="action_breakdown" sequence="30"/>
     <menuitem id="menu_iatf_daily_check" name="일상점검"
               parent="menu_iatf_equipment_root" action="action_daily_check" sequence="40"/>
+    <menuitem id="menu_iatf_equipment_spare" name="예비부품"
+              parent="menu_iatf_equipment_root" action="action_equipment_spare" sequence="50"/>
 </odoo>
