@@ -3,3 +3,5 @@ access_mold_user,iatf.mold.user,model_iatf_mold,group_mold_user,1,1,1,0
 access_mold_manager,iatf.mold.manager,model_iatf_mold,group_mold_manager,1,1,1,1
 access_mold_maint_user,iatf.mold.maintenance.user,model_iatf_mold_maintenance,group_mold_user,1,1,1,0
 access_mold_maint_manager,iatf.mold.maintenance.manager,model_iatf_mold_maintenance,group_mold_manager,1,1,1,1
+access_mold_tryout_user,iatf.mold.tryout.user,model_iatf_mold_tryout,group_mold_user,1,1,1,0
+access_mold_tryout_manager,iatf.mold.tryout.manager,model_iatf_mold_tryout,group_mold_manager,1,1,1,1

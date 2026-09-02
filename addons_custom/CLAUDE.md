@@ -19,6 +19,9 @@
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
 | 설비 예비부품 재고·부족 판정 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 발주는 아직 미구현 — 붙일 때 아래 주의 참조 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
+| 금형 관리기준(등급·주기·온도 상하한) | `iatf_mold` (iatf.mold) | 점검·세척·온도 판정의 기준은 전부 여기. 온도 합·부는 `check_temp_in_spec()` 하나만 쓴다 — 판정 로직을 각 기록 모델에 복사하지 말 것 |
+| 금형 세척 실적 | `iatf_mold` (iatf.mold.maintenance, type=`clean`) | 세척 전용 모델 만들지 말 것. 완료(done) 건만 실적으로 센다 |
+| 시사출(T/O) 보고서 | `iatf_mold` (iatf.mold.tryout) | 심사 증빙 문서라 `ondelete=restrict`. 금형은 삭제 말고 폐기(disposed) 로 |
 
 ## 세션 작업 규칙
 1. 수요·정산·시리얼·결재처럼 "원장" 성격 데이터는 **만들지 말고 정본에 기록**한다.
@@ -32,3 +35,12 @@
    못해 값이 굳는다. 대신 비저장으로 두고 `search=` 메서드로 검색만 살린다.
    (검색뷰 filter/group_by 도 같은 제약 — `search=` 없으면 뷰 검증에서 실패하고,
    group_by 는 SQL 컬럼이 없어 아예 불가)
+7. **오늘 날짜에 의존하는 판정은 저장하지 않는다.** `is_*_overdue` 류를 `store=True`
+   로 두면 다음 재계산 전까지 값이 굳어 기한이 지나도 '정상' 으로 보인다. 대신
+   예정일(`next_*_due`)만 저장하고, 경과 여부는 비저장 + `search=` 로 SQL 도메인을
+   돌려준다.
+8. **'미설정' 과 '0' 을 섞지 않는다.** Float/Integer 기준값(온도 상하한, 주기)이 0 이면
+   판정하지 않는다(`no_spec`). 0 을 기준으로 읽으면 기준을 넣은 적 없는 대상이
+   전부 부적합으로 찍혀 없는 결함을 만들어낸다.
+9. **SQ/IATF 증빙 데이터에 데모·샘플 실적을 넣지 않는다.** 채점 기준에 허위기재 시
+   다수미흡(25%) 이 명시돼 있다. 없는 실적은 없는 채로 두고 기준·계획으로 설명한다.
