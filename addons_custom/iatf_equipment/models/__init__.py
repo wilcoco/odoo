@@ -1,3 +1,4 @@
+from . import spare_category
 from . import equipment
 from . import pm_schedule
 from . import breakdown

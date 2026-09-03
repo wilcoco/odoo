@@ -106,6 +106,7 @@
                             <field name="root_equipment_id" readonly="1"
                                    invisible="node_type != 'device'"/>
                             <field name="equipment_type"/>
+                            <field name="category_id"/>
                             <field name="manufacturer"/>
                             <field name="model_name"/>
                             <field name="serial_number"/>
@@ -203,22 +204,26 @@
                             </field>
                         </page>
                         <page string="예비부품">
-                            <field name="spare_part_ids">
-                                <list editable="bottom" decoration-danger="is_short">
-                                    <field name="product_id"/>
-                                    <field name="name"/>
-                                    <field name="part_number" optional="show"/>
-                                    <field name="location_id" optional="hide"/>
-                                    <field name="quantity_required"/>
-                                    <field name="qty_on_hand"/>
-                                    <field name="qty_source" widget="badge"/>
-                                    <field name="shortage_qty" optional="show"/>
-                                    <field name="is_short" optional="hide"/>
-                                    <field name="quantity_on_hand" optional="hide"/>
-                                    <field name="partner_id"/>
-                                    <field name="lead_time_days" optional="hide"/>
-                                    <field name="supplier" optional="hide"/>
-                                    <field name="notes" optional="hide"/>
+                            <div class="alert alert-info" role="status"
+                                 invisible="not category_id">
+                                이 설비의 기종에 등록된 부품을 한 번에 가져올 수 있습니다.
+                                이미 등록된 부품은 건너뜁니다.
+                            </div>
+                            <button name="action_apply_category_spares" type="object"
+                                    string="기종 부품 일괄 적용" class="btn-secondary mb-2"
+                                    invisible="not category_id"/>
+                            <div class="alert alert-warning" role="alert"
+                                 invisible="category_id">
+                                <b>기종이 지정되지 않았습니다.</b> 기종을 지정하면 같은 기종의
+                                부품 목록을 그대로 가져올 수 있습니다.
+                            </div>
+                            <field name="spare_application_ids">
+                                <list editable="bottom">
+                                    <field name="spare_id"/>
+                                    <field name="category_id" optional="hide"/>
+                                    <field name="qty_per_unit"/>
+                                    <field name="position" optional="show"/>
+                                    <field name="note" optional="hide"/>
                                 </list>
                             </field>
                         </page>

@@ -12,4 +12,10 @@
               parent="menu_iatf_equipment_root" action="action_daily_check" sequence="40"/>
     <menuitem id="menu_iatf_equipment_spare" name="예비부품"
               parent="menu_iatf_equipment_root" action="action_equipment_spare" sequence="50"/>
+
+    <menuitem id="menu_iatf_spare_category" name="예비부품 분류"
+              parent="menu_iatf_equipment_root" action="action_spare_category" sequence="55"/>
+
+    <menuitem id="menu_iatf_spare_application" name="부품 적용표"
+              parent="menu_iatf_equipment_root" action="action_spare_application" sequence="60"/>
 </odoo>

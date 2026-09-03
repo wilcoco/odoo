@@ -5,7 +5,8 @@
         <field name="model">iatf.equipment.spare</field>
         <field name="arch" type="xml">
             <list editable="bottom" decoration-danger="is_short">
-                <field name="equipment_id"/>
+                <field name="category_id"/>
+                <field name="equipment_count" string="적용 설비"/>
                 <field name="product_id"/>
                 <field name="name"/>
                 <field name="part_number" optional="show"/>
@@ -35,7 +36,7 @@
                     </div>
                     <group>
                         <group string="식별">
-                            <field name="equipment_id"/>
+                            <field name="category_id"/>
                             <field name="product_id"/>
                             <field name="part_number"/>
                         </group>
@@ -64,9 +65,26 @@
                             </div>
                         </group>
                     </group>
-                    <group string="비고">
-                        <field name="notes" nolabel="1"/>
-                    </group>
+                    <notebook>
+                        <page string="적용 설비" name="applications">
+                            <div class="alert alert-info" role="status">
+                                이 부품이 <b>어느 설비에 들어가는지</b>를 적습니다. 여러 설비에
+                                같은 부품이 들어가면 여기에 여러 줄로 적습니다 —
+                                부품 행을 설비마다 복제하지 않습니다.
+                            </div>
+                            <field name="application_ids">
+                                <list editable="bottom">
+                                    <field name="equipment_id"/>
+                                    <field name="qty_per_unit"/>
+                                    <field name="position"/>
+                                    <field name="note" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -79,14 +97,20 @@
             <search>
                 <field name="name" string="부품"
                        filter_domain="['|', '|', ('name', 'ilike', self), ('part_number', 'ilike', self), ('product_id', 'ilike', self)]"/>
-                <field name="equipment_id"/>
+                <field name="category_id"/>
                 <field name="partner_id"/>
                 <separator/>
                 <filter name="filter_short" string="부족" domain="[('is_short', '=', True)]"/>
+                <!-- 분류를 필수로 만들지 않았다. 막으면 등록 자체를 안 하게 된다.
+                     대신 빠진 것을 이 필터로 골라내 나중에 채운다. -->
+                <filter name="filter_no_category" string="분류 미지정"
+                        domain="[('category_id', '=', False)]"/>
+                <filter name="filter_no_application" string="적용 설비 없음"
+                        domain="[('application_ids', '=', False)]"/>
                 <filter name="filter_untracked" string="미집계" domain="[('qty_source', '=', 'none')]"/>
                 <filter name="filter_linked" string="재고 연동됨" domain="[('product_id', '!=', False)]"/>
                 <group expand="0" string="그룹">
-                    <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="group_category" string="분류" context="{'group_by': 'category_id'}"/>
                     <filter name="group_partner" string="공급처" context="{'group_by': 'partner_id'}"/>
                     <!-- qty_source·is_short 은 비저장이라 group_by 대상이 될 수 없다.
                          (SQL GROUP BY 를 걸 컬럼이 없다) 필터로만 쓴다. -->
