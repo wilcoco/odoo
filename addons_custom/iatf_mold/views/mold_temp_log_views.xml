@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mold_temp_log_list" model="ir.ui.view">
+        <field name="name">iatf.mold.temp.log.list</field>
+        <field name="model">iatf.mold.temp.log</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="spec_result == 'ng'"
+                  decoration-muted="spec_result == 'no_spec'">
+                <field name="measured_at"/>
+                <field name="mold_id"/>
+                <field name="log_type"/>
+                <field name="point"/>
+                <field name="method"/>
+                <field name="temperature"/>
+                <field name="spec_min" optional="show"/>
+                <field name="spec_max" optional="show"/>
+                <field name="spec_result" widget="badge"
+                       decoration-success="spec_result == 'ok'"
+                       decoration-danger="spec_result == 'ng'"/>
+                <field name="shift" optional="hide"/>
+                <field name="measured_by_id" optional="hide"/>
+                <field name="production_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mold_temp_log_form" model="ir.ui.view">
+        <field name="name">iatf.mold.temp.log.form</field>
+        <field name="model">iatf.mold.temp.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="spec_result != 'no_spec'">
+                        이 금형에는 해당 온도 기준(상·하한)이 없어 합·부를 판정하지 않았습니다.
+                        금형 대장에서 기준을 먼저 등록하십시오.
+                    </div>
+                    <group>
+                        <group string="대상">
+                            <field name="mold_id"/>
+                            <field name="log_type"/>
+                            <field name="production_id"/>
+                        </group>
+                        <group string="측정">
+                            <field name="measured_at"/>
+                            <field name="shift"/>
+                            <!-- 부위·방식은 필수다. 크리아 4_7 지적이 정확히
+                                 고정측/이동측 구분 부재였다. -->
+                            <field name="point"/>
+                            <field name="method"/>
+                            <field name="measured_by_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="결과">
+                            <field name="temperature"/>
+                            <field name="spec_result" readonly="1"/>
+                        </group>
+                        <group string="적용 기준 (금형 마스터)">
+                            <field name="spec_min" readonly="1"/>
+                            <field name="spec_max" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="비고">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mold_temp_log_search" model="ir.ui.view">
+        <field name="name">iatf.mold.temp.log.search</field>
+        <field name="model">iatf.mold.temp.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="mold_id"/>
+                <field name="measured_by_id"/>
+                <separator/>
+                <filter name="filter_ng" string="기준 이탈"
+                        domain="[('spec_result', '=', 'ng')]"/>
+                <!-- 기준이 없어 판정하지 못한 측정. '적합' 으로 착각하면 안 되고,
+                     금형 마스터에 상·하한을 채워야 할 대상 목록이다. -->
+                <filter name="filter_no_spec" string="기준 없음(판정 불가)"
+                        domain="[('spec_result', '=', 'no_spec')]"/>
+                <separator/>
+                <filter name="filter_preheat" string="예열" domain="[('log_type', '=', 'preheat')]"/>
+                <filter name="filter_operating" string="가동중 온도"
+                        domain="[('log_type', '=', 'operating')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_mold" string="금형" context="{'group_by': 'mold_id'}"/>
+                    <filter name="group_log_type" string="측정 구분" context="{'group_by': 'log_type'}"/>
+                    <filter name="group_point" string="측정 부위" context="{'group_by': 'point'}"/>
+                    <filter name="group_result" string="합부 판정" context="{'group_by': 'spec_result'}"/>
+                    <filter name="group_day" string="측정일" context="{'group_by': 'measured_at:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mold_temp_log" model="ir.actions.act_window">
+        <field name="name">예열/온도 측정 이력</field>
+        <field name="res_model">iatf.mold.temp.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mold_temp_log_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">예열·가동중 금형 온도를 기록하십시오.</p>
+            <p>측정 부위(고정측/이동측)와 방식을 반드시 남깁니다.
+               합·부는 금형 대장의 온도 상·하한과 자동 대조됩니다.</p>
+        </field>
+    </record>
+</odoo>

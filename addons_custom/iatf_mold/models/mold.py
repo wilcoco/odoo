@@ -110,6 +110,27 @@ class IatfMold(models.Model):
         search="_search_is_clean_overdue",
     )
 
+    # ── 일상/정기 점검 (SQ 4_1) ──
+    check_ids = fields.One2many("iatf.mold.check", "mold_id", string="점검 이력")
+    check_count = fields.Integer(string="점검 건수", compute="_compute_check_count")
+    last_check_date = fields.Date(
+        string="최근 일상점검일", compute="_compute_check_due", store=True,
+        help="완료된 '일상' 점검의 최근 일자. 작성 중인 점검표는 실적으로 세지 않는다. "
+             "정기 점검은 주기가 달라 여기에 섞지 않는다.",
+    )
+    next_check_due = fields.Date(
+        string="차기 점검 예정", compute="_compute_check_due", store=True,
+    )
+    # 오늘 날짜에 의존하므로 저장하지 않는다(세척과 같은 이유).
+    is_check_overdue = fields.Boolean(
+        string="점검 기한 경과", compute="_compute_check_overdue",
+        search="_search_is_check_overdue",
+    )
+
+    # ── 예열/온도 측정 (SQ 4_6·4_7) ──
+    temp_log_ids = fields.One2many("iatf.mold.temp.log", "mold_id", string="온도 측정 이력")
+    temp_log_count = fields.Integer(string="온도 측정 건수", compute="_compute_temp_log_count")
+
     # ── 시사출(T/O) (SQ 4_5) ──
     tryout_ids = fields.One2many("iatf.mold.tryout", "mold_id", string="시사출 보고서")
     tryout_count = fields.Integer(string="시사출 건수", compute="_compute_tryout")
@@ -254,15 +275,81 @@ class IatfMold(models.Model):
         for rec in self:
             rec.is_clean_overdue = bool(rec.next_clean_due) and rec.next_clean_due < today
 
-    def _search_is_clean_overdue(self, operator, value):
-        """next_clean_due 가 저장 필드라 순수 SQL 도메인으로 바꿔 넘긴다."""
+    def _search_overdue(self, due_field, label, operator, value):
+        """'예정일이 오늘보다 이전' 을 저장 필드 기준 SQL 도메인으로 바꿔 넘긴다.
+
+        경과 여부 자체는 오늘 날짜에 의존해 저장할 수 없으므로(값이 굳는다),
+        저장된 예정일(`due_field`) 로 되돌려 검색한다. 예정일이 없는 대상은
+        '판정 불가' 이며 경과 쪽이 아니라 경과 아님 쪽에 든다.
+        """
         if operator not in ("=", "!="):
-            raise ValidationError(_("'세척 기한 경과' 는 = 또는 != 로만 검색할 수 있습니다."))
+            raise ValidationError(_("'%s' 는 = 또는 != 로만 검색할 수 있습니다.", label))
         today = fields.Date.context_today(self)
         want_overdue = (operator == "=") == bool(value)
         if want_overdue:
-            return [("next_clean_due", "!=", False), ("next_clean_due", "<", today)]
-        return ["|", ("next_clean_due", "=", False), ("next_clean_due", ">=", today)]
+            return [(due_field, "!=", False), (due_field, "<", today)]
+        return ["|", (due_field, "=", False), (due_field, ">=", today)]
+
+    def _search_is_clean_overdue(self, operator, value):
+        return self._search_overdue("next_clean_due", _("세척 기한 경과"), operator, value)
+
+    # ─────────────────────────── 일상/정기 점검 (SQ 4_1) ───────────────────────────
+
+    @api.depends("check_ids")
+    def _compute_check_count(self):
+        for rec in self:
+            rec.check_count = len(rec.check_ids)
+
+    @api.depends(
+        "check_cycle_days",
+        "check_ids.check_date", "check_ids.check_type", "check_ids.state",
+    )
+    def _compute_check_due(self):
+        for rec in self:
+            done = rec.check_ids.filtered(
+                lambda c: c.check_type == "daily" and c.state == "done" and c.check_date
+            )
+            last = max(done.mapped("check_date")) if done else False
+            rec.last_check_date = last
+            rec.next_check_due = self._next_due(last, rec.check_cycle_days)
+
+    @api.depends("next_check_due")
+    def _compute_check_overdue(self):
+        today = fields.Date.context_today(self)
+        for rec in self:
+            rec.is_check_overdue = bool(rec.next_check_due) and rec.next_check_due < today
+
+    def _search_is_check_overdue(self, operator, value):
+        return self._search_overdue("next_check_due", _("점검 기한 경과"), operator, value)
+
+    def action_view_checks(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("금형 점검 이력"),
+            "res_model": "iatf.mold.check",
+            "view_mode": "list,form",
+            "domain": [("mold_id", "=", self.id)],
+            "context": {"default_mold_id": self.id},
+        }
+
+    # ─────────────────────────── 예열/온도 (SQ 4_6·4_7) ───────────────────────────
+
+    @api.depends("temp_log_ids")
+    def _compute_temp_log_count(self):
+        for rec in self:
+            rec.temp_log_count = len(rec.temp_log_ids)
+
+    def action_view_temp_logs(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("온도 측정 이력"),
+            "res_model": "iatf.mold.temp.log",
+            "view_mode": "list,form",
+            "domain": [("mold_id", "=", self.id)],
+            "context": {"default_mold_id": self.id},
+        }
 
     # ─────────────────────────── 시사출(T/O) ───────────────────────────
 

@@ -16,6 +16,8 @@
                 <field name="current_shots"/>
                 <field name="guaranteed_shots"/>
                 <field name="life_percentage"/>
+                <field name="last_check_date" optional="hide"/>
+                <field name="next_check_due" optional="hide"/>
                 <field name="last_clean_date" optional="hide"/>
                 <field name="next_clean_due" optional="hide"/>
                 <field name="last_tryout_date" optional="hide"/>
@@ -54,6 +56,14 @@
                                 icon="fa-flask">
                             <field name="tryout_count" widget="statinfo" string="시사출"/>
                         </button>
+                        <button name="action_view_checks" type="object" class="oe_stat_button"
+                                icon="fa-check-square-o">
+                            <field name="check_count" widget="statinfo" string="점검"/>
+                        </button>
+                        <button name="action_view_temp_logs" type="object" class="oe_stat_button"
+                                icon="fa-thermometer-half">
+                            <field name="temp_log_count" widget="statinfo" string="온도측정"/>
+                        </button>
                     </div>
                     <field name="image" widget="image" class="oe_avatar"/>
                     <div class="oe_title">
@@ -62,6 +72,10 @@
                     <div class="alert alert-warning" role="alert" invisible="not is_tryout_missing">
                         사용 중인데 <b>합격 판정된 시사출(T/O) 보고서가 없습니다.</b>
                         SQ 4_5 의 대표 감점 사유입니다 — 시사출 보고서를 작성하십시오.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not is_check_overdue">
+                        <b>일상점검 기한이 지났습니다.</b>
+                        차기 예정일: <field name="next_check_due" readonly="1" nolabel="1" class="oe_inline"/>
                     </div>
                     <div class="alert alert-info" role="alert" invisible="is_standard_ready">
                         관리기준 미비: <field name="standard_missing" readonly="1" nolabel="1" class="oe_inline"/>
@@ -118,14 +132,20 @@
                             </div>
                         </group>
                     </group>
-                    <group string="세척 계획 대비 실적 (SQ 4_2)">
-                        <group>
+                    <group string="계획 대비 실적 (SQ 4_1·4_2·4_5)" col="3">
+                        <group string="일상점검">
+                            <field name="last_check_date"/>
+                            <field name="next_check_due"/>
+                            <field name="is_check_overdue"/>
+                        </group>
+                        <group string="세척">
                             <field name="last_clean_date"/>
                             <field name="next_clean_due"/>
-                        </group>
-                        <group>
                             <field name="is_clean_overdue"/>
+                        </group>
+                        <group string="시사출">
                             <field name="last_tryout_date"/>
+                            <field name="is_tryout_missing"/>
                         </group>
                     </group>
                     <group>
@@ -139,6 +159,38 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string="점검 이력">
+                            <field name="check_ids" context="{'default_mold_id': id}">
+                                <list decoration-danger="overall_result == 'issue'"
+                                      decoration-warning="overall_result == 'pending'">
+                                    <field name="name"/>
+                                    <field name="check_type"/>
+                                    <field name="check_date"/>
+                                    <field name="shift"/>
+                                    <field name="checker_id"/>
+                                    <field name="ng_count"/>
+                                    <field name="overall_result" widget="badge"
+                                           decoration-success="overall_result == 'ok'"
+                                           decoration-danger="overall_result == 'issue'"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="예열/온도 이력">
+                            <field name="temp_log_ids" context="{'default_mold_id': id}">
+                                <list decoration-danger="spec_result == 'ng'"
+                                      decoration-muted="spec_result == 'no_spec'">
+                                    <field name="measured_at"/>
+                                    <field name="log_type"/>
+                                    <field name="point"/>
+                                    <field name="method"/>
+                                    <field name="temperature"/>
+                                    <field name="spec_result" widget="badge"
+                                           decoration-success="spec_result == 'ok'"
+                                           decoration-danger="spec_result == 'ng'"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="시사출(T/O) 이력">
                             <field name="tryout_ids" context="{'default_mold_id': id}">
                                 <list>
@@ -210,6 +262,8 @@
                      한 화면에서 세어 보여주는 것이 우수(100%)와 양호(80%)를 가른다. -->
                 <filter name="filter_standard_missing" string="관리기준 미비"
                         domain="[('is_standard_ready', '=', False)]"/>
+                <filter name="filter_check_overdue" string="점검 기한 경과"
+                        domain="[('is_check_overdue', '=', True)]"/>
                 <filter name="filter_clean_overdue" string="세척 기한 경과"
                         domain="[('is_clean_overdue', '=', True)]"/>
                 <filter name="filter_tryout_missing" string="시사출 누락"
