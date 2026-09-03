@@ -83,6 +83,17 @@
         <menuitem id="menu_iatf_mold" name="금형관리" parent="menu_iatf_equipment" sequence="30"
                   action="iatf_mold.action_mold"/>
 
+        <menuitem id="menu_iatf_check" name="점검 일지" parent="menu_iatf_equipment" sequence="40">
+            <menuitem id="menu_iatf_check_sheet" name="점검 시트(기준)" sequence="10"
+                      action="iatf_work_environment.action_check_sheet"/>
+            <menuitem id="menu_iatf_check_record" name="점검 실적" sequence="20"
+                      action="iatf_work_environment.action_check_record"/>
+            <menuitem id="menu_iatf_check_overdue" name="미실시 점검 목록" sequence="30"
+                      action="iatf_work_environment.action_check_sheet_overdue"/>
+            <menuitem id="menu_iatf_env_check" name="작업환경/5S 점검" sequence="40"
+                      action="iatf_work_environment.action_environment_check"/>
+        </menuitem>
+
         <!-- 6. 구매 및 자재 관리 -->
         <menuitem id="menu_iatf_procurement" name="구매 및 자재 관리"
                   parent="iatf_document_control.menu_iatf_root" sequence="6"/>

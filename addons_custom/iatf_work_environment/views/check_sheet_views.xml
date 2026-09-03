@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_check_sheet_list" model="ir.ui.view">
+        <field name="name">iatf.check.sheet.list</field>
+        <field name="model">iatf.check.sheet</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_overdue == True">
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="target_type"/>
+                <field name="equipment_id" optional="hide"/>
+                <field name="work_area_id" optional="hide"/>
+                <field name="location_name" optional="hide"/>
+                <field name="cycle"/>
+                <field name="item_count" string="항목"/>
+                <field name="record_count" string="실적"/>
+                <field name="last_record_date"/>
+                <field name="next_due"/>
+                <field name="is_overdue" widget="boolean_toggle" readonly="1"/>
+                <field name="responsible_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_check_sheet_form" model="ir.ui.view">
+        <field name="name">iatf.check.sheet.form</field>
+        <field name="model">iatf.check.sheet</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_new_record" type="object" string="점검 실적 입력"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_records" type="object"
+                                class="oe_stat_button" icon="fa-list-alt">
+                            <field name="record_count" widget="statinfo" string="점검 실적"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="보관됨" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="alert alert-warning" role="alert" invisible="not is_overdue">
+                        점검 기한이 지났습니다. 차기 예정일: <field name="next_due" readonly="1" class="oe_inline"/>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="예: 분쇄기 #1 일상점검"/></h1>
+                    </div>
+                    <group>
+                        <group string="대상">
+                            <field name="code"/>
+                            <field name="target_type"/>
+                            <field name="equipment_id"/>
+                            <field name="workcenter_id"/>
+                            <field name="work_area_id"/>
+                            <field name="location_name"/>
+                        </group>
+                        <group string="주기 / 실적">
+                            <field name="cycle"/>
+                            <field name="start_date"/>
+                            <field name="last_record_date" readonly="1"/>
+                            <field name="next_due" readonly="1"/>
+                            <field name="is_overdue" readonly="1"/>
+                            <field name="responsible_id"/>
+                            <field name="department_id"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="점검 항목">
+                            <field name="item_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="check_method"/>
+                                    <field name="standard"/>
+                                    <field name="spec_min"/>
+                                    <field name="spec_max"/>
+                                    <field name="uom_name"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-2">
+                                상·하한을 넣으면 실적 입력 시 측정값으로 합·부가 자동 판정된다.
+                                비워 두면(0) 판정하지 않고 점검자가 직접 고른다.
+                            </div>
+                        </page>
+                        <page string="비고">
+                            <field name="notes" placeholder="점검 방법·주의사항"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_check_sheet_search" model="ir.ui.view">
+        <field name="name">iatf.check.sheet.search</field>
+        <field name="model">iatf.check.sheet</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="equipment_id"/>
+                <field name="work_area_id"/>
+                <field name="location_name"/>
+                <filter name="filter_overdue" string="미실시(기한 경과)"
+                        domain="[('is_overdue', '=', True)]"/>
+                <filter name="filter_never" string="실적 없음"
+                        domain="[('last_record_date', '=', False)]"/>
+                <separator/>
+                <filter name="filter_tool" string="공구" domain="[('target_type', '=', 'tool')]"/>
+                <filter name="filter_master" string="검사 마스터" domain="[('target_type', '=', 'master')]"/>
+                <filter name="filter_facility" string="설비/시설" domain="[('target_type', '=', 'facility')]"/>
+                <filter name="filter_area" string="구역" domain="[('target_type', '=', 'area')]"/>
+                <separator/>
+                <filter name="filter_inactive" string="보관됨" domain="[('active', '=', False)]"/>
+                <group expand="0" string="그룹화">
+                    <filter name="group_target_type" string="대상 구분" context="{'group_by': 'target_type'}"/>
+                    <filter name="group_cycle" string="점검 주기" context="{'group_by': 'cycle'}"/>
+                    <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="group_area" string="작업 구역" context="{'group_by': 'work_area_id'}"/>
+                    <filter name="group_responsible" string="책임자" context="{'group_by': 'responsible_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_check_sheet" model="ir.actions.act_window">
+        <field name="name">점검 시트</field>
+        <field name="res_model">iatf.check.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">점검 시트를 등록하십시오.</p>
+            <p>
+                전동공구 토크, 통전검사 마스터, 바코드 마스터, 원소재 건조기 필터,
+                분쇄기·배합기, 냉각수·작동유 온도, 소화기 — 대상마다 시트를 하나씩 만들고
+                점검 항목과 주기를 지정합니다. 실적은 시트에서 「점검 실적 입력」으로 남깁니다.
+            </p>
+        </field>
+    </record>
+
+    <!-- 미실시 목록 = 지속 모니터링 증빙 화면 -->
+    <record id="action_check_sheet_overdue" model="ir.actions.act_window">
+        <field name="name">미실시 점검 목록</field>
+        <field name="res_model">iatf.check.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_overdue', '=', True)]</field>
+        <field name="context">{'search_default_group_responsible': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">기한이 지난 점검이 없습니다.</p>
+            <p>주기가 지났는데 완료된 실적이 없는 점검 시트가 여기 나옵니다.</p>
+        </field>
+    </record>
+
+</odoo>

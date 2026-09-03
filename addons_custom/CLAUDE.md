@@ -19,6 +19,18 @@
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
 | 설비 예비부품 재고·부족 판정 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 발주는 아직 미구현 — 붙일 때 아래 주의 참조 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
+| 범용 점검 일지(공구·검사마스터·설비/시설·구역) | `iatf_work_environment` (iatf.check.sheet / iatf.check.record) | 전동공구 토크·통전검사·바코드 마스터·건조기 필터·분쇄기·배합기·냉각수/작동유·소화기 = **전부 이 모델 하나**. 대상별 전용 모듈·모델 금지 |
+| 작업환경 실측(온습도·조도)·5S 점수 | `iatf_work_environment` (iatf.environment.check) | 구역 기준(`iatf.work.area`) 대비 실측·5S 5개 점수는 여기가 정본. 점검 시트로 옮기지 말 것 |
+
+### 점검 원장 경계 (헷갈리기 쉬움)
+- **금형** → `iatf.mold.check` (주기가 금형 마스터에 있고 누락 판정이 `iatf.mold` 위에 산다)
+- **설비 대장에 등록된 설비의 일상점검** → `iatf.daily.check` (iatf_equipment)
+- **구역 환경 실측·5S 점수** → `iatf.environment.check`
+- **그 외 전부(공구·검사마스터·시설·소화기 등)** → `iatf.check.sheet` + `iatf.check.record`
+
+`iatf.check.record.line._check_result_matches_spec` 와
+`iatf.mold.check.line._check_result_matches_spec` 는 **같은 허위기재 차단 규칙의 복제본**이다.
+한쪽만 고치면 구멍이 생긴다. 공용 mixin 으로 합치는 작업은 PR #31 병합 후.
 
 ## 세션 작업 규칙
 1. 수요·정산·시리얼·결재처럼 "원장" 성격 데이터는 **만들지 말고 정본에 기록**한다.
