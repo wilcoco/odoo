@@ -24,12 +24,29 @@
 | 산업안전 위험성평가 | `iatf_work_environment` (iatf.safety.assessment) | 작업별 유해위험요인 × 가능성/중대성 + 감소대책 이행. **`iatf.risk.register` 와 다른 원장** — 아래 경계 참조 |
 | 아차사고·사고 이력 | `iatf_work_environment` (iatf.safety.incident) | 아차사고를 사고와 **같은 원장**에 둔다. 분리하면 "사고 0건" 숫자만 남고 예방활동 증빙이 사라진다 |
 | 안전점검(소화기·비상구·방호장치) | `iatf_work_environment` (iatf.check.sheet, `is_safety=True`) | **네 번째 점검 원장을 만들지 말 것.** 주기·미실시 판정 구조가 일반 점검과 같아 플래그로만 구분한다 |
+| 재생재 배합 상한 기준 | `iatf_traceability` (iatf.blend.standard) | 품목(+수지)별 상한·분모정의·고객승인. 상한 숫자를 코드나 다른 모델에 박지 말 것 |
+| 분쇄일지(스크랩→재생재) | `iatf_traceability` (iatf.regrind.log) | 재생재 로트의 **출처**. 분쇄기 자체의 일상점검은 `iatf.check.sheet` 쪽 |
+| 배합일지(투입 비율·합부) | `iatf_traceability` (iatf.blend.log + .line) | LOT별 신재/재생재/첨가제 투입과 상한 대비 판정. 재생재 줄은 분쇄일지를 가리켜야 완료된다 |
 
 ### 점검 원장 경계 (헷갈리기 쉬움)
 - **금형** → `iatf.mold.check` (주기가 금형 마스터에 있고 누락 판정이 `iatf.mold` 위에 산다)
 - **설비 대장에 등록된 설비의 일상점검** → `iatf.daily.check` (iatf_equipment)
 - **구역 환경 실측·5S 점수** → `iatf.environment.check`
 - **그 외 전부(공구·검사마스터·시설·소화기 등)** → `iatf.check.sheet` + `iatf.check.record`
+
+### 배합 판정의 두 가지 함정 (SQ 1_10 / 3_4)
+- **분모를 코드가 정하지 않는다.** 재생률을 수지 기준(신재+재생재)으로 세는 회사와
+  총 투입량(첨가제 포함) 기준으로 세는 회사가 갈린다. 개발이 임의로 고르면 회사 기준과
+  다른 판정이 그대로 증빙이 된다. 그래서 분모는 기준 마스터의 `ratio_basis` 가 정한다.
+- **기준은 배합일 시점으로 스냅샷한다.** `standard_id` 만 들고 있으면 나중에 상한을
+  완화하는 순간 과거의 초과 배합이 합격으로 뒤집힌다. 그래서 `limit_ratio` /
+  `limit_additive_ratio` / `ratio_basis` 를 배합일지에 복사해 저장한다.
+
+`iatf.blend.standard` 에는 다중회사 레코드 규칙이 없다. `_standard_for()` 가 회사를
+직접 거른다 — 이 필터를 지우면 남의 법인 상한으로 우리 배합이 판정된다(적대적 검증에서
+실제로 재현됨). 기준이 없을 때는 `ok` 가 아니라 `pending` 으로 남기고, 완료는 막지 않되
+「기준 초과·판정불가 배합」 목록으로 적발한다. 원인이 작업자가 못 고치는 마스터 공백이라
+완료를 막으면 기록 자체가 안 남기 때문이다.
 
 ### 리스크 원장 경계
 - **사업·공정 리스크와 기회 (IATF §6.1)** → `iatf.risk.register`

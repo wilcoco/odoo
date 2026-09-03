@@ -17,4 +17,34 @@
               parent="menu_iatf_traceability_root"
               action="action_iatf_recall_simulation"
               sequence="20"/>
+
+    <!-- 분쇄·배합 (SQ 사출 1_10 / 3_4) — 재생재의 출처와 투입 비율을 남긴다. -->
+    <menuitem id="menu_iatf_blend_root"
+              name="분쇄·배합 관리"
+              parent="menu_iatf_traceability_root"
+              sequence="30"/>
+
+    <menuitem id="menu_iatf_blend_standard"
+              name="배합 관리기준"
+              parent="menu_iatf_blend_root"
+              action="action_blend_standard"
+              sequence="10"/>
+
+    <menuitem id="menu_iatf_blend_log"
+              name="배합일지"
+              parent="menu_iatf_blend_root"
+              action="action_blend_log"
+              sequence="20"/>
+
+    <menuitem id="menu_iatf_regrind_log"
+              name="분쇄일지"
+              parent="menu_iatf_blend_root"
+              action="action_regrind_log"
+              sequence="30"/>
+
+    <menuitem id="menu_iatf_blend_log_ng"
+              name="기준 초과·판정불가 배합"
+              parent="menu_iatf_blend_root"
+              action="action_blend_log_ng"
+              sequence="40"/>
 </odoo>

@@ -64,6 +64,18 @@
                       action="iatf_spc.action_iatf_spc_study"/>
         </menuitem>
 
+        <!-- 분쇄·배합은 생산 공정이라 여기에도 둔다. 정본 화면은 추적성 모듈에 있다. -->
+        <menuitem id="menu_iatf_blend" name="분쇄·배합 관리" parent="menu_iatf_production" sequence="25">
+            <menuitem id="menu_iatf_blend_standard_x" name="배합 관리기준" sequence="10"
+                      action="iatf_traceability.action_blend_standard"/>
+            <menuitem id="menu_iatf_blend_log_x" name="배합일지" sequence="20"
+                      action="iatf_traceability.action_blend_log"/>
+            <menuitem id="menu_iatf_regrind_log_x" name="분쇄일지" sequence="30"
+                      action="iatf_traceability.action_regrind_log"/>
+            <menuitem id="menu_iatf_blend_ng_x" name="기준 초과·판정불가 배합" sequence="40"
+                      action="iatf_traceability.action_blend_log_ng"/>
+        </menuitem>
+
         <menuitem id="menu_iatf_inspection" name="검사관리" parent="menu_iatf_production" sequence="30">
             <menuitem id="menu_iatf_incoming" name="수입검사" sequence="10"
                       action="iatf_incoming_inspection.action_incoming_inspection"/>

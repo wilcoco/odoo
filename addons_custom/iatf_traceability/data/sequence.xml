@@ -13,5 +13,23 @@
             <field name="prefix">RECALL-%(year)s-</field>
             <field name="padding">4</field>
         </record>
+        <record id="seq_iatf_blend_standard" model="ir.sequence">
+            <field name="name">배합 관리기준</field>
+            <field name="code">iatf.blend.standard</field>
+            <field name="prefix">BS-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_iatf_blend_log" model="ir.sequence">
+            <field name="name">배합일지</field>
+            <field name="code">iatf.blend.log</field>
+            <field name="prefix">BL-%(year)s-</field>
+            <field name="padding">5</field>
+        </record>
+        <record id="seq_iatf_regrind_log" model="ir.sequence">
+            <field name="name">분쇄일지</field>
+            <field name="code">iatf.regrind.log</field>
+            <field name="prefix">RG-%(year)s-</field>
+            <field name="padding">5</field>
+        </record>
     </data>
 </odoo>
