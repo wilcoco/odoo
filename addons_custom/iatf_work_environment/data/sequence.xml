@@ -13,5 +13,17 @@
             <field name="prefix">CK-%(year)s-</field>
             <field name="padding">4</field>
         </record>
+        <record id="seq_safety_assessment" model="ir.sequence">
+            <field name="name">위험성평가</field>
+            <field name="code">iatf.safety.assessment</field>
+            <field name="prefix">RA-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_safety_incident" model="ir.sequence">
+            <field name="name">아차사고/사고</field>
+            <field name="code">iatf.safety.incident</field>
+            <field name="prefix">SI-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>

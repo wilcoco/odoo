@@ -8,9 +8,21 @@
                 <field name="name"/><field name="title"/><field name="lead_auditor_id"/>
                 <filter name="planned" string="Planned" domain="[('state','=','planned')]"/>
                 <filter name="open" string="Open" domain="[('state','not in',('closed','cancelled'))]"/>
+                <separator/>
+                <!-- 계획만 있고 실시하지 않은 심사를 찾는다. 계획 대비 실적이 SQ 6_4 의 핵심 증빙이다. -->
+                <filter name="overdue" string="미실시(계획일 경과)"
+                        domain="[('state','=','planned'),('planned_date','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="no_actual" string="실적일 미기록"
+                        domain="[('actual_date','=',False),('state','not in',('planned','cancelled'))]"/>
+                <separator/>
+                <filter name="this_year" string="올해 계획"
+                        domain="[('planned_date','&gt;=',(context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_type" string="Type" context="{'group_by': 'audit_type'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_dept" string="피심사 부서" context="{'group_by': 'department_id'}"/>
+                    <filter name="group_auditor" string="수석 심사원" context="{'group_by': 'lead_auditor_id'}"/>
+                    <filter name="group_planned" string="계획일" context="{'group_by': 'planned_date'}"/>
                 </group>
             </search>
         </field>
@@ -111,5 +123,18 @@
         <field name="res_model">iatf.audit</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_iatf_audit_search"/>
+    </record>
+
+    <record id="action_iatf_audit_overdue" model="ir.actions.act_window">
+        <field name="name">미실시 내부심사</field>
+        <field name="res_model">iatf.audit</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_audit_search"/>
+        <field name="context">{'search_default_overdue': 1, 'search_default_group_dept': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">계획일이 지났는데 실시하지 않은 심사가 없습니다.</p>
+            <p>여기가 비어 있어야 정상입니다. 심사 계획을 등록해 두면 계획일이 지난 순간
+               이 목록에 나타납니다.</p>
+        </field>
     </record>
 </odoo>

@@ -1,7 +1,7 @@
 {
     "name": "IATF 작업환경 관리",
-    "version": "18.0.1.1.0",
-    "summary": "작업환경·5S 점검 + 범용 점검 일지(공구·검사마스터·설비/시설·구역)",
+    "version": "18.0.1.2.0",
+    "summary": "작업환경·5S 점검 + 범용 점검 일지 + 안전관리(위험성평가·아차사고)",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
@@ -14,6 +14,8 @@
         "views/environment_check_views.xml",
         "views/check_sheet_views.xml",
         "views/check_record_views.xml",
+        "views/safety_assessment_views.xml",
+        "views/safety_incident_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

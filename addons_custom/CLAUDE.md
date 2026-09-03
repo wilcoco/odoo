@@ -21,12 +21,28 @@
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
 | 범용 점검 일지(공구·검사마스터·설비/시설·구역) | `iatf_work_environment` (iatf.check.sheet / iatf.check.record) | 전동공구 토크·통전검사·바코드 마스터·건조기 필터·분쇄기·배합기·냉각수/작동유·소화기 = **전부 이 모델 하나**. 대상별 전용 모듈·모델 금지 |
 | 작업환경 실측(온습도·조도)·5S 점수 | `iatf_work_environment` (iatf.environment.check) | 구역 기준(`iatf.work.area`) 대비 실측·5S 5개 점수는 여기가 정본. 점검 시트로 옮기지 말 것 |
+| 산업안전 위험성평가 | `iatf_work_environment` (iatf.safety.assessment) | 작업별 유해위험요인 × 가능성/중대성 + 감소대책 이행. **`iatf.risk.register` 와 다른 원장** — 아래 경계 참조 |
+| 아차사고·사고 이력 | `iatf_work_environment` (iatf.safety.incident) | 아차사고를 사고와 **같은 원장**에 둔다. 분리하면 "사고 0건" 숫자만 남고 예방활동 증빙이 사라진다 |
+| 안전점검(소화기·비상구·방호장치) | `iatf_work_environment` (iatf.check.sheet, `is_safety=True`) | **네 번째 점검 원장을 만들지 말 것.** 주기·미실시 판정 구조가 일반 점검과 같아 플래그로만 구분한다 |
 
 ### 점검 원장 경계 (헷갈리기 쉬움)
 - **금형** → `iatf.mold.check` (주기가 금형 마스터에 있고 누락 판정이 `iatf.mold` 위에 산다)
 - **설비 대장에 등록된 설비의 일상점검** → `iatf.daily.check` (iatf_equipment)
 - **구역 환경 실측·5S 점수** → `iatf.environment.check`
 - **그 외 전부(공구·검사마스터·시설·소화기 등)** → `iatf.check.sheet` + `iatf.check.record`
+
+### 리스크 원장 경계
+- **사업·공정 리스크와 기회 (IATF §6.1)** → `iatf.risk.register`
+- **작업자 유해·위험요인 (산업안전, SQ 6_1)** → `iatf.safety.assessment`
+
+둘은 구조가 다르다. 후자는 개선 전/후 위험성 비교와 감소대책 이행 추적이 필수라
+전자에 얹으면 어느 쪽 증빙도 되지 않는다.
+
+### 기한 경과 판정 방식 (모듈별로 다름 — 통일하지 말 것)
+- `iatf.check.sheet` → 주기가 마스터에 있으므로 `next_due`(저장) + `is_overdue`(비저장 + `search=`)
+- `iatf.audit` / `iatf.training.record` / `iatf.competence.matrix` → 계획일·만료일이 **이미
+  일반 Date 컬럼**이라 검색뷰 도메인만으로 충분하다. 필드를 새로 만들지 않았다.
+  (원칙은 같다 — 오늘 날짜에 의존하는 판정은 절대 저장하지 않는다)
 
 `iatf.check.record.line._check_result_matches_spec` 와
 `iatf.mold.check.line._check_result_matches_spec` 는 **같은 허위기재 차단 규칙의 복제본**이다.
