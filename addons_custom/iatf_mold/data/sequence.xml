@@ -13,5 +13,17 @@
             <field name="prefix">MM-%(year)s-</field>
             <field name="padding">4</field>
         </record>
+        <record id="seq_mold_check" model="ir.sequence">
+            <field name="name">금형 점검</field>
+            <field name="code">iatf.mold.check</field>
+            <field name="prefix">MC-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="seq_mold_tryout" model="ir.sequence">
+            <field name="name">금형 시사출(T/O)</field>
+            <field name="code">iatf.mold.tryout</field>
+            <field name="prefix">TO-%(year)s-</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>

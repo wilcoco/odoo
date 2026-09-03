@@ -6,4 +6,10 @@
               parent="menu_iatf_mold_root" action="action_mold" sequence="10"/>
     <menuitem id="menu_iatf_mold_maintenance" name="보전/수리 이력"
               parent="menu_iatf_mold_root" action="action_mold_maintenance" sequence="20"/>
+    <menuitem id="menu_iatf_mold_tryout" name="시사출(T/O) 보고서"
+              parent="menu_iatf_mold_root" action="action_mold_tryout" sequence="30"/>
+    <menuitem id="menu_iatf_mold_check" name="금형 점검"
+              parent="menu_iatf_mold_root" action="action_mold_check" sequence="40"/>
+    <menuitem id="menu_iatf_mold_temp_log" name="예열/온도 측정 이력"
+              parent="menu_iatf_mold_root" action="action_mold_temp_log" sequence="50"/>
 </odoo>
