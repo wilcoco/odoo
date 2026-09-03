@@ -8,6 +8,9 @@
                 <field name="name"/><field name="title"/><field name="trainer_id"/>
                 <filter name="planned" string="Planned" domain="[('state','=','planned')]"/>
                 <filter name="not_verified" string="Not Verified" domain="[('effectiveness_verified','=',False),('state','=','completed')]"/>
+                <separator/>
+                <filter name="overdue" string="미실시(교육일 경과)"
+                        domain="[('state','=','planned'),('training_date','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_type" string="Type" context="{'group_by': 'training_type'}"/>
                     <filter name="group_dept" string="Department" context="{'group_by': 'department_id'}"/>

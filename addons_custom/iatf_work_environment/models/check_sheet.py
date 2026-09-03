@@ -42,6 +42,13 @@ class IatfCheckSheet(models.Model):
         ],
         string="대상 구분", required=True, default="facility", tracking=True,
     )
+    # 안전점검(소화기·비상구·방호장치)도 주기·미실시 판정 구조가 일반 점검과 똑같다.
+    # 네 번째 점검 원장을 만들지 않고 이 플래그로 구분만 한다.
+    is_safety = fields.Boolean(
+        string="안전점검", tracking=True,
+        help="산업안전 목적의 점검(소화기·비상구·방호장치·보호구 등). "
+             "체크하면 안전관리 메뉴의 '안전점검 시트'에 함께 나온다.",
+    )
 
     # ── 대상 연결 (전부 선택) ──
     # 점검 대상이 설비 대장에 없는 경우가 많다(소화기·바코드리더·전동공구).
@@ -287,6 +294,19 @@ class IatfCheckRecord(models.Model):
                 vals["line_ids"] = sheet._prepare_record_lines()
         return super().create(vals_list)
 
+    @api.constrains("state", "line_ids")
+    def _check_done_is_complete(self):
+        """완료 상태의 백스톱.
+
+        `action_done` 의 검사는 버튼 경로에만 걸린다. `write({'state': 'done'})`
+        으로 우회하면 판정이 비어 있는 점검표가 실적으로 집계된다. 실적 수는
+        SQ 채점의 근거라 우회 경로를 열어 두면 안 된다.
+        """
+        for rec in self:
+            if rec.state == "done" and rec.overall_result == "pending":
+                raise ValidationError(_(
+                    "판정이 비어 있는 항목이 있어 완료 상태로 둘 수 없습니다. (%s)", rec.name))
+
     def action_done(self):
         """완료 처리. 판정이 덜 된 점검표는 완료할 수 없다."""
         for rec in self:
@@ -392,3 +412,15 @@ class IatfCheckRecordLine(models.Model):
                 raise ValidationError(_(
                     "'%(item)s' 의 하한(%(low)s) 이 상한(%(high)s) 보다 큽니다.",
                     item=rec.item_name, low=rec.spec_min, high=rec.spec_max))
+
+    def unlink(self):
+        """라인을 지운 뒤 부모 점검표를 다시 검사한다.
+
+        자식 삭제는 부모의 `@api.constrains("line_ids")` 를 트리거하지 않는다.
+        완료된 점검표의 라인을 전부 지우면 판정 내용이 없는 '완료' 실적이 남고,
+        그 실적이 시트의 최근 점검일로 잡혀 미실시 목록에서 사라진다.
+        """
+        parents = self.record_id
+        res = super().unlink()
+        parents.exists()._check_done_is_complete()
+        return res

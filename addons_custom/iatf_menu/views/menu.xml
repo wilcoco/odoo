@@ -38,6 +38,9 @@
         <menuitem id="menu_iatf_audit" name="내부심사" parent="menu_iatf_quality_system" sequence="10"
                   action="iatf_audit.action_iatf_audit"/>
 
+        <menuitem id="menu_iatf_audit_overdue" name="미실시 내부심사" parent="menu_iatf_quality_system" sequence="15"
+                  action="iatf_audit.action_iatf_audit_overdue"/>
+
         <menuitem id="menu_iatf_customer_satisfaction" name="고객만족도" parent="menu_iatf_quality_system" sequence="20"
                   action="iatf_customer_complaint.action_iatf_customer_complaint"/>
 
@@ -127,6 +130,15 @@
 
         <menuitem id="menu_iatf_recall" name="리콜시뮬레이션" parent="menu_iatf_safety" sequence="20"
                   action="iatf_traceability.action_iatf_recall_simulation"/>
+
+        <menuitem id="menu_iatf_safety_assessment" name="위험성평가" parent="menu_iatf_safety" sequence="30"
+                  action="iatf_work_environment.action_safety_assessment"/>
+
+        <menuitem id="menu_iatf_safety_incident" name="아차사고/사고 이력" parent="menu_iatf_safety" sequence="40"
+                  action="iatf_work_environment.action_safety_incident"/>
+
+        <menuitem id="menu_iatf_safety_check_sheet" name="안전점검 시트" parent="menu_iatf_safety" sequence="50"
+                  action="iatf_work_environment.action_safety_check_sheet"/>
 
         <!-- 9. 리포트 및 분석 -->
         <menuitem id="menu_iatf_reports" name="리포트 및 분석"

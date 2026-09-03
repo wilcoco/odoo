@@ -9,6 +9,7 @@
                 <field name="name"/>
                 <field name="code" optional="show"/>
                 <field name="target_type"/>
+                <field name="is_safety" optional="hide" widget="boolean_toggle"/>
                 <field name="equipment_id" optional="hide"/>
                 <field name="work_area_id" optional="hide"/>
                 <field name="location_name" optional="hide"/>
@@ -52,6 +53,7 @@
                         <group string="대상">
                             <field name="code"/>
                             <field name="target_type"/>
+                            <field name="is_safety"/>
                             <field name="equipment_id"/>
                             <field name="workcenter_id"/>
                             <field name="work_area_id"/>
@@ -117,9 +119,12 @@
                 <filter name="filter_facility" string="설비/시설" domain="[('target_type', '=', 'facility')]"/>
                 <filter name="filter_area" string="구역" domain="[('target_type', '=', 'area')]"/>
                 <separator/>
+                <filter name="filter_safety" string="안전점검" domain="[('is_safety', '=', True)]"/>
+                <separator/>
                 <filter name="filter_inactive" string="보관됨" domain="[('active', '=', False)]"/>
                 <group expand="0" string="그룹화">
                     <filter name="group_target_type" string="대상 구분" context="{'group_by': 'target_type'}"/>
+                    <filter name="group_safety" string="안전점검 여부" context="{'group_by': 'is_safety'}"/>
                     <filter name="group_cycle" string="점검 주기" context="{'group_by': 'cycle'}"/>
                     <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
                     <filter name="group_area" string="작업 구역" context="{'group_by': 'work_area_id'}"/>

@@ -9,6 +9,12 @@
                 <filter name="has_gap" string="Has Gap" domain="[('gap','=',True)]"/>
                 <filter name="expiring" string="Cert Expiring Soon"
                         domain="[('expiry_date','!=',False),('expiry_date','&lt;=',(context_today() + datetime.timedelta(days=90)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <!-- '곧 만료'(90일)만 있으면 이미 지난 건이 안 보인다. 지난 건이 실제 감점 대상이다. -->
+                <filter name="cert_expired" string="자격 만료됨"
+                        domain="[('expiry_date','!=',False),('expiry_date','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="retraining_overdue" string="재교육 기한 경과"
+                        domain="[('next_retraining_date','!=',False),('next_retraining_date','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Group By">
                     <filter name="group_dept" string="Department" context="{'group_by': 'department_id'}"/>
                     <filter name="group_employee" string="Employee" context="{'group_by': 'employee_id'}"/>

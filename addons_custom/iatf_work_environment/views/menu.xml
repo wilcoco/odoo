@@ -12,4 +12,12 @@
               parent="menu_iatf_work_env_root" action="action_check_record" sequence="40"/>
     <menuitem id="menu_iatf_check_overdue" name="미실시 점검 목록"
               parent="menu_iatf_work_env_root" action="action_check_sheet_overdue" sequence="50"/>
+    <menuitem id="menu_iatf_safety_root" name="안전관리"
+              parent="menu_iatf_work_env_root" sequence="60"/>
+    <menuitem id="menu_iatf_safety_assessment" name="위험성평가"
+              parent="menu_iatf_safety_root" action="action_safety_assessment" sequence="10"/>
+    <menuitem id="menu_iatf_safety_incident" name="아차사고/사고 이력"
+              parent="menu_iatf_safety_root" action="action_safety_incident" sequence="20"/>
+    <menuitem id="menu_iatf_safety_check_sheet" name="안전점검 시트"
+              parent="menu_iatf_safety_root" action="action_safety_check_sheet" sequence="30"/>
 </odoo>

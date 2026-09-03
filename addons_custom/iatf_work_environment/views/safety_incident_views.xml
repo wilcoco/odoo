@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_safety_incident_list" model="ir.ui.view">
+        <field name="name">iatf.safety.incident.list</field>
+        <field name="model">iatf.safety.incident</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="incident_type in ['lost_time', 'fire']"
+                  decoration-warning="state in ['reported', 'analyzing']"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="incident_type"/>
+                <field name="occurred_at"/>
+                <field name="work_area_id" optional="show"/>
+                <field name="equipment_id" optional="hide"/>
+                <field name="location_name" optional="hide"/>
+                <field name="reporter_id" optional="show"/>
+                <field name="lost_days" optional="hide" sum="휴업 일수"/>
+                <field name="responsible_id" optional="hide"/>
+                <field name="due_date" optional="show"/>
+                <field name="done_date" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'closed'"
+                       decoration-warning="state in ['reported', 'analyzing']"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_safety_incident_form" model="ir.ui.view">
+        <field name="name">iatf.safety.incident.form</field>
+        <field name="model">iatf.safety.incident</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_analyze" type="object" string="원인 분석 착수"
+                            class="btn-primary" invisible="state != 'reported'"/>
+                    <button name="action_start_action" type="object" string="대책 이행"
+                            class="btn-primary" invisible="state != 'analyzing'"/>
+                    <button name="action_close" type="object" string="종결"
+                            class="btn-primary" invisible="state != 'action'"/>
+                    <button name="action_reset" type="object" string="접수로 되돌리기"
+                            invisible="state in ['reported', 'cancelled']"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state in ['closed', 'cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="reported,analyzing,action,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="예: 금형 교환 중 호이스트 슬링 미끄러짐"/></h2>
+                    </div>
+                    <group>
+                        <group string="발생">
+                            <field name="incident_type"/>
+                            <field name="occurred_at"/>
+                            <field name="work_area_id"/>
+                            <field name="equipment_id"/>
+                            <field name="location_name"/>
+                            <field name="reporter_id"/>
+                        </group>
+                        <group string="피해 / 후속">
+                            <field name="involved_employee_ids" widget="many2many_tags"/>
+                            <field name="lost_days"
+                                   invisible="incident_type != 'lost_time'"/>
+                            <field name="responsible_id"/>
+                            <field name="due_date"/>
+                            <field name="done_date"/>
+                            <field name="assessment_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="경위 / 원인 / 대책">
+                            <group>
+                                <field name="description" placeholder="언제, 어디서, 무엇을 하다가, 어떻게 되었는지"/>
+                                <field name="immediate_action" placeholder="발생 직후 취한 조치"/>
+                                <field name="cause" placeholder="근본 원인. 종결하려면 반드시 입력해야 합니다."/>
+                                <field name="countermeasure" placeholder="재발방지 대책. 종결하려면 반드시 입력해야 합니다."/>
+                            </group>
+                        </page>
+                        <page string="비고">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_safety_incident_search" model="ir.ui.view">
+        <field name="name">iatf.safety.incident.search</field>
+        <field name="model">iatf.safety.incident</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="work_area_id"/>
+                <field name="equipment_id"/>
+                <field name="reporter_id"/>
+                <filter name="f_open" string="미종결"
+                        domain="[('state', 'in', ['reported', 'analyzing', 'action'])]"/>
+                <filter name="f_near_miss" string="아차사고"
+                        domain="[('incident_type', '=', 'near_miss')]"/>
+                <filter name="f_injury" string="재해(응급처치·휴업)"
+                        domain="[('incident_type', 'in', ['first_aid', 'lost_time'])]"/>
+                <separator/>
+                <filter name="f_overdue" string="대책 기한 경과"
+                        domain="[('due_date', '&lt;', context_today().strftime('%Y-%m-%d')),
+                                 ('state', 'not in', ['closed', 'cancelled'])]"/>
+                <separator/>
+                <filter name="f_this_year" string="올해"
+                        domain="[('occurred_at', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_type" string="구분" context="{'group_by': 'incident_type'}"/>
+                    <filter name="g_area" string="발생 구역" context="{'group_by': 'work_area_id'}"/>
+                    <filter name="g_state" string="상태" context="{'group_by': 'state'}"/>
+                    <filter name="g_resp" string="대책 담당" context="{'group_by': 'responsible_id'}"/>
+                    <filter name="g_date" string="발생 일시" context="{'group_by': 'occurred_at'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_safety_incident" model="ir.actions.act_window">
+        <field name="name">아차사고 / 사고 이력</field>
+        <field name="res_model">iatf.safety.incident</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">아차사고부터 기록하십시오.</p>
+            <p>다치지 않았어도 위험을 발견했다면 아차사고로 남깁니다. 평가에서 보는 것은
+               사고가 없다는 사실이 아니라 위험을 발견하고 조치한 이력입니다.</p>
+        </field>
+    </record>
+
+    <record id="action_safety_check_sheet" model="ir.actions.act_window">
+        <field name="name">안전점검 시트</field>
+        <field name="res_model">iatf.check.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_safety', '=', True)]</field>
+        <field name="context">{'default_is_safety': True, 'default_target_type': 'facility'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">안전점검 시트를 등록하십시오.</p>
+            <p>소화기·비상구·방호장치·보호구 점검은 별도 원장이 아니라 점검 시트에
+               '안전점검'을 체크해 관리합니다. 주기·미실시 판정이 일반 점검과 동일하게 동작합니다.</p>
+        </field>
+    </record>
+
+</odoo>

@@ -13,3 +13,9 @@ access_check_record_user,iatf.check.record.user,model_iatf_check_record,group_wo
 access_check_record_manager,iatf.check.record.manager,model_iatf_check_record,group_work_environment_manager,1,1,1,1
 access_check_record_line_user,iatf.check.record.line.user,model_iatf_check_record_line,group_work_environment_user,1,1,1,1
 access_check_record_line_manager,iatf.check.record.line.manager,model_iatf_check_record_line,group_work_environment_manager,1,1,1,1
+access_safety_assessment_user,iatf.safety.assessment.user,model_iatf_safety_assessment,group_work_environment_user,1,1,1,0
+access_safety_assessment_manager,iatf.safety.assessment.manager,model_iatf_safety_assessment,group_work_environment_manager,1,1,1,1
+access_safety_assessment_line_user,iatf.safety.assessment.line.user,model_iatf_safety_assessment_line,group_work_environment_user,1,1,1,1
+access_safety_assessment_line_manager,iatf.safety.assessment.line.manager,model_iatf_safety_assessment_line,group_work_environment_manager,1,1,1,1
+access_safety_incident_user,iatf.safety.incident.user,model_iatf_safety_incident,group_work_environment_user,1,1,1,0
+access_safety_incident_manager,iatf.safety.incident.manager,model_iatf_safety_incident,group_work_environment_manager,1,1,1,1
