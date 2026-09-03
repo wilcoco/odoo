@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 # 계층 단계. 값이 작을수록 상위다. 부모보다 반드시 아래 단계여야 한다
 # (예외: 장치→장치 는 수리성 어셈블리 분해를 위해 허용).
@@ -132,7 +132,22 @@ class IatfEquipment(models.Model):
     pm_schedule_ids = fields.One2many("iatf.pm.schedule", "equipment_id", string="PM 계획/실적")
     breakdown_ids = fields.One2many("iatf.equipment.breakdown", "equipment_id", string="고장 이력")
     daily_check_ids = fields.One2many("iatf.daily.check", "equipment_id", string="일상점검")
-    spare_part_ids = fields.One2many("iatf.equipment.spare", "equipment_id", string="예비부품")
+    # 예비부품은 설비에 직접 매달리지 않는다. 부품 마스터 한 행을 여러 설비가
+    # 공유하고, 그 연결을 적용표가 들고 있다.
+    spare_application_ids = fields.One2many(
+        "iatf.spare.application", "equipment_id", string="예비부품 적용")
+    spare_count = fields.Integer(string="예비부품 수", compute="_compute_spare_count")
+
+    # ── 분류 (부품 분류체계와 잇는 다리) ──
+    # 레거시는 설비 분류(MCHSRT, 2자리)와 예비부품 분류(SPMSRT, 4자리)가 완전히
+    # 다른 체계였고 겹치는 코드가 0건이었다. 그래서 "이 설비에 맞는 부품"을
+    # 시스템이 알 방법이 없었다. 실물 설비가 기종을 가리키게 해서 그 고리를 만든다.
+    category_id = fields.Many2one(
+        "iatf.spare.category", string="기종", index=True, ondelete="restrict",
+        domain="[('level', '=', 'model')]", tracking=True,
+        help="이 설비가 어떤 기종인가(예: 사출:사출성형기:UBE-2200T). "
+             "지정하면 그 기종에 등록된 부품을 한 번에 적용할 수 있다.",
+    )
 
     # ── 연결 ──
     document_ids = fields.Many2many("iatf.document", string="관련 문서")
@@ -183,6 +198,63 @@ class IatfEquipment(models.Model):
         for rec in self:
             rec.child_count = counts.get(rec.id, 0)
 
+    @api.depends("spare_application_ids")
+    def _compute_spare_count(self):
+        counts = {
+            equip.id: count
+            for equip, count in self.env["iatf.spare.application"]._read_group(
+                [("equipment_id", "in", self.ids)], ["equipment_id"], ["__count"])
+        }
+        for rec in self:
+            rec.spare_count = counts.get(rec.id, 0)
+
+    def action_apply_category_spares(self):
+        """기종에 등록된 부품을 이 설비의 적용표에 한꺼번에 넣는다.
+
+        레거시에서 설비 분류와 부품 분류가 따로 놀아 "이 설비에 무슨 부품이
+        들어가나"를 사람이 매번 찾아야 했다. 기종이 같으면 부품도 같으므로
+        기종을 매개로 한 번에 채운다.
+
+        이미 등록된 조합은 건너뛴다 — 두 번 눌러도 중복이 생기지 않아야 한다.
+        """
+        # 만들기 전에 먼저 막는다. 중간에 raise 하면 트랜잭션이 통째로 되돌아가
+        # 앞 설비에 적용된 것까지 사라지는데, 화면에는 '기종 없음' 만 뜬다.
+        no_category = self.filtered(lambda e: not e.category_id)
+        if no_category:
+            raise UserError(_(
+                "기종이 지정되지 않은 설비가 있습니다: %s\n"
+                "설비에 기종을 먼저 지정해야 그 기종의 부품을 가져올 수 있습니다.",
+                ", ".join(no_category.mapped("name"))))
+
+        Application = self.env["iatf.spare.application"]
+        created = 0
+        for rec in self:
+            existing = set(rec.spare_application_ids.mapped("spare_id").ids)
+            to_add = rec.category_id.spare_ids.filtered(lambda s: s.id not in existing)
+            for spare in to_add:
+                Application.create({"spare_id": spare.id, "equipment_id": rec.id})
+                created += 1
+
+        message = _("부품 %s 건을 적용했습니다.", created) if created else _(
+            "새로 적용할 부품이 없습니다. 기종의 부품이 이미 전부 등록되어 있습니다.")
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {"message": message, "type": "success" if created else "info",
+                       "next": {"type": "ir.actions.act_window_close"}},
+        }
+
+    def action_view_spares(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("'%s' 예비부품", self.name),
+            "res_model": "iatf.spare.application",
+            "view_mode": "list,form",
+            "domain": [("equipment_id", "=", self.id)],
+            "context": {"default_equipment_id": self.id},
+        }
+
     @api.constrains("parent_id")
     def _check_equipment_recursion(self):
         if self._has_cycle():
@@ -209,6 +281,25 @@ class IatfEquipment(models.Model):
                     "parent": rec.parent_id.name,
                     "parent_type": dict(self._fields["node_type"].selection)[rec.parent_id.node_type],
                 })
+
+    @api.constrains("category_id")
+    def _check_category_is_a_model(self):
+        """설비는 '기종' 노드만 가리킨다.
+
+        폼의 domain 은 화면만 막는다. 엑셀 가져오기나 API 로 들어온 값이 묶음
+        노드('사출성형기')를 가리켜도 오류가 나지 않고, 그러면 「기종 부품 일괄
+        적용」이 조용히 0건을 적용한다. 설정이 틀렸다는 사실이 드러나지 않는 게
+        더 나쁘므로 여기서 막는다.
+        """
+        Category = self.env["iatf.spare.category"]
+        labels = dict(Category._fields["level"].selection)
+        for rec in self:
+            cat = rec.category_id
+            if cat and cat.level != "model":
+                raise ValidationError(_(
+                    "'%(equip)s' 의 기종으로 '%(cat)s'(%(level)s) 을 지정할 수 없습니다.\n"
+                    "기종은 분류 체계의 최하위(기종) 노드입니다.",
+                    equip=rec.name, cat=cat.complete_name, level=labels[cat.level]))
 
     @api.onchange("parent_id")
     def _onchange_parent_id(self):
@@ -374,13 +465,34 @@ class IatfEquipment(models.Model):
 
 class IatfEquipmentSpare(models.Model):
     _name = "iatf.equipment.spare"
-    _description = "설비 예비부품"
-    _order = "equipment_id, name"
+    _description = "예비부품"
+    _order = "category_id, name"
 
-    equipment_id = fields.Many2one("iatf.equipment", string="설비", required=True, ondelete="cascade")
     name = fields.Char(string="부품명", required=True)
     part_number = fields.Char(string="부품 번호")
-    quantity_required = fields.Float(string="필요 수량", default=1)
+
+    # 분류와 적용은 다른 질문에 답한다.
+    #   분류 = "이 부품이 어디에 속하는가" — 한 자리 (트리 위치)
+    #   적용 = "이 부품이 어디어디에 들어가는가" — 여러 개 (다대다)
+    # 예전에는 설비를 직접 물고 있어서(equipment_id required) 같은 베어링이 설비
+    # 10대에 쓰이면 행이 10개 생기고 재고를 10번 따로 봤다. 둘을 분리해 부품은
+    # 마스터 한 행으로 두고, 어느 설비에 들어가는지는 적용표가 적는다.
+    category_id = fields.Many2one(
+        "iatf.spare.category", string="분류", index=True, ondelete="restrict",
+        domain="[('is_leaf', '=', True)]",
+        help="부문:공정:설비군:기종 중 기종 노드에만 달 수 있다. "
+             "묶음 노드(가지)에는 부품을 두지 않는다.",
+    )
+    application_ids = fields.One2many(
+        "iatf.spare.application", "spare_id", string="적용 설비")
+    equipment_count = fields.Integer(
+        string="적용 설비 수", compute="_compute_equipment_count")
+
+    quantity_required = fields.Float(
+        string="최소 보유 기준", default=1,
+        help="창고에 최소한 갖고 있어야 할 수량. 부족 판정의 기준선이다. "
+             "설비 한 대당 소요 수량은 적용표(설비별)에 따로 적는다.",
+    )
     notes = fields.Char(string="비고")
 
     # 품목을 연결하면 재고를 실시간으로 읽는다. 연결 전 행은 수기 입력을 계속 쓴다 —
@@ -484,6 +596,44 @@ class IatfEquipmentSpare(models.Model):
         negate = operator in ("!=", "not in")
         matched = self.search([]).filtered(lambda s: (s.qty_source in wanted) != negate)
         return [("id", "in", matched.ids)]
+
+    @api.depends("application_ids")
+    def _compute_equipment_count(self):
+        counts = {
+            spare.id: count
+            for spare, count in self.env["iatf.spare.application"]._read_group(
+                [("spare_id", "in", self.ids)], ["spare_id"], ["__count"])
+        }
+        for spare in self:
+            spare.equipment_count = counts.get(spare.id, 0)
+
+    @api.constrains("category_id")
+    def _check_category_is_leaf(self):
+        """묶음 노드에 부품을 달 수 없다.
+
+        레거시는 A000(부문), AA00(공정) 같은 상위 묶음에도 부품을 달 수 있었다.
+        도메인은 화면만 막는다. 엑셀 가져오기나 API 로 들어온 행은 도메인을 거치지
+        않으므로 여기서 다시 본다.
+        """
+        labels = dict(self.env["iatf.spare.category"]._fields["level"].selection)
+        for spare in self:
+            cat = spare.category_id
+            if cat and not cat.is_leaf:
+                raise ValidationError(_(
+                    "'%(part)s' 을 '%(cat)s'(%(level)s) 에 둘 수 없습니다.\n"
+                    "부품은 하위 분류가 없는 기종 노드에만 답니다.",
+                    part=spare.name, cat=cat.complete_name, level=labels[cat.level]))
+
+    def action_view_applications(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("'%s' 적용 설비", self.name),
+            "res_model": "iatf.spare.application",
+            "view_mode": "list,form",
+            "domain": [("spare_id", "=", self.id)],
+            "context": {"default_spare_id": self.id},
+        }
 
     @api.onchange("product_id")
     def _onchange_product_id(self):

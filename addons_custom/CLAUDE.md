@@ -18,6 +18,8 @@
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
 | 설비 예비부품 재고·부족 판정 | `iatf_equipment` (iatf.equipment.spare) | `stock.quant` 는 **읽기 전용**(qty_available). 발주는 아직 미구현 — 붙일 때 아래 주의 참조 |
+| 예비부품 분류체계(부문/공정/설비군/기종) | `iatf_equipment` (iatf.spare.category) | 레거시 SPMSRT 4자리 한 칸을 자리별 트리로 편 것. 새 분류 모델 만들지 말 것 |
+| 부품↔설비 적용(다대다) | `iatf_equipment` (iatf.spare.application) | 부품이 어느 설비에 들어가는지의 정본. `spare.equipment_id`(1:N)는 18.0.1.3.0 에서 제거됨 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
 
 ## 세션 작업 규칙
@@ -27,7 +29,17 @@
 4. 완료 전 검증: 원격 존재(ls-remote) + 테스트 그린 + (해당 시) 심볼 스캔.
 5. **`-u` 는 미설치 모듈에 아무 일도 하지 않는다.** exit=0 을 검증으로 착각하지 말 것.
    검증 DB 에서 `ir_module_module.state` 를 먼저 확인하고, 미설치면 `-i` 로 설치한다.
-6. **비저장 계산 필드 위에 `store=True` 를 얹지 않는다.** `product.qty_available`,
+6. **필드를 모델에서 지워도 컬럼은 남는다.** Odoo 는 경고 한 줄만 찍고 컬럼을
+   그대로 둔다. 지운 필드가 `required=True` 였다면 NOT NULL 컬럼이 남아 **그
+   모델에 새 레코드를 만들 때마다 insert 가 실패한다.** 로컬 새 DB 에서는
+   안 보이고 운영 업그레이드에서만 터진다. 반드시 마이그레이션에서
+   (1) 값을 옮기고 (2) `DROP COLUMN` 한다.
+   (실사례: `iatf.equipment.spare.equipment_id` → `iatf.spare.application`,
+   `migrations/18.0.1.3.0/post-migration.py`)
+7. **분류 트리에 제약을 걸 때는 '분류 쪽 write' 도 막았는지 본다.** 부품에
+   `@api.constrains("category_id")` 만 걸면, 부품은 그대로 두고 **분류의
+   `level` 을 바꿔** 묶음 노드로 만드는 우회가 열린다. 양쪽 모델 모두에서 막는다.
+8. **비저장 계산 필드 위에 `store=True` 를 얹지 않는다.** `product.qty_available`,
    `iatf.equipment.mtbf` 처럼 비저장인 값에 의존하면 Odoo 가 재계산 트리거를 걸지
    못해 값이 굳는다. 대신 비저장으로 두고 `search=` 메서드로 검색만 살린다.
    (검색뷰 filter/group_by 도 같은 제약 — `search=` 없으면 뷰 검증에서 실패하고,
