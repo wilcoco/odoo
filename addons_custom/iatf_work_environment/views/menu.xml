@@ -6,4 +6,10 @@
               parent="menu_iatf_work_env_root" action="action_work_area" sequence="10"/>
     <menuitem id="menu_iatf_env_check" name="환경/5S 점검"
               parent="menu_iatf_work_env_root" action="action_environment_check" sequence="20"/>
+    <menuitem id="menu_iatf_check_sheet" name="점검 시트"
+              parent="menu_iatf_work_env_root" action="action_check_sheet" sequence="30"/>
+    <menuitem id="menu_iatf_check_record" name="점검 실적"
+              parent="menu_iatf_work_env_root" action="action_check_record" sequence="40"/>
+    <menuitem id="menu_iatf_check_overdue" name="미실시 점검 목록"
+              parent="menu_iatf_work_env_root" action="action_check_sheet_overdue" sequence="50"/>
 </odoo>

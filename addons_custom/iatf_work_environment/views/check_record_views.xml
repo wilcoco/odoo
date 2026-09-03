@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_check_record_list" model="ir.ui.view">
+        <field name="name">iatf.check.record.list</field>
+        <field name="model">iatf.check.record</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="overall_result == 'issue'"
+                  decoration-warning="overall_result == 'pending'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="check_date"/>
+                <field name="sheet_id"/>
+                <field name="target_type" optional="show"/>
+                <field name="cycle" optional="hide"/>
+                <field name="shift" optional="hide"/>
+                <field name="checker_id"/>
+                <field name="overall_result"/>
+                <field name="ng_count"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_check_record_form" model="ir.ui.view">
+        <field name="name">iatf.check.record.form</field>
+        <field name="model">iatf.check.record</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" type="object" string="완료"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_draft" type="object" string="작성 중으로"
+                            invisible="state == 'draft'"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="overall_result != 'pending'">
+                        판정이 비어 있는 항목이 있습니다. 모든 항목의 결과를 채워야 완료할 수 있습니다.
+                        (항목이 하나도 없는 점검표는 '양호' 가 아니라 '미완료' 입니다)
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sheet_id" readonly="state != 'draft'"/>
+                            <field name="target_type" readonly="1"/>
+                            <field name="cycle" readonly="1"/>
+                            <field name="check_date"/>
+                        </group>
+                        <group>
+                            <field name="shift"/>
+                            <field name="checker_id"/>
+                            <field name="overall_result" readonly="1"/>
+                            <field name="ng_count" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="점검 항목">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="item_name"/>
+                                    <field name="check_method" optional="show"/>
+                                    <field name="standard" optional="show"/>
+                                    <field name="spec_min" optional="show"/>
+                                    <field name="spec_max" optional="show"/>
+                                    <field name="value"/>
+                                    <field name="uom_name" optional="hide"/>
+                                    <field name="result"
+                                           readonly="spec_min != 0 or spec_max != 0"/>
+                                    <field name="remark"/>
+                                    <field name="item_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-2">
+                                상·하한이 있는 항목은 측정값으로 결과가 자동 판정되며 손으로 바꿀 수 없다.
+                                측정값 0 은 '미기입' 으로 본다(불량 아님).
+                            </div>
+                        </page>
+                        <page string="조치 / 비고">
+                            <group>
+                                <field name="corrective_action" placeholder="이상 항목에 대한 조치 내용"/>
+                                <field name="notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_check_record_search" model="ir.ui.view">
+        <field name="name">iatf.check.record.search</field>
+        <field name="model">iatf.check.record</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="sheet_id"/>
+                <field name="checker_id"/>
+                <filter name="filter_pending" string="미완료(판정 누락)"
+                        domain="[('overall_result', '=', 'pending')]"/>
+                <filter name="filter_issue" string="이상 있음"
+                        domain="[('overall_result', '=', 'issue')]"/>
+                <filter name="filter_draft" string="작성 중" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_done" string="완료" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="filter_this_month" string="이번 달"
+                        domain="[('check_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="그룹화">
+                    <filter name="group_sheet" string="점검 시트" context="{'group_by': 'sheet_id'}"/>
+                    <filter name="group_target_type" string="대상 구분" context="{'group_by': 'target_type'}"/>
+                    <filter name="group_result" string="종합 판정" context="{'group_by': 'overall_result'}"/>
+                    <filter name="group_state" string="상태" context="{'group_by': 'state'}"/>
+                    <filter name="group_date" string="점검일" context="{'group_by': 'check_date'}"/>
+                    <filter name="group_checker" string="점검자" context="{'group_by': 'checker_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_check_record" model="ir.actions.act_window">
+        <field name="name">점검 실적</field>
+        <field name="res_model">iatf.check.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">점검 실적이 없습니다.</p>
+            <p>점검 시트를 먼저 등록한 뒤 실적을 남기십시오. 완료(done) 처리한 건만 실적으로 집계됩니다.</p>
+        </field>
+    </record>
+
+</odoo>
