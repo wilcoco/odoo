@@ -19,3 +19,5 @@ access_safety_assessment_line_user,iatf.safety.assessment.line.user,model_iatf_s
 access_safety_assessment_line_manager,iatf.safety.assessment.line.manager,model_iatf_safety_assessment_line,group_work_environment_manager,1,1,1,1
 access_safety_incident_user,iatf.safety.incident.user,model_iatf_safety_incident,group_work_environment_user,1,1,1,0
 access_safety_incident_manager,iatf.safety.incident.manager,model_iatf_safety_incident,group_work_environment_manager,1,1,1,1
+access_check_sheet_revision_user,iatf.check.sheet.revision.user,model_iatf_check_sheet_revision,group_work_environment_user,1,0,0,0
+access_check_sheet_revision_manager,iatf.check.sheet.revision.manager,model_iatf_check_sheet_revision,group_work_environment_manager,1,0,0,0

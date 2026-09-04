@@ -50,6 +50,7 @@
                             <field name="sheet_id" readonly="state != 'draft'"/>
                             <field name="target_type" readonly="1"/>
                             <field name="cycle" readonly="1"/>
+                            <field name="sheet_revision" readonly="1"/>
                             <field name="check_date"/>
                         </group>
                         <group>
@@ -63,24 +64,29 @@
                     <notebook>
                         <page string="점검 항목">
                             <field name="line_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-bf="is_key_item">
                                     <field name="sequence" widget="handle"/>
                                     <field name="item_name"/>
                                     <field name="check_method" optional="show"/>
+                                    <field name="entry_type" column_invisible="1"/>
                                     <field name="standard" optional="show"/>
+                                    <field name="spec_mode" optional="hide"/>
                                     <field name="spec_min" optional="show"/>
                                     <field name="spec_max" optional="show"/>
-                                    <field name="value"/>
+                                    <field name="value" readonly="entry_type != 'numeric'"/>
+                                    <field name="text_value" invisible="entry_type != 'text'"/>
                                     <field name="uom_name" optional="hide"/>
                                     <field name="result"
                                            readonly="spec_min != 0 or spec_max != 0"/>
                                     <field name="remark"/>
+                                    <field name="is_key_item" column_invisible="1"/>
                                     <field name="item_id" column_invisible="1"/>
                                 </list>
                             </field>
                             <div class="text-muted mt-2">
                                 상·하한이 있는 항목은 측정값으로 결과가 자동 판정되며 손으로 바꿀 수 없다.
                                 측정값 0 은 '미기입' 으로 본다(불량 아님).
+                                여기 보이는 기준은 <b>점검 당시 복사된 값</b>이라, 나중에 시트를 개정해도 바뀌지 않는다.
                             </div>
                         </page>
                         <page string="조치 / 비고">

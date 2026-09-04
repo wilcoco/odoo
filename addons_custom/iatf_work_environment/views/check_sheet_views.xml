@@ -60,6 +60,7 @@
                             <field name="location_name"/>
                         </group>
                         <group string="주기 / 실적">
+                            <field name="revision" readonly="1"/>
                             <field name="cycle"/>
                             <field name="start_date"/>
                             <field name="last_record_date" readonly="1"/>
@@ -74,19 +75,49 @@
                     <notebook>
                         <page string="점검 항목">
                             <field name="item_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-danger="is_overdue"
+                                      decoration-bf="is_key_item">
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
                                     <field name="check_method"/>
+                                    <field name="entry_type"/>
                                     <field name="standard"/>
-                                    <field name="spec_min"/>
-                                    <field name="spec_max"/>
+                                    <field name="spec_mode"/>
+                                    <field name="target_value"
+                                           column_invisible="False"
+                                           invisible="spec_mode != 'target'"/>
+                                    <field name="tolerance" invisible="spec_mode != 'target'"/>
+                                    <field name="spec_min"
+                                           readonly="spec_mode in ('target', 'max', 'qualitative')"/>
+                                    <field name="spec_max"
+                                           readonly="spec_mode in ('target', 'min', 'qualitative')"/>
                                     <field name="uom_name"/>
+                                    <field name="cycle" optional="show"/>
+                                    <field name="is_key_item" optional="show"/>
+                                    <field name="last_check_date" readonly="1" optional="hide"/>
+                                    <field name="next_due" readonly="1" optional="hide"/>
+                                    <field name="is_overdue" readonly="1" optional="hide"/>
                                 </list>
                             </field>
                             <div class="text-muted mt-2">
-                                상·하한을 넣으면 실적 입력 시 측정값으로 합·부가 자동 판정된다.
-                                비워 두면(0) 판정하지 않고 점검자가 직접 고른다.
+                                기준 방식이 '목표±공차' 면 상·하한은 목표와 공차에서 자동으로 계산된다.
+                                '정성' 이면 판정 기준을 글로 적고 점검자가 직접 고른다.
+                                항목 주기를 비우면 시트 주기를 따른다 — 채우면 그 항목만 따로 기한을 센다.
+                            </div>
+                        </page>
+                        <page string="개정 이력">
+                            <field name="revision_ids" readonly="1">
+                                <list>
+                                    <field name="revision"/>
+                                    <field name="changed_on"/>
+                                    <field name="changed_by"/>
+                                    <field name="summary"/>
+                                    <field name="reason" optional="show"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-2">
+                                기준을 고치면 개정 차수가 올라가고 여기에 남는다. 이미 저장된 실적의
+                                판정 근거는 실적 쪽에 복사돼 있어 바뀌지 않는다.
                             </div>
                         </page>
                         <page string="비고">

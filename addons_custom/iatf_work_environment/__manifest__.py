@@ -1,6 +1,6 @@
 {
     "name": "IATF 작업환경 관리",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "summary": "작업환경·5S 점검 + 범용 점검 일지 + 안전관리(위험성평가·아차사고)",
     "category": "Quality",
     "license": "LGPL-3",
