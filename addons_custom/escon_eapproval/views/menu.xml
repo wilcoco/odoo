@@ -127,7 +127,7 @@
     <menuitem id="menu_eapproval_leave_approve"
               name="휴가 승인"
               parent="menu_eapproval_leave"
-              action="hr_holidays.hr_leave_action_action_approve_department"
+              action="action_escon_leave_approve"
               groups="hr_holidays.group_hr_holidays_responsible"
               sequence="30"/>
 

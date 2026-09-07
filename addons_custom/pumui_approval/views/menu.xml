@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 회사 용어 정리(2026-08): 메뉴의 "품의서"는 Odoo 전자결재(approval.request)를
-         가리키고, 청구 연계 품의서(pumui.request)는 대시보드·품의서 작성 화면의
-         "품의서 (청구 연계)" 진입점과 아래 액션(드릴다운용)으로만 접근한다.
-         과거 메뉴(menu_pumui_root/menu_pumui_request/menu_pumui_my_inbox/
-         menu_pumui_to_approve)는 폐기 — xml 에서 제거하면 업그레이드 시 삭제된다. -->
+    <!-- 회사 용어 정리(2026-08): 메뉴의 "품의서"는 Odoo 전자결재(approval.request),
+         청구 연계 품의서(pumui.request)는 "(청구 연계)" 꼬리표로 구분한다.
+         두 문서 모두 에스콘 전자결재 > 품의서 메뉴 아래 같은 그룹에 노출한다
+         (결재 대기 / 내 결재함 / 목록·관리자). -->
 
     <!-- 품의 미연계 청구서 (관리자 전용) -->
     <record id="action_moves_no_pumui" model="ir.actions.act_window">
@@ -19,7 +18,13 @@
               groups="escon_eapproval.group_eapproval_manager"
               sequence="50"/>
 
-    <!-- 아래 액션들은 메뉴 없이 대시보드 드릴다운에서 사용한다 -->
+    <!-- 품의서 목록 (청구 연계) — 관리자 전용, 전자결재 목록과 나란히 -->
+    <menuitem id="menu_pumui_request" name="품의서 목록 (청구 연계)"
+              parent="escon_eapproval.menu_eapproval_manage"
+              action="action_pumui_request"
+              groups="escon_eapproval.group_eapproval_manager"
+              sequence="45"/>
+
     <record id="action_pumui_my_inbox" model="ir.actions.act_window">
         <field name="name">내 품의서 (청구 연계)</field>
         <field name="res_model">pumui.request</field>
@@ -44,4 +49,13 @@
                문서를 열어 승인 또는 반려하세요.</p>
         </field>
     </record>
+
+    <!-- 내 결재함 / 결재 대기 그룹에 청구 연계 품의서를 함께 노출 -->
+    <menuitem id="menu_pumui_my_inbox" name="내 품의서 (청구 연계)"
+              parent="escon_eapproval.menu_eapproval_inbox"
+              action="action_pumui_my_inbox" sequence="50"/>
+
+    <menuitem id="menu_pumui_to_approve" name="결재 대기 품의서 (청구 연계)"
+              parent="escon_eapproval.menu_eapproval_pending"
+              action="action_pumui_to_approve" sequence="20"/>
 </odoo>

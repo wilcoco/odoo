@@ -106,4 +106,122 @@
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_escon_leave_list')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_escon_leave_form')})]"/>
     </record>
+
+    <!-- ───────────── 휴가 승인 (관리자/승인자용 커스텀 화면) ─────────────
+         Odoo 기본 "전체 휴가" 화면 대신 승인 업무에 필요한 것만 담는다.
+         목록에서 바로 승인/반려하고, 행을 열면 결재 폼(첨부·이력 포함)이 뜬다.
+         보이는 범위는 Odoo 표준 접근 규칙 그대로 — 승인자는 담당 직원,
+         휴가 담당자(officer)는 전사. -->
+    <record id="view_escon_leave_approve_list" model="ir.ui.view">
+        <field name="name">hr.leave.list.escon.approve</field>
+        <field name="model">hr.leave</field>
+        <field name="priority">110</field>
+        <field name="arch" type="xml">
+            <list create="false"
+                  decoration-info="state in ('confirm', 'validate1')"
+                  decoration-success="state == 'validate'"
+                  decoration-danger="state == 'refuse'">
+                <field name="employee_id" string="직원"/>
+                <field name="department_id" string="부서" optional="show"/>
+                <field name="holiday_status_id" string="휴가 유형"/>
+                <field name="request_date_from" string="시작일"/>
+                <field name="request_date_to" string="종료일"/>
+                <field name="duration_display" string="일수"/>
+                <field name="name" string="사유" optional="show"/>
+                <field name="state" string="상태" widget="badge"
+                       decoration-success="state == 'validate'"
+                       decoration-danger="state == 'refuse'"
+                       decoration-info="state in ('confirm', 'validate1')"/>
+                <button name="action_approve" type="object" string="승인"
+                        icon="fa-check" class="text-success"
+                        invisible="state not in ('confirm', 'validate1')"/>
+                <button name="action_refuse" type="object" string="반려"
+                        icon="fa-times" class="text-danger"
+                        invisible="state not in ('confirm', 'validate1')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_escon_leave_approve_form" model="ir.ui.view">
+        <field name="name">hr.leave.form.escon.approve</field>
+        <field name="model">hr.leave</field>
+        <field name="priority">110</field>
+        <field name="arch" type="xml">
+            <form string="휴가 결재">
+                <header>
+                    <button name="action_approve" type="object" string="승인"
+                            class="btn-primary"
+                            invisible="state not in ('confirm', 'validate1')"/>
+                    <button name="action_refuse" type="object" string="반려"
+                            invisible="state not in ('confirm', 'validate1', 'validate')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="confirm,validate"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id" string="직원" readonly="1"/>
+                            <field name="department_id" string="부서" readonly="1"/>
+                            <field name="holiday_status_id" string="휴가 유형" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="request_date_from" string="시작일" readonly="1"/>
+                            <field name="request_date_to" string="종료일" readonly="1"/>
+                            <field name="duration_display" string="신청 일수" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="name" string="사유" readonly="1"/>
+                    </group>
+                    <group string="증빙 첨부">
+                        <field name="supported_attachment_ids" widget="many2many_binary"
+                               nolabel="1" colspan="2" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_escon_leave_approve_search" model="ir.ui.view">
+        <field name="name">hr.leave.search.escon.approve</field>
+        <field name="model">hr.leave</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id" string="직원"/>
+                <field name="holiday_status_id" string="휴가 유형"/>
+                <filter name="pending" string="승인 대기"
+                        domain="[('state','in',('confirm','validate1'))]"/>
+                <filter name="approved" string="승인 완료"
+                        domain="[('state','=','validate')]"/>
+                <filter name="refused" string="반려"
+                        domain="[('state','=','refuse')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_employee" string="직원"
+                            context="{'group_by':'employee_id'}"/>
+                    <filter name="g_department" string="부서"
+                            context="{'group_by':'department_id'}"/>
+                    <filter name="g_type" string="휴가 유형"
+                            context="{'group_by':'holiday_status_id'}"/>
+                    <filter name="g_state" string="상태" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_escon_leave_approve" model="ir.actions.act_window">
+        <field name="name">휴가 승인</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_escon_leave_approve_search"/>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_escon_leave_approve_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_escon_leave_approve_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">승인할 휴가가 없습니다</p>
+            <p>승인 대기 중인 휴가 신청이 여기에 표시됩니다.
+               목록에서 바로 승인·반려하거나, 행을 열어 상세를 확인하세요.</p>
+        </field>
+    </record>
 </odoo>

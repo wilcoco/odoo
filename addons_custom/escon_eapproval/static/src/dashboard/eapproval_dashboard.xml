@@ -231,7 +231,7 @@
                     <h3>품의서 (청구 연계) 현황</h3>
                     <p>청구 연계 품의 — 결재 중 <b t-esc="num(pumui.counts.in_progress)"/> · 승인 <b t-esc="num(pumui.counts.approved)"/> · 반려 <b t-esc="num(pumui.counts.rejected)"/></p>
                 </div>
-                <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('pumui_list')">품의서 목록 →</a>
+                <a href="#" class="eap-link" t-on-click.prevent="() => this.openXml('pumui_list')">품의서 목록 (청구 연계) →</a>
             </div>
 
             <t t-if="!pumui.recent.length">
