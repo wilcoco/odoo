@@ -244,12 +244,15 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             self.assertIn('name="status_in_payment"', arch)
             self.assertIn('name="kr_doc_type"', arch)
             self.assertIn('name="kr_tax_type"', arch)
+            self.assertIn('name="kr_payment_overdue"', arch)
+            self.assertIn('decoration-danger="kr_payment_overdue"', arch)
+            self.assertNotIn('widget="remaining_days"', arch)
             self.assertLess(
                 arch.index('name="kr_residual_display"'),
-                arch.index('name="invoice_date_due"'),
+                arch.index('name="kr_payment_display_date"'),
             )
             self.assertLess(
-                arch.index('name="invoice_date_due"'),
+                arch.index('name="kr_payment_display_date"'),
                 arch.index('name="kr_paid_amount"'),
             )
             self.assertLess(

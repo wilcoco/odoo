@@ -99,6 +99,16 @@ class AccountMove(models.Model):
         string="결재상태",
         compute="_compute_kr_approval_status_display",
     )
+    kr_payment_display_date = fields.Date(
+        string="결제일 또는 예정일",
+        compute="_compute_kr_payment_display",
+        help="결제가 끝난 청구서는 마지막 실제 결제일, 미결제 청구서는 결제 예정일을 표시합니다.",
+    )
+    kr_payment_overdue = fields.Boolean(
+        string="결제기한 경과",
+        compute="_compute_kr_payment_display",
+        help="전기된 청구서의 미결제 잔액이 있고 결제 예정일이 오늘보다 이전이면 표시합니다.",
+    )
 
     # ------------------------------------------------------------------
     # 수기 표시(is_manually_modified)
@@ -245,6 +255,53 @@ class AccountMove(models.Model):
                 selection.get(move.pumui_approval_state, move.pumui_approval_state)
                 if move.pumui_id
                 else _("미연결")
+            )
+
+    @api.depends(
+        "state",
+        "move_type",
+        "invoice_date_due",
+        "amount_residual",
+        "currency_id",
+        "line_ids.account_type",
+        "line_ids.matched_debit_ids.debit_move_id.date",
+        "line_ids.matched_credit_ids.credit_move_id.date",
+    )
+    def _compute_kr_payment_display(self):
+        """청구서 목록에 실제 결제일 또는 아직 남은 결제 예정일을 표시한다."""
+        payment_dates_by_move = {move.id: [] for move in self}
+        payment_term_lines = self.sudo().mapped("line_ids").filtered(
+            lambda line: line.account_type
+            in ("asset_receivable", "liability_payable")
+        )
+        for line in payment_term_lines:
+            payment_dates_by_move[line.move_id.id].extend(
+                line.matched_debit_ids.mapped("debit_move_id.date")
+            )
+            payment_dates_by_move[line.move_id.id].extend(
+                line.matched_credit_ids.mapped("credit_move_id.date")
+            )
+
+        today = fields.Date.context_today(self)
+        for move in self:
+            payment_dates = [
+                date for date in payment_dates_by_move[move.id] if date
+            ]
+            is_settled = (
+                move.state == "posted"
+                and move.currency_id.is_zero(move.amount_residual)
+            )
+            move.kr_payment_display_date = (
+                max(payment_dates)
+                if is_settled and payment_dates
+                else move.invoice_date_due
+            )
+            move.kr_payment_overdue = bool(
+                move.state == "posted"
+                and move.is_invoice(include_receipts=True)
+                and not move.currency_id.is_zero(move.amount_residual)
+                and move.invoice_date_due
+                and move.invoice_date_due < today
             )
 
     @api.depends(

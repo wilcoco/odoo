@@ -30,7 +30,8 @@
                        decoration-muted="kr_tax_type == 'exempt'"/>
                 <field name="kr_residual_display" string="미수금액"
                        sum="미수금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="invoice_date_due" string="수금기한" widget="remaining_days"/>
+                <field name="kr_payment_display_date" string="수금기한"
+                       decoration-danger="kr_payment_overdue"/>
                 <field name="kr_paid_amount" string="수금완료 금액" sum="수금금액 합계"/>
                 <field name="status_in_payment" string="수금상태" widget="badge"
                        decoration-info="status_in_payment == 'draft'"
@@ -40,6 +41,7 @@
                        decoration-muted="status_in_payment == 'cancel'"/>
                 <field name="state" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
+                <field name="kr_payment_overdue" column_invisible="True"/>
             </list>
         </field>
     </record>
@@ -108,7 +110,8 @@
                 <field name="pumui_approval_state" column_invisible="True"/>
                 <field name="kr_residual_display" string="미지급금액"
                        sum="미지급금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="invoice_date_due" string="지급기한" widget="remaining_days"/>
+                <field name="kr_payment_display_date" string="지급기한"
+                       decoration-danger="kr_payment_overdue"/>
                 <field name="kr_paid_amount" string="지급완료 금액" sum="지급금액 합계"/>
                 <field name="status_in_payment" string="지급상태" widget="badge"
                        decoration-info="status_in_payment == 'draft'"
@@ -118,6 +121,7 @@
                        decoration-muted="status_in_payment == 'cancel'"/>
                 <field name="state" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
+                <field name="kr_payment_overdue" column_invisible="True"/>
             </list>
         </field>
     </record>
