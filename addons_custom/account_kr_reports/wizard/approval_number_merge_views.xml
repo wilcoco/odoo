@@ -8,7 +8,7 @@
                 <div class="alert alert-warning" role="alert">
                     승인번호가 여러 필드로 흩어진 것을 <b>정본(세금계산서승인번호)</b> 하나로 모읍니다.<br/>
                     <b>먼저 미리보기</b>로 건수·충돌을 확인한 뒤 '실제로 적용'을 켜고 다시 실행하세요.
-                    <br/>※ 업체 청구서 참조(ref)는 <b>국세청 승인번호 형식일 때만</b> 옮깁니다.
+                    <br/>※ 업체 청구서 참조(ref)는 매입·매출 구분 없이 <b>국세청 승인번호 형식일 때만</b> 옮깁니다.
                     ref는 내부 호환용으로 보존하며 이 위저드는 값을 지우거나 정본을 덮어쓰지 않습니다.
                 </div>
                 <div class="alert alert-success" role="status"
@@ -41,7 +41,7 @@
                             string="Studio 호환 필드 제거" class="btn-danger"
                             invisible="not studio_retirement_ready or not confirm_studio_removal"
                             groups="base.group_system"
-                            confirm="x_escon_tax_approval_no 필드와 DB 컬럼을 제거합니다. 백업 및 외부 연동 확인을 마쳤습니까?"/>
+                            confirm="Studio 호환 승인번호 필드와 DB 컬럼을 제거합니다. 백업 및 외부 연동 확인을 마쳤습니까?"/>
                     <button string="닫기" special="cancel"/>
                 </footer>
             </form>

@@ -4,7 +4,6 @@ from odoo.exceptions import UserError, ValidationError
 from ..tools.approval_number import approval_number_key, normalize_approval_number
 
 INV_TYPES = ("out_invoice", "in_invoice", "out_refund", "in_refund")
-PURCHASE_TAX_MOVE_TYPES = ("in_invoice", "in_refund")
 TAX_DOCUMENT_TYPES = ("tax_invoice", "invoice")
 
 
@@ -107,7 +106,14 @@ class AccountMove(models.Model):
 
     @api.model
     def _kr_prepare_legacy_ref_approval(self, vals):
-        """과거 ref의 승인번호를 정본이 비어 있을 때 한 번만 복사한다."""
+        """과거 ref의 승인번호를 정본이 비어 있을 때 한 번만 복사한다.
+
+        매입·매출 네 유형 모두에 적용한다. 매출 청구서는 보통 ref에 승인번호가
+        없지만, 더존 이관처럼 ref에 국세청 24자리 승인번호를 담아 들어오는 경우
+        정본이 비어 있으면 매출처 세금계산서 목록·매출장·부가세 자료에서 승인번호가
+        빠진다(2024 Q2 이관에서 매출 72건 누락). 8-8-8 형식 검증이 엄격해 고객
+        참조번호(PO 번호 등)가 승인번호로 오인될 여지는 없다.
+        """
         vals = self._kr_normalize_approval_values(vals)
         if (
             self.env.context.get("skip_kr_legacy_ref_sync")
@@ -122,7 +128,7 @@ class AccountMove(models.Model):
             self.env.context.get("default_kr_doc_type", "tax_invoice"),
         )
         if (
-            move_type in PURCHASE_TAX_MOVE_TYPES
+            move_type in INV_TYPES
             and document_type in TAX_DOCUMENT_TYPES
             and (approval := normalize_approval_number(vals.get("ref")))
         ):
@@ -175,7 +181,7 @@ class AccountMove(models.Model):
         moves = self.filtered(
             lambda move: (
                 not move.kr_approval_number
-                and move.move_type in PURCHASE_TAX_MOVE_TYPES
+                and move.move_type in INV_TYPES
                 and move.kr_doc_type in TAX_DOCUMENT_TYPES
             )
         )

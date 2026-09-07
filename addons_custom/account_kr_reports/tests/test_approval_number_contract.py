@@ -55,6 +55,43 @@ class TestApprovalNumberContract(AccountTestInvoicingCommon):
             bill.kr_approval_number, "20260829-CCCCCCCC-DDDDDDDD"
         )
 
+    def _invoice(self, **values):
+        vals = {
+            "move_type": "out_invoice",
+            "partner_id": self.partner.id,
+            "journal_id": self.company_data["default_journal_sale"].id,
+        }
+        vals.update(values)
+        return self.env["account.move"].create(vals)
+
+    def test_sales_ref_also_fills_empty_canonical(self):
+        # 이관처럼 매출 청구서 ref에 24자리 승인번호가 들어오면 정본에도 복사된다
+        invoice = self._invoice(ref="20260901aaaaaaaabbbbbbbb")
+        self.assertEqual(invoice.kr_approval_number, "20260901-AAAAAAAA-BBBBBBBB")
+        self.assertEqual(invoice.ref, "20260901aaaaaaaabbbbbbbb")
+        # 고객 참조번호 등 형식이 다른 ref는 건드리지 않는다
+        plain = self._invoice(ref="PO-2026-0001")
+        self.assertFalse(plain.kr_approval_number)
+        # 이미 정본이 있으면 ref로 덮어쓰지 않는다
+        invoice.ref = "20260902-CCCCCCCC-DDDDDDDD"
+        self.assertEqual(invoice.kr_approval_number, "20260901-AAAAAAAA-BBBBBBBB")
+
+    def test_merge_wizard_reference_scan_ignores_its_own_views(self):
+        Wizard = self.env["kr.approval.number.merge"]
+        View = self.env["ir.ui.view"]
+        View.create({
+            "name": "self reference (must be ignored)", "model": Wizard._name,
+            "type": "form", "arch": "<form><div>x_escon_tax_approval_no</div></form>",
+        })
+        details = dict(Wizard._studio_reference_status()["details"])
+        self.assertNotIn("화면", details)
+        View.create({
+            "name": "real reference (must be counted)", "model": "account.move",
+            "type": "form", "arch": "<form><div>x_escon_tax_approval_no</div></form>",
+        })
+        details = dict(Wizard._studio_reference_status()["details"])
+        self.assertEqual(details.get("화면"), 1)
+
     def test_approval_number_cannot_be_cleared_or_changed_after_posting(self):
         bill = self._bill(
             kr_approval_number="20260828-11111111-AAAAAAAA",

@@ -7,7 +7,6 @@ from ..tools.approval_number import approval_number_key, normalize_approval_numb
 
 STUDIO_FIELD = "x_escon_tax_approval_no"
 INVOICE_TYPES = ("in_invoice", "in_refund", "out_invoice", "out_refund")
-PURCHASE_TYPES = ("in_invoice", "in_refund")
 TAX_DOCUMENT_TYPES = ("tax_invoice", "invoice")
 REFERENCE_SPECS = (
     ("ir.ui.view", ("arch_db",), "화면"),
@@ -58,9 +57,14 @@ class KrApprovalNumberMerge(models.TransientModel):
             for field_name in field_names:
                 if field_name not in model._fields:
                     continue
-                record_ids.update(model.sudo().with_context(active_test=False).search([
-                    (field_name, "ilike", STUDIO_FIELD),
-                ]).ids)
+                domain = [(field_name, "ilike", STUDIO_FIELD)]
+                if model_name == "ir.ui.view":
+                    # 이 위저드 자신의 폼(제거 확인 문구)이 "남은 화면 참조"로
+                    # 집계되어 필드 제거가 영원히 보류되던 자기참조를 제외한다.
+                    domain.append(("model", "!=", self._name))
+                record_ids.update(model.sudo().with_context(active_test=False).search(
+                    domain
+                ).ids)
             if record_ids:
                 details.append((label, len(record_ids)))
         return {
@@ -152,7 +156,7 @@ class KrApprovalNumberMerge(models.TransientModel):
         ref_value = False
         if (
             self.source in ("ref", "both")
-            and move.move_type in PURCHASE_TYPES
+            and move.move_type in INVOICE_TYPES
             and move.kr_doc_type in TAX_DOCUMENT_TYPES
         ):
             ref_raw = str(move.ref or "").strip()
