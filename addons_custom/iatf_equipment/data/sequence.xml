@@ -7,6 +7,12 @@
             <field name="prefix">EQ-</field>
             <field name="padding">4</field>
         </record>
+        <record id="seq_equipment_device" model="ir.sequence">
+            <field name="name">설비 장치</field>
+            <field name="code">iatf.equipment.device</field>
+            <field name="prefix">DV-</field>
+            <field name="padding">4</field>
+        </record>
         <record id="seq_pm_schedule" model="ir.sequence">
             <field name="name">예방보전</field>
             <field name="code">iatf.pm.schedule</field>

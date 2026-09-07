@@ -11,3 +11,8 @@ access_daily_check_user,iatf.daily.check.user,model_iatf_daily_check,group_equip
 access_daily_check_manager,iatf.daily.check.manager,model_iatf_daily_check,group_equipment_manager,1,1,1,1
 access_daily_check_line_user,iatf.daily.check.line.user,model_iatf_daily_check_line,group_equipment_user,1,1,1,0
 access_daily_check_line_manager,iatf.daily.check.line.manager,model_iatf_daily_check_line,group_equipment_manager,1,1,1,1
+access_spare_category_user,iatf.spare.category.user,model_iatf_spare_category,group_equipment_user,1,0,0,0
+access_spare_category_manager,iatf.spare.category.manager,model_iatf_spare_category,group_equipment_manager,1,1,1,1
+access_spare_application_user,iatf.spare.application.user,model_iatf_spare_application,group_equipment_user,1,1,1,1
+access_spare_application_manager,iatf.spare.application.manager,model_iatf_spare_application,group_equipment_manager,1,1,1,1
+access_spare_category_all,iatf.spare.category.all,model_iatf_spare_category,base.group_user,1,0,0,0

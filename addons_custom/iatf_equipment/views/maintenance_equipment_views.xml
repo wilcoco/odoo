@@ -27,6 +27,24 @@
                     <field name="iatf_equipment_id"/>
                 </group>
             </xpath>
+            <!-- 신뢰성 지표 단일화: IATF 설비가 연결되면 표준(일 단위, 달력 기준) 통계를 감춘다. -->
+            <xpath expr="//group[@name='statistics']" position="attributes">
+                <attribute name="invisible">iatf_equipment_id</attribute>
+            </xpath>
+            <xpath expr="//group[@name='statistics']" position="after">
+                <group name="iatf_statistics" string="신뢰성 지표 (IATF 설비대장)"
+                       invisible="not iatf_equipment_id">
+                    <field name="iatf_runtime_source"/>
+                    <field name="iatf_runtime_hours" invisible="iatf_runtime_source == 'none'"/>
+                    <field name="iatf_mtbf" invisible="iatf_runtime_source == 'none' or iatf_breakdown_count == 0"/>
+                    <field name="iatf_mttr"/>
+                    <field name="iatf_availability_rate" invisible="iatf_runtime_source == 'none'"/>
+                    <div class="text-muted" colspan="2" invisible="iatf_runtime_source != 'none'">
+                        가동시간 실적이 없어 MTBF·가동률을 산출하지 않습니다.
+                        작업장을 연결하거나 IATF 설비대장에 수기 가동시간을 입력하십시오.
+                    </div>
+                </group>
+            </xpath>
         </field>
     </record>
 </odoo>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── 예비부품 분류 (부문 → 공정 → 설비군 → 기종) ── -->
+
+    <record id="view_spare_category_list" model="ir.ui.view">
+        <field name="name">iatf.spare.category.list</field>
+        <field name="model">iatf.spare.category</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="not is_leaf">
+                <field name="full_code"/>
+                <field name="complete_name" string="분류"/>
+                <field name="level" widget="badge"/>
+                <field name="code" optional="hide"/>
+                <field name="child_count" optional="show"/>
+                <field name="spare_count"/>
+                <field name="is_leaf" optional="hide"/>
+                <field name="note" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spare_category_form" model="ir.ui.view">
+        <field name="name">iatf.spare.category.form</field>
+        <field name="model">iatf.spare.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_spares" type="object"
+                                class="oe_stat_button" icon="fa-cogs"
+                                invisible="not is_leaf">
+                            <field name="spare_count" widget="statinfo" string="부품"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="사용 안 함" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="예: 사출성형기"/></h1>
+                        <h3><field name="full_code" readonly="1"/></h3>
+                    </div>
+                    <group>
+                        <group string="위치">
+                            <field name="level"/>
+                            <field name="parent_id"
+                                   domain="[('level', '!=', 'model')]"
+                                   invisible="level == 'division'"
+                                   required="level != 'division'"/>
+                            <field name="code" placeholder="예: A"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="상태">
+                            <field name="complete_name" readonly="1"/>
+                            <field name="is_leaf"/>
+                            <field name="child_count"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="level == 'model'">
+                        이 노드는 <b>묶음(가지)</b>입니다. 부품은 최하위 <b>기종</b> 노드에만 답니다.
+                        레거시에서 A000·AA00 같은 묶음에 부품이 달려 있던 문제를 막기 위해서입니다.
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="level != 'model' or is_leaf">
+                        기종인데 하위 분류가 있어 부품을 받지 못합니다. 하위 분류를 정리하십시오.
+                    </div>
+                    <notebook>
+                        <page string="하위 분류" name="children">
+                            <field name="child_ids" readonly="1">
+                                <list>
+                                    <field name="full_code"/>
+                                    <field name="name"/>
+                                    <field name="level" widget="badge"/>
+                                    <field name="spare_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="이 분류의 부품" name="spares" invisible="not is_leaf">
+                            <field name="spare_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="part_number"/>
+                                    <field name="equipment_count" string="적용 설비"/>
+                                    <field name="qty_on_hand"/>
+                                    <field name="is_short"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_spare_category_search" model="ir.ui.view">
+        <field name="name">iatf.spare.category.search</field>
+        <field name="model">iatf.spare.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="complete_name" string="분류"
+                       filter_domain="['|', '|', ('complete_name', 'ilike', self), ('full_code', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="parent_id"/>
+                <separator/>
+                <filter name="filter_leaf" string="부품 등록 가능(기종)"
+                        domain="[('is_leaf', '=', True)]"/>
+                <!-- 레거시에서 60개 중 18개가 부품 0건인 묶음 노드였다.
+                     묶음인지 '비어 있는 기종'인지 구분해서 봐야 한다. -->
+                <filter name="filter_empty_leaf" string="부품이 없는 기종"
+                        domain="[('is_leaf', '=', True), ('spare_ids', '=', False)]"/>
+                <separator/>
+                <filter name="filter_inactive" string="사용 안 함"
+                        domain="[('active', '=', False)]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_level" string="계층" context="{'group_by': 'level'}"/>
+                    <filter name="group_parent" string="상위 분류" context="{'group_by': 'parent_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_spare_category" model="ir.actions.act_window">
+        <field name="name">예비부품 분류</field>
+        <field name="res_model">iatf.spare.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_spare_category_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">분류 체계를 등록하십시오.</p>
+            <p>부문 → 공정 → 설비군 → 기종 순으로 한 단계씩 내려갑니다.
+               코드는 <b>자리별로 한 단계씩만</b> 넣습니다 — 상위 코드를 이어붙인
+               전체 코드는 자동으로 만들어집니다.</p>
+            <p>부품은 <b>기종</b> 노드에만 답니다.</p>
+        </field>
+    </record>
+
+    <!-- ── 적용표 (부품 ↔ 설비, 다대다) ── -->
+
+    <record id="view_spare_application_list" model="ir.ui.view">
+        <field name="name">iatf.spare.application.list</field>
+        <field name="model">iatf.spare.application</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="spare_id"/>
+                <field name="category_id" optional="show"/>
+                <field name="equipment_id"/>
+                <field name="qty_per_unit"/>
+                <field name="position" optional="show"/>
+                <field name="note" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spare_application_form" model="ir.ui.view">
+        <field name="name">iatf.spare.application.form</field>
+        <field name="model">iatf.spare.application</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="spare_id"/>
+                            <field name="category_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="equipment_id"/>
+                            <field name="qty_per_unit"/>
+                            <field name="position"/>
+                        </group>
+                    </group>
+                    <group string="비고">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_spare_application_search" model="ir.ui.view">
+        <field name="name">iatf.spare.application.search</field>
+        <field name="model">iatf.spare.application</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="spare_id"/>
+                <field name="equipment_id"/>
+                <field name="category_id"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_equipment" string="설비" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="group_spare" string="부품" context="{'group_by': 'spare_id'}"/>
+                    <filter name="group_category" string="분류" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_spare_application" model="ir.actions.act_window">
+        <field name="name">부품 적용표</field>
+        <field name="res_model">iatf.spare.application</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_spare_application_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">부품이 어느 설비에 들어가는지 등록하십시오.</p>
+            <p>분류가 "이 부품이 <b>어디에 속하는가</b>" 한 자리를 정한다면,
+               적용표는 "이 부품이 <b>어디어디에 들어가는가</b>"를 여러 개 적습니다.
+               같은 베어링이 사출기와 조립기에 함께 쓰이는 경우가 여기에 해당합니다.</p>
+        </field>
+    </record>
+</odoo>
