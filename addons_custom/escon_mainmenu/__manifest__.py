@@ -13,7 +13,7 @@ OWL 클라이언트 액션으로 구현한 홈 화면.
 - 이 모듈은 '홈' 앱만 추가한다. 로그인 첫 화면·홈 버튼(⊞) 교체는
   escon_mainmenu_do_redirect 모듈이 담당한다 (미설치 시 기본 Odoo 홈 유지).
 """,
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Productivity",
     "license": "LGPL-3",
     "author": "ESCON",
