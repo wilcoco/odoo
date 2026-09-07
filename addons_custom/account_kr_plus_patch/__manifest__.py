@@ -1,6 +1,6 @@
 {
     "name": "회계 한국식 통합 Plus Patch",
-    "version": "18.0.2.4.7",
+    "version": "18.0.2.4.8",
     "summary": "원화 금액 표시, 매출·매입 화면, 한국식 전표번호, 은행계좌 연결",
     "category": "Accounting",
     "license": "LGPL-3",
@@ -13,6 +13,7 @@
         "views/account_move_views.xml",
         "views/account_journal_views.xml",
         "views/sequence_repair_wizard_views.xml",
+        "views/manual_flag_wizard_views.xml",
         "views/kr_plus_settings_views.xml",
         "views/menus.xml",
     ],

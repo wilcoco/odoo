@@ -11,7 +11,8 @@
                 <field name="name" column_invisible="True"/>
                 <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
                 <field name="kr_approval_number" string="세금계산서승인번호"/>
-                <field name="is_manually_modified" string="수기" readonly="1"/>
+                <field name="is_manually_modified" string="수기" readonly="1"
+                       help="사람이 화면에서 직접 등록·수정한 전표. 변경은 전표 선택 → 동작 → 수기 표시 변경"/>
                 <field name="partner_id" string="매출처"/>
                 <field name="invoice_date" string="매출일" readonly="state != 'draft'"/>
                 <field name="kr_product_names" string="품목명"/>
@@ -81,7 +82,8 @@
                 <field name="name" column_invisible="True"/>
                 <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
                 <field name="kr_approval_number" string="세금계산서승인번호"/>
-                <field name="is_manually_modified" string="수기" readonly="1"/>
+                <field name="is_manually_modified" string="수기" readonly="1"
+                       help="사람이 화면에서 직접 등록·수정한 전표. 변경은 전표 선택 → 동작 → 수기 표시 변경"/>
                 <field name="partner_id" string="매입처"/>
                 <field name="invoice_date" string="매입일" readonly="state != 'draft'"/>
                 <field name="kr_product_names" string="품목명"/>
@@ -189,6 +191,10 @@
             </xpath>
             <xpath expr="//page[@id='other_tab']//field[@name='checked']" position="attributes">
                 <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='other_tab']//field[@name='auto_post']" position="before">
+                <field name="is_manually_modified" string="수기" readonly="1"
+                       help="사람이 화면에서 직접 등록·수정한 전표. 이관·가져오기 전표는 표시되지 않습니다."/>
             </xpath>
         </field>
     </record>
@@ -313,6 +319,9 @@
                                    invisible="move_type == 'entry' or not kr_is_correction"
                                    required="kr_is_correction and kr_doc_type == 'tax_invoice'"
                                    readonly="state != 'draft'"/>
+                            <field name="is_manually_modified" string="수기" readonly="1"
+                                   invisible="move_type == 'entry'"
+                                   help="사람이 화면에서 직접 등록·수정한 전표. 이관·가져오기 전표는 표시되지 않습니다. 변경: 목록에서 전표 선택 → 동작 → 수기 표시 변경"/>
                             <field name="amount_total" string="총계" readonly="1"/>
                             <field name="state" string="상태" widget="badge" readonly="1"
                                    decoration-info="state == 'draft'"

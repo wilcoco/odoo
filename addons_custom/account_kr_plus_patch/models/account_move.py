@@ -100,6 +100,64 @@ class AccountMove(models.Model):
         compute="_compute_kr_approval_status_display",
     )
 
+    # ------------------------------------------------------------------
+    # 수기 표시(is_manually_modified)
+    #
+    # 코어는 컨텍스트가 없으면 모든 write를 수기로 표시한다(account_move.write).
+    # 그래서 이관 스크립트·가져오기·마법사는 물론, 판매/구매 주문의 청구서 생성,
+    # 결제 등록, 전표 역분개 같은 **오두 업무 로직이 만든 전표까지 전부 '수기'** 가
+    # 되었다(2022~2024 Q2 이관분 664건).
+    #
+    # 기준을 하나로 정한다 — **사람이 화면에서 저장한 것만 수기.**
+    #   · 화면 저장(web_save)                → 신규·수정 모두 수기 표시
+    #   · 업무 로직·RPC·가져오기·마법사·스크립트 → 표시하지 않음(해제 상태 유지)
+    #   · 화면의 신규 등록 폼                  → 처음부터 체크된 상태로 보임(default_get)
+    #
+    # 프로그램이 의도적으로 표시하려면 vals에 직접 넣거나 kr_manual_edit 컨텍스트를
+    # 쓴다. 반대로 표시를 막으려면 코어와 동일하게 skip_is_manually_modified 를 쓴다.
+    # ------------------------------------------------------------------
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        if "is_manually_modified" in fields_list:
+            # 화면에서 새로 등록하는 전표는 '수기'가 체크된 상태로 시작한다.
+            # 프로그램 create 는 코어가 저장 직후 False 로 초기화하므로 값에 영향이 없고,
+            # 화면 저장으로 확정될 때만 아래 create 오버라이드가 True 로 되살린다.
+            values["is_manually_modified"] = True
+        return values
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        # 코어 create 는 끝에서 항상 False 로 초기화한다(업무 로직 생성분 = 해제).
+        # 화면에서 새로 등록한 전표만 되살린다.
+        if self.env.context.get("kr_manual_edit"):
+            moves.with_context(skip_is_manually_modified=True).write(
+                {"is_manually_modified": True}
+            )
+        return moves
+
+    def write(self, vals):
+        if (
+            "is_manually_modified" not in vals
+            and not self.env.context.get("kr_manual_edit")
+            and not self.env.context.get("skip_is_manually_modified")
+        ):
+            return super(
+                AccountMove, self.with_context(skip_is_manually_modified=True)
+            ).write(vals)
+        return super().write(vals)
+
+    def web_save(self, vals, specification, next_id=None):
+        """폼·목록 인라인 저장 = 사람이 직접 등록·수정 → 수기 표시.
+
+        코어 web_save 는 레코드가 있으면 write, 없으면 create 를 호출하므로
+        컨텍스트만 실어 보내면 위의 create/write 오버라이드가 각각 처리한다.
+        """
+        return super(
+            AccountMove, self.with_context(kr_manual_edit=True)
+        ).web_save(vals, specification, next_id=next_id)
+
     @api.depends("name", "state")
     def _compute_kr_move_number_display(self):
         for move in self:
