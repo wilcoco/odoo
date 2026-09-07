@@ -17,8 +17,8 @@ class AccountMoveLine(models.Model):
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id), "
                "('default_account_id', '=', account_id)]",
         help=(
-            "당좌예금 계정과목이 어느 실제 은행계좌에 해당하는지 지정합니다. "
-            "은행저널의 기본 계정과 현재 계정과목이 같아야 합니다."
+            "예금·단기금융상품 계정과목이 어느 실제 은행계좌에 해당하는지 "
+            "지정합니다. 은행저널의 기본 계정과 현재 계정과목이 같아야 합니다."
         ),
     )
     kr_bank_account_id = fields.Many2one(
@@ -29,35 +29,42 @@ class AccountMoveLine(models.Model):
         readonly=True,
     )
 
+    @api.model
+    def _kr_bank_journals_by_account(self, companies):
+        """{(회사, 계정과목): 은행저널} 매핑 — 라인마다 검색하지 않는다.
+
+        계정유형이 아니라 '어떤 은행저널의 계정과목인가'로 판단하므로,
+        단기금융상품(MMT 등)을 유동자산 계정으로 둔 은행저널도 인식한다.
+        """
+        mapping = {}
+        journals = self.env["account.journal"].sudo().search([
+            ("type", "=", "bank"),
+            ("company_id", "in", companies.ids),
+            ("default_account_id", "!=", False),
+        ])
+        for journal in journals:
+            key = (journal.company_id.id, journal.default_account_id.id)
+            mapping.setdefault(key, self.env["account.journal"])
+            mapping[key] |= journal
+        return mapping
+
     @api.depends("account_id", "company_id", "move_id.journal_id")
     def _compute_kr_bank_journal_id(self):
-        Journal = self.env["account.journal"]
+        mapping = self._kr_bank_journals_by_account(self.company_id)
         for line in self:
-            if not line.account_id or line.account_id.account_type != "asset_cash":
+            candidates = mapping.get(
+                (line.company_id.id, line.account_id.id)
+            ) or self.env["account.journal"]
+            if not candidates:
                 line.kr_bank_journal_id = False
                 continue
 
-            domain = [
-                ("type", "=", "bank"),
-                ("company_id", "=", line.company_id.id),
-                ("default_account_id", "=", line.account_id.id),
-            ]
             current = line.kr_bank_journal_id
-            if (
-                current
-                and current.type == "bank"
-                and current.company_id == line.company_id
-                and current.default_account_id == line.account_id
-            ):
+            if current and current in candidates:
                 continue
 
-            candidates = Journal.search(domain, limit=2)
-
             move_journal = line.move_id.journal_id
-            if (
-                move_journal.type == "bank"
-                and move_journal.default_account_id == line.account_id
-            ):
+            if move_journal in candidates:
                 line.kr_bank_journal_id = move_journal
             elif len(candidates) == 1:
                 line.kr_bank_journal_id = candidates

@@ -76,8 +76,8 @@ class AccountMove(models.Model):
         check_company=True,
         domain="[('type', '=', 'bank'), ('company_id', '=', company_id)]",
         help=(
-            "전표의 보통예금 라인에 연결된 계좌 설정(은행 저널)을 표시합니다. "
-            "보통예금 이외의 계정과목만 사용한 전표는 비어 있습니다."
+            "전표의 예금·단기금융상품 라인에 연결된 계좌 설정(은행 저널)을 "
+            "표시합니다. 은행계좌 계정과목을 쓰지 않은 전표는 비어 있습니다."
         ),
     )
     kr_product_names = fields.Char(
@@ -201,15 +201,14 @@ class AccountMove(models.Model):
             )
 
     @api.depends(
-        "line_ids.account_id.account_type",
+        "line_ids.account_id",
         "line_ids.kr_bank_journal_id",
     )
     def _compute_kr_bank_journal_ids(self):
         for move in self:
-            move.kr_bank_journal_ids = move.line_ids.filtered(
-                lambda line: line.account_id.account_type == "asset_cash"
-                and line.kr_bank_journal_id
-            ).mapped("kr_bank_journal_id")
+            move.kr_bank_journal_ids = move.line_ids.mapped(
+                "kr_bank_journal_id"
+            )
 
     @api.depends(
         "invoice_line_ids.product_id",
@@ -633,26 +632,23 @@ class AccountMove(models.Model):
         return super()._inverse_name()
 
     def action_post(self):
+        mapping = self.env["account.move.line"]._kr_bank_journals_by_account(
+            self.company_id
+        )
         for move in self:
-            ambiguous_lines = self.env["account.move.line"]
-            for line in move.line_ids.filtered(
-                lambda item: item.account_id.account_type == "asset_cash"
-                and not item.kr_bank_journal_id
-            ):
-                bank_journals = self.env["account.journal"].search([
-                    ("type", "=", "bank"),
-                    ("company_id", "=", line.company_id.id),
-                    ("default_account_id", "=", line.account_id.id),
-                ], limit=2)
-                if len(bank_journals) > 1:
-                    ambiguous_lines |= line
+            ambiguous_lines = move.line_ids.filtered(
+                lambda item: not item.kr_bank_journal_id
+                and len(mapping.get(
+                    (item.company_id.id, item.account_id.id)
+                ) or ()) > 1
+            )
             if ambiguous_lines:
                 accounts = ", ".join(
                     ambiguous_lines.mapped("account_id.display_name")
                 )
                 raise UserError(_(
-                    "동일한 당좌예금 계정과목에 은행계좌가 여러 개 연결되어 "
-                    "있습니다. 다음 분개 라인의 '연결 은행계좌'를 선택해주세요: %s",
+                    "동일한 계정과목에 은행계좌가 여러 개 연결되어 있습니다. "
+                    "다음 분개 라인의 '연결 은행계좌'를 선택해주세요: %s",
                     accounts,
                 ))
         return super().action_post()

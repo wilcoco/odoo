@@ -789,7 +789,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             bank_journal.default_account_id.account_type,
             "asset_cash",
         )
-        self.assertIn("당좌예금", bank_journal.default_account_id.name)
+        self.assertEqual(bank_journal.default_account_id.name, "당좌예금")
 
         guide_messages = bank_journal.message_ids.filtered(
             lambda message: "계좌 설정을 만들었어요" in (message.body or "")
@@ -801,6 +801,97 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         )
         self.assertIn("계좌번호", guide_messages.body)
         self.assertIn("전표유형 코드", guide_messages.body)
+
+    def test_bank_account_setup_reuses_one_shared_account(self):
+        journals = self.env["account.journal"].with_context(
+            kr_bank_account_setup=True
+        ).create([
+            {
+                "name": "MMT",
+                "code": "KMM1",
+                "company_id": self.company_data["company"].id,
+            },
+            {
+                "name": "국민은행 운영계좌",
+                "code": "KMM2",
+                "company_id": self.company_data["company"].id,
+            },
+        ])
+
+        accounts = journals.mapped("default_account_id")
+        self.assertEqual(len(accounts), 1)
+        self.assertEqual(accounts.name, "당좌예금")
+        self.assertEqual(accounts.account_type, "asset_cash")
+
+    def test_bank_account_setup_keeps_own_account_for_foreign_currency(self):
+        foreign_currency = self.setup_other_currency("EUR")
+        journal = self.env["account.journal"].with_context(
+            kr_bank_account_setup=True
+        ).create({
+            "name": "USD 계좌",
+            "code": "KUS1",
+            "company_id": self.company_data["company"].id,
+            "currency_id": foreign_currency.id,
+        })
+
+        self.assertEqual(journal.default_account_id.name, "USD 계좌")
+        self.assertEqual(
+            journal.default_account_id.currency_id,
+            foreign_currency,
+        )
+
+    def test_bank_journal_accepts_current_asset_account(self):
+        """단기금융상품(MMT 등)은 유동자산 계정으로 은행저널을 만들 수 있다."""
+        mmt_account = self.env["account.account"].create({
+            "name": "단기금융상품-MMT",
+            "code": "KRPLUS121",
+            "account_type": "asset_current",
+            "company_ids": [Command.set(self.company_data["company"].ids)],
+        })
+        self.assertFalse(mmt_account.reconcile)
+
+        mmt_journal = self.env["account.journal"].create({
+            "name": "MMT",
+            "code": "KMMT",
+            "type": "bank",
+            "company_id": self.company_data["company"].id,
+            "default_account_id": mmt_account.id,
+            "kr_sequence_code": "BNK",
+        })
+
+        # 잔액계산·상계가 동작하도록 '상계 허용'이 자동으로 켜진다.
+        self.assertTrue(mmt_account.reconcile)
+
+        move = self._create_entry("2024-09-02", debit_account=mmt_account)
+        bank_line = move.line_ids.filtered(
+            lambda line: line.account_id == mmt_account
+        )
+        self.assertEqual(bank_line.kr_bank_journal_id, mmt_journal)
+        self.assertEqual(move.kr_bank_journal_ids, mmt_journal)
+        move.action_post()
+        self.assertEqual(move.state, "posted")
+
+    def test_bank_journal_account_type_change_is_blocked(self):
+        mmt_account = self.env["account.account"].create({
+            "name": "단기금융상품-MMT2",
+            "code": "KRPLUS122",
+            "account_type": "asset_current",
+            "reconcile": True,
+            "company_ids": [Command.set(self.company_data["company"].ids)],
+        })
+        self.env["account.journal"].create({
+            "name": "MMT2",
+            "code": "KMM2",
+            "type": "bank",
+            "company_id": self.company_data["company"].id,
+            "default_account_id": mmt_account.id,
+            "kr_sequence_code": "BNK",
+        })
+
+        with self.assertRaises(ValidationError):
+            mmt_account.account_type = "asset_fixed"
+        with self.assertRaises(ValidationError):
+            mmt_account.reconcile = False
 
     def test_ambiguous_bank_mapping_requires_selection(self):
         liquidity_account = self.env["account.account"].create({
