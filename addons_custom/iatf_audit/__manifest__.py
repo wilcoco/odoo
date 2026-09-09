@@ -1,7 +1,7 @@
 {
     "name": "IATF Internal Audit",
     "summary": "IATF 16949 §9.2 — Internal Audit management (System, Process, Product, VDA 6.3)",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

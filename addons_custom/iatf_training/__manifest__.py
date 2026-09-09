@@ -1,7 +1,7 @@
 {
     "name": "IATF Training & Competence",
     "summary": "IATF 16949 §7.2 — Training management, competence matrix, OJT tracking",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

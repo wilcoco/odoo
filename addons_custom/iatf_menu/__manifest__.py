@@ -34,6 +34,7 @@ iatf_document_control 모듈이 제공한다.
         "iatf_layout_inspection",
         "iatf_equipment",
         "iatf_calibration",
+        "iatf_work_environment",
         "iatf_mold",
         "iatf_supplier_quality",
         "iatf_outsource",

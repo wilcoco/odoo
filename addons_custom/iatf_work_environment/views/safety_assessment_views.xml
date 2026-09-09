@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_safety_assessment_list" model="ir.ui.view">
+        <field name="name">iatf.safety.assessment.list</field>
+        <field name="model">iatf.safety.assessment</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="unacceptable_count &gt; 0" decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="title"/>
+                <field name="assess_type"/>
+                <field name="assess_date"/>
+                <field name="work_area_id" optional="show"/>
+                <field name="equipment_id" optional="hide"/>
+                <field name="department_id" optional="hide"/>
+                <field name="line_count" string="요인"/>
+                <field name="max_risk" string="최고 위험성"/>
+                <field name="unacceptable_count" string="허용불가"/>
+                <field name="open_action_count" string="미완료 대책"/>
+                <field name="leader_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_safety_assessment_form" model="ir.ui.view">
+        <field name="name">iatf.safety.assessment.form</field>
+        <field name="model">iatf.safety.assessment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" type="object" string="평가 완료"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_draft" type="object" string="작성중으로"
+                            invisible="state == 'draft'"/>
+                    <button name="action_cancel" type="object" string="취소"
+                            invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="open_action_count == 0">
+                        감소대책 중 <field name="open_action_count" readonly="1" class="oe_inline"/>건이 아직 완료되지 않았습니다.
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="예: 사출기 금형 교환 작업"/></h2>
+                    </div>
+                    <group>
+                        <group string="평가 개요">
+                            <field name="assess_type"/>
+                            <field name="trigger" invisible="assess_type != 'occasional'"
+                                   required="assess_type == 'occasional'"/>
+                            <field name="assess_date"/>
+                            <field name="leader_id"/>
+                            <field name="participant_ids" widget="many2many_tags"/>
+                        </group>
+                        <group string="대상">
+                            <field name="work_area_id"/>
+                            <field name="equipment_id"/>
+                            <field name="department_id"/>
+                            <field name="line_count" readonly="1"/>
+                            <field name="max_risk" readonly="1"/>
+                            <field name="unacceptable_count" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="유해·위험요인 / 감소대책">
+                            <field name="line_ids">
+                                <list editable="bottom"
+                                      decoration-danger="acceptable == False and action_state != 'done'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="hazard"/>
+                                    <field name="hazard_type"/>
+                                    <field name="current_control" optional="show"/>
+                                    <field name="likelihood"/>
+                                    <field name="severity"/>
+                                    <field name="risk_score" readonly="1"/>
+                                    <field name="risk_level" readonly="1" widget="badge"
+                                           decoration-danger="risk_level == 'high'"
+                                           decoration-warning="risk_level == 'medium'"
+                                           decoration-success="risk_level == 'low'"/>
+                                    <field name="acceptable" readonly="1" widget="boolean_toggle"/>
+                                    <field name="measure" required="acceptable == False"/>
+                                    <field name="responsible_id" optional="show"/>
+                                    <field name="due_date" optional="show"/>
+                                    <field name="action_state"/>
+                                    <field name="done_date"
+                                           required="action_state == 'done'"/>
+                                    <field name="after_likelihood" optional="hide"/>
+                                    <field name="after_severity" optional="hide"/>
+                                    <field name="after_risk_score" optional="hide" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고">
+                            <field name="notes" placeholder="평가 방법, 참고 자료 등"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_safety_assessment_search" model="ir.ui.view">
+        <field name="name">iatf.safety.assessment.search</field>
+        <field name="model">iatf.safety.assessment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="work_area_id"/>
+                <field name="equipment_id"/>
+                <field name="leader_id"/>
+                <filter name="f_unacceptable" string="허용불가 요인 있음"
+                        domain="[('unacceptable_count', '&gt;', 0)]"/>
+                <filter name="f_open_action" string="대책 미완료"
+                        domain="[('open_action_count', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="f_draft" string="작성 중" domain="[('state', '=', 'draft')]"/>
+                <filter name="f_done" string="평가 완료" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="f_this_year" string="올해"
+                        domain="[('assess_date', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_type" string="평가 구분" context="{'group_by': 'assess_type'}"/>
+                    <filter name="g_area" string="작업 구역" context="{'group_by': 'work_area_id'}"/>
+                    <filter name="g_dept" string="관리 부서" context="{'group_by': 'department_id'}"/>
+                    <filter name="g_leader" string="평가 책임자" context="{'group_by': 'leader_id'}"/>
+                    <filter name="g_state" string="상태" context="{'group_by': 'state'}"/>
+                    <filter name="g_date" string="평가일" context="{'group_by': 'assess_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_safety_assessment" model="ir.actions.act_window">
+        <field name="name">위험성평가</field>
+        <field name="res_model">iatf.safety.assessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">위험성평가를 등록하십시오.</p>
+            <p>작업별 유해·위험요인을 가능성 × 중대성으로 평가하고, 허용 불가 요인에는
+               감소대책과 조치 완료일을 남깁니다. 설비 도입·공정 변경·사고 발생 시에는
+               '수시' 평가를 추가합니다.</p>
+        </field>
+    </record>
+
+</odoo>
