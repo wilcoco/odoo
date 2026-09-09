@@ -2,6 +2,7 @@ import base64
 import csv
 import io
 
+from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -12,6 +13,13 @@ class TestTaxInvoiceImport(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # 모듈 설치만으로는 회사에 한국 차트가 적용되지 않는다 → 테스트 안에서 로드
+        if not cls.env["account.tax"].search_count([("amount", "=", 10)]):
+            try:
+                cls.env["account.chart.template"].try_loading(
+                    "kr", company=cls.env.company, install_demo=False)
+            except Exception:  # noqa: BLE001
+                pass
         cls.vendor = cls.env["res.partner"].create({
             "name": "T-수지텍", "vat": "123-45-67890", "company_type": "company"})
         cls.tax10 = cls.env["account.tax"].search([
@@ -81,3 +89,41 @@ class TestTaxInvoiceImport(TransactionCase):
         data = self._csv(["이름", "메모"], [["가", "나"]])
         with self.assertRaises(UserError):
             self._run(data)
+
+    def test_row_failure_leaves_no_orphan_draft(self):
+        """검증 오류가 난 행이 **초안 청구서를 남기지 않는다** (행 단위 롤백).
+
+        보고된 증상: 결과는 '생성 0건 / 오류 1건' 인데 초안 청구서가 트랜잭션에
+        남아 있었다. 세이브포인트 없이 예외만 잡으면 부분 생성분이 그대로 남는다.
+        """
+        from unittest.mock import patch
+
+        if not self.tax10:
+            self.skipTest("세금 코드 없는 환경")
+        bad, good = "20260901-11112222-33334444", "20260902-55556666-77778888"
+        data = self._csv(
+            ["작성일자", "승인번호", "사업자등록번호", "상호", "공급가액", "세액"],
+            [["2026-08-21", bad, "123-45-67890", "T-수지텍", "100000", "10000"],
+             ["2026-08-22", good, "123-45-67890", "T-수지텍", "200000", "20000"]])
+
+        Move = self.env["account.move"]
+        original_create = type(Move).create
+
+        def flaky_create(self_model, vals_list):
+            recs = original_create(self_model, vals_list)
+            vl = vals_list if isinstance(vals_list, list) else [vals_list]
+            if any(v.get("kr_approval_number") == bad for v in vl):
+                # 레코드가 만들어진 **뒤** 터지는 검증 오류를 모사한다
+                raise ValidationError("주입한 검증 오류")
+            return recs
+
+        with patch.object(type(Move), "create", flaky_create):
+            wiz = self._run(data)
+
+        self.assertIn("오류", wiz.result)
+        self.assertFalse(
+            Move.search([("kr_approval_number", "=", bad)]),
+            "실패한 행의 초안 청구서가 남았다 — 행 단위 롤백이 안 된 것")
+        self.assertTrue(
+            Move.search([("kr_approval_number", "=", good)]),
+            "실패한 행 때문에 정상 행까지 롤백되면 안 된다")
