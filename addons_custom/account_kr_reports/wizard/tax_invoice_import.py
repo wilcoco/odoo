@@ -261,20 +261,34 @@ class KrTaxInvoiceImport(models.TransientModel):
             if origin:
                 vals["kr_origin_number"] = origin
             try:
-                mv = Move.create(vals)
+                # 세이브포인트로 **행 단위 롤백**. 없으면 create 가 중간까지 진행된 뒤
+                # 예외가 나도 그 부분 생성분이 트랜잭션에 남아, 결과는 "생성 0건" 인데
+                # 초안 청구서가 실제로 생기는 상태가 된다.
+                with self.env.cr.savepoint():
+                    mv = Move.create(vals)
+                    mv.flush_recordset()   # 지연 제약을 세이브포인트 **안에서** 터뜨린다
                 created.append(mv.id)
                 seen_in_file.add(approval)
             except Exception as e:  # noqa: BLE001 — 한 행 실패가 전체를 막지 않게
                 errors.append(_("%s행: 생성 실패 — %s") % (line_no, str(e)[:120]))
 
         moves = Move.browse(created)
+        posted = 0
         if self.post_moves and moves:
-            try:
-                moves.action_post()
-            except Exception as e:  # noqa: BLE001
-                errors.append(_("게시 실패(초안으로 남김) — %s") % str(e)[:200])
+            # 게시도 건별 세이브포인트로 격리한다. 한꺼번에 게시하면 뒤쪽 한 건이
+            # 실패할 때 앞서 게시된 것까지 되돌아가거나, 반대로 일부만 게시된 채
+            # 남는다. 어느 쪽이든 "무엇이 게시됐는지" 를 말할 수 없게 된다.
+            for mv in moves:
+                try:
+                    with self.env.cr.savepoint():
+                        mv.action_post()
+                    posted += 1
+                except Exception as e:  # noqa: BLE001
+                    errors.append(_("%(name)s 게시 실패(초안으로 남김) — %(err)s")
+                                  % {"name": mv.name or mv.id, "err": str(e)[:150]})
 
-        self.result = self._summary(cmap, len(created), dup, skipped, errors)
+        self.result = self._summary(cmap, len(created), dup, skipped, errors,
+                                    posted=posted if self.post_moves else None)
         if not created:
             return {"type": "ir.actions.act_window", "res_model": self._name,
                     "res_id": self.id, "view_mode": "form", "views": [[False, "form"]],
@@ -311,12 +325,15 @@ class KrTaxInvoiceImport(models.TransientModel):
         external = cands.filtered(lambda t: not t.price_include)
         return (external or cands)[:1]
 
-    def _summary(self, cmap, n_created, dup, skipped, errors):
+    def _summary(self, cmap, n_created, dup, skipped, errors, posted=None):
         lines = [
             _("인식된 컬럼: %s") % ", ".join(sorted(cmap)),
             _("생성 %(n)d건 / 중복(건너뜀) %(d)d건 / 거래처 미등록(건너뜀) %(s)d건 / 오류 %(e)d건")
             % {"n": n_created, "d": dup, "s": len(skipped), "e": len(errors)},
         ]
+        if posted is not None:
+            lines.append(_("게시 %(p)d건 / 초안으로 남음 %(d)d건")
+                         % {"p": posted, "d": n_created - posted})
         if skipped:
             lines.append("\n" + _("[미등록 거래처 — 등록 후 다시 올리거나 '자동 생성' 옵션 사용]"))
             lines += skipped[:30]
