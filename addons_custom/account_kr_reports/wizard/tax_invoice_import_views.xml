@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_tax_invoice_import_form" model="ir.ui.view">
+        <field name="name">kr.tax.invoice.import.form</field>
+        <field name="model">kr.tax.invoice.import</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-info" role="alert">
+                    홈택스·스마트빌에서 <b>내려받은 파일을 가공 없이 그대로</b> 올리세요.
+                    컬럼 이름은 자동으로 인식합니다 (xlsx · xls · csv).
+                    <b>승인번호가 같은 건은 자동으로 건너뜁니다</b> — 같은 파일을 두 번 올려도 안전합니다.
+                </div>
+                <group>
+                    <group>
+                        <field name="direction" widget="radio"/>
+                        <field name="file" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="create_partner"/>
+                        <field name="post_moves"/>
+                    </group>
+                </group>
+                <field name="result" invisible="not result" readonly="1"/>
+                <footer>
+                    <button name="action_import" type="object" string="가져오기" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_kr_tax_invoice_import" model="ir.actions.act_window">
+        <field name="name">세금계산서 파일 반입 (홈택스·스마트빌)</field>
+        <field name="res_model">kr.tax.invoice.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
