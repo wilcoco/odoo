@@ -27,7 +27,9 @@ class MrpProduction(models.Model):
         """제조오더 완료 시 검사 레코드 자동 생성.
         단위 실적 MO(PLC 개당)는 개별 생성하지 않고 계획 MO 단위로 묶는다 —
         하루 수천 타의 검사서 폭증 방지. 첫 단위 완료 시 초물 1건, 이후는 수량 누적."""
-        PQC = self.env["iatf.process.inspection"]
+        # MO 완료 권한 검증 이후의 자동 실적 생성 훅. 현장 담당자에게
+        # 공정검사 마스터/승인 권한을 부여하지 않아도 생산 완료는 가능해야 한다.
+        PQC = self.env["iatf.process.inspection"].sudo()
         if "is_ip_unit_mo" in self._fields and self.is_ip_unit_mo:
             # 묶음 단위 = 계획 MO × 생산일 × 교대 — 회사양식 초/중/종물이 생산 런(일자·교대)
             # 단위로 반복되는 실무와 정합 (계획 MO 전체당 1건은 며칠짜리 생산에 너무 성김).

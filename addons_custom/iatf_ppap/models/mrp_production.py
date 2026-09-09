@@ -31,8 +31,12 @@ class MrpProduction(models.Model):
         PPAP = self.env.get("iatf.ppap.submission")
         if PPAP is None:
             return
+        # 첫 MO에 따른 자동 요청만 권한 상승. 생산 담당자에게 PPAP 편집권을
+        # 부여하지 않으며, 자동 조회·생성은 해당 MO 회사 안에서 수행한다.
+        PPAP = PPAP.sudo().with_company(self.company_id)
         # 기존 PPAP가 있는지 확인
         existing = PPAP.search([
+            ("company_id", "=", self.company_id.id),
             ("product_id", "=", self.product_id.id),
         ], limit=1)
         if existing:
@@ -42,6 +46,7 @@ class MrpProduction(models.Model):
             "title": _("초도품 PPAP: %s") % self.product_id.name,
             "product_id": self.product_id.id,
             "submission_level": "3",
+            "company_id": self.company_id.id,
         })
         self.ppap_submission_id = ppap.id
         self.message_post(body=_("신규 제품 첫 MO → PPAP 제출 요청 %s 자동 생성됨") % ppap.name)

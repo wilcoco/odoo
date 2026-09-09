@@ -20,7 +20,10 @@ class MrpProduction(models.Model):
         """MO 생성 시 해당 제품의 승인된 관리계획서 자동 연결"""
         if self.control_plan_id:
             return
-        cp = self.env["iatf.control.plan"].search([
+        # 생산 담당자에게 기준정보 편집 권한을 주지 않고 승인본 자동 연결만 수행.
+        # sudo 조회는 해당 MO의 회사로 한정한다.
+        cp = self.env["iatf.control.plan"].sudo().search([
+            ("company_id", "in", [False, self.company_id.id]),
             ("product_id", "=", self.product_id.id),
             ("cp_type", "=", "production"),
             ("state", "=", "approved"),
