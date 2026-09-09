@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mold_check_list" model="ir.ui.view">
+        <field name="name">iatf.mold.check.list</field>
+        <field name="model">iatf.mold.check</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="overall_result == 'issue'"
+                  decoration-warning="overall_result == 'pending'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="mold_id"/>
+                <field name="check_type"/>
+                <field name="check_date"/>
+                <field name="shift" optional="show"/>
+                <field name="checker_id" optional="show"/>
+                <field name="ng_count" optional="hide"/>
+                <field name="overall_result" widget="badge"
+                       decoration-success="overall_result == 'ok'"
+                       decoration-danger="overall_result == 'issue'"
+                       decoration-warning="overall_result == 'pending'"/>
+                <field name="production_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mold_check_form" model="ir.ui.view">
+        <field name="name">iatf.mold.check.form</field>
+        <field name="model">iatf.mold.check</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" string="완료" type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_draft" string="작성 중으로" type="object"
+                            invisible="state == 'draft'"/>
+                    <button name="action_cancel" string="취소" type="object"
+                            invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="overall_result != 'pending' or state != 'draft'">
+                        판정이 비어 있는 항목이 있습니다. 모두 기입해야 완료할 수 있습니다.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="대상">
+                            <field name="mold_id"/>
+                            <field name="check_type"/>
+                            <field name="production_id"/>
+                        </group>
+                        <group string="점검">
+                            <field name="check_date"/>
+                            <field name="shift"/>
+                            <field name="checker_id"/>
+                            <field name="overall_result" readonly="1"/>
+                            <field name="ng_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="점검 항목" name="lines">
+                            <!-- 상·하한을 넣은 항목은 '결과' 가 측정값에서 자동 판정되어
+                                 손으로 못 바꾼다. 기준 없는 정성 항목만 직접 고른다. -->
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="item_name"/>
+                                    <field name="standard"/>
+                                    <field name="spec_min"/>
+                                    <field name="spec_max"/>
+                                    <field name="value"/>
+                                    <field name="uom_name"/>
+                                    <field name="result" widget="badge"
+                                           decoration-success="result == 'ok'"
+                                           decoration-danger="result == 'ng'"
+                                           readonly="spec_min != 0 or spec_max != 0"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="비고" name="notes">
+                            <field name="notes" nolabel="1"
+                                   placeholder="이상 항목 조치 내용, 특이사항 등"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mold_check_search" model="ir.ui.view">
+        <field name="name">iatf.mold.check.search</field>
+        <field name="model">iatf.mold.check</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="mold_id"/>
+                <field name="checker_id"/>
+                <separator/>
+                <!-- '미완료' 는 작성만 하고 판정을 안 채운 점검표다. 크리아 4_1
+                     감점 사유("점검표 작성 일부 누락")를 회수하는 목록이다. -->
+                <filter name="filter_pending" string="미완료(판정 누락)"
+                        domain="[('overall_result', '=', 'pending')]"/>
+                <filter name="filter_issue" string="이상 있음"
+                        domain="[('overall_result', '=', 'issue')]"/>
+                <filter name="filter_draft" string="작성 중" domain="[('state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="filter_daily" string="일상" domain="[('check_type', '=', 'daily')]"/>
+                <filter name="filter_periodic" string="정기" domain="[('check_type', '=', 'periodic')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_mold" string="금형" context="{'group_by': 'mold_id'}"/>
+                    <filter name="group_type" string="점검 구분" context="{'group_by': 'check_type'}"/>
+                    <filter name="group_result" string="종합 판정" context="{'group_by': 'overall_result'}"/>
+                    <filter name="group_checker" string="점검자" context="{'group_by': 'checker_id'}"/>
+                    <filter name="group_month" string="점검월" context="{'group_by': 'check_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mold_check" model="ir.actions.act_window">
+        <field name="name">금형 점검</field>
+        <field name="res_model">iatf.mold.check</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mold_check_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">금형 일상/정기 점검을 기록하십시오.</p>
+            <p>주기가 지난 금형은 금형 대장의 '점검 기한 경과' 필터에서 확인합니다.
+               항목 판정이 비어 있으면 완료할 수 없습니다.</p>
+        </field>
+    </record>
+</odoo>

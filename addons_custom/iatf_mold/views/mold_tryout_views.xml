@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mold_tryout_list" model="ir.ui.view">
+        <field name="name">iatf.mold.tryout.list</field>
+        <field name="model">iatf.mold.tryout</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="conclusion == 'rework'" decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="mold_id"/>
+                <field name="tryout_no"/>
+                <field name="tryout_date"/>
+                <field name="reason"/>
+                <field name="shot_count" optional="show"/>
+                <field name="ok_qty"/>
+                <field name="ng_qty"/>
+                <field name="defect_rate" optional="show"/>
+                <field name="conclusion" widget="badge"
+                       decoration-success="conclusion == 'pass'"
+                       decoration-danger="conclusion == 'rework'"/>
+                <field name="responsible_id" optional="hide"/>
+                <field name="inspection_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mold_tryout_form" model="ir.ui.view">
+        <field name="name">iatf.mold.tryout.form</field>
+        <field name="model">iatf.mold.tryout</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" string="완료" type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_draft" string="작성 중으로" type="object"
+                            invisible="state == 'draft'"/>
+                    <button name="action_cancel" string="취소" type="object"
+                            invisible="state == 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="대상">
+                            <field name="mold_id"/>
+                            <field name="tryout_no"/>
+                            <field name="tryout_date"/>
+                            <field name="reason"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="결과">
+                            <field name="shot_count"/>
+                            <field name="ok_qty"/>
+                            <field name="ng_qty"/>
+                            <!-- percentage 위젯은 0~1 을 %로 환산한다. defect_rate 는 이미
+                                 0~100 이라 위젯을 붙이면 10% 가 1000% 로 보인다. -->
+                            <field name="defect_rate" readonly="1"/>
+                            <field name="conclusion"/>
+                        </group>
+                    </group>
+                    <group string="연계">
+                        <field name="inspection_id"/>
+                    </group>
+                    <group string="특이사항">
+                        <field name="notes" nolabel="1"
+                               placeholder="성형조건, 발생 불량 형태, 수정 요청 내용 등"/>
+                    </group>
+                    <group string="첨부">
+                        <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mold_tryout_search" model="ir.ui.view">
+        <field name="name">iatf.mold.tryout.search</field>
+        <field name="model">iatf.mold.tryout</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="mold_id"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter name="filter_pass" string="합격" domain="[('conclusion', '=', 'pass')]"/>
+                <filter name="filter_rework" string="재수정" domain="[('conclusion', '=', 'rework')]"/>
+                <filter name="filter_draft" string="작성 중" domain="[('state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="filter_transfer" string="이관품" domain="[('reason', '=', 'transfer')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="group_mold" string="금형" context="{'group_by': 'mold_id'}"/>
+                    <filter name="group_reason" string="사유" context="{'group_by': 'reason'}"/>
+                    <filter name="group_conclusion" string="판정" context="{'group_by': 'conclusion'}"/>
+                    <filter name="group_month" string="시사출월" context="{'group_by': 'tryout_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mold_tryout" model="ir.actions.act_window">
+        <field name="name">시사출(T/O) 보고서</field>
+        <field name="res_model">iatf.mold.tryout</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mold_tryout_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">시사출 결과를 기록하십시오.</p>
+            <p>신규 제작·이관·수정 후 금형을 양산에 올리기 전 시험 사출 결과입니다.
+               합격 판정된 보고서가 없는 사용 중 금형은 금형 대장의
+               '시사출 누락' 필터에서 확인할 수 있습니다.</p>
+        </field>
+    </record>
+</odoo>
