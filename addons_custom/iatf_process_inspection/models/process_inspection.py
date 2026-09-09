@@ -162,15 +162,22 @@ class IatfProcessInspection(models.Model):
         if not self.line_ids:
             return
         for line in self.line_ids:
+            # 잠복 결함 수정: 라인 필드는 characteristic_name/measured_value(Char).
+            # 기존 코드는 존재하지 않는 characteristic/actual_value 를 참조해
+            # 라인 있는 판정에서 AttributeError — 수치 파싱 불가 라인은 건너뛴다.
+            try:
+                value = float((line.measured_value or "").strip())
+            except (TypeError, ValueError):
+                continue
             studies = SpcStudy.search([
                 ("product_id", "=", self.product_id.id),
-                ("characteristic_name", "=", line.characteristic),
+                ("characteristic_name", "=", line.characteristic_name),
                 ("state", "=", "collecting"),
             ])
             for study in studies:
                 next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
                 vals = {"study_id": study.id, "sequence": next_seq,
-                        "sample_date": self.inspection_date, "x1": line.actual_value}
+                        "sample_date": self.inspection_date, "x1": value}
                 self.env["iatf.spc.subgroup"].create(vals)
 
     def _auto_create_nc(self):
