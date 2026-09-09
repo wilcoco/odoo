@@ -1,4 +1,4 @@
-from odoo import Command
+from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
@@ -19,6 +19,7 @@ class TestApprovalNumberContract(AccountTestInvoicingCommon):
     def _bill(self, **values):
         vals = {
             "move_type": "in_invoice",
+            "invoice_date": fields.Date.today(),
             "partner_id": self.partner.id,
             "journal_id": self.company_data["default_journal_purchase"].id,
         }
@@ -108,7 +109,23 @@ class TestApprovalNumberContract(AccountTestInvoicingCommon):
         with self.assertRaises(UserError):
             bill.kr_approval_number = "20260828-22222222-BBBBBBBB"
 
+    def test_account_manager_pumui_access_is_separate(self):
+        # 회계 관리자만으로 품의서 생성 권한까지 있다고 가정하지 않는다.
+        manager = self.simple_accountman
+        self.assertTrue(manager.has_group("account.group_account_manager"))
+        self.assertFalse(manager.has_group("pumui_approval.group_pumui_user"))
+        self.assertFalse(self.env["ir.model.access"].with_user(manager).check(
+            "pumui.request", "create", raise_exception=False,
+        ))
+
     def test_pumui_exposes_linked_canonical_numbers(self):
+        # 실제 ACL을 적용하는 회계+품의서 관리자. 업무 호출에 sudo를 쓰지 않는다.
+        self.assertFalse(self.env.su)
+        self.assertTrue(self.env.user.has_group("account.group_account_manager"))
+        self.env.user.sudo().write({"groups_id": [Command.link(
+            self.env.ref("pumui_approval.group_pumui_manager").id,
+        )]})
+        self.assertTrue(self.env.user.has_group("pumui_approval.group_pumui_manager"))
         request = self.env["pumui.request"].create({
             "title": "승인번호 연동 품의",
             "partner_id": self.partner.id,

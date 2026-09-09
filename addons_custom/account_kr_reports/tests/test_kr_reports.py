@@ -1,5 +1,6 @@
 import base64
 
+from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
@@ -65,13 +66,18 @@ class TestKrReports(TransactionCase):
         Log = self.env["kr.lock.log"]
         n0 = Log.search_count([])
         company = self.env.company
+        safety_guard = self.env["ir.module.module"].sudo().search_count(
+            [("name", "=", "account_safety_security"), ("state", "=", "installed")])
+        # 복제 DB의 기존 마감일을 테스트 초기값으로 되돌리지 않는다.
+        # 안전 가드 우회나 실제 회사 설정 변경 대신 이 시나리오만 명시적으로 skip.
+        if (safety_guard and company.fiscalyear_lock_date
+                and company.fiscalyear_lock_date >= fields.Date.to_date("1999-12-31")):
+            self.skipTest("기존 마감 잠금일 보존 — 잠금 방향 테스트의 과거 초기값 적용 불가")
         company.write({"fiscalyear_lock_date": "1999-12-31"})
         self.assertEqual(Log.search([], order="id desc", limit=1).direction, "tighten")
         # account_safety_security 가 설치된 DB 는 잠금일자 후퇴·해제를 정책으로
         # 차단한다 — 그 환경에서는 차단 동작 자체를 검증하고 종료한다.
         # (loosen/release 로그 방향은 가드 없는 DB·CI 에서 검증됨)
-        safety_guard = self.env["ir.module.module"].sudo().search_count(
-            [("name", "=", "account_safety_security"), ("state", "=", "installed")])
         if safety_guard:
             from odoo.exceptions import UserError
             with self.assertRaises(UserError, msg="잠금 후퇴는 안전 가드가 막아야 함"):
