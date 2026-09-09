@@ -19,7 +19,9 @@ class MrpProduction(models.Model):
                 rec.operator_qualified = True
                 continue
             # 해당 작업자의 역량 갭 확인
-            gaps = CompMatrix.search([
+            # 생산 완료 경고용 판정만 내부 조회. 교육 원장의 편집 권한은 유지한다.
+            gaps = CompMatrix.sudo().search([
+                ("employee_id.company_id", "=", rec.company_id.id),
                 ("employee_id.user_id", "=", rec.user_id.id),
                 ("gap", "=", True),
             ])

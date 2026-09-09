@@ -1,7 +1,7 @@
 {
     "name": "IATF Control Plan",
     "summary": "IATF 16949 §8.5.1.1 — Control Plan management (Prototype / Pre-Launch / Production)",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
