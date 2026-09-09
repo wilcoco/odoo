@@ -1,3 +1,7 @@
+from unittest.mock import patch
+
+from psycopg2.errors import UniqueViolation
+
 from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import UserError, ValidationError
@@ -42,7 +46,8 @@ class TestApprovalNumberContract(AccountTestInvoicingCommon):
 
     def test_logical_duplicate_is_blocked(self):
         self._bill(kr_approval_number="20260830-AAAAAAAA-BBBBBBBB")
-        with self.assertRaises(ValidationError):
+        # 정규화된 동일 문자열은 Python 제약보다 DB 고유 제약이 먼저 차단한다.
+        with self.assertRaises(UniqueViolation), self.cr.savepoint():
             self._bill(kr_approval_number="20260830aaaaaaaaBBBBBBBB")
 
     def test_ref_only_fills_empty_canonical_and_ref_is_preserved(self):
@@ -156,8 +161,18 @@ class TestApprovalNumberContract(AccountTestInvoicingCommon):
         self.assertGreaterEqual(checklist.correction_origin_unmatched, 1)
 
     def test_missing_studio_field_is_never_auto_removed(self):
-        wizard = self.env["kr.approval.number.merge"].create({})
-        self.assertFalse(wizard.studio_field_present)
-        self.assertFalse(wizard.studio_retirement_ready)
+        # 운영 복제 DB에 실제 Studio 필드가 있어도 삭제하지 않고 부재 분기를 검증.
+        Wizard = self.env["kr.approval.number.merge"]
+        with patch.object(type(Wizard), "_has_studio_field", return_value=False):
+            wizard = Wizard.create({})
+            self.assertFalse(wizard.studio_field_present)
+            self.assertFalse(wizard.studio_retirement_ready)
+            wizard.action_run()
+            self.assertIn("제거할 필드 없음", wizard.result)
+
+    def test_preview_preserves_existing_studio_field(self):
+        Wizard = self.env["kr.approval.number.merge"]
+        before = Wizard._has_studio_field()
+        wizard = Wizard.create({"apply_now": False})
         wizard.action_run()
-        self.assertIn("제거할 필드 없음", wizard.result)
+        self.assertEqual(Wizard._has_studio_field(), before)

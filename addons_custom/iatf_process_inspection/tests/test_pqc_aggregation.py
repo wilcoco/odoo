@@ -1,3 +1,5 @@
+from freezegun import freeze_time
+
 from odoo.tests import TransactionCase, tagged
 
 
@@ -26,11 +28,15 @@ class TestPqcAggregation(TransactionCase):
         units = MO.create([{
             "product_id": product.id, "product_qty": 1,
             "is_ip_unit_mo": True, "parent_planning_mo_id": plan.id,
-            "date_finished": "2026-07-19 10:00:00",
         } for _ in range(3)])
-        units[2].date_finished = "2026-07-20 10:00:00"
-        for u in units:
-            u._create_pqc_inspection()
+        # 초안의 계획 수량은 생산 실적이 아니다. 완료 API로 재고 실적을 확정해야
+        # qty_produced가 생기며 date_finished도 실제 완료일로 결정된다.
+        for index, unit in enumerate(units):
+            finished = "2026-07-19 10:00:00" if index < 2 else "2026-07-20 10:00:00"
+            with freeze_time(finished):
+                unit.action_complete_unit_mo()
+            self.assertEqual(unit.state, "done")
+            self.assertEqual(unit.qty_produced, 1)
         self.assertEqual(PQC.search_count([("production_id", "in", units.ids)]), 0,
                          "단위 MO 개별 검사서 없음")
         runs = PQC.search([("production_id", "=", plan.id)])
