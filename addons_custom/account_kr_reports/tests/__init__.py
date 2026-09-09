@@ -1,3 +1,4 @@
 from . import test_kr_reports
 from . import test_tax_invoice_import
 from . import test_kr_tax_type
+from . import test_approval_number_contract

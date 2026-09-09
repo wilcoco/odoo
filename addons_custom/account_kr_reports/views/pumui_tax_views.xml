@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pumui_request_list_kr_tax" model="ir.ui.view">
+        <field name="name">pumui.request.list.kr.tax</field>
+        <field name="model">pumui.request</field>
+        <field name="inherit_id" ref="pumui_approval.view_pumui_request_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='billing_status']" position="after">
+                <field name="kr_approval_numbers" optional="hide"/>
+                <field name="kr_origin_numbers" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pumui_request_form_kr_tax" model="ir.ui.view">
+        <field name="name">pumui.request.form.kr.tax</field>
+        <field name="model">pumui.request</field>
+        <field name="inherit_id" ref="pumui_approval.view_pumui_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='billing']//field[@name='billing_status']" position="after">
+                <field name="kr_approval_numbers" readonly="1"/>
+                <field name="kr_origin_numbers" readonly="1"
+                       invisible="not kr_origin_numbers"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pumui_request_search_kr_tax" model="ir.ui.view">
+        <field name="name">pumui.request.search.kr.tax</field>
+        <field name="model">pumui.request</field>
+        <field name="inherit_id" ref="pumui_approval.view_pumui_request_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="kr_approval_numbers"/>
+                <field name="kr_origin_numbers"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
