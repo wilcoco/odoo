@@ -9,12 +9,12 @@
 
 | 요청서 기술 | 실측 | 조치 |
 |---|---|---|
-| ERP 정본 `wilcoco/odoo` 18.0 `17e9fac0eee` | ✅ 당시 HEAD 맞음. **다만 그 뒤로 이동**했습니다(SQ 개발 6건 등 머지) | 인수 시점에 **다시 고정** 필요 |
+| ERP 정본 `wilcoco/odoo` 18.0 `17e9fac0eee` | ✅ HEAD 맞음. **이동 없음**(2026-09-10 재확인: `git log 17e9fac..origin/18.0` = 0건). 초판에서 '이동했다' 고 적은 것은 **오류** — 하루 전 관측치와 섞었습니다 | 정정 완료 |
 | MES 추가 소스 "로컬 odoo_gh `49002743a72`, 원격 최신성 미확인" | ✅ 그 SHA 는 **원격 `main` HEAD 와 동일**했습니다(2026-09-09 `[사출 현장] SILO 잔량 연동`). 원격은 **`https://github.com/escon-odoo/odoo_gh`** (과거 `wilcoco/odoo_gh` 에서 이전됨 — 옛 URL 로 push 하면 이동 안내가 뜹니다) | 원격 주소 명시 |
 
 **용어 정정**: `odoo_gh` 를 "MES 추가 소스" 로만 부르면 범위가 좁습니다. 실제로는
-`odoo_plugins/` **31개**(사출 현장·PLC·시리얼·원재료·정산·기준정보)와
-`iatf_plugins/` **66개 항목(미러)** 두 갈래입니다. 아래 3항이 핵심입니다.
+`odoo_plugins/` **28개**(사출 현장·PLC·시리얼·원재료·정산·기준정보)와
+`iatf_plugins/` **60개(미러)** 두 갈래입니다. (모두 `__manifest__.py` 보유 기준) 아래 3항이 핵심입니다.
 
 ## 2. 실제 배포 조합 (§2 표 3행) — 일부 확정
 
@@ -35,11 +35,13 @@
 
 요청서가 "같은 기술명 모듈이 여러 경로" 를 지적한 것은 정확합니다. 규모를 실측했습니다.
 
-- `odoo_gh/iatf_plugins/` 는 **wilcoco `addons_custom` 55개 전부를 포함**합니다(2개 모듈만 미러라는 과거 기록은 낡았습니다).
+- `odoo_gh/iatf_plugins/` 는 **wilcoco `addons_custom` 53개 전부를 포함**합니다(2개 모듈만 미러라는 과거 기록은 낡았습니다).
+  ※ 초판에 55/66/31 로 적은 것은 **폴더 항목 수**였습니다 — `static`·`views` 등 비모듈과 저장소 루트
+  `__manifest__.py` 를 함께 셌습니다. manifest 기준 정확값은 **ERP 53 / 미러 60 / MES 28** 입니다.
 - 그 위에 **미러에만 있는 7개**: `account_kr_plus_patch` `cams_ops_dashboard` `cams_ops_process` `escon_eapproval` `escon_hr_common` `escon_mainmenu_do_redirect` `mrp_plus_patch`
   → 이들은 **정본에 없으므로 wilcoco 만 봐서는 존재 자체를 알 수 없습니다.**
 
-**현재 드리프트(2026-09-10 실측): 55개 중 3개**
+**현재 드리프트(2026-09-10 실측): 공통 53개 중 3개**
 
 | 모듈 | 정본(wilcoco 18.0) | 미러(odoo_gh main) | 성격 |
 |---|---|---|---|
