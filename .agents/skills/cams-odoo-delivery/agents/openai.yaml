@@ -1,0 +1,4 @@
+interface:
+  display_name: "CAMS 공통 개발·배포"
+  short_description: "CAMS ERP·MES의 접수, 검증, PR과 운영 인계 공통 절차"
+  default_prompt: "$cams-odoo-delivery를 사용해 합의한 CAMS 작업의 코드 변경, 검증 기록과 PR 인계를 준비해 주세요."
