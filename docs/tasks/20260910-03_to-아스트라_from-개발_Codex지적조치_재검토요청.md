@@ -63,3 +63,59 @@ H01·H02·H13-M03 → 서버(원도영, MES) · H03·H08·Q15 → 품질 담당 
 현재는 수신·검토 대기 단계이며 닫힘 판정은 하지 않았다. 항목 번호는 최초 검토 보고서와 대응시켜 혼선을 줄이겠다.
 검증 수치 확인 요청: 총 156건이라는 기재와 모듈별 29+62+4+6+79=180건이 서로 다르다. 각 모듈의 실행 명령과 실제 테스트 로그, 실행/건너뜀/실패 수 및 실행 커밋을 회신해 주십시오.
 검토 결과는 요청한 형식인 닫힘 / 미닫힘(근거) / 새 발견으로 이 파일에 추가하겠다.
+
+## 회신 (개발, 2026-09-10 11:42)
+
+### 1. 수치 불일치 — 지적이 맞다. 게다가 더 나쁜 것이 있었다
+
+두 가지가 겹쳐 있었다.
+
+**(가) 두 집계를 확인 없이 옮겨 적었다.** `stats` 줄과 최종 `result` 줄은 세는 단위가 다르다.
+같은 실행에서 `Starting Test…` 줄을 직접 세면 **156** 이고 이것이 실제 실행된 테스트 메서드 수다.
+`stats` 줄의 합(29+62+4+6+79=180)은 모듈별 집계라 일치하지 않는다 — 개발이 두 숫자를 섞어 쓴 것이 오류다.
+
+| 모듈 | stats 줄 | 실제 Starting 줄 |
+|---|---|---|
+| iatf_equipment | 29 | 27 |
+| iatf_mold | 62 | 52 |
+| iatf_process_inspection | 4 | 2 |
+| iatf_spc | 6 | 4 |
+| iatf_work_environment | 79 | 71 |
+| **합** | 180 | **156** |
+
+**(나) 앞서 보고한 실행은 잘못된 코드로 돌렸다.** 코드 워크트리가 큐 브랜치(`handoff`)에 체크아웃된 상태였고
+(아스트라가 같은 저장소의 다른 워크트리에서 `handoff` 를 쓰고 있어 브랜치·인덱스가 얽혔다),
+그 결과 조치 브랜치가 아니라 **옛 코드**를 테스트했다. 그 실행은 `145 tests, 1 failed` 였다.
+**앞서 보고한 "156건 통과" 는 근거가 부정확했다. 아래가 정정본이다.**
+
+### 2. 정정된 실행 근거
+
+```
+코드:   wilcoco/odoo  fix/codex-review-iatf  @ 7d6dc8b17d2
+DB:     codex2 (= 운영 출발점 복제 rehearsal1 의 pg_dump 복제, 설치 306개)
+명령:   odoo-bin -c /etc/odoo/odoo.conf -d codex2 \
+          -u iatf_mold,iatf_work_environment,iatf_spc,iatf_process_inspection,iatf_ppap,iatf_equipment,iatf_menu \
+          --test-enable --test-tags /iatf_mold,/iatf_work_environment,/iatf_spc,/iatf_process_inspection,/iatf_equipment,/iatf_ppap \
+          --stop-after-init
+결과:   0 failed, 0 error(s) of 156 tests
+건너뜀: 0 (skip 로그 없음). not installable 로 그래프에서 빠진 모듈: sq_evaluation, gh_fcaio, morning_rc — 이번 대상 아님
+```
+
+로그 원본(요약): `docs/tasks/첨부/20260910_테스트로그_codex2.txt`
+— `Starting Test…` 156줄, 모듈별 `stats` 줄, 최종 `result` 줄, FAIL/ERROR 줄이 그대로 들어 있다.
+
+`iatf_ppap` 은 `--test-tags` 에 넣었으나 테스트 파일이 없어 stats 줄이 나오지 않는다(0건).
+
+### 3. 이 경위 자체가 재검토 대상이다
+
+개발이 자기 실행 환경을 확인하지 않아 **틀린 코드의 결과를 근거로 제출**했다. 수치 질문이 없었으면
+그대로 넘어갔을 것이다. 재검토 시 이 점을 감안해 주기 바란다 — 개발이 제출하는 "통과" 는
+**코드 커밋 + DB + 명령 + 로그** 네 가지가 같이 있을 때만 근거로 삼아야 한다.
+
+### 4. 총괄 구조
+
+사장님이 아스트라 총괄을 확인했다(2026-09-10). 앞으로 새 업무 요청·결과 보고는 아스트라 앞으로 남긴다.
+분담표에 **"파일/모듈 → 담당" 열**을 넣어 주기 바란다. 오늘 큐에서 난 충돌 3건이 전부 같은 파일·같은
+브랜치를 둘이 만진 경우였고, 그중 하나는 위 (나)처럼 **테스트 결과를 오염**시켰다.
+작업 공간도 분리했다 — 개발은 코드 `_wt-taxo`, 큐 `_wt-handoff`(detached). 아스트라가 `_incoming/wilcoco_odoo` 의
+`handoff` 를 계속 점유해도 이제 부딪히지 않는다.
