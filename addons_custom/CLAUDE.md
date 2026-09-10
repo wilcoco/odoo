@@ -21,11 +21,11 @@
 | 예비부품 분류체계(부문/공정/설비군/기종) | `iatf_equipment` (iatf.spare.category) | 레거시 SPMSRT 4자리 한 칸을 자리별 트리로 편 것. 새 분류 모델 만들지 말 것 |
 | 부품↔설비 적용(다대다) | `iatf_equipment` (iatf.spare.application) | 부품이 어느 설비에 들어가는지의 정본. `spare.equipment_id`(1:N)는 18.0.1.3.0 에서 제거됨 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
-| 금형 관리기준(등급·주기·온도 상하한) | `iatf_mold` (iatf.mold) | 점검·세척·온도 판정의 기준은 전부 여기. 온도 합·부는 `check_temp_in_spec()` 하나만 쓴다 — 판정 로직을 각 기록 모델에 복사하지 말 것 |
+| 금형 관리기준(등급·주기·온도 상하한) | `iatf_mold` (iatf.mold) | 점검·세척·온도 판정의 기준은 전부 여기. 온도 합·부 비교는 `judge_temp()` 하나만 쓴다(`check_temp_in_spec()` 은 현행 기준으로 그것을 부르는 편의 함수) — 판정 로직을 각 기록 모델에 복사하지 말 것 |
 | 금형 세척 실적 | `iatf_mold` (iatf.mold.maintenance, type=`clean`) | 세척 전용 모델 만들지 말 것. 완료(done) 건만 실적으로 센다 |
 | 시사출(T/O) 보고서 | `iatf_mold` (iatf.mold.tryout) | 심사 증빙 문서라 `ondelete=restrict`. 금형은 삭제 말고 폐기(disposed) 로 |
 | 금형 일상/정기 점검 | `iatf_mold` (iatf.mold.check) | 설비 점검(`iatf.daily.check`) 과 별개 원장. **공구·구역·시설용 공통 점검 시트(`iatf.check.sheet`, 요청서 2항)로 금형을 덮지 말 것** — 금형은 마스터에 주기가 있고 누락 판정이 `iatf.mold` 위에 산다 |
-| 금형 예열/온도 측정 | `iatf_mold` (iatf.mold.temp.log) | 금형 온도의 **유일 원장**. 시사출·점검 기록에 온도 필드를 따로 두지 말 것. 합·부는 `iatf.mold.check_temp_in_spec()` 만 호출하고 상하한 비교를 다시 구현하지 않는다 |
+| 금형 예열/온도 측정 | `iatf_mold` (iatf.mold.temp.log) | 금형 온도의 **유일 원장**. 시사출·점검 기록에 온도 필드를 따로 두지 말 것. 기준 상·하한은 **측정 시점 스냅샷**(저장)이며 마스터 개정에 끌려가지 않는다. 합·부 비교는 `iatf.mold.judge_temp()` 하나만 쓴다(현행 기준 재평가는 `current_spec_result` 참고값) |
 | 범용 점검 일지(공구·검사마스터·설비/시설·구역) | `iatf_work_environment` (iatf.check.sheet / iatf.check.record) | 전동공구 토크·통전검사·바코드 마스터·건조기 필터·분쇄기·배합기·냉각수/작동유·소화기 = **전부 이 모델 하나**. 대상별 전용 모듈·모델 금지 |
 | 작업환경 실측(온습도·조도)·5S 점수 | `iatf_work_environment` (iatf.environment.check) | 구역 기준(`iatf.work.area`) 대비 실측·5S 5개 점수는 여기가 정본. 점검 시트로 옮기지 말 것 |
 | 산업안전 위험성평가 | `iatf_work_environment` (iatf.safety.assessment) | 작업별 유해위험요인 × 가능성/중대성 + 감소대책 이행. **`iatf.risk.register` 와 다른 원장** — 아래 경계 참조 |
@@ -120,3 +120,11 @@
 11. **'실적' 은 완료(done) 건만 센다.** 작성 중(draft)·계획(planned) 기록을 이행실적으로
     세면 없는 이행이 생긴다. 그리고 **항목이 비어 있는 기록은 '양호' 가 아니라 '미완료'** 다
     — 빈 점검표가 양호로 집계되는 것이 크리아 4_1 감점("점검표 작성 일부 누락")의 정체다.
+12. **완료(done) 된 실적은 잠근다.** 점검일·라인·기준 스냅샷·측정값은 완료 후 write/unlink 를
+    서버에서 막는다(`iatf.mold.check`, `iatf.check.record` 와 각 라인). 고쳐야 하면 '작성 중'
+    으로 되돌리고(상태 변경은 chatter 에 남는다) 고친 뒤 다시 완료한다. 완료 후에도 열어 두는
+    필드는 `_DONE_EDITABLE` 로 명시한다. — 2026-09-10 제3자 검토 Q10 에서 "완료 후 증빙 변경"
+    경로가 지적됐다.
+13. **기준이 있는 항목은 측정값 없이 판정하지 못한다.** 측정값 0(미기입)은 `no_value` 인데,
+    이때 결과를 사람이 '양호' 로 넣을 수 있으면 상한이 있는 항목을 재지 않고 통과시키는
+    경로가 된다. `_check_result_matches_spec` 이 `no_value` + 수동 판정을 막는다. (Q12)

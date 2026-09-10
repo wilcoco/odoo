@@ -1,7 +1,7 @@
 {
     "name": "IATF SPC",
     "summary": "IATF 16949 §9.1.1.1 — Statistical Process Control (X-bar R, Cp/Cpk, control charts)",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

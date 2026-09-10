@@ -6,6 +6,8 @@
   ③ 분류 트리가 1:N 을 강제해 부품 하나가 설비 하나만 가리킬 수 있었던 것
 """
 
+import psycopg2
+
 from odoo.exceptions import ValidationError, UserError
 from odoo.tests import TransactionCase, tagged
 
@@ -133,7 +135,7 @@ class TestSpareTaxonomy(TransactionCase):
             self.env.flush_all()
 
     def test_duplicate_code_under_same_parent_is_rejected(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(psycopg2.IntegrityError):  # unique(parent_id, code) 위반
             self.Category.create({"name": "중복", "code": "A", "level": "group",
                                   "parent_id": self.process.id})
             self.env.flush_all()
@@ -157,8 +159,13 @@ class TestSpareTaxonomy(TransactionCase):
         self.Application.create({"spare_id": spare.id, "equipment_id": self.machine_1.id})
         self.Application.create({"spare_id": spare.id, "equipment_id": self.machine_2.id})
         self.assertEqual(spare.equipment_count, 2)
-        self.assertEqual(self.Spare.search_count([("name", "=", spare.name)]), 1,
-                         "설비마다 부품 행이 복제됐다 — 레거시 1:N 구조로 돌아갔다")
+        # 이름으로 세면 안 된다 — 복제 DB 에 같은 이름의 실데이터가 있으면 거짓 실패한다
+        # (rehearsal1 에 심어 둔 '유압 실린더 씰' 이 실제로 그랬다). 두 설비의 적용표가
+        # 가리키는 부품이 하나인지로 본다.
+        linked = self.Application.search([
+            ("equipment_id", "in", [self.machine_1.id, self.machine_2.id]),
+            ("spare_id", "=", spare.id)]).mapped("spare_id")
+        self.assertEqual(len(linked), 1, "설비마다 부품 행이 복제됐다 — 레거시 1:N 구조로 돌아갔다")
 
     def test_one_machine_holds_many_parts(self):
         seal = self._spare("유압 씰")
@@ -171,7 +178,7 @@ class TestSpareTaxonomy(TransactionCase):
     def test_same_pair_cannot_be_registered_twice(self):
         spare = self._spare()
         self.Application.create({"spare_id": spare.id, "equipment_id": self.machine_1.id})
-        with self.assertRaises(Exception):
+        with self.assertRaises(psycopg2.IntegrityError):  # unique(spare_id, equipment_id) 위반
             self.Application.create({"spare_id": spare.id,
                                      "equipment_id": self.machine_1.id})
             self.env.flush_all()

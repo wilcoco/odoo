@@ -1,7 +1,7 @@
 {
     "name": "IATF PPAP",
     "summary": "IATF 16949 §8.3.4.4 — Production Part Approval Process (18 Elements, Level 1-5)",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

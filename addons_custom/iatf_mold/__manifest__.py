@@ -1,6 +1,6 @@
 {
     "name": "IATF 금형/치공구 관리",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.2.1",
     "summary": "금형, 치공구, 지그 관리 + 관리기준·점검·온도·시사출(T/O) (IATF 16949 §8.5.1.6)",
     "category": "Quality",
     "license": "LGPL-3",

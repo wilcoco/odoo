@@ -174,11 +174,26 @@ class IatfProcessInspection(models.Model):
                 ("characteristic_name", "=", line.characteristic_name),
                 ("state", "=", "collecting"),
             ])
+            origin = "pqc:%s:%s" % (self.id, line.id)
             for study in studies:
-                next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
-                vals = {"study_id": study.id, "sequence": next_seq,
-                        "sample_date": self.inspection_date, "x1": value}
-                self.env["iatf.spc.subgroup"].create(vals)
+                # 같은 검사 라인을 두 번 주입하지 않는다 (판정 버튼 반복 실행).
+                if any(origin in (sg.origins or "") for sg in study.subgroup_ids):
+                    continue
+                n = study.subgroup_size or 5
+                # 열려 있는 부분군(자동 주입 중, 아직 n 미만)에 다음 칸을 채운다.
+                # 부분군마다 x1 만 넣고 새로 만들면 나머지 칸의 0 이 평균에 들어간다. (Q14)
+                open_sg = study.subgroup_ids.filtered(
+                    lambda s: 0 < (s.sample_count or 0) < n).sorted("sequence")[-1:]
+                if open_sg:
+                    k = open_sg.sample_count + 1
+                    open_sg.write({"x%d" % k: value, "sample_count": k,
+                                   "origins": ",".join(filter(None, [open_sg.origins, origin]))})
+                else:
+                    next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
+                    self.env["iatf.spc.subgroup"].create({
+                        "study_id": study.id, "sequence": next_seq,
+                        "sample_date": self.inspection_date, "x1": value,
+                        "sample_count": 1, "origins": origin})
 
     def _auto_create_nc(self):
         """불합격 시 부적합 자동 생성"""
