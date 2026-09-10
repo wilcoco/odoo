@@ -1,0 +1,260 @@
+[
+  {
+    "case": "done_line_create:mold",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "done_line_create:sheet",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "done_line_reparent:mold",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "source_after": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 0,
+      "results": []
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "done_line_reparent:sheet",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "source_after": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 0,
+      "results": []
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "forged_done:mold",
+    "before": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "forged_done:sheet",
+    "before": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "missing_value_na:mold",
+    "before": {
+      "value": 0.0,
+      "judged": "no_value",
+      "state": "draft",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "na"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "na"
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "missing_value_na:sheet",
+    "before": {
+      "value": 0.0,
+      "judged": "no_value",
+      "state": "draft",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "na"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "na"
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "done_header_unlink:mold",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "record_survives": false,
+    "line_survives": false,
+    "outcome": "completed"
+  },
+  {
+    "case": "done_header_unlink:sheet",
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "record_survives": false,
+    "line_survives": false,
+    "outcome": "completed"
+  },
+  {
+    "case": "temperature_direct_write",
+    "before": {
+      "spec_min": 60.0,
+      "spec_max": 90.0,
+      "spec_result": "ng",
+      "current_spec_result": "ng",
+      "temperature": 95.0
+    },
+    "after_result_only_write": {
+      "spec_min": 60.0,
+      "spec_max": 90.0,
+      "spec_result": "ok",
+      "current_spec_result": "ng",
+      "temperature": 95.0
+    },
+    "after_snapshot_bound_write": {
+      "spec_min": 60.0,
+      "spec_max": 100.0,
+      "spec_result": "ok",
+      "current_spec_result": "ng",
+      "temperature": 95.0
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "temperature_same_mold_write",
+    "before": {
+      "spec_min": 60.0,
+      "spec_max": 90.0,
+      "spec_result": "ng",
+      "current_spec_result": "ng",
+      "temperature": 95.0
+    },
+    "after_master_only": {
+      "spec_min": 60.0,
+      "spec_max": 90.0,
+      "spec_result": "ng",
+      "current_spec_result": "ok",
+      "temperature": 95.0
+    },
+    "after_same_mold_write": {
+      "spec_min": 60.0,
+      "spec_max": 100.0,
+      "spec_result": "ok",
+      "current_spec_result": "ok",
+      "temperature": 95.0
+    },
+    "outcome": "completed"
+  }
+]

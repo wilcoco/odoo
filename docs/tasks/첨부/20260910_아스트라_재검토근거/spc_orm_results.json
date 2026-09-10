@@ -1,0 +1,238 @@
+{
+  "kind": "Odoo ORM on disposable DB; final transaction rollback",
+  "cases": {
+    "single_zero_and_depends": {
+      "status": "completed",
+      "real_zero": [
+        {
+          "id": 5,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            0.0
+          ],
+          "mean": 0.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_x1_10": [
+        {
+          "id": 5,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_count_2": [
+        {
+          "id": 5,
+          "sample_count": 2,
+          "origins": false,
+          "values": [
+            10.0,
+            0.0
+          ],
+          "mean": 5.0,
+          "range": 10.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_study_n_1": [
+        {
+          "id": 5,
+          "sample_count": 2,
+          "origins": false,
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "confirmed": true
+    },
+    "origin_prefix_collision": {
+      "status": "completed",
+      "inspection_id": 2,
+      "first_line_id": 1,
+      "last_line_id": 12,
+      "first_source_value_after": "20",
+      "before": [
+        {
+          "id": 6,
+          "sample_count": 1,
+          "origins": "pqc:2:12",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after": [
+        {
+          "id": 6,
+          "sample_count": 1,
+          "origins": "pqc:2:12",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "confirmed_bug": true
+    },
+    "manual_fill_after_auto": {
+      "status": "completed",
+      "after_manual_x2_x5": [
+        {
+          "id": 7,
+          "sample_count": 1,
+          "origins": "pqc:3:13",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            12.0,
+            8.0,
+            11.0,
+            9.0
+          ]
+        }
+      ],
+      "after_next_pqc_99": [
+        {
+          "id": 7,
+          "sample_count": 2,
+          "origins": "pqc:3:13,pqc:4:14",
+          "values": [
+            10.0,
+            99.0
+          ],
+          "mean": 54.5,
+          "range": 89.0,
+          "stored_x1_to_x5": [
+            10.0,
+            99.0,
+            8.0,
+            11.0,
+            9.0
+          ]
+        }
+      ],
+      "confirmed_bug": true
+    },
+    "incomplete_group_analysis": {
+      "status": "completed",
+      "subgroups": [
+        {
+          "id": 8,
+          "sample_count": 5,
+          "origins": false,
+          "values": [
+            10.0,
+            12.0,
+            8.0,
+            10.0,
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 4.0,
+          "stored_x1_to_x5": [
+            10.0,
+            12.0,
+            8.0,
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "id": 9,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            20.0
+          ],
+          "mean": 20.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "state": "analyzed",
+      "grand_mean": 15.0,
+      "mean_range": 2.0,
+      "ucl_xbar": 16.154,
+      "lcl_xbar": 13.846,
+      "declared_n": 5,
+      "confirmed_bug": true
+    },
+    "normal_mo_company": {
+      "status": "error",
+      "exception": "UndefinedFunction",
+      "message": "operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n",
+      "traceback": "Traceback (most recent call last):\n  File \"spc_orm_probe.py\", line 42, in run\n  File \"spc_orm_probe.py\", line 123, in normal_mo_company\n  File \"<decorator-gen-182>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 497, in _model_create_multi\n    return create(self, [arg])\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_ppap/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-169>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_control_plan/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-148>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/mrp/models/mrp_production.py\", line 1030, in create\n    vals['name'] = self.env['stock.picking.type'].browse(picking_type_id).sequence_id.next_by_id()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 270, in next_by_id\n    return self._next(sequence_date=sequence_date)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 259, in _next\n    return self._next_do()\n           ^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 200, in _next_do\n    number_next = _update_nogap(self, self.number_increment)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 57, in _update_nogap\n    self._cr.execute(\"SELECT number_next FROM %s WHERE id=%%s FOR UPDATE NOWAIT\" % self._table, [self.id])\n  File \"/usr/lib/python3/dist-packages/odoo/sql_db.py\", line 371, in execute\n    res = self._obj.execute(query, params)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.errors.UndefinedFunction: operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n\n"
+    },
+    "ppap_prev_mo_company": {
+      "status": "error",
+      "exception": "UndefinedFunction",
+      "message": "operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n",
+      "traceback": "Traceback (most recent call last):\n  File \"spc_orm_probe.py\", line 42, in run\n  File \"spc_orm_probe.py\", line 142, in ppap_company_scope\n  File \"<decorator-gen-182>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 497, in _model_create_multi\n    return create(self, [arg])\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_ppap/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-169>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_control_plan/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-148>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/mrp/models/mrp_production.py\", line 1030, in create\n    vals['name'] = self.env['stock.picking.type'].browse(picking_type_id).sequence_id.next_by_id()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 270, in next_by_id\n    return self._next(sequence_date=sequence_date)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 259, in _next\n    return self._next_do()\n           ^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 200, in _next_do\n    number_next = _update_nogap(self, self.number_increment)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 57, in _update_nogap\n    self._cr.execute(\"SELECT number_next FROM %s WHERE id=%%s FOR UPDATE NOWAIT\" % self._table, [self.id])\n  File \"/usr/lib/python3/dist-packages/odoo/sql_db.py\", line 371, in execute\n    res = self._obj.execute(query, params)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.errors.UndefinedFunction: operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n\n"
+    }
+  },
+  "rolled_back": true
+}

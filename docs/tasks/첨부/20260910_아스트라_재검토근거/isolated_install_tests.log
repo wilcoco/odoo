@@ -1,0 +1,1508 @@
+2026-09-10 03:02:09,077 1 INFO ? odoo: Odoo version 18.0-20260609 
+2026-09-10 03:02:09,078 1 INFO ? odoo: addons paths: ['/usr/lib/python3/dist-packages/odoo/addons', '/tmp/odoo-review2/addons/18.0', '/review/tax/addons_custom', '/review/quality/addons_custom'] 
+2026-09-10 03:02:09,078 1 INFO ? odoo: database: odoo@codex-review2-db-01a088bd:5432 
+Warn: Can't find .pfb for face 'Courier'
+2026-09-10 03:02:09,320 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at /usr/local/bin/wkhtmltopdf 
+2026-09-10 03:02:09,337 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltoimage binary at /usr/local/bin/wkhtmltoimage 
+2026-09-10 03:02:09,483 1 INFO ? odoo.service.server: HTTP service (werkzeug) running on 9a94fb252923:8069 
+2026-09-10 03:02:09,508 1 INFO codex_review2 odoo.tests.common: Importing test framework 
+2026-09-10 03:02:09,516 1 INFO codex_review2 odoo.modules.loading: init db 
+2026-09-10 03:02:10,385 1 INFO codex_review2 odoo.modules.loading: loading 1 modules... 
+2026-09-10 03:02:10,385 1 INFO codex_review2 odoo.modules.loading: Loading module base (1/1) 
+2026-09-10 03:02:10,398 1 INFO codex_review2 odoo.modules.registry: module base: creating or updating database tables 
+2026-09-10 03:02:10,535 1 INFO codex_review2 odoo.models: Prepare computation of ir.module.module.menus_by_module 
+2026-09-10 03:02:10,535 1 INFO codex_review2 odoo.models: Prepare computation of ir.module.module.reports_by_module 
+2026-09-10 03:02:10,535 1 INFO codex_review2 odoo.models: Prepare computation of ir.module.module.views_by_module 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.user_id 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.commercial_partner_id 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.complete_name 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.company_registry 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.commercial_company_name 
+2026-09-10 03:02:10,581 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.partner_share 
+2026-09-10 03:02:10,596 1 INFO codex_review2 odoo.models: Prepare computation of res.currency.decimal_places 
+2026-09-10 03:02:10,607 1 INFO codex_review2 odoo.models: Prepare computation of res.company.uses_default_logo 
+2026-09-10 03:02:10,607 1 INFO codex_review2 odoo.models: Prepare computation of res.company.logo_web 
+2026-09-10 03:02:10,608 1 INFO codex_review2 odoo.models: Computing parent_path for table res_company... 
+2026-09-10 03:02:10,620 1 INFO codex_review2 odoo.models: Prepare computation of res.users.signature 
+2026-09-10 03:02:10,620 1 INFO codex_review2 odoo.models: Prepare computation of res.users.share 
+2026-09-10 03:02:11,438 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_bank.xml 
+2026-09-10 03:02:11,441 1 INFO codex_review2 odoo.modules.loading: loading base/data/res.lang.csv 
+2026-09-10 03:02:11,459 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_lang_data.xml 
+2026-09-10 03:02:11,478 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_partner_data.xml 
+2026-09-10 03:02:11,505 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_currency_data.xml 
+2026-09-10 03:02:11,732 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_company_data.xml 
+2026-09-10 03:02:11,736 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_users_data.xml 
+2026-09-10 03:02:12,192 1 INFO codex_review2 odoo.modules.loading: loading base/data/report_paperformat_data.xml 
+2026-09-10 03:02:12,196 1 INFO codex_review2 odoo.modules.loading: loading base/data/res_country_data.xml 
+2026-09-10 03:02:12,375 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_demo_data.xml 
+2026-09-10 03:02:12,381 1 INFO codex_review2 odoo.modules.loading: loading base/security/base_groups.xml 
+2026-09-10 03:02:12,733 1 INFO codex_review2 odoo.modules.loading: loading base/security/base_security.xml 
+2026-09-10 03:02:12,836 1 INFO codex_review2 odoo.modules.loading: loading base/views/base_menus.xml 
+2026-09-10 03:02:12,881 1 INFO codex_review2 odoo.modules.loading: loading base/views/decimal_precision_views.xml 
+2026-09-10 03:02:12,892 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_config_views.xml 
+2026-09-10 03:02:12,896 1 INFO codex_review2 odoo.modules.loading: loading base/data/res.country.state.csv 
+2026-09-10 03:02:13,246 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_actions_views.xml 
+2026-09-10 03:02:13,309 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_asset_views.xml 
+2026-09-10 03:02:13,318 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_config_parameter_views.xml 
+2026-09-10 03:02:13,326 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_cron_views.xml 
+2026-09-10 03:02:13,338 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_cron_trigger_views.xml 
+2026-09-10 03:02:13,345 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_filters_views.xml 
+2026-09-10 03:02:13,353 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_mail_server_views.xml 
+2026-09-10 03:02:13,363 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_model_views.xml 
+2026-09-10 03:02:13,431 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_attachment_views.xml 
+2026-09-10 03:02:13,441 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_rule_views.xml 
+2026-09-10 03:02:13,450 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_sequence_views.xml 
+2026-09-10 03:02:13,458 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_ui_menu_views.xml 
+2026-09-10 03:02:13,469 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_ui_view_views.xml 
+2026-09-10 03:02:13,489 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_default_views.xml 
+2026-09-10 03:02:13,498 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_config_parameter_data.xml 
+2026-09-10 03:02:13,500 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_cron_data.xml 
+2026-09-10 03:02:13,507 1 INFO codex_review2 odoo.modules.loading: loading base/report/ir_model_report.xml 
+2026-09-10 03:02:13,509 1 INFO codex_review2 odoo.modules.loading: loading base/report/ir_model_templates.xml 
+2026-09-10 03:02:13,514 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_logging_views.xml 
+2026-09-10 03:02:13,521 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_qweb_widget_templates.xml 
+2026-09-10 03:02:13,527 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_module_views.xml 
+2026-09-10 03:02:13,550 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_module_category_data.xml 
+2026-09-10 03:02:13,578 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_module_module.xml 
+2026-09-10 03:02:13,603 1 INFO codex_review2 odoo.modules.loading: loading base/report/ir_module_reports.xml 
+2026-09-10 03:02:13,605 1 INFO codex_review2 odoo.modules.loading: loading base/report/ir_module_report_templates.xml 
+2026-09-10 03:02:13,608 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_module_update_views.xml 
+2026-09-10 03:02:13,615 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_language_install_views.xml 
+2026-09-10 03:02:13,620 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_import_language_views.xml 
+2026-09-10 03:02:13,626 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_module_upgrade_views.xml 
+2026-09-10 03:02:13,634 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_module_uninstall_views.xml 
+2026-09-10 03:02:13,639 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_export_language_views.xml 
+2026-09-10 03:02:13,644 1 INFO codex_review2 odoo.modules.loading: loading base/wizard/base_partner_merge_views.xml 
+2026-09-10 03:02:13,652 1 INFO codex_review2 odoo.modules.loading: loading base/data/ir_demo_failure_data.xml 
+2026-09-10 03:02:13,659 1 INFO codex_review2 odoo.modules.loading: loading base/views/ir_profile_views.xml 
+2026-09-10 03:02:13,669 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_company_views.xml 
+2026-09-10 03:02:13,679 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_lang_views.xml 
+2026-09-10 03:02:13,688 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_partner_views.xml 
+2026-09-10 03:02:13,733 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_bank_views.xml 
+2026-09-10 03:02:13,746 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_country_views.xml 
+2026-09-10 03:02:13,763 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_currency_views.xml 
+2026-09-10 03:02:13,779 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_users_views.xml 
+2026-09-10 03:02:13,831 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_device_views.xml 
+2026-09-10 03:02:13,839 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_users_identitycheck_views.xml 
+2026-09-10 03:02:13,842 1 INFO codex_review2 odoo.modules.loading: loading base/views/res_config_settings_views.xml 
+2026-09-10 03:02:13,845 1 INFO codex_review2 odoo.modules.loading: loading base/views/report_paperformat_views.xml 
+2026-09-10 03:02:13,857 1 INFO codex_review2 odoo.modules.loading: loading base/security/ir.model.access.csv 
+2026-09-10 03:02:14,002 1 INFO codex_review2 odoo.modules.loading: Module base loaded in 3.62s, 8198 queries (+8198 other) 
+2026-09-10 03:02:14,002 1 INFO codex_review2 odoo.modules.loading: 1 modules loaded in 3.62s, 8198 queries (+8198 extra) 
+2026-09-10 03:02:14,012 1 INFO codex_review2 odoo.modules.loading: updating modules list 
+2026-09-10 03:02:14,013 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-10 03:02:14,413 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.button_install on ['회계 한국식 조회·부가세 (K-Reports)', 'IATF 설비 관리 / TPM', 'IATF 금형/치공구 관리', 'IATF PPAP', 'IATF 공정검사 / 최종검사', 'IATF SPC', 'IATF 작업환경 관리'] to user __system__ #1 via n/a 
+2026-09-10 03:02:14,495 1 INFO codex_review2 odoo.modules.loading: loading 84 modules... 
+2026-09-10 03:02:14,495 1 INFO codex_review2 odoo.modules.loading: Loading module uom (2/84) 
+2026-09-10 03:02:14,508 1 INFO codex_review2 odoo.modules.registry: module uom: creating or updating database tables 
+2026-09-10 03:02:14,540 1 INFO codex_review2 odoo.modules.loading: loading uom/data/uom_data.xml 
+2026-09-10 03:02:14,568 1 INFO codex_review2 odoo.modules.loading: loading uom/security/uom_security.xml 
+2026-09-10 03:02:14,577 1 INFO codex_review2 odoo.modules.loading: loading uom/security/ir.model.access.csv 
+2026-09-10 03:02:14,582 1 INFO codex_review2 odoo.modules.loading: loading uom/views/uom_uom_views.xml 
+2026-09-10 03:02:14,604 1 INFO codex_review2 odoo.modules.loading: Module uom loaded in 0.11s, 305 queries (+305 other) 
+2026-09-10 03:02:14,604 1 INFO codex_review2 odoo.modules.loading: Loading module web (3/84) 
+2026-09-10 03:02:14,618 1 INFO codex_review2 odoo.modules.registry: module web: creating or updating database tables 
+2026-09-10 03:02:14,925 1 INFO codex_review2 odoo.modules.loading: loading web/security/ir.model.access.csv 
+2026-09-10 03:02:14,930 1 INFO codex_review2 odoo.modules.loading: loading web/views/webclient_templates.xml 
+2026-09-10 03:02:14,951 1 INFO codex_review2 odoo.modules.loading: loading web/views/report_templates.xml 
+2026-09-10 03:02:14,988 1 INFO codex_review2 odoo.modules.loading: loading web/views/base_document_layout_views.xml 
+2026-09-10 03:02:14,994 1 INFO codex_review2 odoo.modules.loading: loading web/views/partner_view.xml 
+2026-09-10 03:02:14,996 1 INFO codex_review2 odoo.modules.loading: loading web/views/speedscope_template.xml 
+2026-09-10 03:02:14,999 1 INFO codex_review2 odoo.modules.loading: loading web/views/neutralize_views.xml 
+2026-09-10 03:02:15,001 1 INFO codex_review2 odoo.modules.loading: loading web/data/ir_attachment.xml 
+2026-09-10 03:02:15,003 1 INFO codex_review2 odoo.modules.loading: loading web/data/report_layout.xml 
+2026-09-10 03:02:15,172 1 INFO codex_review2 odoo.modules.loading: Module web loaded in 0.57s, 1126 queries (+1126 other) 
+2026-09-10 03:02:15,172 1 INFO codex_review2 odoo.modules.loading: Loading module auth_totp (4/84) 
+2026-09-10 03:02:15,190 1 INFO codex_review2 odoo.modules.registry: module auth_totp: creating or updating database tables 
+2026-09-10 03:02:15,220 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/security/security.xml 
+2026-09-10 03:02:15,233 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/security/ir.model.access.csv 
+2026-09-10 03:02:15,237 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/data/ir_action_data.xml 
+2026-09-10 03:02:15,239 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/views/res_users_views.xml 
+2026-09-10 03:02:15,253 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/views/templates.xml 
+2026-09-10 03:02:15,256 1 INFO codex_review2 odoo.modules.loading: loading auth_totp/wizard/auth_totp_wizard_views.xml 
+2026-09-10 03:02:15,269 1 INFO codex_review2 odoo.modules.loading: Module auth_totp loaded in 0.10s, 188 queries (+188 other) 
+2026-09-10 03:02:15,269 1 INFO codex_review2 odoo.modules.loading: Loading module barcodes (5/84) 
+2026-09-10 03:02:15,280 1 INFO codex_review2 odoo.modules.registry: module barcodes: creating or updating database tables 
+2026-09-10 03:02:15,323 1 INFO codex_review2 odoo.modules.loading: loading barcodes/data/barcodes_data.xml 
+2026-09-10 03:02:15,328 1 INFO codex_review2 odoo.modules.loading: loading barcodes/views/barcodes_view.xml 
+2026-09-10 03:02:15,341 1 INFO codex_review2 odoo.modules.loading: loading barcodes/security/ir.model.access.csv 
+2026-09-10 03:02:15,354 1 INFO codex_review2 odoo.modules.loading: Module barcodes loaded in 0.09s, 149 queries (+149 other) 
+2026-09-10 03:02:15,354 1 INFO codex_review2 odoo.modules.loading: Loading module base_import (6/84) 
+2026-09-10 03:02:15,512 1 INFO codex_review2 odoo.modules.registry: module base_import: creating or updating database tables 
+2026-09-10 03:02:15,840 1 INFO codex_review2 odoo.modules.loading: loading base_import/security/ir.model.access.csv 
+2026-09-10 03:02:15,848 1 INFO codex_review2 odoo.modules.loading: Module base_import loaded in 0.49s, 916 queries (+916 other) 
+2026-09-10 03:02:15,848 1 INFO codex_review2 odoo.modules.loading: Loading module base_import_module (7/84) 
+2026-09-10 03:02:15,862 1 INFO codex_review2 odoo.modules.registry: module base_import_module: creating or updating database tables 
+2026-09-10 03:02:15,898 1 INFO codex_review2 odoo.modules.loading: loading base_import_module/security/ir.model.access.csv 
+2026-09-10 03:02:15,903 1 INFO codex_review2 odoo.modules.loading: loading base_import_module/views/base_import_module_view.xml 
+2026-09-10 03:02:15,911 1 INFO codex_review2 odoo.modules.loading: loading base_import_module/views/ir_module_views.xml 
+2026-09-10 03:02:15,932 1 INFO codex_review2 odoo.modules.loading: Module base_import_module loaded in 0.08s, 164 queries (+164 other) 
+2026-09-10 03:02:15,932 1 INFO codex_review2 odoo.modules.loading: Loading module base_setup (8/84) 
+2026-09-10 03:02:15,944 1 INFO codex_review2 odoo.modules.registry: module base_setup: creating or updating database tables 
+2026-09-10 03:02:15,974 1 INFO codex_review2 odoo.modules.loading: loading base_setup/data/base_setup_data.xml 
+2026-09-10 03:02:15,978 1 INFO codex_review2 odoo.modules.loading: loading base_setup/views/res_config_settings_views.xml 
+2026-09-10 03:02:15,996 1 INFO codex_review2 odoo.modules.loading: loading base_setup/views/res_partner_views.xml 
+2026-09-10 03:02:16,007 1 INFO codex_review2 odoo.modules.loading: Module base_setup loaded in 0.07s, 154 queries (+154 other) 
+2026-09-10 03:02:16,007 1 INFO codex_review2 odoo.modules.loading: Loading module bus (9/84) 
+2026-09-10 03:02:16,018 1 INFO codex_review2 odoo.modules.registry: module bus: creating or updating database tables 
+2026-09-10 03:02:16,078 1 INFO codex_review2 odoo.modules.loading: loading bus/security/ir.model.access.csv 
+2026-09-10 03:02:16,091 1 INFO codex_review2 odoo.modules.loading: Module bus loaded in 0.08s, 168 queries (+168 other) 
+2026-09-10 03:02:16,091 1 INFO codex_review2 odoo.modules.loading: Loading module http_routing (10/84) 
+2026-09-10 03:02:16,101 1 INFO codex_review2 odoo.modules.registry: module http_routing: creating or updating database tables 
+2026-09-10 03:02:16,114 1 INFO codex_review2 odoo.modules.loading: loading http_routing/views/http_routing_template.xml 
+2026-09-10 03:02:16,128 1 INFO codex_review2 odoo.modules.loading: loading http_routing/views/res_lang_views.xml 
+2026-09-10 03:02:16,140 1 INFO codex_review2 odoo.modules.loading: Module http_routing loaded in 0.05s, 100 queries (+100 other) 
+2026-09-10 03:02:16,140 1 INFO codex_review2 odoo.modules.loading: Loading module onboarding (11/84) 
+2026-09-10 03:02:16,193 1 INFO codex_review2 odoo.modules.registry: module onboarding: creating or updating database tables 
+2026-09-10 03:02:16,248 1 INFO codex_review2 odoo.modules.loading: loading onboarding/views/onboarding_templates.xml 
+2026-09-10 03:02:16,255 1 INFO codex_review2 odoo.modules.loading: loading onboarding/views/onboarding_views.xml 
+2026-09-10 03:02:16,266 1 INFO codex_review2 odoo.modules.loading: loading onboarding/views/onboarding_menus.xml 
+2026-09-10 03:02:16,271 1 INFO codex_review2 odoo.modules.loading: loading onboarding/security/ir.model.access.csv 
+2026-09-10 03:02:16,317 1 INFO codex_review2 odoo.modules.loading: Module onboarding loaded in 0.18s, 225 queries (+225 other) 
+2026-09-10 03:02:16,317 1 INFO codex_review2 odoo.modules.loading: Loading module resource (12/84) 
+2026-09-10 03:02:16,335 1 INFO codex_review2 odoo.modules.registry: module resource: creating or updating database tables 
+2026-09-10 03:02:16,405 1 INFO codex_review2 odoo.modules.loading: loading resource/data/resource_data.xml 
+2026-09-10 03:02:16,414 1 INFO codex_review2 odoo.modules.loading: loading resource/security/ir.model.access.csv 
+2026-09-10 03:02:16,420 1 INFO codex_review2 odoo.modules.loading: loading resource/security/resource_security.xml 
+2026-09-10 03:02:16,430 1 INFO codex_review2 odoo.modules.loading: loading resource/views/resource_resource_views.xml 
+2026-09-10 03:02:16,441 1 INFO codex_review2 odoo.modules.loading: loading resource/views/resource_calendar_leaves_views.xml 
+2026-09-10 03:02:16,453 1 INFO codex_review2 odoo.modules.loading: loading resource/views/resource_calendar_attendance_views.xml 
+2026-09-10 03:02:16,458 1 INFO codex_review2 odoo.modules.loading: loading resource/views/resource_calendar_views.xml 
+2026-09-10 03:02:16,466 1 INFO codex_review2 odoo.modules.loading: loading resource/views/menuitems.xml 
+2026-09-10 03:02:16,481 1 INFO codex_review2 odoo.modules.loading: Module resource loaded in 0.16s, 406 queries (+406 other) 
+2026-09-10 03:02:16,481 1 INFO codex_review2 odoo.modules.loading: Loading module web_hierarchy (13/84) 
+2026-09-10 03:02:16,499 1 INFO codex_review2 odoo.modules.registry: module web_hierarchy: creating or updating database tables 
+2026-09-10 03:02:16,873 1 INFO codex_review2 odoo.modules.loading: Module web_hierarchy loaded in 0.39s, 969 queries (+969 other) 
+2026-09-10 03:02:16,873 1 INFO codex_review2 odoo.modules.loading: Loading module web_tour (14/84) 
+2026-09-10 03:02:16,886 1 INFO codex_review2 odoo.modules.registry: module web_tour: creating or updating database tables 
+2026-09-10 03:02:16,889 1 INFO codex_review2 odoo.models: Prepare computation of res.users.tour_enabled 
+2026-09-10 03:02:16,933 1 INFO codex_review2 odoo.modules.loading: loading web_tour/security/ir.model.access.csv 
+2026-09-10 03:02:16,939 1 INFO codex_review2 odoo.modules.loading: loading web_tour/views/tour_views.xml 
+2026-09-10 03:02:16,952 1 INFO codex_review2 odoo.modules.loading: loading web_tour/views/res_users_views.xml 
+2026-09-10 03:02:16,966 1 INFO codex_review2 odoo.modules.loading: Module web_tour loaded in 0.09s, 188 queries (+188 other) 
+2026-09-10 03:02:16,966 1 INFO codex_review2 odoo.modules.loading: Loading module barcodes_gs1_nomenclature (15/84) 
+2026-09-10 03:02:16,979 1 INFO codex_review2 odoo.modules.registry: module barcodes_gs1_nomenclature: creating or updating database tables 
+2026-09-10 03:02:17,000 1 INFO codex_review2 odoo.modules.loading: loading barcodes_gs1_nomenclature/data/barcodes_gs1_rules.xml 
+2026-09-10 03:02:17,024 1 INFO codex_review2 odoo.modules.loading: loading barcodes_gs1_nomenclature/views/barcodes_view.xml 
+2026-09-10 03:02:17,041 1 INFO codex_review2 odoo.modules.loading: Module barcodes_gs1_nomenclature loaded in 0.07s, 195 queries (+195 other) 
+2026-09-10 03:02:17,041 1 INFO codex_review2 odoo.modules.loading: Loading module html_editor (16/84) 
+2026-09-10 03:02:17,054 1 INFO codex_review2 odoo.modules.registry: module html_editor: creating or updating database tables 
+2026-09-10 03:02:17,076 1 INFO codex_review2 odoo.modules.loading: Module html_editor loaded in 0.03s, 46 queries (+46 other) 
+2026-09-10 03:02:17,076 1 INFO codex_review2 odoo.modules.loading: Loading module iap (17/84) 
+2026-09-10 03:02:17,087 1 INFO codex_review2 odoo.modules.registry: module iap: creating or updating database tables 
+2026-09-10 03:02:17,126 1 INFO codex_review2 odoo.modules.loading: loading iap/data/services.xml 
+2026-09-10 03:02:17,128 1 INFO codex_review2 odoo.modules.loading: loading iap/security/ir.model.access.csv 
+2026-09-10 03:02:17,133 1 INFO codex_review2 odoo.modules.loading: loading iap/security/ir_rule.xml 
+2026-09-10 03:02:17,137 1 INFO codex_review2 odoo.modules.loading: loading iap/views/iap_views.xml 
+2026-09-10 03:02:17,148 1 INFO codex_review2 odoo.modules.loading: loading iap/views/res_config_settings.xml 
+2026-09-10 03:02:17,179 1 INFO codex_review2 odoo.modules.loading: Module iap loaded in 0.10s, 183 queries (+183 other) 
+2026-09-10 03:02:17,179 1 INFO codex_review2 odoo.modules.loading: Loading module mail (18/84) 
+2026-09-10 03:02:17,208 1 INFO codex_review2 odoo.modules.registry: module mail: creating or updating database tables 
+2026-09-10 03:02:17,302 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.partner_ids 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.template_id 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_type_id 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_date_deadline_range 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_user_id 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.mail_post_method 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_summary 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_date_deadline_range_type 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_user_type 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_user_field_name 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.activity_note 
+2026-09-10 03:02:17,303 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.mail_post_autofollow 
+2026-09-10 03:02:17,324 1 INFO codex_review2 odoo.models: Prepare computation of res.company.email_primary_color 
+2026-09-10 03:02:17,324 1 INFO codex_review2 odoo.models: Prepare computation of res.company.email_secondary_color 
+2026-09-10 03:02:17,331 1 INFO codex_review2 odoo.models: Prepare computation of res.users.notification_type 
+2026-09-10 03:02:17,356 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.email_normalized 
+<string>:38: (ERROR/3) Unexpected indentation.
+<string>:43: (WARNING/2) Block quote ends without a blank line; unexpected unindent.
+2026-09-10 03:02:18,193 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_groups.xml 
+2026-09-10 03:02:18,248 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_activity_schedule_views.xml 
+2026-09-10 03:02:18,254 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_blacklist_remove_views.xml 
+2026-09-10 03:02:18,257 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_compose_message_views.xml 
+2026-09-10 03:02:18,266 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_resend_message_views.xml 
+2026-09-10 03:02:18,271 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_resend_partner_views.xml 
+2026-09-10 03:02:18,275 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_template_preview_views.xml 
+2026-09-10 03:02:18,280 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_wizard_invite_views.xml 
+2026-09-10 03:02:18,283 1 INFO codex_review2 odoo.modules.loading: loading mail/wizard/mail_template_reset_views.xml 
+2026-09-10 03:02:18,287 1 INFO codex_review2 odoo.modules.loading: loading mail/views/fetchmail_views.xml 
+2026-09-10 03:02:18,295 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_message_subtype_views.xml 
+2026-09-10 03:02:18,301 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_tracking_value_views.xml 
+2026-09-10 03:02:18,306 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_notification_views.xml 
+2026-09-10 03:02:18,313 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_message_views.xml 
+2026-09-10 03:02:18,327 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_message_schedule_views.xml 
+2026-09-10 03:02:18,333 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_mail_views.xml 
+2026-09-10 03:02:18,345 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_followers_views.xml 
+2026-09-10 03:02:18,350 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_ice_server_views.xml 
+2026-09-10 03:02:18,355 1 INFO codex_review2 odoo.modules.loading: loading mail/views/discuss_channel_member_views.xml 
+2026-09-10 03:02:18,360 1 INFO codex_review2 odoo.modules.loading: loading mail/views/discuss_channel_rtc_session_views.xml 
+2026-09-10 03:02:18,368 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_link_preview_views.xml 
+2026-09-10 03:02:18,374 1 INFO codex_review2 odoo.modules.loading: loading mail/views/discuss/discuss_gif_favorite_views.xml 
+2026-09-10 03:02:18,380 1 INFO codex_review2 odoo.modules.loading: loading mail/views/discuss_channel_views.xml 
+2026-09-10 03:02:18,392 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_canned_response_views.xml 
+2026-09-10 03:02:18,399 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_activity_views.xml 
+2026-09-10 03:02:18,632 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_activity_plan_views.xml 
+2026-09-10 03:02:18,649 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_activity_plan_template_views.xml 
+2026-09-10 03:02:18,654 1 INFO codex_review2 odoo.modules.loading: loading mail/views/res_config_settings_views.xml 
+2026-09-10 03:02:18,664 1 INFO codex_review2 odoo.modules.loading: loading mail/data/ir_config_parameter_data.xml 
+2026-09-10 03:02:18,668 1 INFO codex_review2 odoo.modules.loading: loading mail/data/res_partner_data.xml 
+2026-09-10 03:02:18,705 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_message_subtype_data.xml 
+2026-09-10 03:02:18,709 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_templates_chatter.xml 
+2026-09-10 03:02:18,715 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_templates_email_layouts.xml 
+2026-09-10 03:02:18,723 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_templates_mailgateway.xml 
+2026-09-10 03:02:18,729 1 INFO codex_review2 odoo.modules.loading: loading mail/data/discuss_channel_data.xml 
+2026-09-10 03:02:18,748 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_activity_data.xml 
+2026-09-10 03:02:18,753 1 INFO codex_review2 odoo.modules.loading: loading mail/data/security_notifications_templates.xml 
+2026-09-10 03:02:18,756 1 INFO codex_review2 odoo.modules.loading: loading mail/data/ir_cron_data.xml 
+2026-09-10 03:02:18,776 1 INFO codex_review2 odoo.modules.loading: loading mail/data/ir_actions_client.xml 
+2026-09-10 03:02:18,779 1 INFO codex_review2 odoo.modules.loading: loading mail/security/mail_security.xml 
+2026-09-10 03:02:18,844 1 INFO codex_review2 odoo.modules.loading: loading mail/security/ir.model.access.csv 
+2026-09-10 03:02:18,917 1 INFO codex_review2 odoo.modules.loading: loading mail/views/discuss_public_templates.xml 
+2026-09-10 03:02:18,921 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_alias_domain_views.xml 
+2026-09-10 03:02:18,931 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_alias_views.xml 
+2026-09-10 03:02:18,943 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_gateway_allowed_views.xml 
+2026-09-10 03:02:18,949 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_guest_views.xml 
+2026-09-10 03:02:18,954 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_message_reaction_views.xml 
+2026-09-10 03:02:18,959 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_templates_public.xml 
+2026-09-10 03:02:18,963 1 INFO codex_review2 odoo.modules.loading: loading mail/views/res_users_views.xml 
+2026-09-10 03:02:18,972 1 INFO codex_review2 odoo.modules.loading: loading mail/views/res_users_settings_views.xml 
+2026-09-10 03:02:18,978 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_template_views.xml 
+2026-09-10 03:02:18,989 1 INFO codex_review2 odoo.modules.loading: loading mail/views/ir_actions_server_views.xml 
+2026-09-10 03:02:18,995 1 INFO codex_review2 odoo.modules.loading: loading mail/views/ir_model_views.xml 
+2026-09-10 03:02:19,007 1 INFO codex_review2 odoo.modules.loading: loading mail/views/res_partner_views.xml 
+2026-09-10 03:02:19,028 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_blacklist_views.xml 
+2026-09-10 03:02:19,036 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_menus.xml 
+2026-09-10 03:02:19,098 1 INFO codex_review2 odoo.modules.loading: loading mail/views/res_company_views.xml 
+2026-09-10 03:02:19,105 1 INFO codex_review2 odoo.modules.loading: loading mail/views/mail_scheduled_message_views.xml 
+2026-09-10 03:02:19,109 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_canned_response_data.xml 
+2026-09-10 03:02:19,113 1 INFO codex_review2 odoo.modules.loading: loading mail/data/mail_templates_invite.xml 
+2026-09-10 03:02:19,118 1 INFO codex_review2 odoo.modules.loading: loading mail/data/web_tour_tour.xml 
+2026-09-10 03:02:19,160 1 INFO codex_review2 odoo.modules.loading: Module mail loaded in 1.98s, 4554 queries (+4555 other) 
+2026-09-10 03:02:19,160 1 INFO codex_review2 odoo.modules.loading: Loading module web_editor (19/84) 
+2026-09-10 03:02:19,213 1 INFO codex_review2 odoo.modules.registry: module web_editor: creating or updating database tables 
+2026-09-10 03:02:19,881 1 INFO codex_review2 odoo.modules.loading: loading web_editor/security/ir.model.access.csv 
+2026-09-10 03:02:19,888 1 INFO codex_review2 odoo.modules.loading: loading web_editor/data/editor_assets.xml 
+2026-09-10 03:02:19,890 1 INFO codex_review2 odoo.modules.loading: loading web_editor/views/editor.xml 
+2026-09-10 03:02:19,898 1 INFO codex_review2 odoo.modules.loading: loading web_editor/views/snippets.xml 
+2026-09-10 03:02:19,929 1 INFO codex_review2 odoo.modules.loading: Module web_editor loaded in 0.77s, 1478 queries (+1478 other) 
+2026-09-10 03:02:19,929 1 INFO codex_review2 odoo.modules.loading: Loading module analytic (20/84) 
+2026-09-10 03:02:19,952 1 INFO codex_review2 odoo.modules.registry: module analytic: creating or updating database tables 
+2026-09-10 03:02:20,041 1 INFO codex_review2 odoo.modules.loading: loading analytic/security/analytic_security.xml 
+2026-09-10 03:02:20,060 1 INFO codex_review2 odoo.modules.loading: loading analytic/security/ir.model.access.csv 
+2026-09-10 03:02:20,069 1 INFO codex_review2 odoo.modules.loading: loading analytic/views/analytic_line_views.xml 
+2026-09-10 03:02:20,095 1 INFO codex_review2 odoo.modules.loading: loading analytic/views/analytic_account_views.xml 
+2026-09-10 03:02:20,108 1 INFO codex_review2 odoo.modules.loading: loading analytic/views/analytic_plan_views.xml 
+2026-09-10 03:02:20,119 1 INFO codex_review2 odoo.modules.loading: loading analytic/views/analytic_distribution_model_views.xml 
+2026-09-10 03:02:20,126 1 INFO codex_review2 odoo.modules.loading: loading analytic/data/analytic_data.xml 
+2026-09-10 03:02:20,168 1 INFO codex_review2 odoo.modules.loading: Module analytic loaded in 0.24s, 438 queries (+438 other) 
+2026-09-10 03:02:20,168 1 INFO codex_review2 odoo.modules.loading: Loading module auth_signup (21/84) 
+2026-09-10 03:02:20,201 1 INFO codex_review2 odoo.modules.registry: module auth_signup: creating or updating database tables 
+2026-09-10 03:02:20,255 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/data/ir_config_parameter_data.xml 
+2026-09-10 03:02:20,258 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/data/ir_cron_data.xml 
+2026-09-10 03:02:20,263 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/data/mail_template_data.xml 
+2026-09-10 03:02:20,272 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/views/res_config_settings_views.xml 
+2026-09-10 03:02:20,280 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/views/res_users_views.xml 
+2026-09-10 03:02:20,290 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/views/auth_signup_login_templates.xml 
+2026-09-10 03:02:20,298 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/views/auth_signup_templates_email.xml 
+2026-09-10 03:02:20,303 1 INFO codex_review2 odoo.modules.loading: loading auth_signup/views/webclient_templates.xml 
+2026-09-10 03:02:20,316 1 INFO codex_review2 odoo.modules.loading: Module auth_signup loaded in 0.15s, 207 queries (+207 other) 
+2026-09-10 03:02:20,316 1 INFO codex_review2 odoo.modules.loading: Loading module auth_totp_mail (22/84) 
+2026-09-10 03:02:20,336 1 INFO codex_review2 odoo.modules.registry: module auth_totp_mail: creating or updating database tables 
+2026-09-10 03:02:20,356 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_mail/data/ir_action_data.xml 
+2026-09-10 03:02:20,364 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_mail/data/mail_template_data.xml 
+2026-09-10 03:02:20,368 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_mail/data/security_notifications_template.xml 
+2026-09-10 03:02:20,372 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_mail/views/res_users_views.xml 
+2026-09-10 03:02:20,391 1 INFO codex_review2 odoo.modules.loading: Module auth_totp_mail loaded in 0.08s, 121 queries (+121 other) 
+2026-09-10 03:02:20,391 1 INFO codex_review2 odoo.modules.loading: Loading module base_install_request (23/84) 
+2026-09-10 03:02:20,412 1 INFO codex_review2 odoo.modules.registry: module base_install_request: creating or updating database tables 
+2026-09-10 03:02:20,446 1 INFO codex_review2 odoo.modules.loading: loading base_install_request/security/ir.model.access.csv 
+2026-09-10 03:02:20,452 1 INFO codex_review2 odoo.modules.loading: loading base_install_request/wizard/base_module_install_request_views.xml 
+2026-09-10 03:02:20,460 1 INFO codex_review2 odoo.modules.loading: loading base_install_request/data/mail_template_data.xml 
+2026-09-10 03:02:20,465 1 INFO codex_review2 odoo.modules.loading: loading base_install_request/data/mail_templates_module_install.xml 
+2026-09-10 03:02:20,467 1 INFO codex_review2 odoo.modules.loading: loading base_install_request/views/ir_module_module_views.xml 
+2026-09-10 03:02:20,479 1 INFO codex_review2 odoo.modules.loading: Module base_install_request loaded in 0.09s, 153 queries (+153 other) 
+2026-09-10 03:02:20,479 1 INFO codex_review2 odoo.modules.loading: Loading module google_gmail (24/84) 
+2026-09-10 03:02:20,500 1 INFO codex_review2 odoo.modules.registry: module google_gmail: creating or updating database tables 
+2026-09-10 03:02:20,530 1 INFO codex_review2 odoo.modules.loading: loading google_gmail/views/fetchmail_server_views.xml 
+2026-09-10 03:02:20,539 1 INFO codex_review2 odoo.modules.loading: loading google_gmail/views/ir_mail_server_views.xml 
+2026-09-10 03:02:20,543 1 INFO codex_review2 odoo.modules.loading: loading google_gmail/views/res_config_settings_views.xml 
+2026-09-10 03:02:20,558 1 INFO codex_review2 odoo.modules.loading: Module google_gmail loaded in 0.08s, 124 queries (+124 other) 
+2026-09-10 03:02:20,558 1 INFO codex_review2 odoo.modules.loading: Loading module iap_mail (25/84) 
+2026-09-10 03:02:20,577 1 INFO codex_review2 odoo.modules.registry: module iap_mail: creating or updating database tables 
+2026-09-10 03:02:20,596 1 INFO codex_review2 odoo.modules.loading: loading iap_mail/data/mail_templates.xml 
+2026-09-10 03:02:20,604 1 INFO codex_review2 odoo.modules.loading: loading iap_mail/views/iap_views.xml 
+2026-09-10 03:02:20,613 1 INFO codex_review2 odoo.modules.loading: Module iap_mail loaded in 0.06s, 70 queries (+70 other) 
+2026-09-10 03:02:20,613 1 INFO codex_review2 odoo.modules.loading: Loading module mail_bot (26/84) 
+2026-09-10 03:02:20,635 1 INFO codex_review2 odoo.modules.registry: module mail_bot: creating or updating database tables 
+2026-09-10 03:02:20,711 1 INFO codex_review2 odoo.modules.loading: loading mail_bot/views/res_users_views.xml 
+2026-09-10 03:02:20,724 1 INFO codex_review2 odoo.modules.loading: loading mail_bot/data/mailbot_data.xml 
+2026-09-10 03:02:20,731 1 INFO codex_review2 odoo.modules.loading: Module mail_bot loaded in 0.12s, 127 queries (+127 other) 
+2026-09-10 03:02:20,731 1 INFO codex_review2 odoo.modules.loading: Loading module maintenance (27/84) 
+2026-09-10 03:02:20,755 1 INFO codex_review2 odoo.modules.registry: module maintenance: creating or updating database tables 
+2026-09-10 03:02:20,849 1 INFO codex_review2 odoo.modules.loading: loading maintenance/security/maintenance.xml 
+2026-09-10 03:02:20,895 1 INFO codex_review2 odoo.modules.loading: loading maintenance/security/ir.model.access.csv 
+2026-09-10 03:02:20,903 1 INFO codex_review2 odoo.modules.loading: loading maintenance/data/maintenance_data.xml 
+2026-09-10 03:02:20,907 1 INFO codex_review2 odoo.modules.loading: loading maintenance/data/mail_activity_type_data.xml 
+2026-09-10 03:02:20,910 1 INFO codex_review2 odoo.modules.loading: loading maintenance/data/mail_message_subtype_data.xml 
+2026-09-10 03:02:20,916 1 INFO codex_review2 odoo.modules.loading: loading maintenance/views/maintenance_views.xml 
+2026-09-10 03:02:21,009 1 INFO codex_review2 odoo.modules.loading: loading maintenance/views/mail_activity_views.xml 
+2026-09-10 03:02:21,012 1 INFO codex_review2 odoo.modules.loading: loading maintenance/views/res_config_settings_views.xml 
+2026-09-10 03:02:21,033 1 INFO codex_review2 odoo.modules.loading: Module maintenance loaded in 0.30s, 758 queries (+758 other) 
+2026-09-10 03:02:21,033 1 INFO codex_review2 odoo.modules.loading: Loading module phone_validation (28/84) 
+2026-09-10 03:02:21,109 1 INFO codex_review2 odoo.modules.registry: module phone_validation: creating or updating database tables 
+2026-09-10 03:02:21,907 1 INFO codex_review2 odoo.modules.loading: loading phone_validation/security/ir.model.access.csv 
+2026-09-10 03:02:21,914 1 INFO codex_review2 odoo.modules.loading: loading phone_validation/views/phone_blacklist_views.xml 
+2026-09-10 03:02:21,930 1 INFO codex_review2 odoo.modules.loading: loading phone_validation/wizard/phone_blacklist_remove_view.xml 
+2026-09-10 03:02:21,943 1 INFO codex_review2 odoo.modules.loading: Module phone_validation loaded in 0.91s, 1587 queries (+1587 other) 
+2026-09-10 03:02:21,943 1 INFO codex_review2 odoo.modules.loading: Loading module privacy_lookup (29/84) 
+2026-09-10 03:02:21,971 1 INFO codex_review2 odoo.modules.registry: module privacy_lookup: creating or updating database tables 
+2026-09-10 03:02:22,042 1 INFO codex_review2 odoo.modules.loading: loading privacy_lookup/wizard/privacy_lookup_wizard_views.xml 
+2026-09-10 03:02:22,059 1 INFO codex_review2 odoo.modules.loading: loading privacy_lookup/views/privacy_log_views.xml 
+2026-09-10 03:02:22,069 1 INFO codex_review2 odoo.modules.loading: loading privacy_lookup/security/ir.model.access.csv 
+2026-09-10 03:02:22,076 1 INFO codex_review2 odoo.modules.loading: loading privacy_lookup/data/ir_actions_server_data.xml 
+2026-09-10 03:02:22,089 1 INFO codex_review2 odoo.modules.loading: Module privacy_lookup loaded in 0.15s, 247 queries (+247 other) 
+2026-09-10 03:02:22,089 1 INFO codex_review2 odoo.modules.loading: Loading module product (30/84) 
+2026-09-10 03:02:22,132 1 INFO codex_review2 odoo.modules.registry: module product: creating or updating database tables 
+2026-09-10 03:02:22,486 1 INFO codex_review2 odoo.modules.loading: loading product/data/product_data.xml 
+2026-09-10 03:02:22,503 1 INFO codex_review2 odoo.modules.loading: loading product/security/product_security.xml 
+2026-09-10 03:02:22,596 1 INFO codex_review2 odoo.modules.loading: loading product/security/ir.model.access.csv 
+2026-09-10 03:02:22,613 1 INFO codex_review2 odoo.modules.loading: loading product/wizard/product_label_layout_views.xml 
+2026-09-10 03:02:22,620 1 INFO codex_review2 odoo.modules.loading: loading product/wizard/update_product_attribute_value_views.xml 
+2026-09-10 03:02:22,623 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_tag_views.xml 
+2026-09-10 03:02:22,629 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_views.xml 
+2026-09-10 03:02:22,674 1 INFO codex_review2 odoo.modules.loading: loading product/views/res_config_settings_views.xml 
+2026-09-10 03:02:22,772 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_attribute_views.xml 
+2026-09-10 03:02:22,801 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_attribute_value_views.xml 
+2026-09-10 03:02:22,805 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_category_views.xml 
+2026-09-10 03:02:22,816 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_combo_views.xml 
+2026-09-10 03:02:22,824 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_document_views.xml 
+2026-09-10 03:02:22,841 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_packaging_views.xml 
+2026-09-10 03:02:22,859 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_pricelist_item_views.xml 
+2026-09-10 03:02:22,881 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_pricelist_views.xml 
+2026-09-10 03:02:22,901 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_supplierinfo_views.xml 
+2026-09-10 03:02:22,919 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_template_attribute_line_views.xml 
+2026-09-10 03:02:22,925 1 INFO codex_review2 odoo.modules.loading: loading product/views/product_template_views.xml 
+2026-09-10 03:02:22,952 1 INFO codex_review2 odoo.modules.loading: loading product/views/res_country_group_views.xml 
+2026-09-10 03:02:22,958 1 INFO codex_review2 odoo.modules.loading: loading product/views/res_partner_views.xml 
+2026-09-10 03:02:22,967 1 INFO codex_review2 odoo.modules.loading: loading product/report/product_reports.xml 
+2026-09-10 03:02:22,978 1 INFO codex_review2 odoo.modules.loading: loading product/report/product_product_templates.xml 
+2026-09-10 03:02:22,990 1 INFO codex_review2 odoo.modules.loading: loading product/report/product_template_templates.xml 
+2026-09-10 03:02:22,996 1 INFO codex_review2 odoo.modules.loading: loading product/report/product_packaging.xml 
+2026-09-10 03:02:22,999 1 INFO codex_review2 odoo.modules.loading: loading product/report/product_pricelist_report_templates.xml 
+2026-09-10 03:02:23,025 1 INFO codex_review2 odoo.modules.loading: Module product loaded in 0.94s, 1763 queries (+1763 other) 
+2026-09-10 03:02:23,025 1 INFO codex_review2 odoo.modules.loading: Loading module rating (31/84) 
+2026-09-10 03:02:23,063 1 INFO codex_review2 odoo.modules.registry: module rating: creating or updating database tables 
+2026-09-10 03:02:23,219 1 INFO codex_review2 odoo.modules.loading: loading rating/views/rating_rating_views.xml 
+2026-09-10 03:02:23,251 1 INFO codex_review2 odoo.modules.loading: loading rating/views/rating_templates.xml 
+2026-09-10 03:02:23,258 1 INFO codex_review2 odoo.modules.loading: loading rating/views/mail_message_views.xml 
+2026-09-10 03:02:23,264 1 INFO codex_review2 odoo.modules.loading: loading rating/security/ir.model.access.csv 
+2026-09-10 03:02:23,277 1 INFO codex_review2 odoo.modules.loading: Module rating loaded in 0.25s, 416 queries (+416 other) 
+2026-09-10 03:02:23,277 1 INFO codex_review2 odoo.modules.loading: Loading module resource_mail (32/84) 
+2026-09-10 03:02:23,305 1 INFO codex_review2 odoo.modules.registry: module resource_mail: creating or updating database tables 
+2026-09-10 03:02:23,332 1 INFO codex_review2 odoo.modules.loading: Module resource_mail loaded in 0.05s, 35 queries (+35 other) 
+2026-09-10 03:02:23,332 1 INFO codex_review2 odoo.modules.loading: Loading module web_unsplash (33/84) 
+2026-09-10 03:02:23,360 1 INFO codex_review2 odoo.modules.registry: module web_unsplash: creating or updating database tables 
+2026-09-10 03:02:23,397 1 INFO codex_review2 odoo.modules.loading: loading web_unsplash/views/res_config_settings_view.xml 
+2026-09-10 03:02:23,415 1 INFO codex_review2 odoo.modules.loading: Module web_unsplash loaded in 0.08s, 100 queries (+100 other) 
+2026-09-10 03:02:23,415 1 INFO codex_review2 odoo.modules.loading: Loading module partner_autocomplete (34/84) 
+2026-09-10 03:02:23,444 1 INFO codex_review2 odoo.modules.registry: module partner_autocomplete: creating or updating database tables 
+2026-09-10 03:02:23,512 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/security/ir.model.access.csv 
+2026-09-10 03:02:23,518 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/views/res_partner_views.xml 
+2026-09-10 03:02:23,530 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/views/res_company_views.xml 
+2026-09-10 03:02:23,536 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/views/res_config_settings_views.xml 
+2026-09-10 03:02:23,545 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/data/cron.xml 
+2026-09-10 03:02:23,551 1 INFO codex_review2 odoo.modules.loading: loading partner_autocomplete/data/iap_service_data.xml 
+2026-09-10 03:02:23,563 1 INFO codex_review2 odoo.modules.loading: Module partner_autocomplete loaded in 0.15s, 207 queries (+207 other) 
+2026-09-10 03:02:23,564 1 INFO codex_review2 odoo.modules.loading: Loading module portal (35/84) 
+2026-09-10 03:02:23,597 1 INFO codex_review2 odoo.modules.registry: module portal: creating or updating database tables 
+2026-09-10 03:02:23,778 1 INFO codex_review2 odoo.modules.loading: loading portal/security/ir.model.access.csv 
+2026-09-10 03:02:23,783 1 INFO codex_review2 odoo.modules.loading: loading portal/data/mail_template_data.xml 
+2026-09-10 03:02:23,789 1 INFO codex_review2 odoo.modules.loading: loading portal/data/mail_templates.xml 
+2026-09-10 03:02:23,793 1 INFO codex_review2 odoo.modules.loading: loading portal/views/mail_templates_public.xml 
+2026-09-10 03:02:23,800 1 INFO codex_review2 odoo.modules.loading: loading portal/views/portal_templates.xml 
+2026-09-10 03:02:23,861 1 INFO codex_review2 odoo.modules.loading: loading portal/views/res_config_settings_views.xml 
+2026-09-10 03:02:23,869 1 INFO codex_review2 odoo.modules.loading: loading portal/wizard/portal_share_views.xml 
+2026-09-10 03:02:23,873 1 INFO codex_review2 odoo.modules.loading: loading portal/wizard/portal_wizard_views.xml 
+2026-09-10 03:02:23,890 1 INFO codex_review2 odoo.modules.loading: Module portal loaded in 0.33s, 547 queries (+547 other) 
+2026-09-10 03:02:23,890 1 INFO codex_review2 odoo.modules.loading: Loading module sms (36/84) 
+2026-09-10 03:02:23,944 1 INFO codex_review2 odoo.modules.registry: module sms: creating or updating database tables 
+2026-09-10 03:02:23,953 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.sms_template_id 
+2026-09-10 03:02:23,953 1 INFO codex_review2 odoo.models: Prepare computation of ir.actions.server.sms_method 
+2026-09-10 03:02:23,968 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.phone_sanitized 
+2026-09-10 03:02:25,005 1 INFO codex_review2 odoo.modules.loading: loading sms/data/iap_service_data.xml 
+2026-09-10 03:02:25,008 1 INFO codex_review2 odoo.modules.loading: loading sms/data/ir_cron_data.xml 
+2026-09-10 03:02:25,012 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_account_code_views.xml 
+2026-09-10 03:02:25,017 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_account_phone_views.xml 
+2026-09-10 03:02:25,020 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_account_sender_views.xml 
+2026-09-10 03:02:25,023 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_composer_views.xml 
+2026-09-10 03:02:25,028 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_template_preview_views.xml 
+2026-09-10 03:02:25,032 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_resend_views.xml 
+2026-09-10 03:02:25,037 1 INFO codex_review2 odoo.modules.loading: loading sms/wizard/sms_template_reset_views.xml 
+2026-09-10 03:02:25,042 1 INFO codex_review2 odoo.modules.loading: loading sms/views/ir_actions_server_views.xml 
+2026-09-10 03:02:25,047 1 INFO codex_review2 odoo.modules.loading: loading sms/views/mail_notification_views.xml 
+2026-09-10 03:02:25,053 1 INFO codex_review2 odoo.modules.loading: loading sms/views/res_config_settings_views.xml 
+2026-09-10 03:02:25,059 1 INFO codex_review2 odoo.modules.loading: loading sms/views/res_partner_views.xml 
+2026-09-10 03:02:25,073 1 INFO codex_review2 odoo.modules.loading: loading sms/views/iap_account_views.xml 
+2026-09-10 03:02:25,079 1 INFO codex_review2 odoo.modules.loading: loading sms/views/sms_sms_views.xml 
+2026-09-10 03:02:25,091 1 INFO codex_review2 odoo.modules.loading: loading sms/views/sms_template_views.xml 
+2026-09-10 03:02:25,101 1 INFO codex_review2 odoo.modules.loading: loading sms/security/ir.model.access.csv 
+2026-09-10 03:02:25,113 1 INFO codex_review2 odoo.modules.loading: loading sms/security/sms_security.xml 
+2026-09-10 03:02:25,127 1 INFO codex_review2 odoo.modules.loading: Module sms loaded in 1.24s, 2280 queries (+2280 other) 
+2026-09-10 03:02:25,127 1 INFO codex_review2 odoo.modules.loading: Loading module snailmail (37/84) 
+2026-09-10 03:02:25,162 1 INFO codex_review2 odoo.modules.registry: module snailmail: creating or updating database tables 
+2026-09-10 03:02:25,398 1 INFO codex_review2 odoo.modules.loading: loading snailmail/data/iap_service_data.xml 
+2026-09-10 03:02:25,403 1 INFO codex_review2 odoo.modules.loading: loading snailmail/data/snailmail_data.xml 
+2026-09-10 03:02:25,410 1 INFO codex_review2 odoo.modules.loading: loading snailmail/views/report_assets.xml 
+2026-09-10 03:02:25,419 1 INFO codex_review2 odoo.modules.loading: loading snailmail/views/snailmail_views.xml 
+2026-09-10 03:02:25,431 1 INFO codex_review2 odoo.modules.loading: loading snailmail/wizard/snailmail_letter_format_error_views.xml 
+2026-09-10 03:02:25,437 1 INFO codex_review2 odoo.modules.loading: loading snailmail/wizard/snailmail_letter_missing_required_fields_views.xml 
+2026-09-10 03:02:25,441 1 INFO codex_review2 odoo.modules.loading: loading snailmail/security/ir.model.access.csv 
+2026-09-10 03:02:25,455 1 INFO codex_review2 odoo.modules.loading: Module snailmail loaded in 0.33s, 492 queries (+492 other) 
+2026-09-10 03:02:25,455 1 INFO codex_review2 odoo.modules.loading: Loading module auth_totp_portal (38/84) 
+2026-09-10 03:02:25,485 1 INFO codex_review2 odoo.modules.registry: module auth_totp_portal: creating or updating database tables 
+2026-09-10 03:02:25,504 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_portal/security/security.xml 
+2026-09-10 03:02:25,512 1 INFO codex_review2 odoo.modules.loading: loading auth_totp_portal/views/templates.xml 
+2026-09-10 03:02:25,523 1 INFO codex_review2 odoo.modules.loading: Module auth_totp_portal loaded in 0.07s, 66 queries (+66 other) 
+2026-09-10 03:02:25,523 1 INFO codex_review2 odoo.modules.loading: Loading module digest (39/84) 
+2026-09-10 03:02:25,554 1 INFO codex_review2 odoo.modules.registry: module digest: creating or updating database tables 
+2026-09-10 03:02:25,613 1 INFO codex_review2 odoo.modules.loading: loading digest/security/ir.model.access.csv 
+2026-09-10 03:02:25,619 1 INFO codex_review2 odoo.modules.loading: loading digest/data/digest_data.xml 
+2026-09-10 03:02:25,630 1 INFO codex_review2 odoo.modules.loading: loading digest/data/digest_tips_data.xml 
+2026-09-10 03:02:25,638 1 INFO codex_review2 odoo.modules.loading: loading digest/data/ir_cron_data.xml 
+2026-09-10 03:02:25,642 1 INFO codex_review2 odoo.modules.loading: loading digest/data/res_config_settings_data.xml 
+2026-09-10 03:02:25,645 1 INFO codex_review2 odoo.modules.loading: loading digest/views/digest_views.xml 
+2026-09-10 03:02:25,667 1 INFO codex_review2 odoo.modules.loading: loading digest/views/digest_templates.xml 
+2026-09-10 03:02:25,669 1 INFO codex_review2 odoo.modules.loading: loading digest/views/res_config_settings_views.xml 
+2026-09-10 03:02:25,687 1 INFO codex_review2 odoo.modules.loading: Module digest loaded in 0.16s, 305 queries (+305 other) 
+2026-09-10 03:02:25,687 1 INFO codex_review2 odoo.modules.loading: Loading module payment (40/84) 
+2026-09-10 03:02:25,731 1 INFO codex_review2 odoo.modules.registry: module payment: creating or updating database tables 
+2026-09-10 03:02:25,906 1 INFO codex_review2 odoo.modules.loading: loading payment/data/ir_actions_server_data.xml 
+2026-09-10 03:02:25,910 1 INFO codex_review2 odoo.modules.loading: loading payment/data/onboarding_data.xml 
+2026-09-10 03:02:25,912 1 INFO codex_review2 odoo.modules.loading: loading payment/data/payment_method_data.xml 
+2026-09-10 03:02:26,985 1 INFO codex_review2 odoo.modules.loading: loading payment/data/payment_provider_data.xml 
+2026-09-10 03:02:27,044 1 INFO codex_review2 odoo.modules.loading: loading payment/data/payment_cron.xml 
+2026-09-10 03:02:27,049 1 INFO codex_review2 odoo.modules.loading: loading payment/views/express_checkout_templates.xml 
+2026-09-10 03:02:27,052 1 INFO codex_review2 odoo.modules.loading: loading payment/views/payment_form_templates.xml 
+2026-09-10 03:02:27,070 1 INFO codex_review2 odoo.modules.loading: loading payment/views/portal_templates.xml 
+2026-09-10 03:02:27,086 1 INFO codex_review2 odoo.modules.loading: loading payment/views/payment_provider_views.xml 
+2026-09-10 03:02:27,100 1 INFO codex_review2 odoo.modules.loading: loading payment/views/payment_method_views.xml 
+2026-09-10 03:02:27,110 1 INFO codex_review2 odoo.modules.loading: loading payment/views/payment_transaction_views.xml 
+2026-09-10 03:02:27,121 1 INFO codex_review2 odoo.modules.loading: loading payment/views/payment_token_views.xml 
+2026-09-10 03:02:27,129 1 INFO codex_review2 odoo.modules.loading: loading payment/views/res_partner_views.xml 
+2026-09-10 03:02:27,136 1 INFO codex_review2 odoo.modules.loading: loading payment/security/ir.model.access.csv 
+2026-09-10 03:02:27,501 1 INFO codex_review2 odoo.modules.loading: loading payment/security/payment_security.xml 
+2026-09-10 03:02:27,514 1 INFO codex_review2 odoo.modules.loading: loading payment/wizards/payment_capture_wizard_views.xml 
+2026-09-10 03:02:27,518 1 INFO codex_review2 odoo.modules.loading: loading payment/wizards/payment_link_wizard_views.xml 
+2026-09-10 03:02:27,522 1 INFO codex_review2 odoo.modules.loading: loading payment/wizards/payment_onboarding_views.xml 
+2026-09-10 03:02:27,538 1 INFO codex_review2 odoo.modules.loading: Module payment loaded in 1.85s, 2402 queries (+2402 other) 
+2026-09-10 03:02:27,538 1 INFO codex_review2 odoo.modules.loading: Loading module portal_rating (41/84) 
+2026-09-10 03:02:27,573 1 INFO codex_review2 odoo.modules.registry: module portal_rating: creating or updating database tables 
+2026-09-10 03:02:27,713 1 INFO codex_review2 odoo.modules.loading: loading portal_rating/views/rating_rating_views.xml 
+2026-09-10 03:02:27,719 1 INFO codex_review2 odoo.modules.loading: loading portal_rating/views/portal_templates.xml 
+2026-09-10 03:02:27,722 1 INFO codex_review2 odoo.modules.loading: loading portal_rating/views/rating_templates.xml 
+2026-09-10 03:02:27,731 1 INFO codex_review2 odoo.modules.loading: Module portal_rating loaded in 0.19s, 285 queries (+285 other) 
+2026-09-10 03:02:27,731 1 INFO codex_review2 odoo.modules.loading: Loading module spreadsheet (42/84) 
+2026-09-10 03:02:27,768 1 INFO codex_review2 odoo.modules.registry: module spreadsheet: creating or updating database tables 
+2026-09-10 03:02:27,802 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet/views/public_readonly_spreadsheet_templates.xml 
+2026-09-10 03:02:27,813 1 INFO codex_review2 odoo.modules.loading: Module spreadsheet loaded in 0.08s, 86 queries (+86 other) 
+2026-09-10 03:02:27,813 1 INFO codex_review2 odoo.modules.loading: Loading module account (43/84) 
+2026-09-10 03:02:27,906 1 INFO codex_review2 odoo.modules.registry: module account: creating or updating database tables 
+2026-09-10 03:02:27,988 1 INFO codex_review2 odoo.models: Prepare computation of res.company.account_fiscal_country_id 
+2026-09-10 03:02:27,988 1 INFO codex_review2 odoo.models: Prepare computation of res.company.invoice_terms_html 
+2026-09-10 03:02:29,229 1 INFO codex_review2 odoo.modules.loading: loading account/security/account_security.xml 
+2026-09-10 03:02:29,496 1 INFO codex_review2 odoo.modules.loading: loading account/security/ir.model.access.csv 
+2026-09-10 03:02:29,544 1 INFO codex_review2 odoo.modules.loading: loading account/data/account_data.xml 
+2026-09-10 03:02:29,576 1 INFO codex_review2 odoo.modules.loading: loading account/data/digest_data.xml 
+2026-09-10 03:02:29,581 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_report.xml 
+2026-09-10 03:02:29,592 1 INFO codex_review2 odoo.modules.loading: loading account/data/mail_template_data.xml 
+2026-09-10 03:02:29,602 1 INFO codex_review2 odoo.modules.loading: loading account/data/onboarding_data.xml 
+2026-09-10 03:02:29,622 1 INFO codex_review2 odoo.modules.loading: loading account/data/account_tour.xml 
+2026-09-10 03:02:29,625 1 INFO codex_review2 odoo.modules.loading: loading account/data/ir_sequence.xml 
+2026-09-10 03:02:29,627 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_payment_view.xml 
+2026-09-10 03:02:29,657 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_automatic_entry_wizard_views.xml 
+2026-09-10 03:02:29,662 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_autopost_bills_wizard.xml 
+2026-09-10 03:02:29,666 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_unreconcile_view.xml 
+2026-09-10 03:02:29,669 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_move_reversal_view.xml 
+2026-09-10 03:02:29,673 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_resequence_views.xml 
+2026-09-10 03:02:29,678 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_payment_register_views.xml 
+2026-09-10 03:02:29,684 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_move_views.xml 
+2026-09-10 03:02:29,983 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/setup_wizards_view.xml 
+2026-09-10 03:02:29,994 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_account_views.xml 
+2026-09-10 03:02:30,008 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_group_views.xml 
+2026-09-10 03:02:30,015 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_journal_views.xml 
+2026-09-10 03:02:30,037 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_account_tag_views.xml 
+2026-09-10 03:02:30,043 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_bank_statement_views.xml 
+2026-09-10 03:02:30,055 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_reconcile_model_views.xml 
+2026-09-10 03:02:30,070 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_tax_views.xml 
+2026-09-10 03:02:30,097 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_full_reconcile_views.xml 
+2026-09-10 03:02:30,101 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_payment_term_views.xml 
+2026-09-10 03:02:30,111 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_payment_method.xml 
+2026-09-10 03:02:30,115 1 INFO codex_review2 odoo.modules.loading: loading account/views/res_partner_bank_views.xml 
+2026-09-10 03:02:30,126 1 INFO codex_review2 odoo.modules.loading: loading account/views/report_statement.xml 
+2026-09-10 03:02:30,132 1 INFO codex_review2 odoo.modules.loading: loading account/views/terms_template.xml 
+2026-09-10 03:02:30,138 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_validate_move_view.xml 
+2026-09-10 03:02:30,145 1 INFO codex_review2 odoo.modules.loading: loading account/views/res_company_views.xml 
+2026-09-10 03:02:30,157 1 INFO codex_review2 odoo.modules.loading: loading account/views/product_view.xml 
+2026-09-10 03:02:30,171 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_analytic_plan_views.xml 
+2026-09-10 03:02:30,178 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_analytic_account_views.xml 
+2026-09-10 03:02:30,185 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_analytic_distribution_model_views.xml 
+2026-09-10 03:02:30,191 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_analytic_line_views.xml 
+2026-09-10 03:02:30,206 1 INFO codex_review2 odoo.modules.loading: loading account/views/report_invoice.xml 
+2026-09-10 03:02:30,224 1 INFO codex_review2 odoo.modules.loading: loading account/report/account_invoice_report_view.xml 
+2026-09-10 03:02:30,240 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_cash_rounding_view.xml 
+2026-09-10 03:02:30,247 1 INFO codex_review2 odoo.modules.loading: loading account/views/ir_actions_views.xml 
+2026-09-10 03:02:30,251 1 INFO codex_review2 odoo.modules.loading: loading account/views/ir_module_views.xml 
+2026-09-10 03:02:30,256 1 INFO codex_review2 odoo.modules.loading: loading account/views/base_document_layout_views.xml 
+2026-09-10 03:02:30,261 1 INFO codex_review2 odoo.modules.loading: loading account/views/res_config_settings_views.xml 
+2026-09-10 03:02:30,285 1 INFO codex_review2 odoo.modules.loading: loading account/views/partner_view.xml 
+2026-09-10 03:02:30,325 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_journal_dashboard_view.xml 
+2026-09-10 03:02:30,338 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_portal_templates.xml 
+2026-09-10 03:02:30,360 1 INFO codex_review2 odoo.modules.loading: loading account/views/report_payment_receipt_templates.xml 
+2026-09-10 03:02:30,365 1 INFO codex_review2 odoo.modules.loading: loading account/data/service_cron.xml 
+2026-09-10 03:02:30,371 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_incoterms_view.xml 
+2026-09-10 03:02:30,383 1 INFO codex_review2 odoo.modules.loading: loading account/data/account_incoterms_data.xml 
+2026-09-10 03:02:30,392 1 INFO codex_review2 odoo.modules.loading: loading account/views/digest_views.xml 
+2026-09-10 03:02:30,399 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_move_send_wizard.xml 
+2026-09-10 03:02:30,405 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_move_send_batch_wizard.xml 
+2026-09-10 03:02:30,411 1 INFO codex_review2 odoo.modules.loading: loading account/report/account_hash_integrity_templates.xml 
+2026-09-10 03:02:30,416 1 INFO codex_review2 odoo.modules.loading: loading account/views/res_currency.xml 
+2026-09-10 03:02:30,421 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_menuitem.xml 
+2026-09-10 03:02:30,512 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_secure_entries_wizard.xml 
+2026-09-10 03:02:30,520 1 INFO codex_review2 odoo.modules.loading: loading account/views/mail_message_views.xml 
+2026-09-10 03:02:30,530 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/accrued_orders.xml 
+2026-09-10 03:02:30,534 1 INFO codex_review2 odoo.modules.loading: loading account/views/bill_preview_template.xml 
+2026-09-10 03:02:30,539 1 INFO codex_review2 odoo.modules.loading: loading account/data/account_reports_data.xml 
+2026-09-10 03:02:30,547 1 INFO codex_review2 odoo.modules.loading: loading account/views/uom_uom_views.xml 
+2026-09-10 03:02:30,551 1 INFO codex_review2 odoo.modules.loading: loading account/views/product_views.xml 
+2026-09-10 03:02:30,558 1 INFO codex_review2 odoo.modules.loading: loading account/views/tests_shared_js_python.xml 
+2026-09-10 03:02:30,560 1 INFO codex_review2 odoo.modules.loading: loading account/views/account_lock_exception_views.xml 
+2026-09-10 03:02:30,564 1 INFO codex_review2 odoo.modules.loading: loading account/views/report_templates.xml 
+2026-09-10 03:02:30,573 1 INFO codex_review2 odoo.modules.loading: loading account/wizard/account_merge_wizard_views.xml 
+2026-09-10 03:02:30,579 1 INFO codex_review2 odoo.modules.loading: loading account/data/ir_config_parameter_data.xml 
+2026-09-10 03:02:30,685 1 INFO codex_review2 odoo.modules.loading: Module account loaded in 2.87s, 5855 queries (+5855 other) 
+2026-09-10 03:02:30,685 1 INFO codex_review2 odoo.modules.loading: Loading module hr (44/84) 
+2026-09-10 03:02:30,768 1 INFO codex_review2 odoo.modules.registry: module hr: creating or updating database tables 
+<string>:49: (WARNING/2) Title underline too short.
+
+Time Off Management
+-----------------
+<string>:49: (WARNING/2) Title underline too short.
+
+Time Off Management
+-----------------
+2026-09-10 03:02:32,315 1 INFO codex_review2 odoo.modules.loading: loading hr/security/hr_security.xml 
+2026-09-10 03:02:32,463 1 INFO codex_review2 odoo.modules.loading: loading hr/security/ir.model.access.csv 
+2026-09-10 03:02:32,475 1 INFO codex_review2 odoo.modules.loading: loading hr/data/digest_data.xml 
+2026-09-10 03:02:32,478 1 INFO codex_review2 odoo.modules.loading: loading hr/data/report_paperformat.xml 
+2026-09-10 03:02:32,480 1 INFO codex_review2 odoo.modules.loading: loading hr/wizard/hr_departure_wizard_views.xml 
+2026-09-10 03:02:32,486 1 INFO codex_review2 odoo.modules.loading: loading hr/wizard/mail_activity_schedule_views.xml 
+2026-09-10 03:02:32,491 1 INFO codex_review2 odoo.modules.loading: loading hr/views/mail_activity_plan_views.xml 
+2026-09-10 03:02:32,515 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_departure_reason_views.xml 
+2026-09-10 03:02:32,521 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_contract_type_views.xml 
+2026-09-10 03:02:32,528 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_job_views.xml 
+2026-09-10 03:02:32,538 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_employee_category_views.xml 
+2026-09-10 03:02:32,544 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_employee_public_views.xml 
+2026-09-10 03:02:32,557 1 INFO codex_review2 odoo.modules.loading: loading hr/report/hr_employee_badge.xml 
+2026-09-10 03:02:32,562 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_employee_views.xml 
+2026-09-10 03:02:32,592 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_department_views.xml 
+2026-09-10 03:02:32,609 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_work_location_views.xml 
+2026-09-10 03:02:32,615 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_views.xml 
+2026-09-10 03:02:32,650 1 INFO codex_review2 odoo.modules.loading: loading hr/views/res_config_settings_views.xml 
+2026-09-10 03:02:32,662 1 INFO codex_review2 odoo.modules.loading: loading hr/views/res_partner_views.xml 
+2026-09-10 03:02:32,674 1 INFO codex_review2 odoo.modules.loading: loading hr/views/discuss_channel_views.xml 
+2026-09-10 03:02:32,678 1 INFO codex_review2 odoo.modules.loading: loading hr/views/res_users.xml 
+2026-09-10 03:02:32,708 1 INFO codex_review2 odoo.modules.loading: loading hr/views/hr_templates.xml 
+2026-09-10 03:02:32,710 1 INFO codex_review2 odoo.modules.loading: loading hr/data/hr_data.xml 
+2026-09-10 03:02:32,788 1 INFO codex_review2 odoo.modules.loading: Module hr loaded in 2.10s, 3754 queries (+3754 other) 
+2026-09-10 03:02:32,788 1 INFO codex_review2 odoo.modules.loading: Loading module project (45/84) 
+2026-09-10 03:02:32,861 1 INFO codex_review2 odoo.modules.registry: module project: creating or updating database tables 
+2026-09-10 03:02:33,214 1 INFO codex_review2 odoo.modules.loading: loading project/security/project_security.xml 
+2026-09-10 03:02:33,399 1 INFO codex_review2 odoo.modules.loading: loading project/security/ir.model.access.csv 
+2026-09-10 03:02:33,421 1 INFO codex_review2 odoo.modules.loading: loading project/security/ir.model.access.xml 
+2026-09-10 03:02:33,424 1 INFO codex_review2 odoo.modules.loading: loading project/data/digest_data.xml 
+2026-09-10 03:02:33,430 1 INFO codex_review2 odoo.modules.loading: loading project/report/project_task_burndown_chart_report_views.xml 
+2026-09-10 03:02:33,439 1 INFO codex_review2 odoo.modules.loading: loading project/views/account_analytic_account_views.xml 
+2026-09-10 03:02:33,448 1 INFO codex_review2 odoo.modules.loading: loading project/views/digest_digest_views.xml 
+2026-09-10 03:02:33,454 1 INFO codex_review2 odoo.modules.loading: loading project/views/rating_rating_views.xml 
+2026-09-10 03:02:33,489 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_update_views.xml 
+2026-09-10 03:02:33,501 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_update_templates.xml 
+2026-09-10 03:02:33,506 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_project_stage_views.xml 
+2026-09-10 03:02:33,523 1 INFO codex_review2 odoo.modules.loading: loading project/wizard/project_share_wizard_views.xml 
+2026-09-10 03:02:33,530 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_task_type_views.xml 
+2026-09-10 03:02:33,546 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_project_views.xml 
+2026-09-10 03:02:33,620 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_task_views.xml 
+2026-09-10 03:02:33,751 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_tags_views.xml 
+2026-09-10 03:02:33,758 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_milestone_views.xml 
+2026-09-10 03:02:33,765 1 INFO codex_review2 odoo.modules.loading: loading project/views/res_partner_views.xml 
+2026-09-10 03:02:33,774 1 INFO codex_review2 odoo.modules.loading: loading project/views/res_config_settings_views.xml 
+2026-09-10 03:02:33,784 1 INFO codex_review2 odoo.modules.loading: loading project/views/mail_activity_plan_views.xml 
+2026-09-10 03:02:33,795 1 INFO codex_review2 odoo.modules.loading: loading project/views/mail_activity_type_views.xml 
+2026-09-10 03:02:33,797 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_sharing_project_task_views.xml 
+2026-09-10 03:02:33,837 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_portal_project_project_templates.xml 
+2026-09-10 03:02:33,847 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_portal_project_task_templates.xml 
+2026-09-10 03:02:33,866 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_task_templates.xml 
+2026-09-10 03:02:33,868 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_sharing_project_task_templates.xml 
+2026-09-10 03:02:33,872 1 INFO codex_review2 odoo.modules.loading: loading project/report/project_report_views.xml 
+2026-09-10 03:02:33,886 1 INFO codex_review2 odoo.modules.loading: loading project/data/ir_cron_data.xml 
+2026-09-10 03:02:33,890 1 INFO codex_review2 odoo.modules.loading: loading project/data/mail_message_subtype_data.xml 
+2026-09-10 03:02:33,910 1 INFO codex_review2 odoo.modules.loading: loading project/data/mail_template_data.xml 
+2026-09-10 03:02:33,918 1 INFO codex_review2 odoo.modules.loading: loading project/data/project_data.xml 
+2026-09-10 03:02:33,928 1 INFO codex_review2 odoo.modules.loading: loading project/data/project_tour.xml 
+2026-09-10 03:02:33,931 1 INFO codex_review2 odoo.modules.loading: loading project/wizard/project_task_type_delete_views.xml 
+2026-09-10 03:02:33,937 1 INFO codex_review2 odoo.modules.loading: loading project/wizard/project_project_stage_delete_views.xml 
+2026-09-10 03:02:33,943 1 INFO codex_review2 odoo.modules.loading: loading project/views/project_menus.xml 
+2026-09-10 03:02:34,083 1 INFO codex_review2 odoo.modules.loading: Module project loaded in 1.30s, 2752 queries (+2752 other) 
+2026-09-10 03:02:34,083 1 INFO codex_review2 odoo.modules.loading: Loading module spreadsheet_dashboard (46/84) 
+2026-09-10 03:02:34,196 1 INFO codex_review2 odoo.modules.registry: module spreadsheet_dashboard: creating or updating database tables 
+2026-09-10 03:02:34,253 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard/security/security.xml 
+2026-09-10 03:02:34,300 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard/security/ir.model.access.csv 
+2026-09-10 03:02:34,306 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard/views/spreadsheet_dashboard_views.xml 
+2026-09-10 03:02:34,319 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard/views/menu_views.xml 
+2026-09-10 03:02:34,334 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard/data/dashboard.xml 
+2026-09-10 03:02:34,347 1 INFO codex_review2 odoo.modules.loading: Module spreadsheet_dashboard loaded in 0.26s, 337 queries (+337 other) 
+2026-09-10 03:02:34,347 1 INFO codex_review2 odoo.modules.loading: Loading module stock (47/84) 
+2026-09-10 03:02:34,482 1 INFO codex_review2 odoo.modules.registry: module stock: creating or updating database tables 
+2026-09-10 03:02:35,359 1 INFO codex_review2 odoo.modules.loading: loading stock/security/stock_security.xml 
+2026-09-10 03:02:35,643 1 INFO codex_review2 odoo.modules.loading: loading stock/security/ir.model.access.csv 
+2026-09-10 03:02:35,681 1 INFO codex_review2 odoo.modules.loading: loading stock/data/digest_data.xml 
+2026-09-10 03:02:35,685 1 INFO codex_review2 odoo.modules.loading: loading stock/data/mail_templates.xml 
+2026-09-10 03:02:35,689 1 INFO codex_review2 odoo.modules.loading: loading stock/data/default_barcode_patterns.xml 
+2026-09-10 03:02:35,694 1 INFO codex_review2 odoo.modules.loading: loading stock/data/stock_data.xml 
+2026-09-10 03:02:35,791 1 INFO codex_review2 odoo.modules.loading: loading stock/data/stock_sequence_data.xml 
+2026-09-10 03:02:35,801 1 INFO codex_review2 odoo.modules.loading: loading stock/data/stock_traceability_report_data.xml 
+2026-09-10 03:02:35,803 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_stock_quantity.xml 
+2026-09-10 03:02:35,807 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_stock_reception.xml 
+2026-09-10 03:02:35,815 1 INFO codex_review2 odoo.modules.loading: loading stock/report/stock_report_views.xml 
+2026-09-10 03:02:35,831 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_package_barcode.xml 
+2026-09-10 03:02:35,838 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_lot_barcode.xml 
+2026-09-10 03:02:35,840 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_location_barcode.xml 
+2026-09-10 03:02:35,844 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_stockpicking_operations.xml 
+2026-09-10 03:02:35,850 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_deliveryslip.xml 
+2026-09-10 03:02:35,861 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_stockinventory.xml 
+2026-09-10 03:02:35,864 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_stock_rule.xml 
+2026-09-10 03:02:35,873 1 INFO codex_review2 odoo.modules.loading: loading stock/report/stock_lot_customer.xml 
+2026-09-10 03:02:35,880 1 INFO codex_review2 odoo.modules.loading: loading stock/report/package_templates.xml 
+2026-09-10 03:02:35,882 1 INFO codex_review2 odoo.modules.loading: loading stock/report/picking_templates.xml 
+2026-09-10 03:02:35,887 1 INFO codex_review2 odoo.modules.loading: loading stock/report/product_templates.xml 
+2026-09-10 03:02:35,891 1 INFO codex_review2 odoo.modules.loading: loading stock/report/product_packaging.xml 
+2026-09-10 03:02:35,893 1 INFO codex_review2 odoo.modules.loading: loading stock/report/report_return_slip.xml 
+2026-09-10 03:02:35,898 1 INFO codex_review2 odoo.modules.loading: loading stock/data/mail_template_data.xml 
+2026-09-10 03:02:35,903 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_menu_views.xml 
+2026-09-10 03:02:35,935 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_change_product_qty_views.xml 
+2026-09-10 03:02:35,940 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_picking_return_views.xml 
+2026-09-10 03:02:35,946 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_inventory_conflict.xml 
+2026-09-10 03:02:35,952 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_backorder_confirmation_views.xml 
+2026-09-10 03:02:35,957 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_quantity_history.xml 
+2026-09-10 03:02:35,960 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_request_count.xml 
+2026-09-10 03:02:35,965 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_replenishment_info.xml 
+2026-09-10 03:02:35,973 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_rules_report_views.xml 
+2026-09-10 03:02:35,977 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_warn_insufficient_qty_views.xml 
+2026-09-10 03:02:35,984 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/product_replenish_views.xml 
+2026-09-10 03:02:35,989 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/product_label_layout_views.xml 
+2026-09-10 03:02:35,993 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_track_confirmation_views.xml 
+2026-09-10 03:02:35,997 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_orderpoint_snooze_views.xml 
+2026-09-10 03:02:36,001 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_package_destination_views.xml 
+2026-09-10 03:02:36,005 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_inventory_adjustment_name.xml 
+2026-09-10 03:02:36,009 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_inventory_warning.xml 
+2026-09-10 03:02:36,014 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_label_type.xml 
+2026-09-10 03:02:36,017 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_lot_label_layout.xml 
+2026-09-10 03:02:36,020 1 INFO codex_review2 odoo.modules.loading: loading stock/wizard/stock_quant_relocate.xml 
+2026-09-10 03:02:36,023 1 INFO codex_review2 odoo.modules.loading: loading stock/views/res_partner_views.xml 
+2026-09-10 03:02:36,038 1 INFO codex_review2 odoo.modules.loading: loading stock/views/product_strategy_views.xml 
+2026-09-10 03:02:36,052 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_lot_views.xml 
+2026-09-10 03:02:36,069 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_scrap_views.xml 
+2026-09-10 03:02:36,087 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_quant_views.xml 
+2026-09-10 03:02:36,205 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_warehouse_views.xml 
+2026-09-10 03:02:36,216 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_move_line_views.xml 
+2026-09-10 03:02:36,242 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_move_views.xml 
+2026-09-10 03:02:36,283 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_picking_views.xml 
+2026-09-10 03:02:36,351 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_picking_type_views.xml 
+2026-09-10 03:02:36,371 1 INFO codex_review2 odoo.modules.loading: loading stock/views/product_views.xml 
+2026-09-10 03:02:36,451 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_location_views.xml 
+2026-09-10 03:02:36,483 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_orderpoint_views.xml 
+2026-09-10 03:02:36,508 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_storage_category_views.xml 
+2026-09-10 03:02:36,526 1 INFO codex_review2 odoo.modules.loading: loading stock/views/res_config_settings_views.xml 
+2026-09-10 03:02:36,545 1 INFO codex_review2 odoo.modules.loading: loading stock/views/report_stock_traceability.xml 
+2026-09-10 03:02:36,550 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_template.xml 
+2026-09-10 03:02:36,554 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_rule_views.xml 
+2026-09-10 03:02:36,579 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_package_level_views.xml 
+2026-09-10 03:02:36,609 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_package_type_view.xml 
+2026-09-10 03:02:36,629 1 INFO codex_review2 odoo.modules.loading: loading stock/views/stock_forecasted.xml 
+2026-09-10 03:02:36,703 1 INFO codex_review2 odoo.modules.loading: Module stock loaded in 2.36s, 5219 queries (+5219 other) 
+2026-09-10 03:02:36,703 1 INFO codex_review2 odoo.modules.loading: Loading module account_add_gln (48/84) 
+2026-09-10 03:02:36,777 1 INFO codex_review2 odoo.modules.registry: module account_add_gln: creating or updating database tables 
+2026-09-10 03:02:36,844 1 INFO codex_review2 odoo.modules.loading: loading account_add_gln/views/res_partner_views.xml 
+2026-09-10 03:02:36,864 1 INFO codex_review2 odoo.modules.loading: Module account_add_gln loaded in 0.16s, 106 queries (+106 other) 
+2026-09-10 03:02:36,864 1 INFO codex_review2 odoo.modules.loading: Loading module account_edi_ubl_cii (49/84) 
+2026-09-10 03:02:36,945 1 INFO codex_review2 odoo.modules.registry: module account_edi_ubl_cii: creating or updating database tables 
+2026-09-10 03:02:36,959 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.peppol_endpoint 
+2026-09-10 03:02:36,959 1 INFO codex_review2 odoo.models: Prepare computation of res.partner.peppol_eas 
+2026-09-10 03:02:37,075 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/data/cii_22_templates.xml 
+2026-09-10 03:02:37,089 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/data/ubl_20_templates.xml 
+2026-09-10 03:02:37,127 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/data/ir_config_parameter_data.xml 
+2026-09-10 03:02:37,130 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/data/ubl_21_templates.xml 
+2026-09-10 03:02:37,152 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/views/account_move_views.xml 
+2026-09-10 03:02:37,157 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/views/res_partner_views.xml 
+2026-09-10 03:02:37,171 1 INFO codex_review2 odoo.modules.loading: loading account_edi_ubl_cii/report/account_edi_ubl_cii_report_templates.xml 
+2026-09-10 03:02:37,199 1 INFO codex_review2 odoo.modules.loading: Module account_edi_ubl_cii loaded in 0.33s, 432 queries (+432 other) 
+2026-09-10 03:02:37,199 1 INFO codex_review2 odoo.modules.loading: Loading module account_payment (50/84) 
+2026-09-10 03:02:37,324 1 INFO codex_review2 odoo.modules.registry: module account_payment: creating or updating database tables 
+2026-09-10 03:02:37,447 1 INFO codex_review2 odoo.modules.loading: loading account_payment/data/ir_config_parameter.xml 
+2026-09-10 03:02:37,450 1 INFO codex_review2 odoo.modules.loading: loading account_payment/data/onboarding_data.xml 
+2026-09-10 03:02:37,455 1 INFO codex_review2 odoo.modules.loading: loading account_payment/security/ir.model.access.csv 
+2026-09-10 03:02:37,460 1 INFO codex_review2 odoo.modules.loading: loading account_payment/security/ir_rules.xml 
+2026-09-10 03:02:37,464 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/account_payment_menus.xml 
+2026-09-10 03:02:37,476 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/account_portal_templates.xml 
+2026-09-10 03:02:37,505 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/account_move_views.xml 
+2026-09-10 03:02:37,517 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/account_journal_views.xml 
+2026-09-10 03:02:37,524 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/account_payment_views.xml 
+2026-09-10 03:02:37,529 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/payment_form_templates.xml 
+2026-09-10 03:02:37,532 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/payment_provider_views.xml 
+2026-09-10 03:02:37,536 1 INFO codex_review2 odoo.modules.loading: loading account_payment/views/payment_transaction_views.xml 
+2026-09-10 03:02:37,540 1 INFO codex_review2 odoo.modules.loading: loading account_payment/wizards/account_payment_register_views.xml 
+2026-09-10 03:02:37,545 1 INFO codex_review2 odoo.modules.loading: loading account_payment/wizards/payment_link_wizard_views.xml 
+2026-09-10 03:02:37,552 1 INFO codex_review2 odoo.modules.loading: loading account_payment/wizards/payment_refund_wizard_views.xml 
+2026-09-10 03:02:37,555 1 INFO codex_review2 odoo.modules.loading: loading account_payment/wizards/res_config_settings_views.xml 
+2026-09-10 03:02:37,584 1 INFO codex_review2 odoo.modules.loading: Module account_payment loaded in 0.38s, 536 queries (+536 other) 
+2026-09-10 03:02:37,584 1 INFO codex_review2 odoo.modules.loading: Loading module hr_maintenance (51/84) 
+2026-09-10 03:02:37,648 1 INFO codex_review2 odoo.modules.registry: module hr_maintenance: creating or updating database tables 
+2026-09-10 03:02:37,718 1 INFO codex_review2 odoo.modules.loading: loading hr_maintenance/security/equipment.xml 
+2026-09-10 03:02:37,751 1 INFO codex_review2 odoo.modules.loading: loading hr_maintenance/views/maintenance_views.xml 
+2026-09-10 03:02:37,777 1 INFO codex_review2 odoo.modules.loading: loading hr_maintenance/views/hr_views.xml 
+2026-09-10 03:02:37,792 1 INFO codex_review2 odoo.modules.loading: loading hr_maintenance/wizard/hr_departure_wizard_views.xml 
+2026-09-10 03:02:37,806 1 INFO codex_review2 odoo.modules.loading: Module hr_maintenance loaded in 0.22s, 288 queries (+288 other) 
+2026-09-10 03:02:37,806 1 INFO codex_review2 odoo.modules.loading: Loading module hr_org_chart (52/84) 
+2026-09-10 03:02:37,872 1 INFO codex_review2 odoo.modules.registry: module hr_org_chart: creating or updating database tables 
+2026-09-10 03:02:37,912 1 INFO codex_review2 odoo.modules.loading: loading hr_org_chart/views/hr_department_views.xml 
+2026-09-10 03:02:37,921 1 INFO codex_review2 odoo.modules.loading: loading hr_org_chart/views/hr_views.xml 
+2026-09-10 03:02:37,952 1 INFO codex_review2 odoo.modules.loading: loading hr_org_chart/views/hr_employee_public_views.xml 
+2026-09-10 03:02:37,955 1 INFO codex_review2 odoo.modules.loading: loading hr_org_chart/views/hr_org_chart_menus.xml 
+2026-09-10 03:02:37,967 1 INFO codex_review2 odoo.modules.loading: Module hr_org_chart loaded in 0.16s, 185 queries (+185 other) 
+2026-09-10 03:02:37,967 1 INFO codex_review2 odoo.modules.loading: Loading module hr_skills (53/84) 
+2026-09-10 03:02:38,094 1 INFO codex_review2 odoo.modules.registry: module hr_skills: creating or updating database tables 
+2026-09-10 03:02:38,099 1 INFO codex_review2 odoo.models: Prepare computation of hr.employee.skill_ids 
+2026-09-10 03:02:38,252 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/security/ir.model.access.csv 
+2026-09-10 03:02:38,264 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/security/hr_skills_security.xml 
+2026-09-10 03:02:38,290 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/views/hr_views.xml 
+2026-09-10 03:02:38,367 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/views/hr_employee_skill_log_views.xml 
+2026-09-10 03:02:38,376 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/data/hr_resume_data.xml 
+2026-09-10 03:02:38,379 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/data/hr_skill_data.xml 
+2026-09-10 03:02:38,411 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/data/ir_actions_server_data.xml 
+2026-09-10 03:02:38,416 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/data/report_paperformat.xml 
+2026-09-10 03:02:38,418 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/report/hr_employee_skill_report_views.xml 
+2026-09-10 03:02:38,431 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/report/hr_employee_cv_report.xml 
+2026-09-10 03:02:38,434 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/views/hr_department_views.xml 
+2026-09-10 03:02:38,438 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/views/hr_employee_cv_templates.xml 
+2026-09-10 03:02:38,446 1 INFO codex_review2 odoo.modules.loading: loading hr_skills/wizard/hr_employee_cv_wizard_views.xml 
+2026-09-10 03:02:38,464 1 INFO codex_review2 odoo.modules.loading: Module hr_skills loaded in 0.50s, 882 queries (+882 other) 
+2026-09-10 03:02:38,464 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_document_control (54/84) 
+2026-09-10 03:02:38,546 1 INFO codex_review2 odoo.modules.registry: module iatf_document_control: creating or updating database tables 
+2026-09-10 03:02:38,570 1 WARNING codex_review2 odoo.addons.base.models.ir_model: Two fields (attachment_count, message_attachment_count) of iatf.document() have the same label: Attachment Count. [Modules: iatf_document_control and mail] 
+2026-09-10 03:02:38,675 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/security/security.xml 
+2026-09-10 03:02:38,715 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/security/ir.model.access.csv 
+2026-09-10 03:02:38,727 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/data/sequence.xml 
+2026-09-10 03:02:38,730 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/document_category_views.xml 
+2026-09-10 03:02:38,738 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/document_views.xml 
+2026-09-10 03:02:38,751 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/product_template_views.xml 
+2026-09-10 03:02:38,761 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/document_revision_views.xml 
+2026-09-10 03:02:38,766 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/res_config_settings_views.xml 
+2026-09-10 03:02:38,777 1 INFO codex_review2 odoo.modules.loading: loading iatf_document_control/views/menu_restructured.xml 
+2026-09-10 03:02:38,799 1 INFO codex_review2 odoo.modules.loading: Module iatf_document_control loaded in 0.34s, 526 queries (+526 other) 
+2026-09-10 03:02:38,799 1 INFO codex_review2 odoo.modules.loading: Loading module mail_bot_hr (55/84) 
+2026-09-10 03:02:38,867 1 INFO codex_review2 odoo.modules.loading: loading mail_bot_hr/views/res_users_views.xml 
+2026-09-10 03:02:38,911 1 INFO codex_review2 odoo.modules.loading: Module mail_bot_hr loaded in 0.11s, 67 queries (+67 other) 
+2026-09-10 03:02:38,911 1 INFO codex_review2 odoo.modules.loading: Loading module mrp (56/84) 
+2026-09-10 03:02:39,138 1 INFO codex_review2 odoo.modules.registry: module mrp: creating or updating database tables 
+2026-09-10 03:02:39,720 1 INFO codex_review2 odoo.modules.loading: loading mrp/security/mrp_security.xml 
+2026-09-10 03:02:39,843 1 INFO codex_review2 odoo.modules.loading: loading mrp/security/ir.model.access.csv 
+2026-09-10 03:02:39,870 1 INFO codex_review2 odoo.modules.loading: loading mrp/data/digest_data.xml 
+2026-09-10 03:02:39,872 1 INFO codex_review2 odoo.modules.loading: loading mrp/data/mail_templates.xml 
+2026-09-10 03:02:39,878 1 INFO codex_review2 odoo.modules.loading: loading mrp/data/mrp_data.xml 
+2026-09-10 03:02:39,956 1 INFO codex_review2 odoo.modules.loading: loading mrp/data/mail_message_subtype_data.xml 
+2026-09-10 03:02:39,963 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/change_production_qty_views.xml 
+2026-09-10 03:02:39,969 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/mrp_workcenter_block_view.xml 
+2026-09-10 03:02:39,974 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/stock_warn_insufficient_qty_views.xml 
+2026-09-10 03:02:39,979 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/mrp_production_backorder.xml 
+2026-09-10 03:02:39,983 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/mrp_consumption_warning_views.xml 
+2026-09-10 03:02:39,988 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/mrp_batch_produce.xml 
+2026-09-10 03:02:39,992 1 INFO codex_review2 odoo.modules.loading: loading mrp/wizard/mrp_production_split.xml 
+2026-09-10 03:02:40,002 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_views_menus.xml 
+2026-09-10 03:02:40,012 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_move_views.xml 
+2026-09-10 03:02:40,034 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_workorder_views.xml 
+2026-09-10 03:02:40,081 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_workcenter_views.xml 
+2026-09-10 03:02:40,129 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_bom_views.xml 
+2026-09-10 03:02:40,156 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_production_views.xml 
+2026-09-10 03:02:40,238 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_routing_views.xml 
+2026-09-10 03:02:40,257 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/product_document_views.xml 
+2026-09-10 03:02:40,261 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/product_views.xml 
+2026-09-10 03:02:40,300 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_orderpoint_views.xml 
+2026-09-10 03:02:40,308 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_warehouse_views.xml 
+2026-09-10 03:02:40,313 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_picking_views.xml 
+2026-09-10 03:02:40,338 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_rule_views.xml 
+2026-09-10 03:02:40,342 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/mrp_unbuild_views.xml 
+2026-09-10 03:02:40,359 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/res_config_settings_views.xml 
+2026-09-10 03:02:40,374 1 INFO codex_review2 odoo.modules.loading: loading mrp/views/stock_scrap_views.xml 
+2026-09-10 03:02:40,384 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/report_deliveryslip.xml 
+2026-09-10 03:02:40,391 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_report_views_main.xml 
+2026-09-10 03:02:40,398 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_report_bom_structure.xml 
+2026-09-10 03:02:40,410 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_report_mo_overview.xml 
+2026-09-10 03:02:40,424 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_production_templates.xml 
+2026-09-10 03:02:40,434 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/report_stock_reception.xml 
+2026-09-10 03:02:40,436 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/report_stock_rule.xml 
+2026-09-10 03:02:40,441 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_zebra_production_templates.xml 
+2026-09-10 03:02:40,443 1 INFO codex_review2 odoo.modules.loading: loading mrp/report/mrp_workorder_templates.xml 
+2026-09-10 03:02:40,492 1 INFO codex_review2 odoo.modules.loading: Module mrp loaded in 1.58s, 3217 queries (+3217 other) 
+2026-09-10 03:02:40,492 1 INFO codex_review2 odoo.modules.loading: Loading module project_account (57/84) 
+2026-09-10 03:02:40,761 1 INFO codex_review2 odoo.modules.registry: module project_account: creating or updating database tables 
+2026-09-10 03:02:40,811 1 INFO codex_review2 odoo.modules.loading: loading project_account/views/account_analytic_line_views.xml 
+2026-09-10 03:02:40,823 1 INFO codex_review2 odoo.modules.loading: loading project_account/views/project_project_views.xml 
+2026-09-10 03:02:40,835 1 INFO codex_review2 odoo.modules.loading: loading project_account/views/project_task_views.xml 
+2026-09-10 03:02:40,852 1 INFO codex_review2 odoo.modules.loading: loading project_account/views/project_sharing_project_task_views.xml 
+2026-09-10 03:02:40,865 1 INFO codex_review2 odoo.modules.loading: Module project_account loaded in 0.37s, 133 queries (+133 other) 
+2026-09-10 03:02:40,865 1 INFO codex_review2 odoo.modules.loading: Loading module project_sms (58/84) 
+2026-09-10 03:02:40,936 1 INFO codex_review2 odoo.modules.registry: module project_sms: creating or updating database tables 
+2026-09-10 03:02:41,001 1 INFO codex_review2 odoo.modules.loading: loading project_sms/views/project_stage_views.xml 
+2026-09-10 03:02:41,015 1 INFO codex_review2 odoo.modules.loading: loading project_sms/views/project_task_type_views.xml 
+2026-09-10 03:02:41,024 1 INFO codex_review2 odoo.modules.loading: loading project_sms/views/project_project_views.xml 
+2026-09-10 03:02:41,027 1 INFO codex_review2 odoo.modules.loading: loading project_sms/views/project_task_views.xml 
+2026-09-10 03:02:41,030 1 INFO codex_review2 odoo.modules.loading: loading project_sms/security/ir.model.access.csv 
+2026-09-10 03:02:41,035 1 INFO codex_review2 odoo.modules.loading: loading project_sms/security/project_sms_security.xml 
+2026-09-10 03:02:41,048 1 INFO codex_review2 odoo.modules.loading: Module project_sms loaded in 0.18s, 200 queries (+200 other) 
+2026-09-10 03:02:41,048 1 INFO codex_review2 odoo.modules.loading: Loading module project_stock (59/84) 
+2026-09-10 03:02:41,124 1 INFO codex_review2 odoo.modules.registry: module project_stock: creating or updating database tables 
+2026-09-10 03:02:41,177 1 INFO codex_review2 odoo.modules.loading: loading project_stock/views/stock_picking_views.xml 
+2026-09-10 03:02:41,188 1 INFO codex_review2 odoo.modules.loading: loading project_stock/views/project_project_views.xml 
+2026-09-10 03:02:41,199 1 INFO codex_review2 odoo.modules.loading: Module project_stock loaded in 0.15s, 111 queries (+111 other) 
+2026-09-10 03:02:41,199 1 INFO codex_review2 odoo.modules.loading: Loading module project_todo (60/84) 
+2026-09-10 03:02:41,395 1 INFO codex_review2 odoo.modules.registry: module project_todo: creating or updating database tables 
+2026-09-10 03:02:41,482 1 INFO codex_review2 odoo.modules.loading: loading project_todo/security/ir.model.access.csv 
+2026-09-10 03:02:41,488 1 INFO codex_review2 odoo.modules.loading: loading project_todo/security/project_todo_security.xml 
+2026-09-10 03:02:41,506 1 INFO codex_review2 odoo.modules.loading: loading project_todo/data/todo_template.xml 
+2026-09-10 03:02:41,510 1 INFO codex_review2 odoo.modules.loading: loading project_todo/views/project_task_views.xml 
+2026-09-10 03:02:41,537 1 INFO codex_review2 odoo.modules.loading: loading project_todo/views/project_todo_menus.xml 
+2026-09-10 03:02:41,543 1 INFO codex_review2 odoo.modules.loading: loading project_todo/wizard/mail_activity_todo_create.xml 
+2026-09-10 03:02:41,556 1 INFO codex_review2 odoo.modules.loading: Module project_todo loaded in 0.36s, 264 queries (+264 other) 
+2026-09-10 03:02:41,556 1 INFO codex_review2 odoo.modules.loading: Loading module snailmail_account (61/84) 
+2026-09-10 03:02:41,632 1 INFO codex_review2 odoo.modules.registry: module snailmail_account: creating or updating database tables 
+2026-09-10 03:02:41,700 1 INFO codex_review2 odoo.modules.loading: loading snailmail_account/views/res_config_settings_views.xml 
+2026-09-10 03:02:41,722 1 INFO codex_review2 odoo.modules.loading: Module snailmail_account loaded in 0.17s, 121 queries (+121 other) 
+2026-09-10 03:02:41,722 1 INFO codex_review2 odoo.modules.loading: Loading module spreadsheet_account (62/84) 
+2026-09-10 03:02:41,791 1 INFO codex_review2 odoo.modules.registry: module spreadsheet_account: creating or updating database tables 
+2026-09-10 03:02:41,842 1 INFO codex_review2 odoo.modules.loading: Module spreadsheet_account loaded in 0.12s, 59 queries (+59 other) 
+2026-09-10 03:02:41,842 1 INFO codex_review2 odoo.modules.loading: Loading module spreadsheet_dashboard_account (63/84) 
+2026-09-10 03:02:41,980 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard_account/data/dashboards.xml 
+2026-09-10 03:02:42,017 1 INFO codex_review2 odoo.modules.loading: Module spreadsheet_dashboard_account loaded in 0.18s, 40 queries (+40 other) 
+2026-09-10 03:02:42,017 1 INFO codex_review2 odoo.modules.loading: Loading module stock_account (64/84) 
+2026-09-10 03:02:42,095 1 INFO codex_review2 odoo.modules.registry: module stock_account: creating or updating database tables 
+2026-09-10 03:02:42,358 1 INFO codex_review2 odoo.modules.loading: loading stock_account/security/stock_account_security.xml 
+2026-09-10 03:02:42,382 1 INFO codex_review2 odoo.modules.loading: loading stock_account/security/ir.model.access.csv 
+2026-09-10 03:02:42,390 1 INFO codex_review2 odoo.modules.loading: loading stock_account/data/stock_account_data.xml 
+2026-09-10 03:02:42,395 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/stock_account_views.xml 
+2026-09-10 03:02:42,476 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/res_config_settings_views.xml 
+2026-09-10 03:02:42,487 1 INFO codex_review2 odoo.modules.loading: loading stock_account/data/product_data.xml 
+2026-09-10 03:02:42,492 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/report_invoice.xml 
+2026-09-10 03:02:42,496 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/stock_valuation_layer_views.xml 
+2026-09-10 03:02:42,541 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/stock_quant_views.xml 
+2026-09-10 03:02:42,550 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/product_views.xml 
+2026-09-10 03:02:42,572 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/stock_lot_views.xml 
+2026-09-10 03:02:42,576 1 INFO codex_review2 odoo.modules.loading: loading stock_account/views/stock_picking_views.xml 
+2026-09-10 03:02:42,580 1 INFO codex_review2 odoo.modules.loading: loading stock_account/wizard/stock_request_count.xml 
+2026-09-10 03:02:42,588 1 INFO codex_review2 odoo.modules.loading: loading stock_account/wizard/stock_valuation_layer_revaluation_views.xml 
+2026-09-10 03:02:42,596 1 INFO codex_review2 odoo.modules.loading: loading stock_account/wizard/stock_quantity_history.xml 
+2026-09-10 03:02:42,601 1 INFO codex_review2 odoo.modules.loading: loading stock_account/report/account_invoice_report_view.xml 
+2026-09-10 03:02:42,629 1 INFO codex_review2 odoo.modules.loading: Module stock_account loaded in 0.61s, 888 queries (+888 other) 
+2026-09-10 03:02:42,629 1 INFO codex_review2 odoo.modules.loading: Loading module stock_sms (65/84) 
+2026-09-10 03:02:42,707 1 INFO codex_review2 odoo.modules.registry: module stock_sms: creating or updating database tables 
+2026-09-10 03:02:42,850 1 INFO codex_review2 odoo.modules.loading: loading stock_sms/data/sms_data.xml 
+2026-09-10 03:02:42,854 1 INFO codex_review2 odoo.modules.loading: loading stock_sms/views/res_config_settings_views.xml 
+2026-09-10 03:02:42,876 1 INFO codex_review2 odoo.modules.loading: loading stock_sms/wizard/confirm_stock_sms_views.xml 
+2026-09-10 03:02:42,879 1 INFO codex_review2 odoo.modules.loading: loading stock_sms/security/ir.model.access.csv 
+2026-09-10 03:02:42,885 1 INFO codex_review2 odoo.modules.loading: loading stock_sms/security/sms_security.xml 
+2026-09-10 03:02:42,901 1 INFO codex_review2 odoo.modules.loading: Module stock_sms loaded in 0.27s, 193 queries (+193 other) 
+2026-09-10 03:02:42,901 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_approval (66/84) 
+2026-09-10 03:02:42,981 1 INFO codex_review2 odoo.modules.registry: module iatf_approval: creating or updating database tables 
+2026-09-10 03:02:43,065 1 INFO codex_review2 odoo.modules.loading: loading iatf_approval/security/ir.model.access.csv 
+2026-09-10 03:02:43,074 1 INFO codex_review2 odoo.modules.loading: loading iatf_approval/data/approval_activity_type.xml 
+2026-09-10 03:02:43,078 1 INFO codex_review2 odoo.modules.loading: loading iatf_approval/views/approval_template_views.xml 
+2026-09-10 03:02:43,099 1 INFO codex_review2 odoo.modules.loading: Module iatf_approval loaded in 0.20s, 210 queries (+210 other) 
+2026-09-10 03:02:43,099 1 INFO codex_review2 odoo.modules.loading: Loading module mrp_account (67/84) 
+2026-09-10 03:02:43,178 1 INFO codex_review2 odoo.modules.registry: module mrp_account: creating or updating database tables 
+2026-09-10 03:02:43,371 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/security/ir.model.access.csv 
+2026-09-10 03:02:43,379 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/views/product_views.xml 
+2026-09-10 03:02:43,409 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/views/mrp_production_views.xml 
+2026-09-10 03:02:43,418 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/views/analytic_account_views.xml 
+2026-09-10 03:02:43,424 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/views/account_move_views.xml 
+2026-09-10 03:02:43,432 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/views/mrp_workcenter_views.xml 
+2026-09-10 03:02:43,436 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/report/report_mrp_templates.xml 
+2026-09-10 03:02:43,441 1 INFO codex_review2 odoo.modules.loading: loading mrp_account/wizard/mrp_wip_accounting.xml 
+2026-09-10 03:02:43,460 1 INFO codex_review2 odoo.modules.loading: Module mrp_account loaded in 0.36s, 575 queries (+575 other) 
+2026-09-10 03:02:43,460 1 INFO codex_review2 odoo.modules.loading: Loading module project_hr_skills (68/84) 
+2026-09-10 03:02:43,534 1 INFO codex_review2 odoo.modules.registry: module project_hr_skills: creating or updating database tables 
+2026-09-10 03:02:43,637 1 INFO codex_review2 odoo.modules.loading: loading project_hr_skills/views/project_task_views.xml 
+2026-09-10 03:02:43,651 1 INFO codex_review2 odoo.modules.loading: Module project_hr_skills loaded in 0.19s, 89 queries (+89 other) 
+2026-09-10 03:02:43,651 1 INFO codex_review2 odoo.modules.loading: Loading module project_mrp (69/84) 
+2026-09-10 03:02:43,729 1 INFO codex_review2 odoo.modules.registry: module project_mrp: creating or updating database tables 
+2026-09-10 03:02:43,795 1 INFO codex_review2 odoo.modules.loading: loading project_mrp/views/mrp_bom_views.xml 
+2026-09-10 03:02:43,805 1 INFO codex_review2 odoo.modules.loading: loading project_mrp/views/mrp_production_views.xml 
+2026-09-10 03:02:43,816 1 INFO codex_review2 odoo.modules.loading: loading project_mrp/views/project_project_views.xml 
+2026-09-10 03:02:43,826 1 INFO codex_review2 odoo.modules.loading: Module project_mrp loaded in 0.17s, 172 queries (+172 other) 
+2026-09-10 03:02:43,826 1 INFO codex_review2 odoo.modules.loading: Loading module project_stock_account (70/84) 
+2026-09-10 03:02:43,899 1 INFO codex_review2 odoo.modules.registry: module project_stock_account: creating or updating database tables 
+2026-09-10 03:02:43,956 1 INFO codex_review2 odoo.modules.loading: loading project_stock_account/views/stock_picking_type_views.xml 
+2026-09-10 03:02:43,972 1 INFO codex_review2 odoo.modules.loading: Module project_stock_account loaded in 0.15s, 114 queries (+114 other) 
+2026-09-10 03:02:43,972 1 INFO codex_review2 odoo.modules.loading: Loading module spreadsheet_dashboard_stock_account (71/84) 
+2026-09-10 03:02:44,055 1 INFO codex_review2 odoo.modules.loading: loading spreadsheet_dashboard_stock_account/data/dashboards.xml 
+2026-09-10 03:02:44,149 1 INFO codex_review2 odoo.modules.loading: Module spreadsheet_dashboard_stock_account loaded in 0.18s, 33 queries (+33 other) 
+2026-09-10 03:02:44,149 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_equipment (72/84) 
+2026-09-10 03:02:44,224 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,224 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,240 1 INFO codex_review2 odoo.modules.registry: module iatf_equipment: creating or updating database tables 
+2026-09-10 03:02:44,421 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/security/security.xml 
+2026-09-10 03:02:44,464 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/security/ir.model.access.csv 
+2026-09-10 03:02:44,479 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/data/sequence.xml 
+2026-09-10 03:02:44,485 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/data/cron.xml 
+2026-09-10 03:02:44,490 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/equipment_views.xml 
+2026-09-10 03:02:44,507 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/spare_category_views.xml 
+2026-09-10 03:02:44,525 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/spare_part_views.xml 
+2026-09-10 03:02:44,536 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/pm_schedule_views.xml 
+2026-09-10 03:02:44,542 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/breakdown_views.xml 
+2026-09-10 03:02:44,548 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/daily_check_views.xml 
+2026-09-10 03:02:44,554 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/maintenance_equipment_views.xml 
+2026-09-10 03:02:44,560 1 INFO codex_review2 odoo.modules.loading: loading iatf_equipment/views/menu.xml 
+2026-09-10 03:02:44,591 1 INFO codex_review2 odoo.modules.loading: Module iatf_equipment loaded in 0.44s, 751 queries (+751 other) 
+2026-09-10 03:02:44,591 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_fmea (73/84) 
+2026-09-10 03:02:44,658 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,658 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,659 1 WARNING codex_review2 odoo.fields: Field iatf.fmea.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:02:44,675 1 INFO codex_review2 odoo.modules.registry: module iatf_fmea: creating or updating database tables 
+2026-09-10 03:02:44,748 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/security/security.xml 
+2026-09-10 03:02:44,785 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/security/ir.model.access.csv 
+2026-09-10 03:02:44,795 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/data/sequence.xml 
+2026-09-10 03:02:44,798 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/views/fmea_views.xml 
+2026-09-10 03:02:44,812 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/views/fmea_line_views.xml 
+2026-09-10 03:02:44,819 1 INFO codex_review2 odoo.modules.loading: loading iatf_fmea/views/menu.xml 
+2026-09-10 03:02:44,832 1 INFO codex_review2 odoo.modules.loading: Module iatf_fmea loaded in 0.24s, 315 queries (+315 other) 
+2026-09-10 03:02:44,832 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_nonconformity (74/84) 
+2026-09-10 03:02:44,898 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,899 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:44,978 1 INFO codex_review2 odoo.modules.registry: module iatf_nonconformity: creating or updating database tables 
+2026-09-10 03:02:45,077 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/security/security.xml 
+2026-09-10 03:02:45,116 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/security/ir.model.access.csv 
+2026-09-10 03:02:45,125 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/data/sequence.xml 
+2026-09-10 03:02:45,129 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/data/cron.xml 
+2026-09-10 03:02:45,134 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/views/nonconformity_views.xml 
+2026-09-10 03:02:45,149 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/views/corrective_action_views.xml 
+2026-09-10 03:02:45,161 1 INFO codex_review2 odoo.modules.loading: loading iatf_nonconformity/views/menu.xml 
+2026-09-10 03:02:45,181 1 INFO codex_review2 odoo.modules.loading: Module iatf_nonconformity loaded in 0.35s, 397 queries (+397 other) 
+2026-09-10 03:02:45,181 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_spc (75/84) 
+2026-09-10 03:02:45,251 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,251 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,268 1 INFO codex_review2 odoo.modules.registry: module iatf_spc: creating or updating database tables 
+2026-09-10 03:02:45,335 1 INFO codex_review2 odoo.modules.loading: loading iatf_spc/security/security.xml 
+2026-09-10 03:02:45,378 1 INFO codex_review2 odoo.modules.loading: loading iatf_spc/security/ir.model.access.csv 
+2026-09-10 03:02:45,388 1 INFO codex_review2 odoo.modules.loading: loading iatf_spc/data/sequence.xml 
+2026-09-10 03:02:45,391 1 INFO codex_review2 odoo.modules.loading: loading iatf_spc/views/spc_study_views.xml 
+2026-09-10 03:02:45,405 1 INFO codex_review2 odoo.modules.loading: loading iatf_spc/views/menu.xml 
+2026-09-10 03:02:45,420 1 INFO codex_review2 odoo.modules.loading: Module iatf_spc loaded in 0.24s, 263 queries (+263 other) 
+2026-09-10 03:02:45,420 1 INFO codex_review2 odoo.modules.loading: Loading module project_mrp_account (76/84) 
+2026-09-10 03:02:45,480 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,481 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,498 1 INFO codex_review2 odoo.modules.registry: module project_mrp_account: creating or updating database tables 
+2026-09-10 03:02:45,560 1 INFO codex_review2 odoo.modules.loading: loading project_mrp_account/views/mrp_production_views.xml 
+2026-09-10 03:02:45,579 1 INFO codex_review2 odoo.modules.loading: Module project_mrp_account loaded in 0.16s, 131 queries (+131 other) 
+2026-09-10 03:02:45,579 1 INFO codex_review2 odoo.modules.loading: Loading module pumui_approval (77/84) 
+2026-09-10 03:02:45,717 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,717 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:45,735 1 INFO codex_review2 odoo.modules.registry: module pumui_approval: creating or updating database tables 
+2026-09-10 03:02:45,852 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/security/security.xml 
+2026-09-10 03:02:45,891 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/security/ir.model.access.csv 
+2026-09-10 03:02:45,902 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/data/sequence.xml 
+2026-09-10 03:02:45,905 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/views/pumui_views.xml 
+2026-09-10 03:02:45,919 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/views/account_move_views.xml 
+2026-09-10 03:02:45,931 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/wizard/make_invoice_views.xml 
+2026-09-10 03:02:45,934 1 INFO codex_review2 odoo.modules.loading: loading pumui_approval/views/menu.xml 
+2026-09-10 03:02:45,951 1 INFO codex_review2 odoo.modules.loading: Module pumui_approval loaded in 0.37s, 390 queries (+390 other) 
+2026-09-10 03:02:45,951 1 INFO codex_review2 odoo.modules.loading: Loading module account_kr_guard (78/84) 
+2026-09-10 03:02:46,018 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,019 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,036 1 INFO codex_review2 odoo.modules.registry: module account_kr_guard: creating or updating database tables 
+2026-09-10 03:02:46,132 1 INFO codex_review2 odoo.modules.loading: loading account_kr_guard/security/ir.model.access.csv 
+2026-09-10 03:02:46,137 1 INFO codex_review2 odoo.modules.loading: loading account_kr_guard/views/move_summary_views.xml 
+2026-09-10 03:02:46,155 1 INFO codex_review2 odoo.modules.loading: loading account_kr_guard/views/checklist_views.xml 
+2026-09-10 03:02:46,162 1 INFO codex_review2 odoo.modules.loading: loading account_kr_guard/views/menus.xml 
+2026-09-10 03:02:46,181 1 INFO codex_review2 odoo.modules.loading: Module account_kr_guard loaded in 0.23s, 253 queries (+253 other) 
+2026-09-10 03:02:46,181 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_control_plan (79/84) 
+2026-09-10 03:02:46,250 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,250 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,251 1 WARNING codex_review2 odoo.fields: Field iatf.control.plan.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:02:46,269 1 INFO codex_review2 odoo.modules.registry: module iatf_control_plan: creating or updating database tables 
+2026-09-10 03:02:46,426 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/security/security.xml 
+2026-09-10 03:02:46,465 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/security/ir.model.access.csv 
+2026-09-10 03:02:46,475 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/data/sequence.xml 
+2026-09-10 03:02:46,478 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/views/control_plan_views.xml 
+2026-09-10 03:02:46,492 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/views/mrp_workcenter_views.xml 
+2026-09-10 03:02:46,499 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/views/mrp_production_views.xml 
+2026-09-10 03:02:46,507 1 INFO codex_review2 odoo.modules.loading: loading iatf_control_plan/views/menu.xml 
+2026-09-10 03:02:46,557 1 INFO codex_review2 odoo.modules.loading: Module iatf_control_plan loaded in 0.38s, 363 queries (+363 other) 
+2026-09-10 03:02:46,557 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_process_inspection (80/84) 
+2026-09-10 03:02:46,664 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,665 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:46,684 1 INFO codex_review2 odoo.modules.registry: module iatf_process_inspection: creating or updating database tables 
+2026-09-10 03:02:46,795 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/security/security.xml 
+2026-09-10 03:02:46,838 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/security/ir.model.access.csv 
+2026-09-10 03:02:46,848 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/data/sequence.xml 
+2026-09-10 03:02:46,852 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/views/process_inspection_views.xml 
+2026-09-10 03:02:46,865 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/views/mrp_workorder_views.xml 
+2026-09-10 03:02:46,872 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/views/mrp_production_views.xml 
+2026-09-10 03:02:46,879 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/views/stock_picking_views.xml 
+2026-09-10 03:02:46,885 1 INFO codex_review2 odoo.modules.loading: loading iatf_process_inspection/views/menu.xml 
+2026-09-10 03:02:46,901 1 INFO codex_review2 odoo.modules.loading: Module iatf_process_inspection loaded in 0.34s, 386 queries (+386 other) 
+2026-09-10 03:02:46,901 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_work_environment (81/84) 
+2026-09-10 03:02:47,001 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:47,001 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:47,020 1 INFO codex_review2 odoo.modules.registry: module iatf_work_environment: creating or updating database tables 
+2026-09-10 03:02:47,396 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/security/security.xml 
+2026-09-10 03:02:47,501 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/security/ir.model.access.csv 
+2026-09-10 03:02:47,532 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/data/sequence.xml 
+2026-09-10 03:02:47,542 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/work_environment_views.xml 
+2026-09-10 03:02:47,560 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/environment_check_views.xml 
+2026-09-10 03:02:47,578 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/check_sheet_views.xml 
+2026-09-10 03:02:47,629 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/check_record_views.xml 
+2026-09-10 03:02:47,645 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/safety_assessment_views.xml 
+2026-09-10 03:02:47,670 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/safety_incident_views.xml 
+2026-09-10 03:02:47,696 1 INFO codex_review2 odoo.modules.loading: loading iatf_work_environment/views/menu.xml 
+2026-09-10 03:02:47,757 1 INFO codex_review2 odoo.modules.loading: Module iatf_work_environment loaded in 0.86s, 733 queries (+733 other) 
+2026-09-10 03:02:47,757 1 INFO codex_review2 odoo.modules.loading: Loading module account_kr_reports (82/84) 
+2026-09-10 03:02:47,949 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:47,950 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:47,973 1 INFO codex_review2 odoo.modules.registry: module account_kr_reports: creating or updating database tables 
+2026-09-10 03:02:48,304 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/security/ir.model.access.csv 
+2026-09-10 03:02:48,322 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/move_tax_views.xml 
+2026-09-10 03:02:48,349 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/pumui_tax_views.xml 
+2026-09-10 03:02:48,366 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/ledger_views.xml 
+2026-09-10 03:02:48,384 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/loan_views.xml 
+2026-09-10 03:02:48,393 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/fs_views.xml 
+2026-09-10 03:02:48,404 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/lock_log_views.xml 
+2026-09-10 03:02:48,412 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/template_download_views.xml 
+2026-09-10 03:02:48,431 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/sales_tax_match_views.xml 
+2026-09-10 03:02:48,447 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/tax_invoice_import_views.xml 
+2026-09-10 03:02:48,462 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/approval_number_merge_views.xml 
+2026-09-10 03:02:48,473 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/menus.xml 
+2026-09-10 03:02:48,525 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/cash_status_views.xml 
+2026-09-10 03:02:48,594 1 INFO codex_review2 odoo.modules.loading: Module account_kr_reports loaded in 0.84s, 855 queries (+855 other) 
+2026-09-10 03:02:48,594 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_mold (83/84) 
+2026-09-10 03:02:48,716 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:48,716 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:48,755 1 INFO codex_review2 odoo.modules.registry: module iatf_mold: creating or updating database tables 
+2026-09-10 03:02:48,997 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/security/security.xml 
+2026-09-10 03:02:49,054 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/security/ir.model.access.csv 
+2026-09-10 03:02:49,077 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/data/sequence.xml 
+2026-09-10 03:02:49,089 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mold_views.xml 
+2026-09-10 03:02:49,118 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mold_check_views.xml 
+2026-09-10 03:02:49,133 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mold_temp_log_views.xml 
+2026-09-10 03:02:49,143 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mold_tryout_views.xml 
+2026-09-10 03:02:49,159 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mold_maintenance_views.xml 
+2026-09-10 03:02:49,173 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/mrp_production_views.xml 
+2026-09-10 03:02:49,187 1 INFO codex_review2 odoo.modules.loading: loading iatf_mold/views/menu.xml 
+2026-09-10 03:02:49,223 1 INFO codex_review2 odoo.modules.loading: Module iatf_mold loaded in 0.63s, 609 queries (+609 other) 
+2026-09-10 03:02:49,223 1 INFO codex_review2 odoo.modules.loading: Loading module iatf_ppap (84/84) 
+2026-09-10 03:02:49,455 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:49,455 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:49,459 1 WARNING codex_review2 odoo.fields: Field iatf.ppap.submission.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:02:49,479 1 INFO codex_review2 odoo.modules.registry: module iatf_ppap: creating or updating database tables 
+2026-09-10 03:02:49,584 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/security/security.xml 
+2026-09-10 03:02:49,626 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/security/ir.model.access.csv 
+2026-09-10 03:02:49,640 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/data/sequence.xml 
+2026-09-10 03:02:49,643 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/views/ppap_views.xml 
+2026-09-10 03:02:49,660 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/views/mrp_production_views.xml 
+2026-09-10 03:02:49,669 1 INFO codex_review2 odoo.modules.loading: loading iatf_ppap/views/menu.xml 
+2026-09-10 03:02:49,686 1 INFO codex_review2 odoo.modules.loading: Module iatf_ppap loaded in 0.46s, 329 queries (+329 other) 
+2026-09-10 03:02:49,686 1 INFO codex_review2 odoo.modules.loading: 84 modules loaded in 35.19s, 57463 queries (+57464 extra) 
+2026-09-10 03:02:49,760 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:49,760 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:49,856 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:49,856 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:02:50,322 1 INFO codex_review2 odoo.modules.loading: Modules loaded. 
+2026-09-10 03:02:51,050 1 INFO codex_review2 odoo.modules.registry: Registry changed, signaling through the database 
+2026-09-10 03:02:51,051 1 INFO codex_review2 odoo.modules.registry: Registry loaded in 41.567s 
+2026-09-10 03:02:51,051 1 INFO codex_review2 odoo.service.server: Starting post tests 
+2026-09-10 03:02:51,124 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_application_qty_must_be_positive ... 
+2026-09-10 03:02:51,132 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_applying_twice_does_not_duplicate ... 
+2026-09-10 03:02:51,140 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_branch_cannot_grow_children_once_it_holds_parts ... 
+2026-09-10 03:02:51,146 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_category_spares_are_applied_to_the_machine ... 
+2026-09-10 03:02:51,153 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_classification_and_application_are_independent ... 
+2026-09-10 03:02:51,169 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_cycle_is_rejected ... 
+2026-09-10 03:02:51,176 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_duplicate_code_under_same_parent_is_rejected ... 
+2026-09-10 03:02:51,178 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_spare_category" ("active", "code", "create_date", "create_uid", "level", "name", "parent_id", "write_date", "write_uid") VALUES (true, \'A\', \'2026-09-10 03:02:51.101223\', 1, \'group\', \'\xec\xa4\x91\xeb\xb3\xb5\', 2, \'2026-09-10 03:02:51.101223\', 1) RETURNING "id"'
+ERROR: duplicate key value violates unique constraint "iatf_spare_category_uniq_code_under_parent"
+DETAIL:  Key (parent_id, code)=(2, A) already exists.
+ 
+2026-09-10 03:02:51,181 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_exactly_at_the_minimum_is_not_short ... 
+2026-09-10 03:02:51,187 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_full_code_follows_a_renamed_parent_code ... 
+2026-09-10 03:02:51,193 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_full_code_reproduces_the_legacy_four_char_code ... 
+2026-09-10 03:02:51,197 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_leaf_flag_is_only_true_for_a_childless_model_node ... 
+2026-09-10 03:02:51,200 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_leaf_holding_parts_cannot_be_promoted_to_a_branch ... 
+2026-09-10 03:02:51,208 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_level_cannot_be_inverted ... 
+2026-09-10 03:02:51,213 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_level_cannot_be_skipped ... 
+2026-09-10 03:02:51,219 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_machine_cannot_point_at_a_branch_node ... 
+2026-09-10 03:02:51,224 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_machine_without_a_model_is_refused ... 
+2026-09-10 03:02:51,238 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_no_demo_records_shipped ... 
+2026-09-10 03:02:51,240 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_one_machine_holds_many_parts ... 
+2026-09-10 03:02:51,246 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_one_part_applies_to_many_machines ... 
+2026-09-10 03:02:51,251 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_part_cannot_hang_on_a_branch_node ... 
+2026-09-10 03:02:51,258 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_root_must_be_a_division ... 
+2026-09-10 03:02:51,263 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_same_code_under_different_parents_is_fine ... 
+2026-09-10 03:02:51,268 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_same_pair_cannot_be_registered_twice ... 
+2026-09-10 03:02:51,271 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_spare_application" ("create_date", "create_uid", "equipment_id", "qty_per_unit", "spare_id", "write_date", "write_uid") VALUES (\'2026-09-10 03:02:51.101223\', 1, 1, 1.0, 15, \'2026-09-10 03:02:51.101223\', 1) RETURNING "id"'
+ERROR: duplicate key value violates unique constraint "iatf_spare_application_uniq_spare_equipment"
+DETAIL:  Key (spare_id, equipment_id)=(15, 1) already exists.
+ 
+2026-09-10 03:02:51,274 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_shortage_is_judged_against_the_minimum ... 
+2026-09-10 03:02:51,277 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_spare_created_on_a_leaf ... 
+2026-09-10 03:02:51,281 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_tree_is_created_and_path_is_built ... 
+2026-09-10 03:02:51,284 1 INFO codex_review2 odoo.addons.iatf_equipment.tests.test_spare_taxonomy: Starting TestSpareTaxonomy.test_uncounted_part_is_not_reported_as_short ... 
+2026-09-10 03:02:51,324 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 423 checked, 0 removed 
+2026-09-10 03:02:51,326 1 INFO codex_review2 odoo.addons.iatf_spc.tests.test_subgroup_stats: Starting TestSubgroupStats.test_manual_full_subgroup_keeps_zero_as_a_value ... 
+2026-09-10 03:02:51,367 1 INFO codex_review2 odoo.addons.iatf_spc.tests.test_subgroup_stats: Starting TestSubgroupStats.test_partial_fill_uses_only_entered_samples ... 
+2026-09-10 03:02:51,392 1 INFO codex_review2 odoo.addons.iatf_spc.tests.test_subgroup_stats: Starting TestSubgroupStats.test_single_auto_sample_is_not_averaged_with_zeros ... 
+2026-09-10 03:02:51,416 1 INFO codex_review2 odoo.addons.iatf_spc.tests.test_subgroup_stats: Starting TestSubgroupStats.test_stats_recompute_when_sample_count_changes ... 
+2026-09-10 03:02:51,443 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:51,444 1 INFO codex_review2 odoo.addons.iatf_process_inspection.tests.test_pqc_aggregation: Starting TestPqcAggregation.test_normal_mo_fqc ... 
+2026-09-10 03:02:51,500 1 INFO codex_review2 odoo.addons.iatf_ppap.models.mrp_production: PPAP auto-created: PPAP-2026-0001 for first MO WH/MO/00001, product T-PQC품 
+2026-09-10 03:02:51,507 1 INFO codex_review2 odoo.addons.iatf_process_inspection.models.mrp_production: PQC auto-created: PQC-2026-0001 for MO WH/MO/00001, product T-PQC품 
+2026-09-10 03:02:51,511 1 INFO codex_review2 odoo.addons.iatf_process_inspection.tests.test_pqc_aggregation: Starting TestPqcAggregation.test_unit_mo_run_aggregation ... 
+2026-09-10 03:02:51,511 1 INFO codex_review2 odoo.addons.iatf_process_inspection.tests.test_pqc_aggregation: skipped TestPqcAggregation.test_unit_mo_run_aggregation : injection_worksite 미설치 — 단위 MO 경로 없음 
+2026-09-10 03:02:51,516 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:51,532 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_boundary_value_is_pass ... 
+2026-09-10 03:02:51,543 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_done_record_is_locked ... 
+2026-09-10 03:02:51,562 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_draft_record_is_not_actual ... 
+2026-09-10 03:02:51,578 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_duplicate_code_rejected ... 
+2026-09-10 03:02:51,580 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_check_sheet" ("active", "code", "company_id", "create_date", "create_uid", "cycle", "name", "responsible_id", "revision", "start_date", "target_type", "write_date", "write_uid") VALUES (true, \'CS-CRUSH-01\', 1, \'2026-09-10 03:02:51.519787\', 1, \'daily\', \'\xec\xa4\x91\xeb\xb3\xb5\', 1, 1, \'2026-09-10\', \'etc\', \'2026-09-10 03:02:51.519787\', 1) RETURNING "id"'
+ERROR: duplicate key value violates unique constraint "iatf_check_sheet_uniq_check_sheet_code"
+DETAIL:  Key (code)=(CS-CRUSH-01) already exists.
+ 
+2026-09-10 03:02:51,590 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_empty_record_cannot_be_done ... 
+2026-09-10 03:02:51,622 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_event_cycle_has_no_due ... 
+2026-09-10 03:02:51,632 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_future_check_date_rejected ... 
+2026-09-10 03:02:51,652 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_inactive_item_not_copied ... 
+2026-09-10 03:02:51,666 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_inverted_spec_rejected ... 
+2026-09-10 03:02:51,671 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_item_delete_keeps_record_line ... 
+2026-09-10 03:02:51,694 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.check.sheet.item records with IDs: [2] 
+2026-09-10 03:02:51,698 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_never_executed_sheet_becomes_overdue ... 
+2026-09-10 03:02:51,709 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_no_start_date_means_no_judgement ... 
+2026-09-10 03:02:51,718 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_normal_record_is_ok_and_counted ... 
+2026-09-10 03:02:51,732 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_numeric_item_cannot_be_judged_without_value ... 
+2026-09-10 03:02:51,747 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_overdue_after_cycle_elapsed ... 
+2026-09-10 03:02:51,760 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_overdue_search_matches_compute ... 
+2026-09-10 03:02:51,766 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_overdue_search_rejects_bad_operator ... 
+2026-09-10 03:02:51,771 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_qualitative_item_is_manual ... 
+2026-09-10 03:02:51,784 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_record_copies_items_from_sheet ... 
+2026-09-10 03:02:51,796 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_record_lines_snapshot_survive_item_change ... 
+2026-09-10 03:02:51,811 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_sheet_delete_blocked_while_record_exists ... 
+2026-09-10 03:02:51,830 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [42] 
+2026-09-10 03:02:51,832 1 ERROR codex_review2 odoo.sql_db: bad query: b'DELETE FROM "iatf_check_sheet" WHERE id IN (1)'
+ERROR: update or delete on table "iatf_check_sheet" violates foreign key constraint "iatf_check_record_sheet_id_fkey" on table "iatf_check_record"
+DETAIL:  Key (id)=(1) is still referenced from table "iatf_check_record".
+ 
+2026-09-10 03:02:51,835 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_spec_judgement_cannot_be_overridden ... 
+2026-09-10 03:02:51,850 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_spec_override_blocked_at_create ... 
+2026-09-10 03:02:51,857 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_switching_sheet_replaces_lines ... 
+2026-09-10 03:02:51,869 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_two_sided_spec_low_side ... 
+2026-09-10 03:02:51,884 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_unjudged_line_blocks_done ... 
+2026-09-10 03:02:51,899 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_value_out_of_spec_is_auto_ng ... 
+2026-09-10 03:02:51,912 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheet.test_zero_value_is_not_measured ... 
+2026-09-10 03:02:51,927 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:51,938 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_bounds_without_mode_are_not_ignored ... 
+2026-09-10 03:02:51,944 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_item_cycle_overrides_sheet_cycle ... 
+2026-09-10 03:02:51,952 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_item_overdue_is_counted ... 
+2026-09-10 03:02:51,962 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_min_mode_rejects_upper_bound ... 
+2026-09-10 03:02:51,969 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_numeric_spec_requires_numeric_entry ... 
+2026-09-10 03:02:51,976 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_qualitative_item_rejects_bounds ... 
+2026-09-10 03:02:51,982 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_record_carries_definition_snapshot ... 
+2026-09-10 03:02:51,995 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_revision_does_not_rewrite_past_judgement ... 
+2026-09-10 03:02:52,010 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_revision_log_is_not_editable ... 
+2026-09-10 03:02:52,076 1 INFO codex_review2 odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: write, uid: 6, model: iatf.check.sheet.revision 
+2026-09-10 03:02:52,079 1 INFO codex_review2 odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: unlink, uid: 6, model: iatf.check.sheet.revision 
+2026-09-10 03:02:52,082 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_revision_log_records_what_changed ... 
+2026-09-10 03:02:52,089 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_target_tolerance_becomes_bounds ... 
+2026-09-10 03:02:52,092 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_value_inside_tolerance_is_ok ... 
+2026-09-10 03:02:52,103 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_check_sheet: Starting TestCheckSheetFrame.test_value_outside_tolerance_is_ng ... 
+2026-09-10 03:02:52,117 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 1 checked, 1 removed 
+2026-09-10 03:02:52,120 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_review_frame: Starting TestCheckSheetFrameReview.test_1_past_record_immune_to_spec_change ... 
+2026-09-10 03:02:52,139 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_review_frame: Starting TestCheckSheetFrameReview.test_2_revision_log_is_immutable ... 
+2026-09-10 03:02:52,148 1 INFO codex_review2 odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: write, uid: 2, model: iatf.check.sheet.revision 
+2026-09-10 03:02:52,150 1 INFO codex_review2 odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: unlink, uid: 2, model: iatf.check.sheet.revision 
+2026-09-10 03:02:52,153 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_review_frame: Starting TestCheckSheetFrameReview.test_3_spec_mode_switch_no_stale_bounds ... 
+2026-09-10 03:02:52,172 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_review_frame: Starting TestCheckSheetFrameReview.test_4_item_cycle_overrides_sheet_cycle ... 
+2026-09-10 03:02:52,186 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_review_frame: Starting TestCheckSheetFrameReview.test_5_numeric_spec_with_pass_fail_input_blocked ... 
+2026-09-10 03:02:52,199 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:52,209 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_action_done_requires_measure_and_date ... 
+2026-09-10 03:02:52,223 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_action_due_date_does_not_freeze ... 
+2026-09-10 03:02:52,239 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_after_risk_needs_both_ratings ... 
+2026-09-10 03:02:52,249 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_completed_assessment_cannot_be_gutted ... 
+2026-09-10 03:02:52,260 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.safety.assessment.line records with IDs: [3] 
+2026-09-10 03:02:52,264 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_empty_assessment_cannot_be_done ... 
+2026-09-10 03:02:52,274 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_equipment_link_survives_equipment_delete ... 
+2026-09-10 03:02:52,290 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [88] 
+2026-09-10 03:02:52,293 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.equipment records with IDs: [5] 
+2026-09-10 03:02:52,297 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [89] 
+2026-09-10 03:02:52,301 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.approval.request records with IDs: [11] 
+2026-09-10 03:02:52,305 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_future_dates_rejected ... 
+2026-09-10 03:02:52,320 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_incident_cannot_close_without_cause_and_countermeasure ... 
+2026-09-10 03:02:52,333 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_incident_cannot_skip_cause_analysis ... 
+2026-09-10 03:02:52,343 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_incident_overdue_filter_matches_reality ... 
+2026-09-10 03:02:52,357 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_near_miss_lives_in_the_same_ledger ... 
+2026-09-10 03:02:52,368 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_no_demo_records_shipped ... 
+2026-09-10 03:02:52,372 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_normal_assessment_is_created_and_completed ... 
+2026-09-10 03:02:52,381 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_normal_incident_flows_to_closed ... 
+2026-09-10 03:02:52,390 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_risk_recomputes_when_rated_again ... 
+2026-09-10 03:02:52,400 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_risk_score_below_threshold_is_acceptable ... 
+2026-09-10 03:02:52,410 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_risk_score_boundary_four_is_unacceptable ... 
+2026-09-10 03:02:52,419 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_risk_score_boundary_three_is_acceptable ... 
+2026-09-10 03:02:52,428 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_risk_score_high_is_unacceptable ... 
+2026-09-10 03:02:52,437 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_safety_sheet_action_only_shows_safety ... 
+2026-09-10 03:02:52,448 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_safety_sheet_not_overdue_before_cycle ... 
+2026-09-10 03:02:52,456 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_safety_sheet_overdue_uses_check_sheet_engine ... 
+2026-09-10 03:02:52,465 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_state_write_cannot_bypass_close_guard ... 
+2026-09-10 03:02:52,475 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_state_write_cannot_bypass_done_guard ... 
+2026-09-10 03:02:52,490 1 INFO codex_review2 odoo.addons.iatf_work_environment.tests.test_safety: Starting TestSafety.test_unacceptable_without_measure_blocks_done ... 
+2026-09-10 03:02:52,504 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:53,685 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_account_manager_pumui_access_is_separate ... 
+2026-09-10 03:02:53,697 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_approval_number_cannot_be_cleared_or_changed_after_posting ... 
+2026-09-10 03:02:54,144 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_checklist_detects_origin_without_matching_original ... 
+2026-09-10 03:02:54,188 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_logical_duplicate_is_blocked ... 
+2026-09-10 03:02:54,221 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "account_move" ("auto_post", "company_id", "create_date", "create_uid", "currency_id", "date", "delivery_date", "fiscal_position_id", "invoice_currency_rate", "invoice_date", "invoice_payment_term_id", "journal_id", "kr_approval_number", "kr_doc_type", "kr_tax_type_manual", "move_type", "partner_id", "partner_shipping_id", "state", "write_date", "write_uid") VALUES (\'no\', 2, \'2026-09-10 03:02:52.557574\', 7, 1, \'2026-09-10\', NULL, NULL, 1.0, \'2026-09-10\', NULL, 10, \'20260830-AAAAAAAA-BBBBBBBB\', \'tax_invoice\', false, \'in_invoice\', 14, 14, \'draft\', \'2026-09-10 03:02:52.557574\', 7) RETURNING "id"'
+ERROR: duplicate key value violates unique constraint "account_move_kr_approval_number_uniq"
+DETAIL:  Key (kr_approval_number)=(20260830-AAAAAAAA-BBBBBBBB) already exists.
+ 
+2026-09-10 03:02:54,224 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_merge_wizard_reference_scan_ignores_its_own_views ... 
+2026-09-10 03:02:54,303 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_missing_studio_field_is_never_auto_removed ... 
+2026-09-10 03:02:54,318 1 WARNING codex_review2 odoo.tools.translate: no translation language detected, skipping translation <frame at 0xe021cb63b680, file '/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py', line 332, code _studio_status_lines> 
+Stack (most recent call last):
+  File "/usr/bin/odoo", line 8, in <module>
+    odoo.cli.main()
+  File "/usr/lib/python3/dist-packages/odoo/cli/command.py", line 76, in main
+    o.run(args)
+  File "/usr/lib/python3/dist-packages/odoo/cli/server.py", line 182, in run
+    main(args)
+  File "/usr/lib/python3/dist-packages/odoo/cli/server.py", line 175, in main
+    rc = odoo.service.server.start(preload=preload, stop=stop)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 1462, in start
+    rc = server.run(preload, stop)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 627, in run
+    rc = preload_registries(preload)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 1393, in preload_registries
+    result = loader.run_suite(post_install_suite, global_report=registry._assertion_report)
+  File "/usr/lib/python3/dist-packages/odoo/tests/loader.py", line 118, in run_suite
+    suite(results)
+  File "/usr/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "/usr/lib/python3/dist-packages/odoo/tests/suite.py", line 47, in run
+    test(result)
+  File "/usr/lib/python3.12/unittest/case.py", line 690, in __call__
+    return self.run(*args, **kwds)
+  File "/usr/lib/python3/dist-packages/odoo/tests/common.py", line 357, in run
+    super().run(result)
+  File "/usr/lib/python3/dist-packages/odoo/tests/case.py", line 216, in run
+    self._callTestMethod(testMethod)
+  File "/usr/lib/python3/dist-packages/odoo/tests/case.py", line 184, in _callTestMethod
+    method()
+  File "/review/tax/addons_custom/account_kr_reports/tests/test_approval_number_contract.py", line 170, in test_missing_studio_field_is_never_auto_removed
+    wizard.action_run()
+  File "/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py", line 277, in action_run
+    lines.extend(self._studio_status_lines(status))
+  File "/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py", line 332, in _studio_status_lines
+    return [_("※ Studio 호환 필드가 없어 별도 제거 작업이 필요하지 않습니다.")]
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 634, in get_text_alias
+    module, lang = _get_translation_source(1)
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 623, in _get_translation_source
+    lang = lang or _get_lang(frame, default_lang)
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 614, in _get_lang
+    _logger.log(log_level, 'no translation language detected, skipping translation %s', frame, stack_info=True)
+2026-09-10 03:02:54,321 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_normalized_key_and_public_lookup_ignore_format ... 
+2026-09-10 03:02:54,346 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_preview_preserves_existing_studio_field ... 
+2026-09-10 03:02:54,354 1 WARNING codex_review2 odoo.tools.translate: no translation language detected, skipping translation <frame at 0xe021cb63aa40, file '/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py', line 332, code _studio_status_lines> 
+Stack (most recent call last):
+  File "/usr/bin/odoo", line 8, in <module>
+    odoo.cli.main()
+  File "/usr/lib/python3/dist-packages/odoo/cli/command.py", line 76, in main
+    o.run(args)
+  File "/usr/lib/python3/dist-packages/odoo/cli/server.py", line 182, in run
+    main(args)
+  File "/usr/lib/python3/dist-packages/odoo/cli/server.py", line 175, in main
+    rc = odoo.service.server.start(preload=preload, stop=stop)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 1462, in start
+    rc = server.run(preload, stop)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 627, in run
+    rc = preload_registries(preload)
+  File "/usr/lib/python3/dist-packages/odoo/service/server.py", line 1393, in preload_registries
+    result = loader.run_suite(post_install_suite, global_report=registry._assertion_report)
+  File "/usr/lib/python3/dist-packages/odoo/tests/loader.py", line 118, in run_suite
+    suite(results)
+  File "/usr/lib/python3.12/unittest/suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "/usr/lib/python3/dist-packages/odoo/tests/suite.py", line 47, in run
+    test(result)
+  File "/usr/lib/python3.12/unittest/case.py", line 690, in __call__
+    return self.run(*args, **kwds)
+  File "/usr/lib/python3/dist-packages/odoo/tests/common.py", line 357, in run
+    super().run(result)
+  File "/usr/lib/python3/dist-packages/odoo/tests/case.py", line 216, in run
+    self._callTestMethod(testMethod)
+  File "/usr/lib/python3/dist-packages/odoo/tests/case.py", line 184, in _callTestMethod
+    method()
+  File "/review/tax/addons_custom/account_kr_reports/tests/test_approval_number_contract.py", line 177, in test_preview_preserves_existing_studio_field
+    wizard.action_run()
+  File "/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py", line 277, in action_run
+    lines.extend(self._studio_status_lines(status))
+  File "/review/tax/addons_custom/account_kr_reports/wizard/approval_number_merge.py", line 332, in _studio_status_lines
+    return [_("※ Studio 호환 필드가 없어 별도 제거 작업이 필요하지 않습니다.")]
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 634, in get_text_alias
+    module, lang = _get_translation_source(1)
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 623, in _get_translation_source
+    lang = lang or _get_lang(frame, default_lang)
+  File "/usr/lib/python3/dist-packages/odoo/tools/translate.py", line 614, in _get_lang
+    _logger.log(log_level, 'no translation language detected, skipping translation %s', frame, stack_info=True)
+2026-09-10 03:02:54,357 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_pumui_exposes_linked_canonical_numbers ... 
+2026-09-10 03:02:54,396 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_ref_only_fills_empty_canonical_and_ref_is_preserved ... 
+2026-09-10 03:02:54,420 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_approval_number_contract: Starting TestApprovalNumberContract.test_sales_ref_also_fills_empty_canonical ... 
+2026-09-10 03:02:54,463 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-10 03:02:54,475 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_reports: Starting TestKrReports.test_financial_statement_balance ... 
+2026-09-10 03:02:54,544 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_reports: Starting TestKrReports.test_loan_schedule_idempotent ... 
+2026-09-10 03:02:54,560 1 INFO codex_review2 odoo.models.unlink: User #1 deleted kr.loan.schedule records with IDs: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] 
+2026-09-10 03:02:54,568 1 INFO codex_review2 odoo.models.unlink: User #1 deleted kr.loan.schedule records with IDs: [13, 14, 15, 16, 18, 19, 20, 21, 22, 23] 
+2026-09-10 03:02:54,578 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_reports: Starting TestKrReports.test_lock_log_directions ... 
+2026-09-10 03:02:54,588 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_reports: Starting TestKrReports.test_sales_tax_match_idempotent ... 
+2026-09-10 03:02:54,675 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_reports: Starting TestKrReports.test_template_download ... 
+2026-09-10 03:02:54,687 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 5 checked, 5 removed 
+2026-09-10 03:02:54,783 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.button_immediate_install on ['Republic of Korea - Accounting'] to user __system__ #1 via n/a 
+2026-09-10 03:02:54,783 1 INFO codex_review2 odoo.addons.base.models.ir_module: User #1 triggered module installation 
+2026-09-10 03:02:54,801 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_auto_estimation_still_works ... 
+2026-09-10 03:02:54,804 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: skipped TestKrTaxType.test_auto_estimation_still_works : 한국 세목 미로드 환경 
+2026-09-10 03:02:54,807 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_exempt_replaces_taxes_and_sticks ... 
+2026-09-10 03:02:54,807 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: skipped TestKrTaxType.test_exempt_replaces_taxes_and_sticks : 한국 세목 미로드 환경 
+2026-09-10 03:02:54,810 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_manual_choice_survives_line_edit ... 
+2026-09-10 03:02:54,810 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: skipped TestKrTaxType.test_manual_choice_survives_line_edit : 한국 세목 미로드 환경 
+2026-09-10 03:02:54,815 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:54,912 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.button_immediate_install on ['Republic of Korea - Accounting'] to user __system__ #1 via n/a 
+2026-09-10 03:02:54,912 1 INFO codex_review2 odoo.addons.base.models.ir_module: User #1 triggered module installation 
+2026-09-10 03:02:54,919 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_duplicate_and_preamble_skipped ... 
+2026-09-10 03:02:54,920 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: skipped TestTaxInvoiceImport.test_duplicate_and_preamble_skipped : 세금 코드 없는 환경 
+2026-09-10 03:02:54,923 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_header_synonyms_and_amounts ... 
+2026-09-10 03:02:54,924 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: skipped TestTaxInvoiceImport.test_header_synonyms_and_amounts : 세금 코드 없는 환경(차트 미로드) 
+2026-09-10 03:02:54,926 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_missing_headers_raise ... 
+2026-09-10 03:02:54,941 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_row_failure_leaves_no_orphan_draft ... 
+2026-09-10 03:02:54,942 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: skipped TestTaxInvoiceImport.test_row_failure_leaves_no_orphan_draft : 세금 코드 없는 환경 
+2026-09-10 03:02:54,944 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_unknown_partner_reported_not_created ... 
+2026-09-10 03:02:54,956 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-10 03:02:54,957 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_boundaries_are_pass ... 
+2026-09-10 03:02:54,978 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_check_overdue ... 
+2026-09-10 03:02:54,999 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_check_overdue_search_negation ... 
+2026-09-10 03:02:55,019 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_create_numbers_and_overall ... 
+2026-09-10 03:02:55,035 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_draft_check_is_not_actual ... 
+2026-09-10 03:02:55,051 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_empty_check_is_not_ok ... 
+2026-09-10 03:02:55,067 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_inverted_spec_rejected ... 
+2026-09-10 03:02:55,083 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_mold_delete_blocked_while_check_exists ... 
+2026-09-10 03:02:55,104 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [145] 
+2026-09-10 03:02:55,106 1 ERROR codex_review2 odoo.sql_db: bad query: b'DELETE FROM "iatf_mold" WHERE id IN (9)'
+ERROR: update or delete on table "iatf_mold" violates foreign key constraint "iatf_mold_check_mold_id_fkey" on table "iatf_mold_check"
+DETAIL:  Key (id)=(9) is still referenced from table "iatf_mold_check".
+ 
+2026-09-10 03:02:55,110 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [147] 
+2026-09-10 03:02:55,112 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold.check records with IDs: [9] 
+2026-09-10 03:02:55,117 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [145] 
+2026-09-10 03:02:55,118 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold records with IDs: [9] 
+2026-09-10 03:02:55,122 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [146] 
+2026-09-10 03:02:55,125 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.approval.request records with IDs: [21] 
+2026-09-10 03:02:55,129 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_ng_line_makes_issue ... 
+2026-09-10 03:02:55,161 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_no_cycle_means_no_judgement ... 
+2026-09-10 03:02:55,180 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_no_spec_line_is_manual ... 
+2026-09-10 03:02:55,197 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_one_sided_spec ... 
+2026-09-10 03:02:55,213 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_periodic_check_does_not_reset_daily_cycle ... 
+2026-09-10 03:02:55,231 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_spec_judgement_cannot_be_overridden ... 
+2026-09-10 03:02:55,255 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_unjudged_line_blocks_done ... 
+2026-09-10 03:02:55,278 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_value_out_of_spec_is_auto_ng ... 
+2026-09-10 03:02:55,297 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheck.test_zero_value_is_not_measured ... 
+2026-09-10 03:02:55,318 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:55,320 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheckIntegrity.test_done_check_is_locked ... 
+2026-09-10 03:02:55,345 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheckIntegrity.test_future_check_date_is_rejected ... 
+2026-09-10 03:02:55,362 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheckIntegrity.test_numeric_item_cannot_be_judged_without_value ... 
+2026-09-10 03:02:55,387 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_check: Starting TestMoldCheckIntegrity.test_write_state_done_bypass_is_rejected ... 
+2026-09-10 03:02:55,416 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:55,418 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_clean_overdue ... 
+2026-09-10 03:02:55,451 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_clean_overdue_search_negation ... 
+2026-09-10 03:02:55,471 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_gauge_does_not_require_temp_spec ... 
+2026-09-10 03:02:55,483 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_no_cycle_means_no_judgement ... 
+2026-09-10 03:02:55,501 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_no_spec_is_not_pass_and_not_fail ... 
+2026-09-10 03:02:55,515 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_one_sided_spec ... 
+2026-09-10 03:02:55,530 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_planned_clean_is_not_actual ... 
+2026-09-10 03:02:55,547 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_standard_missing_lists_gaps ... 
+2026-09-10 03:02:55,561 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_standard_ready_when_all_filled ... 
+2026-09-10 03:02:55,574 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_standard: Starting TestMoldStandard.test_temp_in_spec_judgement ... 
+2026-09-10 03:02:55,589 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:55,590 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_check_temp_in_spec_rejects_unknown_kind ... 
+2026-09-10 03:02:55,605 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_create_records_point_and_method ... 
+2026-09-10 03:02:55,623 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_log_type_switch_reevaluates ... 
+2026-09-10 03:02:55,643 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_mold_delete_blocked_while_log_exists ... 
+2026-09-10 03:02:55,659 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [221] 
+2026-09-10 03:02:55,659 1 ERROR codex_review2 odoo.sql_db: bad query: b'DELETE FROM "iatf_mold" WHERE id IN (37)'
+ERROR: update or delete on table "iatf_mold" violates foreign key constraint "iatf_mold_temp_log_mold_id_fkey" on table "iatf_mold_temp_log"
+DETAIL:  Key (id)=(37) is still referenced from table "iatf_mold_temp_log".
+ 
+2026-09-10 03:02:55,662 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [223] 
+2026-09-10 03:02:55,664 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold.temp.log records with IDs: [3] 
+2026-09-10 03:02:55,667 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_new_log_after_revision_uses_new_spec ... 
+2026-09-10 03:02:55,684 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_ng_logs_are_searchable ... 
+2026-09-10 03:02:55,704 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_no_spec_is_not_pass_and_not_fail ... 
+2026-09-10 03:02:55,723 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_one_sided_spec ... 
+2026-09-10 03:02:55,745 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_operating_uses_its_own_spec ... 
+2026-09-10 03:02:55,762 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_point_and_method_are_required ... 
+2026-09-10 03:02:55,773 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_mold_temp_log" ("company_id", "create_date", "create_uid", "log_type", "measured_at", "measured_by_id", "method", "mold_id", "point", "shift", "temperature", "write_date", "write_uid") VALUES (1, \'2026-09-10 03:02:55.590874\', 1, \'preheat\', \'2026-09-10 03:02:55\', 1, \'ir\', 45, NULL, \'day\', \'75.0\', \'2026-09-10 03:02:55.590874\', 1) RETURNING "id"'
+ERROR: null value in column "point" of relation "iatf_mold_temp_log" violates not-null constraint
+DETAIL:  Failing row contains (13, 45, null, 1, 1, 1, 1, preheat, day, ir, null, null, null, 75.0, null, null, 2026-09-10 03:02:55, 2026-09-10 03:02:55.590874, 2026-09-10 03:02:55.590874).
+ 
+2026-09-10 03:02:55,773 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_mold_temp_log" ("company_id", "create_date", "create_uid", "log_type", "measured_at", "measured_by_id", "method", "mold_id", "point", "shift", "temperature", "write_date", "write_uid") VALUES (1, \'2026-09-10 03:02:55.590874\', 1, \'preheat\', \'2026-09-10 03:02:55\', 1, NULL, 45, \'fixed\', \'day\', \'75.0\', \'2026-09-10 03:02:55.590874\', 1) RETURNING "id"'
+ERROR: null value in column "method" of relation "iatf_mold_temp_log" violates not-null constraint
+DETAIL:  Failing row contains (14, 45, null, 1, 1, 1, 1, preheat, day, null, fixed, null, null, 75.0, null, null, 2026-09-10 03:02:55, 2026-09-10 03:02:55.590874, 2026-09-10 03:02:55.590874).
+ 
+2026-09-10 03:02:55,777 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_preheat_judgement ... 
+2026-09-10 03:02:55,796 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_temp_log: Starting TestMoldTempLog.test_spec_result_is_snapshot_not_link ... 
+2026-09-10 03:02:55,814 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:55,815 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_create_numbers_and_links ... 
+2026-09-10 03:02:55,841 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_duplicate_tryout_no_rejected ... 
+2026-09-10 03:02:55,858 1 ERROR codex_review2 odoo.sql_db: bad query: b'INSERT INTO "iatf_mold_tryout" ("company_id", "create_date", "create_uid", "mold_id", "name", "reason", "responsible_id", "state", "tryout_date", "tryout_no", "write_date", "write_uid") VALUES (1, \'2026-09-10 03:02:55.816013\', 1, 50, \'TO-2026-0005\', \'transfer\', 1, \'draft\', \'2026-09-10\', 1, \'2026-09-10 03:02:55.816013\', 1) RETURNING "id"'
+ERROR: duplicate key value violates unique constraint "iatf_mold_tryout_uniq_mold_tryout_no"
+DETAIL:  Key (mold_id, tryout_no)=(50, 1) already exists.
+ 
+2026-09-10 03:02:55,861 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_last_tryout_date_and_done_requires_conclusion ... 
+2026-09-10 03:02:55,881 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [272] 
+2026-09-10 03:02:55,883 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold.tryout records with IDs: [7] 
+2026-09-10 03:02:55,887 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_mold_delete_blocked_while_evidence_exists ... 
+2026-09-10 03:02:55,925 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [273] 
+2026-09-10 03:02:55,928 1 ERROR codex_review2 odoo.sql_db: bad query: b'DELETE FROM "iatf_mold" WHERE id IN (52)'
+ERROR: update or delete on table "iatf_mold" violates foreign key constraint "iatf_mold_tryout_mold_id_fkey" on table "iatf_mold_tryout"
+DETAIL:  Key (id)=(52) is still referenced from table "iatf_mold_tryout".
+ 
+2026-09-10 03:02:55,935 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [275] 
+2026-09-10 03:02:55,937 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold.tryout records with IDs: [8] 
+2026-09-10 03:02:55,945 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [273] 
+2026-09-10 03:02:55,947 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold records with IDs: [52] 
+2026-09-10 03:02:55,952 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [274] 
+2026-09-10 03:02:55,958 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.approval.request records with IDs: [64] 
+2026-09-10 03:02:55,965 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_negative_quantity_rejected ... 
+2026-09-10 03:02:55,996 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_no_shot_count_skips_upper_bound ... 
+2026-09-10 03:02:56,020 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_quantity_over_shot_count_rejected ... 
+2026-09-10 03:02:56,039 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_quantity_within_shot_count_ok ... 
+2026-09-10 03:02:56,054 1 INFO codex_review2 odoo.addons.iatf_mold.tests.test_mold_tryout: Starting TestMoldTryout.test_tryout_missing_flags_active_mold ... 
+2026-09-10 03:02:56,084 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.service.server: 180 post-tests in 5.03s, 9871 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: account_kr_reports: 32 tests 2.45s 4844 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: iatf_equipment: 29 tests 0.23s 386 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: iatf_mold: 62 tests 1.12s 2252 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: iatf_process_inspection: 4 tests 0.07s 117 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: iatf_spc: 6 tests 0.12s 245 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.stats: iatf_work_environment: 79 tests 0.98s 2027 queries 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.tests.result: 0 failed, 0 error(s) of 180 tests when loading database 'codex_review2' 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.service.server: Initiating shutdown 
+2026-09-10 03:02:56,085 1 INFO codex_review2 odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-10 03:02:56,248 1 INFO codex_review2 odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=64): Closed 1 connections  

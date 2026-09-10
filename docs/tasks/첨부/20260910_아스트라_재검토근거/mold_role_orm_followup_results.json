@@ -1,0 +1,183 @@
+[
+  {
+    "case": "regular_line_create:mold",
+    "identity": {
+      "uid": 9,
+      "su": false,
+      "role": "iatf_mold.group_mold_user",
+      "is_module_manager": false,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "regular_line_create:sheet",
+    "identity": {
+      "uid": 10,
+      "su": false,
+      "role": "iatf_work_environment.group_work_environment_user",
+      "is_module_manager": false,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "pending",
+      "line_count": 2,
+      "results": [
+        "ok",
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "regular_forged_done:mold",
+    "identity": {
+      "uid": 11,
+      "su": false,
+      "role": "iatf_mold.group_mold_user",
+      "is_module_manager": false,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "regular_forged_done:sheet",
+    "identity": {
+      "uid": 12,
+      "su": false,
+      "role": "iatf_work_environment.group_work_environment_user",
+      "is_module_manager": false,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "draft",
+      "overall_result": "pending",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "after": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        false
+      ]
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "regular_temperature_write:mold",
+    "identity": {
+      "uid": 13,
+      "su": false,
+      "role": "iatf_mold.group_mold_user",
+      "is_module_manager": false,
+      "is_settings_admin": false
+    },
+    "before": {
+      "temperature": 95.0,
+      "spec_max": 90.0,
+      "spec_result": "ng",
+      "current_spec_result": "ng"
+    },
+    "after_result_only": {
+      "temperature": 95.0,
+      "spec_max": 90.0,
+      "spec_result": "ok",
+      "current_spec_result": "ng"
+    },
+    "after_snapshot_write": {
+      "temperature": 95.0,
+      "spec_max": 100.0,
+      "spec_result": "ok",
+      "current_spec_result": "ng"
+    },
+    "outcome": "completed"
+  },
+  {
+    "case": "manager_delete:mold",
+    "identity": {
+      "uid": 14,
+      "su": false,
+      "role": "iatf_mold.group_mold_manager",
+      "is_module_manager": true,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "record_survives": false,
+    "line_survives": false,
+    "outcome": "completed"
+  },
+  {
+    "case": "manager_delete:sheet",
+    "identity": {
+      "uid": 15,
+      "su": false,
+      "role": "iatf_work_environment.group_work_environment_manager",
+      "is_module_manager": true,
+      "is_settings_admin": false
+    },
+    "before": {
+      "state": "done",
+      "overall_result": "ok",
+      "line_count": 1,
+      "results": [
+        "ok"
+      ]
+    },
+    "record_survives": false,
+    "line_survives": false,
+    "outcome": "completed"
+  }
+]

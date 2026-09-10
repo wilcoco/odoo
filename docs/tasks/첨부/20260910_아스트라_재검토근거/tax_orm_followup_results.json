@@ -1,0 +1,137 @@
+{
+  "kind": "actual Odoo ORM/PostgreSQL shell probe",
+  "cases": [
+    {
+      "case": "create_failure_after_real_orm_create",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real Move.create",
+      "moves": [
+        {
+          "approval": "20260910-AABB0002-00000002",
+          "state": "draft",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        }
+      ],
+      "check_passed": true,
+      "check": "Failed create leaves no move; later valid row survives"
+    },
+    {
+      "case": "flush_failure_after_real_flush",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real flush_recordset",
+      "moves": [
+        {
+          "approval": "20260910-AABB0002-00000002",
+          "state": "draft",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        }
+      ],
+      "check_passed": true,
+      "check": "Injected real flush failure leaves no bad move; valid row survives"
+    },
+    {
+      "case": "new_partner_leaks_on_failed_invoice",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real Move.create",
+      "moves": [
+        {
+          "approval": "20260910-AABB0002-00000002",
+          "state": "draft",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        }
+      ],
+      "new_partner_count_after_failed_row": 1,
+      "defect_reproduced": true,
+      "check": "Failed auto-partner row should roll back its partner as well"
+    },
+    {
+      "case": "new_partner_leaks_on_missing_tax",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 0건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 세액 10000.0 에 맞는 세금 코드를 찾지 못했습니다 (회계 설정 › 세금 확인 후 다시 시도)",
+      "moves": [],
+      "new_partner_count_after_failed_row": 1,
+      "defect_reproduced": true,
+      "check": "Missing-tax rejection should not leave an auto-created partner"
+    },
+    {
+      "case": "malformed_amount_aborts_later_row",
+      "escaped_exception": "ValueError: could not convert string to float: '1.2.3'",
+      "result": false,
+      "moves_before_outer_rollback": [
+        {
+          "approval": "20260910-AABB0002-00000002",
+          "state": "draft",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        }
+      ],
+      "defect_reproduced": true,
+      "check": "Malformed numeric row stops following valid row; an RPC would roll back the request"
+    },
+    {
+      "case": "post_failure_after_real_action_post",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 2건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n게시 1건 / 초안으로 남음 1건\n\n[오류]\n19 게시 실패(초안으로 남김) — ROUND2 injected after real action_post",
+      "moves": [
+        {
+          "approval": "20260910-AABB0001-00000001",
+          "state": "draft",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        },
+        {
+          "approval": "20260910-AABB0002-00000002",
+          "state": "posted",
+          "untaxed": 100000.0,
+          "tax": 10000.0,
+          "total": 110000.0,
+          "invoice_lines": 1,
+          "all_lines": 3
+        }
+      ],
+      "check_passed": true,
+      "check": "After-real-post injection rolls bad back to draft, good posts successfully"
+    },
+    {
+      "case": "negative_tax_ACC_02",
+      "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 0건",
+      "moves": [
+        {
+          "approval": "20260910-AABB0001-00000001",
+          "state": "draft",
+          "untaxed": -1000000.0,
+          "tax": 0.0,
+          "total": -1000000.0,
+          "invoice_lines": 1,
+          "all_lines": 2
+        }
+      ],
+      "defect_reproduced": true,
+      "check": "Existing ACC-02 negative correction VAT remains omitted"
+    }
+  ],
+  "setup": {
+    "db": "codex_review2",
+    "company_id": 7,
+    "chart_template": "kr",
+    "tax_id": 26,
+    "purchase_journal_ids": [
+      19
+    ],
+    "fixture": "new KR company + explicit kr chart load; discarded at final rollback",
+    "account_kr_reports_version": "18.0.1.5.1"
+  }
+}

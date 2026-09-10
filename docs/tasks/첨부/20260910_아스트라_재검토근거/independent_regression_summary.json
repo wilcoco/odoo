@@ -1,0 +1,32 @@
+{
+  "initial_run": {
+    "test_methods_started": 180,
+    "skipped": [
+      "TestPqcAggregation.test_unit_mo_run_aggregation : injection_worksite 미설치 — 단위 MO 경로 없음 ",
+      "TestKrTaxType.test_auto_estimation_still_works : 한국 세목 미로드 환경 ",
+      "TestKrTaxType.test_exempt_replaces_taxes_and_sticks : 한국 세목 미로드 환경 ",
+      "TestKrTaxType.test_manual_choice_survives_line_edit : 한국 세목 미로드 환경 ",
+      "TestTaxInvoiceImport.test_duplicate_and_preamble_skipped : 세금 코드 없는 환경 ",
+      "TestTaxInvoiceImport.test_header_synonyms_and_amounts : 세금 코드 없는 환경(차트 미로드) ",
+      "TestTaxInvoiceImport.test_row_failure_leaves_no_orphan_draft : 세금 코드 없는 환경 "
+    ],
+    "reported_failure_count": 0,
+    "reported_error_count": 0,
+    "runtime": "18.0-20260609",
+    "scope": "7 pinned ERP modules; without injection_worksite or Enterprise; Korean localization installed only after first run",
+    "test_methods_not_skipped": 173
+  },
+  "tax_rerun": {
+    "test_methods_started": 8,
+    "skipped": [],
+    "reported_failure_count": 0,
+    "reported_error_count": 0,
+    "setup": "l10n_kr installed; TestKrTaxType and TestTaxInvoiceImport; tests load Korean chart"
+  },
+  "combined_unique_outcome": {
+    "test_methods": 180,
+    "passed_not_skipped": 179,
+    "skipped": 1,
+    "remaining_skip": "PQC unit MO requires MES injection_worksite; not installed in isolated ERP test"
+  }
+}

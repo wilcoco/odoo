@@ -1,0 +1,96 @@
+2026-09-10 03:07:41,578 1 INFO ? odoo: Odoo version 18.0-20260609 
+2026-09-10 03:07:41,578 1 INFO ? odoo: addons paths: ['/usr/lib/python3/dist-packages/odoo/addons', '/tmp/odoo-review2/addons/18.0', '/review/tax/addons_custom', '/review/quality/addons_custom'] 
+2026-09-10 03:07:41,578 1 INFO ? odoo: database: odoo@codex-review2-db-01a088bd:5432 
+Warn: Can't find .pfb for face 'Courier'
+2026-09-10 03:07:41,722 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at /usr/local/bin/wkhtmltopdf 
+2026-09-10 03:07:41,731 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltoimage binary at /usr/local/bin/wkhtmltoimage 
+2026-09-10 03:07:41,843 1 INFO ? odoo.service.server: HTTP service (werkzeug) running on c34873829838:8069 
+2026-09-10 03:07:41,861 1 INFO codex_review2 odoo.tests.common: Importing test framework 
+2026-09-10 03:07:41,881 1 INFO codex_review2 odoo.modules.loading: loading 1 modules... 
+2026-09-10 03:07:41,884 1 INFO codex_review2 odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-10 03:07:41,896 1 INFO codex_review2 odoo.modules.loading: updating modules list 
+2026-09-10 03:07:41,899 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-10 03:07:42,635 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['회계 한국식 조회·부가세 (K-Reports)'] to user __system__ #1 via n/a 
+2026-09-10 03:07:42,635 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['회계 한국식 조회·부가세 (K-Reports)'] to user __system__ #1 via n/a 
+2026-09-10 03:07:43,009 1 INFO codex_review2 odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-10 03:07:43,034 1 INFO codex_review2 odoo.modules.loading: loading 85 modules... 
+2026-09-10 03:07:43,573 1 INFO codex_review2 odoo.modules.loading: Loading module account_kr_reports (83/85) 
+2026-09-10 03:07:43,658 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:43,658 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:43,659 1 WARNING codex_review2 odoo.fields: Field iatf.fmea.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:43,660 1 WARNING codex_review2 odoo.fields: Field iatf.control.plan.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:43,766 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:43,767 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:43,786 1 INFO codex_review2 odoo.modules.registry: module account_kr_reports: creating or updating database tables 
+2026-09-10 03:07:43,913 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/security/ir.model.access.csv 
+2026-09-10 03:07:43,927 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/move_tax_views.xml 
+2026-09-10 03:07:43,966 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/pumui_tax_views.xml 
+2026-09-10 03:07:43,982 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/ledger_views.xml 
+2026-09-10 03:07:44,000 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/loan_views.xml 
+2026-09-10 03:07:44,009 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/fs_views.xml 
+2026-09-10 03:07:44,019 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/lock_log_views.xml 
+2026-09-10 03:07:44,024 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/template_download_views.xml 
+2026-09-10 03:07:44,031 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/sales_tax_match_views.xml 
+2026-09-10 03:07:44,035 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/tax_invoice_import_views.xml 
+2026-09-10 03:07:44,039 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/wizard/approval_number_merge_views.xml 
+2026-09-10 03:07:44,043 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/menus.xml 
+2026-09-10 03:07:44,051 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.actions.act_window.view records with IDs: [140, 141] 
+2026-09-10 03:07:44,054 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.actions.act_window.view records with IDs: [142, 143] 
+2026-09-10 03:07:44,090 1 INFO codex_review2 odoo.modules.loading: loading account_kr_reports/views/cash_status_views.xml 
+2026-09-10 03:07:44,259 1 INFO codex_review2 odoo.modules.loading: Module account_kr_reports loaded in 0.69s, 723 queries (+723 other) 
+2026-09-10 03:07:44,279 1 INFO codex_review2 odoo.modules.loading: 85 modules loaded in 1.25s, 723 queries (+723 extra) 
+2026-09-10 03:07:44,344 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:44,344 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:44,348 1 WARNING codex_review2 odoo.fields: Field iatf.ppap.submission.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:44,429 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:44,430 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:44,880 1 INFO codex_review2 odoo.modules.loading: Modules loaded. 
+2026-09-10 03:07:44,883 1 INFO codex_review2 odoo.modules.registry: Registry changed, signaling through the database 
+2026-09-10 03:07:44,884 1 INFO codex_review2 odoo.modules.registry: Registry loaded in 3.040s 
+2026-09-10 03:07:44,884 1 INFO codex_review2 odoo.service.server: Starting post tests 
+2026-09-10 03:07:45,111 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44584, 44583, 44582, 44581] 
+2026-09-10 03:07:45,111 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.reconcile.model records with IDs: [1, 2, 3, 4] 
+2026-09-10 03:07:45,118 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.payment.method.line records with IDs: [1, 2, 3, 4] 
+2026-09-10 03:07:45,129 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.default records with IDs: [16] 
+2026-09-10 03:07:45,130 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44578, 44577, 44579, 44576, 44575, 44580, 44574, 44573] 
+2026-09-10 03:07:45,130 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.journal records with IDs: [1, 2, 6, 3, 7, 5, 4, 8] 
+2026-09-10 03:07:45,133 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.alias records with IDs: [1, 2] 
+2026-09-10 03:07:45,141 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44570, 44569] 
+2026-09-10 03:07:45,141 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.tax records with IDs: [1, 2] 
+2026-09-10 03:07:45,145 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44568] 
+2026-09-10 03:07:45,145 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.tax.group records with IDs: [1] 
+2026-09-10 03:07:45,172 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [39546, 39545] 
+2026-09-10 03:07:45,172 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.default records with IDs: [10, 11, 12, 13, 14, 15, 17, 18] 
+2026-09-10 03:07:45,175 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44588, 44587, 44585, 44571, 44548, 44562, 44552, 44563, 44553, 44572, 44555, 44528, 44567, 44524, 44538, 44541, 44549, 44543, 44544, 44556, 44561, 44559, 44557, 44564, 44558, 44560, 44565, 44536, 44550, 44551, 44537, 44547, 44554, 44539, 44566, 44532, 44535, 44530, 44542, 44526, 44527, 44525, 44533, 44546, 44534, 44545, 44540, 44531, 44586, 44589, 44529] 
+2026-09-10 03:07:45,175 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.account records with IDs: [1, 43, 45, 47, 49, 50, 46, 48, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 44, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 51] 
+2026-09-10 03:07:46,038 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_auto_estimation_still_works ... 
+2026-09-10 03:07:46,486 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_exempt_replaces_taxes_and_sticks ... 
+2026-09-10 03:07:46,657 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_kr_tax_type: Starting TestKrTaxType.test_manual_choice_survives_line_edit ... 
+2026-09-10 03:07:46,860 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-09-10 03:07:46,963 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44584, 44583, 44582, 44581] 
+2026-09-10 03:07:46,964 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.reconcile.model records with IDs: [1, 2, 3, 4] 
+2026-09-10 03:07:46,969 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.payment.method.line records with IDs: [1, 2, 3, 4] 
+2026-09-10 03:07:46,976 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.default records with IDs: [16] 
+2026-09-10 03:07:46,977 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44578, 44577, 44579, 44576, 44575, 44580, 44574, 44573] 
+2026-09-10 03:07:46,977 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.journal records with IDs: [1, 2, 6, 3, 7, 5, 4, 8] 
+2026-09-10 03:07:46,980 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.alias records with IDs: [1, 2] 
+2026-09-10 03:07:46,986 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44570, 44569] 
+2026-09-10 03:07:46,986 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.tax records with IDs: [1, 2] 
+2026-09-10 03:07:46,989 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44568] 
+2026-09-10 03:07:46,989 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.tax.group records with IDs: [1] 
+2026-09-10 03:07:47,012 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [39546, 39545] 
+2026-09-10 03:07:47,012 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.default records with IDs: [10, 11, 12, 13, 14, 15, 17, 18] 
+2026-09-10 03:07:47,014 1 INFO codex_review2 odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [44588, 44587, 44585, 44571, 44548, 44562, 44552, 44563, 44553, 44572, 44555, 44528, 44567, 44524, 44538, 44541, 44549, 44543, 44544, 44556, 44561, 44559, 44557, 44564, 44558, 44560, 44565, 44536, 44550, 44551, 44537, 44547, 44554, 44539, 44566, 44532, 44535, 44530, 44542, 44526, 44527, 44525, 44533, 44546, 44534, 44545, 44540, 44531, 44586, 44589, 44529] 
+2026-09-10 03:07:47,014 1 INFO codex_review2 odoo.models.unlink: User #1 deleted account.account records with IDs: [1, 43, 45, 47, 49, 50, 46, 48, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 44, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 51] 
+2026-09-10 03:07:47,738 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_duplicate_and_preamble_skipped ... 
+2026-09-10 03:07:47,810 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_header_synonyms_and_amounts ... 
+2026-09-10 03:07:47,880 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_missing_headers_raise ... 
+2026-09-10 03:07:47,887 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_row_failure_leaves_no_orphan_draft ... 
+2026-09-10 03:07:48,022 1 INFO codex_review2 odoo.addons.account_kr_reports.tests.test_tax_invoice_import: Starting TestTaxInvoiceImport.test_unknown_partner_reported_not_created ... 
+2026-09-10 03:07:48,034 1 INFO codex_review2 odoo.addons.base.models.ir_attachment: filestore gc 5 checked, 5 removed 
+2026-09-10 03:07:48,035 1 INFO codex_review2 odoo.service.server: 8 post-tests in 3.15s, 6487 queries 
+2026-09-10 03:07:48,035 1 INFO codex_review2 odoo.tests.stats: account_kr_reports: 12 tests 3.15s 6487 queries 
+2026-09-10 03:07:48,035 1 INFO codex_review2 odoo.tests.result: 0 failed, 0 error(s) of 8 tests when loading database 'codex_review2' 
+2026-09-10 03:07:48,035 1 INFO codex_review2 odoo.service.server: Initiating shutdown 
+2026-09-10 03:07:48,035 1 INFO codex_review2 odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-10 03:07:48,396 1 INFO codex_review2 odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=64): Closed 1 connections  

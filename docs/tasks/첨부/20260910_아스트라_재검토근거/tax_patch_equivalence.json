@@ -1,0 +1,15 @@
+{
+  "commits": {
+    "fix": "c9ad89dd7f593a77b7ffa8aa6f17f41c3a7f8047",
+    "original": "ce025d508f40c143db13ce46bfec35c0aa893fc9"
+  },
+  "test_file_bytes_equal": true,
+  "test_sha256": "cb543dac05126f353fc9c2d416bf4a12e10c41df8b7ad0fa4fb625fa4a2b612f",
+  "creation_try_AST_equal_after_approval_key_rename": true,
+  "post_block_AST_equal": true,
+  "summary_AST_equal": true,
+  "wizard_file_bytes_equal": false,
+  "full_file_difference_reason": "fix retains newer 18.0 canonical approval-number normalization/global duplicate key changes; rollback/create/flush/post logic equal",
+  "c9ad89d_stable_patch_id": "bc1816404ab5ccd7902f40f0a331f7c5a64051f3",
+  "ce025d5_stable_patch_id": "46bf4d7fd216ea1922a2d0263e1d80888a180b8d"
+}

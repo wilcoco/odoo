@@ -1,0 +1,298 @@
+2026-09-10 03:05:26,546 1 INFO ? odoo: Odoo version 18.0-20260609 
+2026-09-10 03:05:26,546 1 INFO ? odoo: addons paths: ['/usr/lib/python3/dist-packages/odoo/addons', '/var/lib/odoo/addons/18.0', '/mnt/extra-addons', '/tmp/odoo-review2/addons/18.0', '/review/tax/addons_custom', '/review/quality/addons_custom'] 
+2026-09-10 03:05:26,546 1 INFO ? odoo: database: odoo@codex-review2-db-01a088bd:5432 
+Warn: Can't find .pfb for face 'Courier'
+2026-09-10 03:05:26,678 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at /usr/local/bin/wkhtmltopdf 
+2026-09-10 03:05:26,691 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltoimage binary at /usr/local/bin/wkhtmltoimage 
+2026-09-10 03:05:26,837 1 INFO ? odoo.service.server: Initiating shutdown 
+2026-09-10 03:05:26,837 1 INFO ? odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-10 03:05:26,864 1 INFO codex_review2 odoo.modules.loading: loading 1 modules... 
+2026-09-10 03:05:26,872 1 INFO codex_review2 odoo.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra) 
+2026-09-10 03:05:26,924 1 INFO codex_review2 odoo.modules.loading: loading 85 modules... 
+2026-09-10 03:05:27,524 1 INFO codex_review2 odoo.modules.loading: 85 modules loaded in 0.60s, 0 queries (+0 extra) 
+2026-09-10 03:05:27,610 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:05:27,611 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:05:27,611 1 WARNING codex_review2 odoo.fields: Field iatf.fmea.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:05:27,612 1 WARNING codex_review2 odoo.fields: Field iatf.control.plan.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:05:27,615 1 WARNING codex_review2 odoo.fields: Field iatf.ppap.submission.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:05:27,635 1 INFO codex_review2 odoo.modules.loading: Modules loaded. 
+2026-09-10 03:05:27,638 1 INFO codex_review2 odoo.modules.registry: Registry loaded in 0.800s 
+REVIEW_PROBE_START=mold_orm_probe.py
+MOLD_ORM_PROBE {"case": "done_line_create:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "done_line_create:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "done_line_reparent:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "source_after": {"state": "draft", "overall_result": "pending", "line_count": 0, "results": []}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "done_line_reparent:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "source_after": {"state": "draft", "overall_result": "pending", "line_count": 0, "results": []}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "forged_done:mold", "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "forged_done:sheet", "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "missing_value_na:mold", "before": {"value": 0.0, "judged": "no_value", "state": "draft", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "missing_value_na:sheet", "before": {"value": 0.0, "judged": "no_value", "state": "draft", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "outcome": "completed"}
+2026-09-10 03:05:27,905 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [317] 
+2026-09-10 03:05:27,907 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.mold.check records with IDs: [28] 
+MOLD_ORM_PROBE {"case": "done_header_unlink:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}
+2026-09-10 03:05:27,923 1 INFO codex_review2 odoo.models.unlink: User #1 deleted mail.message records with IDs: [319] 
+2026-09-10 03:05:27,927 1 INFO codex_review2 odoo.models.unlink: User #1 deleted iatf.check.record records with IDs: [33] 
+MOLD_ORM_PROBE {"case": "done_header_unlink:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "temperature_direct_write", "before": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng", "temperature": 95.0}, "after_result_only_write": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ok", "current_spec_result": "ng", "temperature": 95.0}, "after_snapshot_bound_write": {"spec_min": 60.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ng", "temperature": 95.0}, "outcome": "completed"}
+MOLD_ORM_PROBE {"case": "temperature_same_mold_write", "before": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng", "temperature": 95.0}, "after_master_only": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ok", "temperature": 95.0}, "after_same_mold_write": {"spec_min": 60.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ok", "temperature": 95.0}, "outcome": "completed"}
+MOLD_ORM_PROBE_SUMMARY [{"case": "done_line_create:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}, {"case": "done_line_create:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}, {"case": "done_line_reparent:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "source_after": {"state": "draft", "overall_result": "pending", "line_count": 0, "results": []}, "outcome": "completed"}, {"case": "done_line_reparent:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "source_after": {"state": "draft", "overall_result": "pending", "line_count": 0, "results": []}, "outcome": "completed"}, {"case": "forged_done:mold", "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}, {"case": "forged_done:sheet", "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}, {"case": "missing_value_na:mold", "before": {"value": 0.0, "judged": "no_value", "state": "draft", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "outcome": "completed"}, {"case": "missing_value_na:sheet", "before": {"value": 0.0, "judged": "no_value", "state": "draft", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["na"]}, "outcome": "completed"}, {"case": "done_header_unlink:mold", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}, {"case": "done_header_unlink:sheet", "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}, {"case": "temperature_direct_write", "before": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng", "temperature": 95.0}, "after_result_only_write": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ok", "current_spec_result": "ng", "temperature": 95.0}, "after_snapshot_bound_write": {"spec_min": 60.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ng", "temperature": 95.0}, "outcome": "completed"}, {"case": "temperature_same_mold_write", "before": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng", "temperature": 95.0}, "after_master_only": {"spec_min": 60.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ok", "temperature": 95.0}, "after_same_mold_write": {"spec_min": 60.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ok", "temperature": 95.0}, "outcome": "completed"}]
+REVIEW_PROBE_END=mold_orm_probe.py
+REVIEW_PROBE_START=spc_orm_probe.py
+2026-09-10 03:05:28,221 1 INFO codex_review2 odoo.addons.partner_autocomplete.models.res_company: Starting enrich of company REVIEW-B-company (3) 
+2026-09-10 03:05:28,262 1 ERROR codex_review2 odoo.sql_db: bad query: b'SELECT number_next FROM ir_sequence WHERE id=false FOR UPDATE NOWAIT'
+ERROR: operator does not exist: integer = boolean
+LINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...
+                                                    ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+ 
+2026-09-10 03:05:28,355 1 INFO codex_review2 odoo.addons.partner_autocomplete.models.res_company: Starting enrich of company REVIEW-PPAP-B (4) 
+2026-09-10 03:05:28,426 1 INFO codex_review2 odoo.addons.iatf_ppap.models.mrp_production: PPAP auto-created: PPAP-2026-0002 for first MO WH/MO/00002, product REVIEW-shared-product-PPAP 
+2026-09-10 03:05:28,427 1 ERROR codex_review2 odoo.sql_db: bad query: b'SELECT number_next FROM ir_sequence WHERE id=false FOR UPDATE NOWAIT'
+ERROR: operator does not exist: integer = boolean
+LINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...
+                                                    ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+ 
+SPC_ORM_PROBE_JSON_BEGIN
+{
+  "kind": "Odoo ORM on disposable DB; final transaction rollback",
+  "cases": {
+    "single_zero_and_depends": {
+      "status": "completed",
+      "real_zero": [
+        {
+          "id": 5,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            0.0
+          ],
+          "mean": 0.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_x1_10": [
+        {
+          "id": 5,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_count_2": [
+        {
+          "id": 5,
+          "sample_count": 2,
+          "origins": false,
+          "values": [
+            10.0,
+            0.0
+          ],
+          "mean": 5.0,
+          "range": 10.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after_study_n_1": [
+        {
+          "id": 5,
+          "sample_count": 2,
+          "origins": false,
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "confirmed": true
+    },
+    "origin_prefix_collision": {
+      "status": "completed",
+      "inspection_id": 2,
+      "first_line_id": 1,
+      "last_line_id": 12,
+      "first_source_value_after": "20",
+      "before": [
+        {
+          "id": 6,
+          "sample_count": 1,
+          "origins": "pqc:2:12",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "after": [
+        {
+          "id": 6,
+          "sample_count": 1,
+          "origins": "pqc:2:12",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "confirmed_bug": true
+    },
+    "manual_fill_after_auto": {
+      "status": "completed",
+      "after_manual_x2_x5": [
+        {
+          "id": 7,
+          "sample_count": 1,
+          "origins": "pqc:3:13",
+          "values": [
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            10.0,
+            12.0,
+            8.0,
+            11.0,
+            9.0
+          ]
+        }
+      ],
+      "after_next_pqc_99": [
+        {
+          "id": 7,
+          "sample_count": 2,
+          "origins": "pqc:3:13,pqc:4:14",
+          "values": [
+            10.0,
+            99.0
+          ],
+          "mean": 54.5,
+          "range": 89.0,
+          "stored_x1_to_x5": [
+            10.0,
+            99.0,
+            8.0,
+            11.0,
+            9.0
+          ]
+        }
+      ],
+      "confirmed_bug": true
+    },
+    "incomplete_group_analysis": {
+      "status": "completed",
+      "subgroups": [
+        {
+          "id": 8,
+          "sample_count": 5,
+          "origins": false,
+          "values": [
+            10.0,
+            12.0,
+            8.0,
+            10.0,
+            10.0
+          ],
+          "mean": 10.0,
+          "range": 4.0,
+          "stored_x1_to_x5": [
+            10.0,
+            12.0,
+            8.0,
+            10.0,
+            10.0
+          ]
+        },
+        {
+          "id": 9,
+          "sample_count": 1,
+          "origins": false,
+          "values": [
+            20.0
+          ],
+          "mean": 20.0,
+          "range": 0.0,
+          "stored_x1_to_x5": [
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "state": "analyzed",
+      "grand_mean": 15.0,
+      "mean_range": 2.0,
+      "ucl_xbar": 16.154,
+      "lcl_xbar": 13.846,
+      "declared_n": 5,
+      "confirmed_bug": true
+    },
+    "normal_mo_company": {
+      "status": "error",
+      "exception": "UndefinedFunction",
+      "message": "operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n",
+      "traceback": "Traceback (most recent call last):\n  File \"spc_orm_probe.py\", line 42, in run\n  File \"spc_orm_probe.py\", line 123, in normal_mo_company\n  File \"<decorator-gen-182>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 497, in _model_create_multi\n    return create(self, [arg])\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_ppap/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-169>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_control_plan/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-148>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/mrp/models/mrp_production.py\", line 1030, in create\n    vals['name'] = self.env['stock.picking.type'].browse(picking_type_id).sequence_id.next_by_id()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 270, in next_by_id\n    return self._next(sequence_date=sequence_date)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 259, in _next\n    return self._next_do()\n           ^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 200, in _next_do\n    number_next = _update_nogap(self, self.number_increment)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 57, in _update_nogap\n    self._cr.execute(\"SELECT number_next FROM %s WHERE id=%%s FOR UPDATE NOWAIT\" % self._table, [self.id])\n  File \"/usr/lib/python3/dist-packages/odoo/sql_db.py\", line 371, in execute\n    res = self._obj.execute(query, params)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.errors.UndefinedFunction: operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n\n"
+    },
+    "ppap_prev_mo_company": {
+      "status": "error",
+      "exception": "UndefinedFunction",
+      "message": "operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n",
+      "traceback": "Traceback (most recent call last):\n  File \"spc_orm_probe.py\", line 42, in run\n  File \"spc_orm_probe.py\", line 142, in ppap_company_scope\n  File \"<decorator-gen-182>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 497, in _model_create_multi\n    return create(self, [arg])\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_ppap/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-169>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/review/quality/addons_custom/iatf_control_plan/models/mrp_production.py\", line 14, in create\n    records = super().create(vals_list)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<decorator-gen-148>\", line 2, in create\n  File \"/usr/lib/python3/dist-packages/odoo/api.py\", line 498, in _model_create_multi\n    return create(self, arg)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/mrp/models/mrp_production.py\", line 1030, in create\n    vals['name'] = self.env['stock.picking.type'].browse(picking_type_id).sequence_id.next_by_id()\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 270, in next_by_id\n    return self._next(sequence_date=sequence_date)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 259, in _next\n    return self._next_do()\n           ^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 200, in _next_do\n    number_next = _update_nogap(self, self.number_increment)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/odoo/addons/base/models/ir_sequence.py\", line 57, in _update_nogap\n    self._cr.execute(\"SELECT number_next FROM %s WHERE id=%%s FOR UPDATE NOWAIT\" % self._table, [self.id])\n  File \"/usr/lib/python3/dist-packages/odoo/sql_db.py\", line 371, in execute\n    res = self._obj.execute(query, params)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.errors.UndefinedFunction: operator does not exist: integer = boolean\nLINE 1: SELECT number_next FROM ir_sequence WHERE id=false FOR UPDAT...\n                                                    ^\nHINT:  No operator matches the given name and argument types. You might need to add explicit type casts.\n\n"
+    }
+  },
+  "rolled_back": true
+}
+SPC_ORM_PROBE_JSON_END
+REVIEW_PROBE_END=spc_orm_probe.py
+REVIEW_PROBE_START=tax_orm_probe.py
+TAX_ORM_PROBE_JSON={"kind": "actual Odoo ORM/PostgreSQL shell probe", "cases": [], "setup_error": "RuntimeError: Disposable test CoA needs a current-company 10% purchase tax and purchase journal.", "setup_traceback": "Traceback (most recent call last):\n  File \"tax_orm_probe.py\", line 156, in <module>\nRuntimeError: Disposable test CoA needs a current-company 10% purchase tax and purchase journal.\n"}
+REVIEW_PROBE_END=tax_orm_probe.py

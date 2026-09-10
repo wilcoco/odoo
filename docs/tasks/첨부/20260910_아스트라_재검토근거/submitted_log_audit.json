@@ -1,0 +1,24 @@
+{
+  "lines": 162,
+  "starting_methods": 156,
+  "by_module": {
+    "iatf_equipment": 27,
+    "iatf_spc": 4,
+    "iatf_process_inspection": 2,
+    "iatf_work_environment": 71,
+    "iatf_mold": 52
+  },
+  "unique_method_names": 156,
+  "duplicate_method_names": [],
+  "result_lines": [
+    "INFO codex2 odoo.tests.result: 0 failed, 0 error(s) of 156 tests when loading database 'codex2' "
+  ],
+  "other_lines": [
+    "INFO codex2 odoo.tests.stats: iatf_equipment: 29 tests 0.26s 387 queries ",
+    "INFO codex2 odoo.tests.stats: iatf_mold: 62 tests 1.27s 2298 queries ",
+    "INFO codex2 odoo.tests.stats: iatf_process_inspection: 4 tests 1.02s 447 queries ",
+    "INFO codex2 odoo.tests.stats: iatf_spc: 6 tests 0.14s 273 queries ",
+    "INFO codex2 odoo.tests.stats: iatf_work_environment: 79 tests 1.29s 2068 queries ",
+    "INFO codex2 odoo.tests.result: 0 failed, 0 error(s) of 156 tests when loading database 'codex2' "
+  ]
+}

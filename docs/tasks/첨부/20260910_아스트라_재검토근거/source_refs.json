@@ -1,0 +1,8 @@
+{
+  "handoff": "49d4ca4d48baf7244f98489201cbe924339ec1f8",
+  "fix/codex-review-iatf": "7d6dc8b17d2436ccad9dfd315da7615dcbd30a0a",
+  "fix/tax-invoice-row-rollback": "c9ad89dd7f593a77b7ffa8aa6f17f41c3a7f8047",
+  "feat/tax-invoice-file-import": "ce025d508f40c143db13ce46bfec35c0aa893fc9",
+  "docs/codex-handover-reply": "6c3acf4e7bad1e2ed095de12888a8e8102434ea4",
+  "18.0": "17e9fac0eeeb7564e72e826caaf1865ba3b466a1"
+}

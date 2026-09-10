@@ -1,0 +1,35 @@
+{
+  "kind": "Odoo ORM on disposable DB; company-fixture rerun; final rollback",
+  "cases": {
+    "normal_mo_company": {
+      "status": "completed",
+      "active_company_id": 1,
+      "mo_company_id": 5,
+      "fixture_warehouse_id": 3,
+      "fixture_mrp_picking_type_id": 33,
+      "fixture_sequence_id": 76,
+      "new_fqc_company_ids": [
+        1
+      ],
+      "inspection_stages": [
+        "final"
+      ],
+      "confirmed_bug": true
+    },
+    "ppap_prev_mo_company": {
+      "status": "completed",
+      "a_company_id": 1,
+      "b_company_id": 6,
+      "a_ppap_id": 4,
+      "b_ppap_id": 5,
+      "ppap_company_ids": [
+        1,
+        6
+      ],
+      "fixture_a_sequence_id": 90,
+      "fixture_b_sequence_id": 101,
+      "confirmed_fixed": true
+    }
+  },
+  "rolled_back": true
+}

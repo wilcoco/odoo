@@ -1,0 +1,84 @@
+2026-09-10 03:07:03,450 1 INFO ? odoo: Odoo version 18.0-20260609 
+2026-09-10 03:07:03,450 1 INFO ? odoo: addons paths: ['/usr/lib/python3/dist-packages/odoo/addons', '/var/lib/odoo/addons/18.0', '/mnt/extra-addons', '/tmp/odoo-review2/addons/18.0', '/review/tax/addons_custom', '/review/quality/addons_custom'] 
+2026-09-10 03:07:03,450 1 INFO ? odoo: database: odoo@codex-review2-db-01a088bd:5432 
+Warn: Can't find .pfb for face 'Courier'
+2026-09-10 03:07:03,588 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at /usr/local/bin/wkhtmltopdf 
+2026-09-10 03:07:03,599 1 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltoimage binary at /usr/local/bin/wkhtmltoimage 
+2026-09-10 03:07:03,721 1 INFO ? odoo.service.server: Initiating shutdown 
+2026-09-10 03:07:03,722 1 INFO ? odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-10 03:07:03,739 1 INFO codex_review2 odoo.modules.loading: loading 1 modules... 
+2026-09-10 03:07:03,743 1 INFO codex_review2 odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-10 03:07:03,793 1 INFO codex_review2 odoo.modules.loading: loading 85 modules... 
+2026-09-10 03:07:04,562 1 INFO codex_review2 odoo.modules.loading: 85 modules loaded in 0.77s, 0 queries (+0 extra) 
+2026-09-10 03:07:04,660 1 WARNING codex_review2 odoo.fields: Field iatf.spare.category.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:04,660 1 WARNING codex_review2 odoo.fields: Field iatf.equipment.parent_path: unknown parameter 'unaccent', if this is an actual parameter you may want to override the method _valid_field_parameter on the relevant model in order to allow it 
+2026-09-10 03:07:04,661 1 WARNING codex_review2 odoo.fields: Field iatf.fmea.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:04,662 1 WARNING codex_review2 odoo.fields: Field iatf.control.plan.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:04,664 1 WARNING codex_review2 odoo.fields: Field iatf.ppap.submission.apqp_project_id with unknown comodel_name 'iatf.apqp.project' 
+2026-09-10 03:07:04,680 1 INFO codex_review2 odoo.modules.loading: Modules loaded. 
+2026-09-10 03:07:04,683 1 INFO codex_review2 odoo.modules.registry: Registry loaded in 0.961s 
+REVIEW_PROBE_START=mold_role_probe.py
+MOLD_ROLE_PROBE {"case": "regular_line_create:mold", "identity": {"uid": 9, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}
+MOLD_ROLE_PROBE {"case": "regular_line_create:sheet", "identity": {"uid": 10, "su": false, "role": "iatf_work_environment.group_work_environment_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}
+MOLD_ROLE_PROBE {"case": "regular_forged_done:mold", "identity": {"uid": 11, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}
+MOLD_ROLE_PROBE {"case": "regular_forged_done:sheet", "identity": {"uid": 12, "su": false, "role": "iatf_work_environment.group_work_environment_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}
+MOLD_ROLE_PROBE {"case": "regular_temperature_write:mold", "identity": {"uid": 13, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"temperature": 95.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng"}, "after_result_only": {"temperature": 95.0, "spec_max": 90.0, "spec_result": "ok", "current_spec_result": "ng"}, "after_snapshot_write": {"temperature": 95.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ng"}, "outcome": "completed"}
+2026-09-10 03:07:05,134 1 INFO codex_review2 odoo.models.unlink: User #14 deleted mail.message records with IDs: [384] 
+2026-09-10 03:07:05,137 1 INFO codex_review2 odoo.models.unlink: User #14 deleted iatf.mold.check records with IDs: [31] 
+2026-09-10 03:07:05,140 1 INFO codex_review2 odoo.models.unlink: User #14 deleted mail.followers records with IDs: [18] 
+MOLD_ROLE_PROBE {"case": "manager_delete:mold", "identity": {"uid": 14, "su": false, "role": "iatf_mold.group_mold_manager", "is_module_manager": true, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}
+2026-09-10 03:07:05,192 1 INFO codex_review2 odoo.models.unlink: User #15 deleted mail.message records with IDs: [387] 
+2026-09-10 03:07:05,195 1 INFO codex_review2 odoo.models.unlink: User #15 deleted iatf.check.record records with IDs: [36] 
+2026-09-10 03:07:05,198 1 INFO codex_review2 odoo.models.unlink: User #15 deleted mail.followers records with IDs: [20] 
+MOLD_ROLE_PROBE {"case": "manager_delete:sheet", "identity": {"uid": 15, "su": false, "role": "iatf_work_environment.group_work_environment_manager", "is_module_manager": true, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}
+MOLD_ROLE_PROBE_SUMMARY [{"case": "regular_line_create:mold", "identity": {"uid": 9, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}, {"case": "regular_line_create:sheet", "identity": {"uid": 10, "su": false, "role": "iatf_work_environment.group_work_environment_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "after": {"state": "done", "overall_result": "pending", "line_count": 2, "results": ["ok", false]}, "outcome": "completed"}, {"case": "regular_forged_done:mold", "identity": {"uid": 11, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}, {"case": "regular_forged_done:sheet", "identity": {"uid": 12, "su": false, "role": "iatf_work_environment.group_work_environment_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"state": "draft", "overall_result": "pending", "line_count": 1, "results": [false]}, "after": {"state": "done", "overall_result": "ok", "line_count": 1, "results": [false]}, "outcome": "completed"}, {"case": "regular_temperature_write:mold", "identity": {"uid": 13, "su": false, "role": "iatf_mold.group_mold_user", "is_module_manager": false, "is_settings_admin": false}, "before": {"temperature": 95.0, "spec_max": 90.0, "spec_result": "ng", "current_spec_result": "ng"}, "after_result_only": {"temperature": 95.0, "spec_max": 90.0, "spec_result": "ok", "current_spec_result": "ng"}, "after_snapshot_write": {"temperature": 95.0, "spec_max": 100.0, "spec_result": "ok", "current_spec_result": "ng"}, "outcome": "completed"}, {"case": "manager_delete:mold", "identity": {"uid": 14, "su": false, "role": "iatf_mold.group_mold_manager", "is_module_manager": true, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}, {"case": "manager_delete:sheet", "identity": {"uid": 15, "su": false, "role": "iatf_work_environment.group_work_environment_manager", "is_module_manager": true, "is_settings_admin": false}, "before": {"state": "done", "overall_result": "ok", "line_count": 1, "results": ["ok"]}, "record_survives": false, "line_survives": false, "outcome": "completed"}]
+REVIEW_PROBE_END=mold_role_probe.py
+REVIEW_PROBE_START=spc_company_probe.py
+2026-09-10 03:07:05,301 1 INFO codex_review2 odoo.addons.partner_autocomplete.models.res_company: Starting enrich of company REVIEW-B-company (5) 
+2026-09-10 03:07:05,466 1 INFO codex_review2 odoo.addons.iatf_ppap.models.mrp_production: PPAP auto-created: New for first MO RPQB/MO/00001, product REVIEW-B-MO-product 
+2026-09-10 03:07:05,473 1 INFO codex_review2 odoo.addons.iatf_process_inspection.models.mrp_production: PQC auto-created: PQC-2026-0005 for MO RPQB/MO/00001, product REVIEW-B-MO-product 
+2026-09-10 03:07:05,554 1 INFO codex_review2 odoo.addons.partner_autocomplete.models.res_company: Starting enrich of company REVIEW-PPAP-B (6) 
+2026-09-10 03:07:06,225 1 INFO codex_review2 odoo.addons.iatf_ppap.models.mrp_production: PPAP auto-created: PPAP-2026-0003 for first MO RPPA/MO/00001, product REVIEW-shared-product-PPAP 
+2026-09-10 03:07:06,242 1 INFO codex_review2 odoo.addons.iatf_ppap.models.mrp_production: PPAP auto-created: New for first MO RPPB/MO/00001, product REVIEW-shared-product-PPAP 
+SPC_COMPANY_PROBE_JSON_BEGIN
+{
+  "kind": "Odoo ORM on disposable DB; company-fixture rerun; final rollback",
+  "cases": {
+    "normal_mo_company": {
+      "status": "completed",
+      "active_company_id": 1,
+      "mo_company_id": 5,
+      "fixture_warehouse_id": 3,
+      "fixture_mrp_picking_type_id": 33,
+      "fixture_sequence_id": 76,
+      "new_fqc_company_ids": [
+        1
+      ],
+      "inspection_stages": [
+        "final"
+      ],
+      "confirmed_bug": true
+    },
+    "ppap_prev_mo_company": {
+      "status": "completed",
+      "a_company_id": 1,
+      "b_company_id": 6,
+      "a_ppap_id": 4,
+      "b_ppap_id": 5,
+      "ppap_company_ids": [
+        1,
+        6
+      ],
+      "fixture_a_sequence_id": 90,
+      "fixture_b_sequence_id": 101,
+      "confirmed_fixed": true
+    }
+  },
+  "rolled_back": true
+}
+SPC_COMPANY_PROBE_JSON_END
+REVIEW_PROBE_END=spc_company_probe.py
+REVIEW_PROBE_START=tax_orm_probe.py
+2026-09-10 03:07:06,539 1 INFO codex_review2 odoo.addons.partner_autocomplete.models.res_company: Starting enrich of company ROUND2-TAX-PROBE-isolated-KR-company (7) 
+TAX_ORM_PROBE_JSON={"kind": "actual Odoo ORM/PostgreSQL shell probe", "cases": [{"case": "create_failure_after_real_orm_create", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real Move.create", "moves": [{"approval": "20260910-AABB0002-00000002", "state": "draft", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}], "check_passed": true, "check": "Failed create leaves no move; later valid row survives"}, {"case": "flush_failure_after_real_flush", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real flush_recordset", "moves": [{"approval": "20260910-AABB0002-00000002", "state": "draft", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}], "check_passed": true, "check": "Injected real flush failure leaves no bad move; valid row survives"}, {"case": "new_partner_leaks_on_failed_invoice", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 생성 실패 — ROUND2 injected after real Move.create", "moves": [{"approval": "20260910-AABB0002-00000002", "state": "draft", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}], "new_partner_count_after_failed_row": 1, "defect_reproduced": true, "check": "Failed auto-partner row should roll back its partner as well"}, {"case": "new_partner_leaks_on_missing_tax", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 0건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n\n[오류]\n2행: 세액 10000.0 에 맞는 세금 코드를 찾지 못했습니다 (회계 설정 › 세금 확인 후 다시 시도)", "moves": [], "new_partner_count_after_failed_row": 1, "defect_reproduced": true, "check": "Missing-tax rejection should not leave an auto-created partner"}, {"case": "malformed_amount_aborts_later_row", "escaped_exception": "ValueError: could not convert string to float: '1.2.3'", "result": false, "moves_before_outer_rollback": [{"approval": "20260910-AABB0002-00000002", "state": "draft", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}], "defect_reproduced": true, "check": "Malformed numeric row stops following valid row; an RPC would roll back the request"}, {"case": "post_failure_after_real_action_post", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 2건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 1건\n게시 1건 / 초안으로 남음 1건\n\n[오류]\n19 게시 실패(초안으로 남김) — ROUND2 injected after real action_post", "moves": [{"approval": "20260910-AABB0001-00000001", "state": "draft", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}, {"approval": "20260910-AABB0002-00000002", "state": "posted", "untaxed": 100000.0, "tax": 10000.0, "total": 110000.0, "invoice_lines": 1, "all_lines": 3}], "check_passed": true, "check": "After-real-post injection rolls bad back to draft, good posts successfully"}, {"case": "negative_tax_ACC_02", "result": "인식된 컬럼: approval, date, partner, supply, tax, total\n생성 1건 / 중복(건너뜀) 0건 / 거래처 미등록(건너뜀) 0건 / 오류 0건", "moves": [{"approval": "20260910-AABB0001-00000001", "state": "draft", "untaxed": -1000000.0, "tax": 0.0, "total": -1000000.0, "invoice_lines": 1, "all_lines": 2}], "defect_reproduced": true, "check": "Existing ACC-02 negative correction VAT remains omitted"}], "setup": {"db": "codex_review2", "company_id": 7, "chart_template": "kr", "tax_id": 26, "purchase_journal_ids": [19], "fixture": "new KR company + explicit kr chart load; discarded at final rollback", "account_kr_reports_version": "18.0.1.5.1"}}
+REVIEW_PROBE_END=tax_orm_probe.py
