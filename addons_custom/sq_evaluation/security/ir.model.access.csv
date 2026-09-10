@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sq_category_user,sq.category.user,model_sq_category,group_sq_user,1,0,0,0
+access_sq_category_mgr,sq.category.mgr,model_sq_category,group_sq_manager,1,1,1,1
+access_sq_criteria_user,sq.criteria.user,model_sq_criteria,group_sq_user,1,0,0,0
+access_sq_criteria_mgr,sq.criteria.mgr,model_sq_criteria,group_sq_manager,1,1,1,1
+access_sq_evaluation_user,sq.evaluation.user,model_sq_evaluation,group_sq_user,1,1,1,0
+access_sq_evaluation_mgr,sq.evaluation.mgr,model_sq_evaluation,group_sq_manager,1,1,1,1
+access_sq_evaluation_line_user,sq.evaluation.line.user,model_sq_evaluation_line,group_sq_user,1,1,1,1
+access_sq_evaluation_line_mgr,sq.evaluation.line.mgr,model_sq_evaluation_line,group_sq_manager,1,1,1,1
+access_sq_field_record_user,sq.field.record.user,model_sq_field_record,group_sq_user,1,1,1,0
+access_sq_field_record_mgr,sq.field.record.mgr,model_sq_field_record,group_sq_manager,1,1,1,1
+access_sq_checklist_tmpl_user,sq.checklist.template.user,model_sq_checklist_template,group_sq_user,1,0,0,0
+access_sq_checklist_tmpl_mgr,sq.checklist.template.mgr,model_sq_checklist_template,group_sq_manager,1,1,1,1
+access_sq_field_record_line_user,sq.field.record.line.user,model_sq_field_record_line,group_sq_user,1,1,1,1
+access_sq_field_record_line_mgr,sq.field.record.line.mgr,model_sq_field_record_line,group_sq_manager,1,1,1,1
+access_sq_grade_user,sq.grade.user,model_sq_grade,group_sq_user,1,0,0,0
+access_sq_grade_mgr,sq.grade.mgr,model_sq_grade,group_sq_manager,1,1,1,1
