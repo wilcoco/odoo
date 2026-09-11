@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 표준 보고서 수식 결함 재확인 — 설치·업그레이드마다 실행(멱등).
+         l10n_kr_reports / account_reports 업그레이드가 수식을 원래대로 되돌려도
+         account_kr_reports 를 함께 업그레이드하면 다시 바로잡힌다.
+         보정 내용: tools/report_adjust.py -->
+    <function model="kr.fs.line" name="_kr_adjust_standard_reports"/>
+</odoo>

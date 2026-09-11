@@ -1,5 +1,7 @@
 from odoo import api, fields, models, _
 
+from ..tools import report_adjust
+
 # K-GAAP 표준 골격 — 오두 계정유형(account_type) 기반 기본 매핑.
 # 매핑 조정은 kr.fs.line 마스터에서(계정 추가/제외) — 코드 수정 불필요. (리포트 #29)
 BS_SEED = [
@@ -55,6 +57,12 @@ class KrFsLine(models.Model):
                     self.create({"report": report, "code": code, "name": name,
                                  "sequence": (i + 1) * 10, "account_types": types,
                                  "sign": sign, "bold": types.startswith("=")})
+        return True
+
+    @api.model
+    def _kr_adjust_standard_reports(self):
+        """표준 보고서(손익계산서(KR) 등) 수식 결함을 다시 확인한다 — 설치·업그레이드마다(멱등)."""
+        report_adjust.fix_kr_pl_formulas(self.env)
         return True
 
 
