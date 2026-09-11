@@ -45,3 +45,13 @@ class TestReportAdjust(TransactionCase):
         expression.formula = "KR_GRP.balance + KR_EXP.balance"  # 표준 모듈 업그레이드로 되돌아간 상황
         self.env["kr.fs.line"]._kr_adjust_standard_reports()
         self.assertEqual(expression.formula, "KR_GRP.balance - KR_EXP.balance")
+
+    def test_non_operating_income_accounts_become_income_other(self):
+        Account = self.env["account.account"]
+        other = Account.create({"code": "429991", "name": "T-영업외수익", "account_type": "income"})
+        sales = Account.create({"code": "419991", "name": "T-매출", "account_type": "income"})
+        changed = report_adjust.fix_non_operating_income_types(self.env)
+        self.assertIn(other, changed)
+        self.assertEqual(other.account_type, "income_other")
+        self.assertEqual(sales.account_type, "income", "41 매출 계정은 그대로")
+        self.assertFalse(report_adjust.fix_non_operating_income_types(self.env), "재실행 멱등")

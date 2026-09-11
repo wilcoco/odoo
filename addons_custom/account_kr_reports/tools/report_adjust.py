@@ -71,3 +71,33 @@ def fix_kr_pl_formulas(env):
         fixed += 1
         _logger.info("손익계산서(KR) %s 수식 보정: %r → %r — %s", xmlid, wrong, right, reason)
     return fixed
+
+
+# ---------------------------------------------------------------------------
+# 계정 유형 — 영업외수익(42)
+# ---------------------------------------------------------------------------
+def fix_non_operating_income_types(env):
+    """코드 42로 시작하는 영업외수익 계정이 income(매출)으로 지정된 것을 income_other 로 바꾼다.
+
+    오두 기본 손익계산서(account_reports.profit_and_loss)는 계정코드가 아니라 계정
+    유형으로 집계한다. 한국 계정과목표에서 42xxxx(이자수익·잡이익 등)가 income 으로
+    들어와 있어 매출액에 섞이고 영업이익이 영업외수익만큼 부풀려졌다.
+    income 과 income_other 는 모두 수익 그룹이라 전표·잔액·결산 이월에는 영향이 없다.
+    계정코드는 회사별 값이므로 최상위 회사마다 조회한다. 바꾼 계정을 돌려준다.
+    """
+    Account = env["account.account"].sudo()
+    changed = Account.browse()
+    for company in env["res.company"].sudo().search([("parent_id", "=", False)]):
+        accounts = Account.with_company(company).search([
+            ("company_ids", "in", company.ids),
+            ("code", "=like", "42%"),
+            ("account_type", "=", "income"),
+        ])
+        if accounts:
+            accounts.write({"account_type": "income_other"})
+            changed |= accounts
+            _logger.info(
+                "영업외수익 계정 유형 보정(%s): %s → income_other",
+                company.name, ", ".join(accounts.with_company(company).mapped("code")),
+            )
+    return changed
