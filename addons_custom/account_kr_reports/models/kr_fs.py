@@ -61,8 +61,9 @@ class KrFsLine(models.Model):
 
     @api.model
     def _kr_adjust_standard_reports(self):
-        """표준 보고서(손익계산서(KR) 등) 수식 결함을 다시 확인한다 — 설치·업그레이드마다(멱등)."""
+        """표준 보고서(손익계산서(KR)·기본 손익계산서) 수식 결함을 다시 확인한다 — 설치·업그레이드마다(멱등)."""
         report_adjust.fix_kr_pl_formulas(self.env)
+        report_adjust.fix_standard_pl_net_profit_tax(self.env)
         return True
 
 

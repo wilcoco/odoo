@@ -1,3 +1,4 @@
+from odoo import Command
 from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.account_kr_reports.tools import report_adjust
@@ -55,3 +56,35 @@ class TestReportAdjust(TransactionCase):
         self.assertEqual(other.account_type, "income_other")
         self.assertEqual(sales.account_type, "income", "41 매출 계정은 그대로")
         self.assertFalse(report_adjust.fix_non_operating_income_types(self.env), "재실행 멱등")
+
+    def test_sga_depreciation_account_becomes_expense(self):
+        Account = self.env["account.account"]
+        sga = Account.create({"code": "619991", "name": "T-감가상각비", "account_type": "expense_depreciation"})
+        other = Account.create({"code": "629991", "name": "T-영업외", "account_type": "expense_depreciation"})
+        report_adjust.fix_sga_depreciation_types(self.env)
+        self.assertEqual(sga.account_type, "expense")
+        self.assertEqual(other.account_type, "expense_depreciation", "61 외 계정은 그대로")
+
+    def test_standard_pl_net_profit_subtracts_tax_line(self):
+        report = self.env.ref("account_reports.profit_and_loss", raise_if_not_found=False)
+        if not report:
+            self.skipTest("account_reports 미설치")
+        net_line = report.line_ids.filtered(lambda l: l.code == "NEP")[:1]
+        if not net_line:
+            self.skipTest("기본 손익계산서 NEP 라인 없음")
+        if not report.line_ids.filtered(lambda l: l.code == "TAX"):
+            self.env["account.report.line"].create({
+                "report_id": report.id, "name": "법인세등", "code": "TAX", "sequence": 95,
+                "expression_ids": [Command.create({
+                    "label": "balance", "engine": "domain",
+                    "formula": "[('account_id.code', '=', '670001')]", "subformula": "sum",
+                })],
+            })
+        net_expression = net_line.expression_ids.filtered(lambda e: e.label == "balance")
+        net_expression.formula = "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance"
+        self.assertTrue(report_adjust.fix_standard_pl_net_profit_tax(self.env))
+        self.assertEqual(
+            net_expression.formula,
+            "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance - TAX.balance",
+        )
+        self.assertFalse(report_adjust.fix_standard_pl_net_profit_tax(self.env), "재실행 멱등")
