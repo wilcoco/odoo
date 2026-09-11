@@ -1,11 +1,41 @@
-Description of the issue/feature this PR addresses:
+## 변경 요약
 
-Current behavior before PR:
+- 해결할 문제:
+- 변경 결과:
+- handoff 요청 파일:
 
-Desired behavior after PR is merged:
+## 작업·동기화 추적
 
+- 브랜치 (`소문자유형/개발명`):
+- 작업 문서 (`docs/tasks/작업/<유형>/<개발명>.md`):
+- 정본 커밋/경로:
+- `odoo_gh` 미러 커밋/경로 또는 해당 없음 사유:
 
+## 통합 영향
 
+- 상태·수량·재고:
+- LOT·시리얼·품질 기록:
+- 납품·정산·전표:
+- 권한·회사 분리:
+
+## 검증 및 배포
+
+- 코드 커밋 / DB·환경 / 실행 명령 / 로그·결과:
+- 미실행 검증과 이유:
+- 모듈 `-u`, 마이그레이션, 재기동, 롤백:
+- 운영 작업 승인 또는 해당 없음:
+
+## 머지 체크리스트
+
+- [ ] 브랜치명이 `소문자유형/개발명` 규칙을 만족한다.
+- [ ] 같은 브랜치의 작업 문서가 최종 결과까지 갱신됐다.
+- [ ] 정적 검사와 실제 런타임 검증을 구분해 기록했다.
+- [ ] 정본·미러 대응과 의도적 차이를 기록했다.
+- [ ] 민감 정보가 없고 필요한 사람 승인을 확인했다.
+- [ ] 기준 브랜치에 직접 push하지 않고 PR로 요청한다.
 
 ---
-I confirm I have signed the CLA and read the PR guidelines at www.odoo.com/submit-pr
+
+상세 규칙: `docs/tasks/AGENT_MERGE_WORKFLOW.md`
+
+업스트림 Odoo 제출인 경우: I confirm I have signed the CLA and read the PR guidelines at www.odoo.com/submit-pr
