@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_kr_manual_flag_wizard_form" model="ir.ui.view">
+        <field name="name">account.kr.manual.flag.wizard.form</field>
+        <field name="model">account.kr.manual.flag.wizard</field>
+        <field name="arch" type="xml">
+            <form string="수기 표시 변경">
+                <div class="alert alert-warning" role="alert">
+                    <b>수기</b>는 사람이 화면에서 직접 등록·수정한 전표를 표시합니다.
+                    이관·가져오기·자동 처리로 들어온 전표는 수기가 아니어야 합니다.<br/>
+                    선택한 <field name="move_count" readonly="1" class="oe_inline"/>건 중
+                    <field name="change_count" readonly="1" class="oe_inline"/>건이 변경됩니다.
+                    이미 원하는 상태인 전표는 건드리지 않으며, 변경 이력은 각 전표의 로그에 남습니다.
+                </div>
+                <group>
+                    <field name="action" widget="radio"/>
+                </group>
+                <field name="move_ids" readonly="1">
+                    <list>
+                        <field name="kr_move_number_display" string="전표번호"/>
+                        <field name="kr_move_type_display" string="전표유형"/>
+                        <field name="partner_id" string="거래처"/>
+                        <field name="invoice_date" string="일자"/>
+                        <field name="amount_total" string="총계"/>
+                        <field name="is_manually_modified" string="수기(현재)"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_apply" type="object" string="확인하고 적용"
+                            class="btn-primary"
+                            confirm="선택한 전표의 수기 표시를 변경합니다. 계속하시겠습니까?"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 매출·매입 목록에서 전표를 선택하면 '동작' 메뉴에 나타난다 (회계 관리자) -->
+    <record id="action_kr_manual_flag_wizard" model="ir.actions.act_window">
+        <field name="name">수기 표시 변경</field>
+        <field name="res_model">account.kr.manual.flag.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]"/>
+    </record>
+</odoo>
