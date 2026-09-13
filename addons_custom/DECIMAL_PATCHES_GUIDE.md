@@ -50,18 +50,17 @@ Float 금액 필드)가 그대로 남아 있었기 때문입니다.
 소수점 정확도에 **"KR Amount"(기본 0자리)** 항목을 새로 만들고, 코드에 명시한
 금액 필드들이 이 값을 따르도록 자리수 소스를 바꿉니다. 단가 성격 필드는
 기존 **"Product Price"** 를 따르게 분리했습니다 — 금액과 단가를 따로 관리할 수
-있습니다.
+있습니다. Float 자리수는 레지스트리 전역 설정이므로 **모든 회사의 기준통화가
+KRW인 DB에서만** 적용합니다.
 
-### 대상 필드 (15개, 화이트리스트)
+### 대상 필드 (11개, 화이트리스트)
 
 **금액 → "KR Amount"(0자리)**
 
 | 모델 | 필드 | 어디서 보이나 |
 |---|---|---|
 | `account.account` | `current_balance` | 계정과목 폼의 '잔액' 버튼 |
-| `account.invoice.report` | `price_subtotal`, `price_subtotal_currency`, `price_total`, `price_average`, `price_margin`, `inventory_value` | 청구서 분석 (피벗·리스트) |
-| `purchase.bill.union` | `amount` | 구매 청구 대사 |
-| `sale.order` | `amount_paid` | 온라인 결제 수령액 |
+| `account.invoice.report` | `price_subtotal`, `price_average`, `price_margin`, `inventory_value` | 청구서 분석 (피벗·리스트)의 회사 통화 금액 |
 | `product.product` | `value_svl` | 제품 재고 평가액 |
 | `stock.lot` | `value_svl` | 로트/시리얼 평가액 |
 | `stock.valuation.layer.revaluation` | `current_value_svl` | 재고 재평가 위자드 |
@@ -74,10 +73,24 @@ Float 금액 필드)가 그대로 남아 있었기 때문입니다.
 | `purchase.bill.line.match` | `product_uom_price` | 구매↔청구 라인 대사 |
 | `sale.report` | `price_unit` | 판매 분석 평균 단가 |
 
+**정적 0자리 패치 제외 — 문서 통화 필드**
+
+- `account.invoice.report.price_subtotal_currency`, `price_total`
+- `purchase.bill.union.amount`
+- `sale.order.amount_paid`
+
+이 필드들은 같은 DB 안에서도 레코드마다 KRW·USD·EUR 등 통화가 달라질 수
+있습니다. 정적 자릿수를 0으로 지정하면 외화 표시뿐 아니라 ORM 캐시 값과 온라인
+결제 판단까지 반올림될 수 있으므로 원래 통화 동작을 유지합니다.
+
 ### 안전장치
 
 - **화이트리스트 방식** — 이름 패턴으로 긁지 않습니다. 위 표에 적힌 필드만
   건드리므로, 예상 못 한 곳이 딸려 바뀔 일이 없습니다.
+- **KRW 전용 DB 확인** — 모든 회사의 기준통화가 KRW일 때만 전역 필드 패치를
+  적용합니다. 혼합 기준통화 DB에서는 전체 패치를 건너뜁니다.
+- **문서 통화 보호** — 레코드마다 통화가 달라지는 필드는 0자리 대상에서
+  제외합니다.
 - **수량 불가침** — `quantity`, `qty_*`, `product_uom_qty`, `quantity_svl` 등은
   표에서 제외했고, 회귀 테스트로 고정해 두었습니다.
 - **저장 필드 자동 제외** — DB 컬럼이 있는 필드는 자리수를 바꾸면 컬럼 타입까지
@@ -158,11 +171,12 @@ Float 금액 필드)가 그대로 남아 있었기 때문입니다.
 
 개발 DB `myodoo202608` 에서 실제 설치·업그레이드로 확인했습니다.
 
-- `account_kr_plus_patch` — 테스트 4건 통과
-  (정확도 레코드 / 금액 필드 0자리 / 단가 = Product Price / **수량 필드 미변경**)
+- `account_kr_plus_patch` — 자리수 테스트 6건
+  (정확도 레코드 / KRW 전용 조건 / 문서 통화 보호 / 금액 필드 0자리 /
+  단가 = Product Price / **수량 필드 미변경**)
 - `mrp_plus_patch` — 테스트 4건 통과
   (자리수 ≥ 1 / 수량 필드 참조 경로 / 단위 반올림 / **0→2 복원 + 3 유지**)
-- 서버 로그에 금액 필드 15개 패치 적용 1줄, 업그레이드 시 1회 복원 스크립트 실행 확인
+- 서버 로그에 금액·단가 필드 11개 패치 적용 1줄, 업그레이드 시 1회 복원 스크립트 실행 확인
 
 운영 DB에는 아직 적용하지 않았습니다.
 

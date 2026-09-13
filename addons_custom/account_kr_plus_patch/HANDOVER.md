@@ -9,7 +9,7 @@
 ## 1. 한 단락 요약
 
 원화 환경에서 `.00` 이 남는 마지막 부류 — **`digits` 인자 없이 선언된
-`fields.Float` 금액 필드**(코어 15개) — 의 자리수 소스를, 레지스트리 로드 완료
+`fields.Float` 금액·단가 필드**(코어 11개) — 의 자리수 소스를, 레지스트리 로드 완료
 직후 실행되는 `_register_hook` 에서 화이트리스트 기반으로 재지정합니다.
 새 소수점 정확도 항목 "KR Amount"(기본 0자리)를 신설해 금액이 이를 따르게 하고,
 단가 성격 필드는 기존 "Product Price" 를 따르게 분리했습니다. 수량 필드는
@@ -50,8 +50,12 @@ UI 에서 바꾼 값은 모듈 업그레이드가 덮어쓰지 않습니다.
 - 하는 일은 `field._digits = "KR Amount"` (또는 `"Product Price"`) 재지정
   하나뿐입니다. `get_digits()` 가 이 값을 `decimal.precision` 조회로 풀어내므로
   표시(`fields_get`)와 캐시 반올림(`convert_to_cache`)이 함께 0자리가 됩니다.
+- 필드 메타데이터는 회사·레코드별로 나눌 수 없으므로 모든 회사의 기준통화가
+  KRW인 DB에서만 패치를 적용합니다. 문서별 통화가 있는
+  `price_subtotal_currency`, `price_total`, `purchase.bill.union.amount`,
+  `sale.order.amount_paid`는 외화와 온라인 결제 흐름을 보호하기 위해 제외합니다.
 
-**왜 `_inherit` 필드 재정의가 아닌가**: 대상이 6개 모듈·12개 모델에 흩어져
+**왜 `_inherit` 필드 재정의가 아닌가**: 대상이 4개 모듈·8개 모델에 흩어져
 있어 재정의 방식은 (a) `sale`/`purchase`/`stock_account` 를 depends 로 강제
 설치하게 되고, (b) 저장 필드는 `digits` 지정 시 컬럼 타입이 float8→numeric 으로
 바뀌어 스키마 마이그레이션이 발생합니다. 훅 방식은 두 문제가 모두 없습니다.
@@ -63,12 +67,15 @@ UI 에서 바꾼 값은 모듈 업그레이드가 덮어쓰지 않습니다.
 
 1. **화이트리스트**: `AMOUNT_FIELDS`/`UNIT_PRICE_FIELDS` 에 적힌 필드만.
    패턴 매칭 없음. 새 필드는 표에 추가해야 적용됩니다.
-2. **수량 불가침**: `quantity`·`qty_*`·`product_uom_qty`·`quantity_svl` 제외,
+2. **KRW 전용 DB**: 모든 회사 기준통화가 KRW일 때만 레지스트리 전역 패치.
+3. **문서 통화 보호**: 레코드별 통화 필드는 `DOCUMENT_CURRENCY_FIELDS`로 명시해
+   정적 0자리 대상에서 제외.
+4. **수량 불가침**: `quantity`·`qty_*`·`product_uom_qty`·`quantity_svl` 제외,
    `test_quantity_fields_untouched` 로 고정.
-3. **저장 필드 자동 제외**: `field.store and model._auto` 면 스킵 —
+5. **저장 필드 자동 제외**: `field.store and model._auto` 면 스킵 —
    표시 목적으로 컬럼 타입 변경 위험을 지지 않습니다 (위 (b) 방지의 이중 안전망).
-4. **기존 `_digits` 존중**: 다른 모듈이 자리수를 선언한 필드는 건드리지 않음.
-5. **끄기 스위치**: `ir.config_parameter` `account_kr_plus_patch.integer_amounts=0`
+6. **기존 `_digits` 존중**: 다른 모듈이 자리수를 선언한 필드는 건드리지 않음.
+7. **끄기 스위치**: `ir.config_parameter` `account_kr_plus_patch.integer_amounts=0`
    + 재시작 (자리수는 레지스트리 구성 시 1회 적용이라 재시작 필요).
 
 ## 5. K-Guard 편입 절차
@@ -105,7 +112,7 @@ UI 에서 바꾼 값은 모듈 업그레이드가 덮어쓰지 않습니다.
 
 ## 7. 수동 검증 포인트 (설치/편입 후)
 
-- 서버 로그에 `회계 금액 소수점 제거 적용: ...15개 필드` INFO 1줄
+- 서버 로그에 `KRW 회계 금액 소수점 제거 적용: ...11개 필드` INFO 1줄
 - 회계 > 계정과목 폼 '잔액' 스탯 버튼 — 소수점 없음
-- 청구서 분석(account.invoice.report) 피벗 금액 — 소수점 없음
+- 청구서 분석(account.invoice.report) 피벗의 회사 통화 금액 — 소수점 없음
 - 재고 > 제품 원가/평가액, 청구서 라인 수량 — 수량엔 소수점 유지

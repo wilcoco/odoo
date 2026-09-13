@@ -497,6 +497,35 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         })
         self.assertEqual(refund._get_starting_sequence(), "R20240718000000PUR")
 
+    def test_refund_and_normal_moves_share_the_daily_sequence(self):
+        self._enable_custom_sequence()
+        move_date = fields.Date.to_date("2024-08-01")
+        first = self._create_entry(move_date)
+        first.action_post()
+        invoice = self.init_invoice(
+            "out_invoice",
+            invoice_date=move_date,
+            amounts=[100.0],
+            taxes=[],
+            journal=self.company_data["default_journal_sale"],
+        )
+        invoice.action_post()
+        refund = invoice._reverse_moves([{
+            "date": move_date,
+            "invoice_date": move_date,
+        }])
+        refund.action_post()
+        fourth = self._create_entry(move_date)
+        fourth.action_post()
+
+        self.assertEqual(first.name, "20240801000001GEN")
+        self.assertEqual(invoice.name, "20240801000002SAL")
+        self.assertEqual(refund.name, "R20240801000003SAL")
+        self.assertEqual(fourth.name, "20240801000004GEN")
+        moves = first | invoice | refund | fourth
+        moves.invalidate_recordset(["made_sequence_gap"])
+        self.assertFalse(any(moves.mapped("made_sequence_gap")))
+
     def test_account_manager_can_enable_date_number_type_sequence(self):
         settings = self.env.ref(
             "account_kr_plus_patch.account_kr_plus_settings_global"
@@ -596,9 +625,19 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             "date_to": fields.Date.to_date("2024-07-24"),
             "journal_ids": [Command.set(self.misc_journal.ids)],
         })
-        wizard.action_scan()
+        scan_action = wizard.action_scan()
         line = wizard.line_ids.filtered(lambda item: item.move_id == move)
 
+        self.assertEqual(scan_action["res_id"], wizard.id)
+        self.assertEqual(scan_action["target"], "new")
+        self.assertEqual(
+            scan_action["view_id"],
+            self.env.ref(
+                "account_kr_plus_patch."
+                "view_account_kr_move_sequence_repair_wizard_form"
+            ).id,
+        )
+        self.assertEqual(wizard._fields["journal_ids"].string, "대상 전표")
         self.assertEqual(wizard.state, "preview")
         self.assertEqual(len(line), 1)
         self.assertEqual(line.current_name, original_name)
@@ -610,9 +649,11 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
             "payment_reference", "is_manually_modified", "made_sequence_gap",
         ]
         before = move.read(unchanged_fields)[0]
-        wizard.action_apply()
+        apply_action = wizard.action_apply()
         after = move.read(unchanged_fields)[0]
 
+        self.assertEqual(apply_action["res_id"], wizard.id)
+        self.assertEqual(wizard.state, "done")
         self.assertEqual(move.name, "20240724000001GEN")
         self.assertEqual(before, after)
         self.assertEqual(line.result_state, "applied")
@@ -730,6 +771,51 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertEqual(duplicate_line.issue_type, "duplicate_sequence")
         self.assertEqual(duplicate_line.proposed_name, "20240728000002SAL")
         self.assertEqual(sale_code_move.name, "20240728000001SAL")
+
+    def test_sequence_repair_shares_numbers_between_normal_and_refund_moves(self):
+        move_date = fields.Date.to_date("2024-08-02")
+        normal_move = self._create_entry(move_date)
+        normal_move.action_post()
+        invoice = self.init_invoice(
+            "out_invoice",
+            invoice_date=fields.Date.to_date("2024-08-01"),
+            amounts=[100.0],
+            taxes=[],
+            journal=self.company_data["default_journal_sale"],
+            post=True,
+        )
+        refund = invoice._reverse_moves([{
+            "date": move_date,
+            "invoice_date": move_date,
+        }])
+        refund.action_post()
+        normal_move.name = "20240802000001GEN"
+        refund.name = "R20240802000001SAL"
+        self._enable_custom_sequence()
+
+        wizard = self.env[
+            "account.kr.move.sequence.repair.wizard"
+        ].with_user(self.simple_accountman).create({
+            "company_id": self.company_data["company"].id,
+            "date_from": move_date,
+            "date_to": move_date,
+            "journal_ids": [Command.set((
+                self.misc_journal
+                | self.company_data["default_journal_sale"]
+            ).ids)],
+        })
+        wizard.action_scan()
+
+        duplicate_line = wizard.line_ids.filtered(
+            lambda item: item.move_id == refund
+        )
+        self.assertEqual(len(wizard.line_ids), 1)
+        self.assertEqual(duplicate_line.issue_type, "duplicate_sequence")
+        self.assertEqual(duplicate_line.proposed_name, "R20240802000002SAL")
+
+        wizard.action_apply()
+        self.assertEqual(normal_move.name, "20240802000001GEN")
+        self.assertEqual(refund.name, "R20240802000002SAL")
 
     def test_sequence_repair_identifies_orphaned_number(self):
         move = self._create_entry("2024-07-25")

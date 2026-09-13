@@ -13,6 +13,11 @@ Odoo **기본 기능**으로 되는 부분 (여기서 손댈 필요 없음)
   설정 어디에서도 못 바꾼다 → 화면에 늘 "1,234,567.00" 으로 뜬다.
   아래 표에 적힌 **금액 필드만** 골라 자리수 소스를 다시 지정한다.
 
+KRW 한정
+  Float 필드의 ``digits`` 는 레코드가 아니라 레지스트리 전체에 적용된다. 따라서
+  모든 회사의 기준통화가 KRW인 DB에서만 패치를 켠다. 주문/청구서 통화가 따로
+  있는 필드는 외화 문서를 보호하기 위해 0자리 대상에서 제외한다.
+
 수량은 건드리지 않는다
   quantity / qty_* / product_uom_qty / quantity_svl 처럼 수량 성격인 Float 는
   표에서 의도적으로 제외했다. 수량 자리수는 "Product Unit of Measure" 설정으로
@@ -32,19 +37,26 @@ _logger = logging.getLogger(__name__)
 # 새로 추가한 소수점 정확도 항목 — data/decimal_precision.xml 에서 0자리로 생성.
 # 레코드가 없으면 Odoo 가 2를 돌려주므로(=현재 동작) 설치 전에도 안전하다.
 AMOUNT_PRECISION = "KR Amount"
+KRW_CURRENCY_CODE = "KRW"
 
-# 금액(합계·잔액·평가액) 필드 → "KR Amount" (기본 0자리)
+# 회사 기준통화 금액(합계·잔액·평가액) 필드 → "KR Amount" (기본 0자리)
+# 이 필드 메타데이터는 회사별로 나눌 수 없으므로 KRW 전용 DB에서만 적용한다.
 AMOUNT_FIELDS = {
     "account.account": ("current_balance",),                 # 계정과목 폼의 '잔액' 버튼
     "account.invoice.report": (                              # 청구서 분석 (SQL 뷰)
-        "price_subtotal", "price_subtotal_currency", "price_total",
-        "price_average", "price_margin", "inventory_value",
+        "price_subtotal", "price_average", "price_margin", "inventory_value",
     ),
-    "purchase.bill.union": ("amount",),                      # 구매 청구 대사 (SQL 뷰)
-    "sale.order": ("amount_paid",),                          # 온라인 결제 수령액
     "product.product": ("value_svl",),                       # 재고 평가액
     "stock.lot": ("value_svl",),
     "stock.valuation.layer.revaluation": ("current_value_svl",),
+}
+
+# 레코드마다 통화가 달라질 수 있어 정적 0자리 패치를 적용하면 안 되는 필드.
+# 문서화와 회귀 테스트에서 이 목록이 AMOUNT_FIELDS로 다시 들어가는 것을 막는다.
+DOCUMENT_CURRENCY_FIELDS = {
+    "account.invoice.report": ("price_subtotal_currency", "price_total"),
+    "purchase.bill.union": ("amount",),
+    "sale.order": ("amount_paid",),
 }
 
 # 단가 성격 필드 → 기존 "Product Price" 설정을 그대로 따르게 한다.
@@ -58,6 +70,12 @@ UNIT_PRICE_FIELDS = {
 DISABLE_PARAM = "account_kr_plus_patch.integer_amounts"
 
 
+def _all_currency_codes_are_krw(currency_codes):
+    """레지스트리 전역 패치를 적용해도 되는 KRW 전용 DB인지 판별한다."""
+    codes = list(currency_codes)
+    return bool(codes) and all(code == KRW_CURRENCY_CODE for code in codes)
+
+
 class AccountMove(models.Model):
     """레지스트리 구성 직후 한 번 실행되는 자리수 패치의 걸이."""
     _inherit = "account.move"
@@ -69,6 +87,9 @@ class AccountMove(models.Model):
 
     def _kr_apply_amount_digits(self):
         if not self._kr_amount_digits_enabled():
+            return
+        if not self._kr_all_companies_use_krw():
+            _logger.debug("회계 금액 소수점 제거 미적용: 기준통화가 KRW가 아닌 회사가 존재")
             return
         patched = []
         for digits, table in ((AMOUNT_PRECISION, AMOUNT_FIELDS),
@@ -91,7 +112,17 @@ class AccountMove(models.Model):
                     field._digits = digits
                     patched.append("%s.%s" % (model_name, fname))
         if patched:
-            _logger.info("회계 금액 소수점 제거 적용: %s", ", ".join(patched))
+            _logger.info("KRW 회계 금액 소수점 제거 적용: %s", ", ".join(patched))
+
+    def _kr_all_companies_use_krw(self):
+        """필드 메타데이터가 전역이므로 모든 회사가 KRW일 때만 허용한다."""
+        try:
+            companies = self.env["res.company"].sudo().with_context(active_test=False).search([])
+            currency_codes = companies.mapped("currency_id.name")
+        except Exception:  # 설치 초기 등 회사/통화 테이블을 안전하게 못 읽는 상황
+            _logger.debug("회사 기준통화 확인 실패로 금액 자리수 패치를 건너뜀", exc_info=True)
+            return False
+        return _all_currency_codes_are_krw(currency_codes)
 
     def _kr_amount_digits_enabled(self):
         try:
