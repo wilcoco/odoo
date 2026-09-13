@@ -1,6 +1,6 @@
 {
     "name": "IATF 공정검사 / 최종검사",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "summary": "공정검사 및 최종검사 관리 (IATF 16949 §8.6)",
     "category": "Quality",
     "license": "LGPL-3",

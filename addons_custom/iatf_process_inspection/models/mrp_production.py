@@ -55,6 +55,7 @@ class MrpProduction(models.Model):
                     })
                 return
             pqc = PQC.create({
+                "company_id": self.company_id.id,  # 활성 회사가 아니라 MO 의 회사 (제3자 검토 H13)
                 "inspection_stage": "ipqc",
                 "article_stage": "first",
                 "production_id": target.id,

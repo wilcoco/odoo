@@ -249,3 +249,63 @@ class TestMoldCheck(TransactionCase):
                 self.mold.unlink()
         chk.unlink()
         self.mold.unlink()
+
+
+@tagged("post_install", "-at_install")
+class TestMoldCheckIntegrity(TransactionCase):
+    """제3자 검토(2026-09-10) Q10·Q12 — 우회 경로가 닫혔는가."""
+
+    def setUp(self):
+        super().setUp()
+        self.mold = self.env["iatf.mold"].create({
+            "name": "T-무결성금형", "mold_type": "injection", "check_cycle_days": 7})
+        self.Check = self.env["iatf.mold.check"]
+        self.today = fields.Date.context_today(self.Check)
+
+    def _check(self, lines, **vals):
+        base = {"mold_id": self.mold.id, "check_type": "daily",
+                "line_ids": [(0, 0, l) for l in lines]}
+        base.update(vals)
+        return self.Check.create(base)
+
+    def test_future_check_date_is_rejected(self):
+        """미래 날짜 점검은 실적이 아니다 — 미실시 목록에서 사라지게 만드는 경로."""
+        with self.assertRaises(ValidationError):
+            self._check([{"item_name": "형면 이물", "result": "ok"}],
+                        check_date=self.today + relativedelta(days=1))
+
+    def test_write_state_done_bypass_is_rejected(self):
+        """버튼을 거치지 않고 write({'state':'done'}) 으로 빈 점검표를 완료할 수 없다."""
+        chk = self._check([{"item_name": "형면 이물"}])  # 판정 비움
+        self.assertEqual(chk.overall_result, "pending")
+        with self.assertRaises(ValidationError):
+            chk.write({"state": "done"})
+
+    def test_numeric_item_cannot_be_judged_without_value(self):
+        """기준이 있는 항목에 측정값 없이 '양호' 를 넣을 수 없다 (Q12)."""
+        with self.assertRaises(ValidationError):
+            self._check([{"item_name": "형체 온도", "spec_min": 10.0, "spec_max": 20.0,
+                          "value": 0.0, "result": "ok"}])
+
+    def test_done_check_is_locked(self):
+        """완료된 점검표의 날짜·항목은 바꿀 수 없다. '작성 중' 으로 되돌린 뒤에만."""
+        chk = self._check([{"item_name": "형면 이물", "result": "ok"},
+                           {"item_name": "형체 온도", "spec_min": 10.0, "spec_max": 20.0,
+                            "value": 15.0}])
+        chk.action_done()
+        self.assertEqual(chk.state, "done")
+        with self.assertRaises(ValidationError):
+            chk.write({"check_date": self.today - relativedelta(days=3)})
+        line = chk.line_ids.filtered(lambda l: l.item_name == "형체 온도")
+        with self.assertRaises(ValidationError):
+            line.write({"value": 25.0})
+        with self.assertRaises(ValidationError):
+            line.unlink()
+        # 되돌리면 고칠 수 있고, 되돌린 사실은 상태 추적(chatter)에 남는다
+        chk.action_draft()
+        line.write({"value": 18.0})
+        self.assertEqual(line.result, "ok")
+        chk.write({"notes": "정정: 재측정"})
+        chk.action_done()
+        self.assertEqual(chk.state, "done")
+

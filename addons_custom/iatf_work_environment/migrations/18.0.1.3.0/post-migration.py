@@ -43,7 +43,18 @@ def migrate(cr, version):
            AND COALESCE(r.sheet_revision, 0) = 0
     """)
 
-    # 5. 실적 라인의 정의 스냅샷.
+    # 5. 실적 라인의 정의 스냅샷 — **당시 기준을 복원하는 것이 아니다.**
+    #    이 시점 이전 실적이 어떤 기준으로 판정됐는지는 알 길이 없다. 여기서 복사하는 것은
+    #    '현재' 기준 마스터이며, 이관 추정치다. 3번에서 개정 차수를 전부 1 로 맞추므로
+    #    "1차 개정본 기준" 이라는 표기와는 일치하지만, 그 1차가 곧 당시 기준이라는 보장은
+    #    없다. 재실행 시 같은 라인을 다시 복사하지 않도록 아래 플래그로 한 번만 돈다.
+    #    (2026-09-10 제3자 검토 H14 지적 반영)
+    cr.execute("""SELECT 1 FROM ir_config_parameter
+                   WHERE key = 'iatf_work_environment.migration_1_3_0_line_backfill_done'""")
+    if cr.fetchone():
+        _logger.info("실적 라인 스냅샷 backfill 은 이미 수행됨 — 건너뜀 (재실행 멱등)")
+        return
+
     #    COALESCE 로는 안 된다 — Odoo 는 새 컬럼을 만들 때 필드 기본값('정성'/'양호·불량')
     #    으로 기존 행을 이미 채워 놓는다. 그래서 NULL 이 아니라 '기본값이 박힌 상태' 를
     #    상대해야 한다. 상·하한이 있는 라인은 그 값으로 판정된 것이므로 '범위' 가 맞다.
@@ -77,6 +88,9 @@ def migrate(cr, version):
            AND COALESCE(spec_mode, 'qualitative') = 'qualitative'
            AND (COALESCE(spec_min, 0) <> 0 OR COALESCE(spec_max, 0) <> 0)
     """)
+    cr.execute("""INSERT INTO ir_config_parameter (key, value, create_uid, create_date, write_uid, write_date)
+                   VALUES ('iatf_work_environment.migration_1_3_0_line_backfill_done', 'true', 1, now(), 1, now())
+                   ON CONFLICT (key) DO NOTHING""")
     cr.execute("""
         UPDATE iatf_check_record_line
            SET spec_mode = COALESCE(spec_mode, 'qualitative'),
