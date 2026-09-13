@@ -457,7 +457,6 @@ class AccountMove(models.Model):
         if not self.date or not self.company_id:
             return "WHERE FALSE", {}
 
-        refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
         where_string = (
             "WHERE company_id = %(company_id)s "
             "AND name != '/' "
@@ -468,24 +467,21 @@ class AccountMove(models.Model):
             "company_id": self.company_id.id,
             "sequence_date": self.date,
             "sequence_regex": (
-                r"^%s[0-9]{14}%s$"
-                % (refund_prefix, KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX)
+                r"^R?[0-9]{14}%s$" % KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX
             ),
         }
         return where_string, params
 
     def _kr_get_last_shared_sequence_number(self, lock=False):
-        """Return the company-wide daily number shared by every TTT code."""
+        """Return the daily number shared by normal/refund moves and every TTT."""
         self.ensure_one()
         move_date = fields.Date.to_date(
             self.date or self.invoice_date or fields.Date.context_today(self)
         )
-        refund_prefix = "R" if self.move_type in REFUND_MOVE_TYPES else ""
         if lock:
-            lock_name = "account_kr_plus_patch:%s:%s:%s" % (
+            lock_name = "account_kr_plus_patch:%s:%s" % (
                 self.company_id.id,
                 move_date.isoformat(),
-                refund_prefix or "N",
             )
             self.env.cr.execute(
                 "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
@@ -495,12 +491,10 @@ class AccountMove(models.Model):
         self.env["account.move"].flush_model(["name", "company_id"])
         date_part = move_date.strftime("%Y%m%d")
         sequence_regex = (
-            r"^%s%s[0-9]{6}%s$"
-            % (refund_prefix, date_part, KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX)
+            r"^R?%s[0-9]{6}%s$"
+            % (date_part, KR_MOVE_SEQUENCE_SHARED_SQL_SUFFIX)
         )
-        sequence_extract_regex = r"^%s%s([0-9]{6})" % (
-            refund_prefix, date_part
-        )
+        sequence_extract_regex = r"^R?%s([0-9]{6})" % date_part
         self.env.cr.execute(
             """
                 SELECT COALESCE(
@@ -630,12 +624,12 @@ class AccountMove(models.Model):
 
         next_moves = self.env["account.move"]
         named = custom_moves.filtered(lambda move: move.name and move.name != "/")
-        for (company, prefix), moves in named.grouped(
-            lambda move: (move.company_id, move.sequence_prefix)
+        for (company, move_date), moves in named.grouped(
+            lambda move: (move.company_id, move.date)
         ).items():
             candidates = self.env["account.move"].sudo().search([
                 ("company_id", "=", company.id),
-                ("sequence_prefix", "=", prefix),
+                ("date", "=", move_date),
                 ("sequence_number", "in", [
                     move.sequence_number + 1 for move in moves
                 ]),
@@ -645,7 +639,10 @@ class AccountMove(models.Model):
             )
         next_moves.made_sequence_gap = made_gap
 
-    @api.depends("journal_id", "sequence_number", "sequence_prefix", "state")
+    @api.depends(
+        "company_id", "date", "journal_id", "sequence_number",
+        "sequence_prefix", "state",
+    )
     def _compute_made_sequence_gap(self):
         custom_moves = self.filtered(
             lambda move: move._kr_uses_configured_sequence()
@@ -659,12 +656,12 @@ class AccountMove(models.Model):
         )
         unposted.made_sequence_gap = True
         posted = custom_moves - unposted
-        for (company, prefix), moves in posted.grouped(
-            lambda move: (move.company_id, move.sequence_prefix)
+        for (company, move_date), moves in posted.grouped(
+            lambda move: (move.company_id, move.date)
         ).items():
             candidates = self.env["account.move"].sudo().search([
                 ("company_id", "=", company.id),
-                ("sequence_prefix", "=", prefix),
+                ("date", "=", move_date),
                 ("sequence_number", ">=", min(
                     moves.mapped("sequence_number")
                 ) - 1),

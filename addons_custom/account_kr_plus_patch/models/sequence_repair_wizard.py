@@ -65,7 +65,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
     )
     journal_ids = fields.Many2many(
         comodel_name="account.journal",
-        string="대상 저널",
+        string="대상 전표",
         required=True,
         default=lambda self: self._default_journal_ids(),
         domain="[('company_id', '=', company_id)]",
@@ -179,7 +179,6 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
             if values:
                 key = (
                     move.date,
-                    move.move_type in REFUND_MOVE_TYPES,
                     int(values["seq"]),
                 )
                 moves_by_number[key] |= move
@@ -227,10 +226,22 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         return False, False
 
     def _sequence_group_key(self, move):
-        return (
-            move.date,
-            move.move_type in REFUND_MOVE_TYPES,
-        )
+        return move.date
+
+    def _reopen_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("전표번호 소급 변경 적용"),
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "account_kr_plus_patch."
+                "view_account_kr_move_sequence_repair_wizard_form"
+            ).id,
+            "target": "new",
+        }
 
     def _format_proposed_name(self, move, sequence_number):
         refund_prefix = "R" if move.move_type in REFUND_MOVE_TYPES else ""
@@ -282,7 +293,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
             if not issue_type and move.id in duplicate_move_ids:
                 issue_type = "duplicate_sequence"
                 issue_summary = _(
-                    "다른 전표유형과 같은 날짜·순번을 중복 사용하고 있습니다."
+                    "다른 전표와 같은 날짜·순번을 중복 사용하고 있습니다."
                 )
             if not issue_type:
                 continue
@@ -351,7 +362,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         if self.date_from > self.date_to:
             raise UserError(_("시작일은 종료일보다 늦을 수 없습니다."))
         if not self.journal_ids:
-            raise UserError(_("대상 저널을 하나 이상 선택해 주세요."))
+            raise UserError(_("대상 전표 범위를 하나 이상 선택해 주세요."))
         if self.current_rule not in ("date_number", "date_number_type"):
             raise UserError(_(
                 "Odoo 기본은 이 모듈이 번호 형식을 정의하거나 수정하지 않는 설정입니다. "
@@ -369,7 +380,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
             "state": "preview",
             "result_message": False,
         })
-        return False
+        return self._reopen_wizard()
 
     def action_reset(self):
         self.ensure_one()
@@ -380,7 +391,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
             "preview_rule": False,
             "result_message": False,
         })
-        return False
+        return self._reopen_wizard()
 
     def action_apply(self):
         self.ensure_one()
@@ -454,7 +465,7 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
                 count=len(lines),
             ),
         })
-        return False
+        return self._reopen_wizard()
 
 
 class AccountKrMoveSequenceRepairLine(models.TransientModel):
