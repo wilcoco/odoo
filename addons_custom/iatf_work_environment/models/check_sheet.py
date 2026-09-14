@@ -543,6 +543,25 @@ class IatfCheckRecord(models.Model):
                 vals.setdefault("sheet_revision", sheet.revision)
         return super().create(vals_list)
 
+    # 완료 뒤에도 고칠 수 있는 것. 그 외 필드는 완료 실적에서 잠근다.
+    _DONE_EDITABLE = {"state", "corrective_action", "notes", "message_main_attachment_id"}
+
+    def write(self, vals):
+        """완료된 실적의 사실(점검일·시트·근무조·점검자·항목)은 바꿀 수 없다.
+
+        완료 후 점검일을 옮기면 미실시 판정이 바뀌고, 시트를 바꾸면 라인과 기준이
+        갈린다. 고쳐야 하면 '작성 중' 으로 되돌리고 고친 뒤 다시 완료한다.
+        (2026-09-10 제3자 검토 Q10)
+        """
+        locked = self.filtered(lambda r: r.state == "done")
+        touched = set(vals) - self._DONE_EDITABLE
+        if locked and touched and vals.get("state", "done") == "done":
+            raise ValidationError(_(
+                "완료된 점검 실적은 수정할 수 없습니다: %(names)s\n"
+                "고치려면 먼저 '작성 중' 으로 되돌리십시오. (변경 항목: %(fields)s)",
+                names=", ".join(locked.mapped("name")), fields=", ".join(sorted(touched))))
+        return super().write(vals)
+
     @api.constrains("state", "line_ids")
     def _check_done_is_complete(self):
         """완료 상태의 백스톱.
@@ -667,6 +686,14 @@ class IatfCheckRecordLine(models.Model):
                     item=rec.item_name, value=rec.value,
                     low=rec.spec_min or "-", high=rec.spec_max or "-",
                     judged=labels.get(judged), given=labels.get(rec.result) or _("미판정")))
+            # 수치 기준이 있는 항목에 측정값 없이 '양호/불량' 을 넣는 경로를 막는다.
+            # (제3자 검토 Q12 — 순수 함수 재현으로 실제 뚫림을 확인함)
+            if judged == "no_value" and rec.result in ("ok", "ng"):
+                raise ValidationError(_(
+                    "'%(item)s' 은 기준(%(low)s ~ %(high)s)이 있는 항목입니다. 측정값 없이 "
+                    "'%(given)s' 을 기록할 수 없습니다. 측정값을 적으면 자동 판정됩니다.",
+                    item=rec.item_name, low=rec.spec_min or "-", high=rec.spec_max or "-",
+                    given=labels.get(rec.result)))
 
     @api.constrains("spec_min", "spec_max")
     def _check_spec_range(self):
@@ -676,13 +703,32 @@ class IatfCheckRecordLine(models.Model):
                     "'%(item)s' 의 하한(%(low)s) 이 상한(%(high)s) 보다 큽니다.",
                     item=rec.item_name, low=rec.spec_min, high=rec.spec_max))
 
+    def write(self, vals):
+        """완료된 실적의 라인은 고칠 수 없다.
+
+        완료 실적은 '그때 그 기준으로 그렇게 판정했다' 는 증빙이다. 완료 후 측정값이나
+        기준 스냅샷을 바꾸면 증빙이 아니라 편집물이 된다. 고쳐야 하면 '작성 중' 으로
+        되돌린다(상태 변경은 chatter 에 남는다). (제3자 검토 Q10)
+        """
+        locked = self.filtered(lambda l: l.record_id.state == "done")
+        if locked:
+            raise ValidationError(_(
+                "완료된 점검 실적(%s)의 항목은 수정할 수 없습니다. 먼저 '작성 중' 으로 되돌리십시오.",
+                ", ".join(locked.mapped("record_id.name"))))
+        return super().write(vals)
+
     def unlink(self):
-        """라인을 지운 뒤 부모 점검표를 다시 검사한다.
+        """완료된 실적의 라인은 지울 수 없다. 지운 뒤에는 부모를 다시 검사한다.
 
         자식 삭제는 부모의 `@api.constrains("line_ids")` 를 트리거하지 않는다.
         완료된 점검표의 라인을 전부 지우면 판정 내용이 없는 '완료' 실적이 남고,
         그 실적이 시트의 최근 점검일로 잡혀 미실시 목록에서 사라진다.
         """
+        locked = self.filtered(lambda l: l.record_id.state == "done")
+        if locked:
+            raise ValidationError(_(
+                "완료된 점검 실적(%s)의 항목은 삭제할 수 없습니다.",
+                ", ".join(locked.mapped("record_id.name"))))
         parents = self.record_id
         res = super().unlink()
         parents.exists()._check_done_is_complete()

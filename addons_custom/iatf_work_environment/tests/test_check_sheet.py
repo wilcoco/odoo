@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+import psycopg2
+
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
@@ -265,15 +267,48 @@ class TestCheckSheet(TransactionCase):
     def test_sheet_delete_blocked_while_record_exists(self):
         rec = self.Record.create({"sheet_id": self.sheet.id})
         self.assertTrue(rec)
-        with self.assertRaises(Exception):
+        with self.assertRaises(psycopg2.IntegrityError):  # ondelete=restrict → FK 위반
             with self.env.cr.savepoint():
                 self.sheet.unlink()
 
     def test_duplicate_code_rejected(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(psycopg2.IntegrityError):  # unique(code) 위반
             with self.env.cr.savepoint():
                 self.Sheet.create({"name": "중복", "code": "CS-CRUSH-01",
                                    "target_type": "etc", "cycle": "daily"})
+
+    # ───────── 제3자 검토(2026-09-10) Q10·Q12 ─────────
+
+    def test_numeric_item_cannot_be_judged_without_value(self):
+        """기준(0~20)이 있는 항목에 측정값 없이 '양호' 를 넣을 수 없다 (Q12).
+
+        이전에는 value=0 → 'no_value' 로 판정 자체를 건너뛰어 수동 '양호' 가 저장됐다.
+        순수 함수 재현으로 실제 뚫림이 확인된 경로다.
+        """
+        rec = self.Record.create({"sheet_id": self.sheet.id})
+        with self.assertRaises(ValidationError):
+            self._fill(rec, {"재생재 배합비율": {"result": "ok"}})
+
+    def test_done_record_is_locked(self):
+        """완료 실적의 점검일·라인은 바꿀 수 없다. '작성 중' 으로 되돌린 뒤에만 (Q10)."""
+        rec = self.Record.create({"sheet_id": self.sheet.id})
+        self._fill(rec, {"칼날 마모·파손": {"result": "ok"}, "스크린 눈막힘": {"result": "ok"},
+                         "재생재 배합비율": {"value": 10.0}})
+        rec.action_done()
+        line = rec.line_ids.filtered(lambda l: l.item_name == "재생재 배합비율")
+        with self.assertRaises(ValidationError):
+            rec.write({"check_date": self.today - timedelta(days=2)})
+        with self.assertRaises(ValidationError):
+            line.write({"value": 25.0})
+        with self.assertRaises(ValidationError):
+            line.write({"spec_max": 30.0})   # 기준 스냅샷도 완료 후엔 못 건드린다
+        with self.assertRaises(ValidationError):
+            line.unlink()
+        rec.write({"corrective_action": "조치 기록은 완료 후에도 남길 수 있다"})
+        rec.action_draft()
+        line.write({"value": 12.0})
+        rec.action_done()
+        self.assertEqual(rec.state, "done")
 
 
 @tagged("post_install", "-at_install")

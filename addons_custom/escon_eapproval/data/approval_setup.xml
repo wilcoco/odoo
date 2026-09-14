@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 설정 > Odoo 전자결재 기본 셋팅 재적용 (수동 실행) -->
+    <record id="action_server_apply_odoo_defaults" model="ir.actions.server">
+        <field name="name">Odoo 전자결재 기본 셋팅 재적용</field>
+        <field name="model_id" ref="model_escon_eapproval_setup"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_apply_odoo_defaults()</field>
+    </record>
+
+    <!-- 설치/업그레이드 때마다 기본 셋팅 자동 적용 (멱등) -->
+    <function model="escon.eapproval.setup" name="apply_odoo_defaults"/>
+</odoo>

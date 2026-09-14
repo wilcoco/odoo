@@ -1,3 +1,5 @@
+import psycopg2
+
 from odoo.tests import TransactionCase, tagged
 
 
@@ -63,13 +65,30 @@ class TestMoldTempLog(TransactionCase):
             "'기준 없음' 목록으로 회수할 수 있어야 한다",
         )
 
-    def test_spec_result_follows_master(self):
-        """마스터 기준을 고치면 판정이 따라 바뀐다 — 값이 굳으면 안 된다."""
+    def test_spec_result_is_snapshot_not_link(self):
+        """마스터 기준을 나중에 고쳐도 **과거 판정은 바뀌지 않는다.**
+
+        이 테스트의 이전 판은 정반대를 기대했다("기준이 넓어지면 적합으로 바뀐다").
+        그건 판정 기록의 소급 변조다 — 상한을 90→100 으로 넓히면 과거 95℃ 부적합이
+        화면에서 적합이 되어 "왜 부적합이었나" 에 답할 수 없게 된다.
+        (2026-09-10 제3자 검토 Q11)
+        """
         log = self._log(temperature=95.0)
         self.assertEqual(log.spec_result, "ng", "상한 90 초과")
+        self.assertEqual((log.spec_min, log.spec_max), (60.0, 90.0))
         self.mold.preheat_temp_max = 100.0
         log.invalidate_recordset()
-        self.assertEqual(log.spec_result, "ok", "기준이 넓어지면 적합으로 바뀐다")
+        self.assertEqual(log.spec_result, "ng", "당시 판정은 그대로여야 한다")
+        self.assertEqual(log.spec_max, 90.0, "당시 기준 스냅샷이 마스터에 끌려갔다")
+        # 현행 기준으로 다시 보면 어떤가 — 판정이 아니라 참고값으로 따로 준다
+        self.assertEqual(log.current_spec_result, "ok")
+
+    def test_new_log_after_revision_uses_new_spec(self):
+        """기준 개정 뒤에 잰 기록은 새 기준으로 판정된다 (스냅샷은 기록 시점 기준)."""
+        self.mold.preheat_temp_max = 100.0
+        log = self._log(temperature=95.0)
+        self.assertEqual(log.spec_max, 100.0)
+        self.assertEqual(log.spec_result, "ok")
 
     # ───────── ③ 상·하한 벗어난 값의 합부 판정 ─────────
 
@@ -115,7 +134,7 @@ class TestMoldTempLog(TransactionCase):
 
     def test_mold_delete_blocked_while_log_exists(self):
         log = self._log()
-        with self.assertRaises(Exception):
+        with self.assertRaises(psycopg2.IntegrityError):  # ondelete=restrict → FK 위반
             with self.env.cr.savepoint():
                 self.mold.unlink()
         log.unlink()

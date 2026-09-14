@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 결재선 템플릿 라인: 부서/직급 기반 결재자 방식 필드 추가 -->
+    <record id="view_iatf_approval_template_form_eapproval" model="ir.ui.view">
+        <field name="name">iatf.approval.template.form.eapproval</field>
+        <field name="model">iatf.approval.template</field>
+        <field name="inherit_id" ref="iatf_approval.view_iatf_approval_template_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']/list/field[@name='user_id']" position="after">
+                <field name="job_grade_id"
+                       required="approver_mode == 'job_grade'"
+                       readonly="approver_mode != 'job_grade'"/>
+                <field name="department_id"
+                       required="approver_mode == 'dept_manager'"
+                       readonly="approver_mode != 'dept_manager'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

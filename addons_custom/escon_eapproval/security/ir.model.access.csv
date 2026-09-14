@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_escon_job_grade_user,escon.job.grade.user,model_escon_job_grade,base.group_user,1,0,0,0
+access_escon_job_grade_manager,escon.job.grade.manager,model_escon_job_grade,group_eapproval_manager,1,1,1,1
+access_iatf_approval_template_eap_mgr,iatf.approval.template.eap.mgr,iatf_approval.model_iatf_approval_template,group_eapproval_manager,1,1,1,1
+access_iatf_approval_template_line_eap_mgr,iatf.approval.template.line.eap.mgr,iatf_approval.model_iatf_approval_template_line,group_eapproval_manager,1,1,1,1

@@ -64,17 +64,12 @@
                       action="iatf_spc.action_iatf_spc_study"/>
         </menuitem>
 
-        <!-- 분쇄·배합은 생산 공정이라 여기에도 둔다. 정본 화면은 추적성 모듈에 있다. -->
-        <menuitem id="menu_iatf_blend" name="분쇄·배합 관리" parent="menu_iatf_production" sequence="25">
-            <menuitem id="menu_iatf_blend_standard_x" name="배합 관리기준" sequence="10"
-                      action="iatf_traceability.action_blend_standard"/>
-            <menuitem id="menu_iatf_blend_log_x" name="배합일지" sequence="20"
-                      action="iatf_traceability.action_blend_log"/>
-            <menuitem id="menu_iatf_regrind_log_x" name="분쇄일지" sequence="30"
-                      action="iatf_traceability.action_regrind_log"/>
-            <menuitem id="menu_iatf_blend_ng_x" name="기준 초과·판정불가 배합" sequence="40"
-                      action="iatf_traceability.action_blend_log_ng"/>
-        </menuitem>
+        <!-- 분쇄·배합은 생산 공정이라 여기에 둔다. 메뉴를 새로 만들지 않고 추적성 모듈의
+             원본 그룹(배합 관리기준·배합일지·분쇄일지·기준초과)을 통째로 옮긴다.
+             같은 화면이 두 메뉴에 달리면 평가장에서 "어디로 가야 하나" 가 흔들린다
+             (2026-09-10 리허설: 중복 88건). 원본 레코드 하나만 남긴다. -->
+        <menuitem id="iatf_traceability.menu_iatf_blend_root" name="분쇄·배합 관리"
+                  parent="menu_iatf_production" sequence="25"/>
 
         <menuitem id="menu_iatf_inspection" name="검사관리" parent="menu_iatf_production" sequence="30">
             <menuitem id="menu_iatf_incoming" name="수입검사" sequence="10"
@@ -89,34 +84,22 @@
         <menuitem id="menu_iatf_equipment" name="설비 및 금형 관리"
                   parent="iatf_document_control.menu_iatf_root" sequence="5"/>
 
-        <menuitem id="menu_iatf_equipment_main" name="설비관리" parent="menu_iatf_equipment" sequence="10"
-                  action="iatf_equipment.action_equipment"/>
+        <!-- 아래 셋은 새 메뉴가 아니라 각 모듈 **원본 트리의 뿌리를 옮긴 것**이다.
+             설비대장·PM·고장·일상점검·예비부품·분류·적용표 / 금형대장·보전·T/O·점검·온도 /
+             작업구역·5S·점검시트·실적·미실시 가 원본 레코드 그대로 이 밑에 온다.
+             ⚠ 각 모듈을 단독 -u 하면 그 모듈 XML 이 뿌리를 옛 자리로 되돌린다.
+               메뉴가 흐트러지면 iatf_menu 를 함께 -u 한다. -->
+        <menuitem id="iatf_equipment.menu_iatf_equipment_root" name="설비관리 / TPM"
+                  parent="menu_iatf_equipment" sequence="10"/>
 
         <menuitem id="menu_iatf_calibration" name="계측기관리" parent="menu_iatf_equipment" sequence="20"
                   action="iatf_calibration.action_iatf_equipment"/>
 
-        <menuitem id="menu_iatf_mold" name="금형관리" parent="menu_iatf_equipment" sequence="30"
-                  action="iatf_mold.action_mold"/>
+        <menuitem id="iatf_mold.menu_iatf_mold_root" name="금형관리"
+                  parent="menu_iatf_equipment" sequence="30"/>
 
-        <menuitem id="menu_iatf_mold_tryout" name="시사출(T/O) 보고서" parent="menu_iatf_equipment"
-                  sequence="35" action="iatf_mold.action_mold_tryout"/>
-
-        <menuitem id="menu_iatf_mold_check" name="금형 점검" parent="menu_iatf_equipment"
-                  sequence="36" action="iatf_mold.action_mold_check"/>
-
-        <menuitem id="menu_iatf_mold_temp_log" name="예열/온도 측정 이력" parent="menu_iatf_equipment"
-                  sequence="37" action="iatf_mold.action_mold_temp_log"/>
-
-        <menuitem id="menu_iatf_check" name="점검 일지" parent="menu_iatf_equipment" sequence="40">
-            <menuitem id="menu_iatf_check_sheet" name="점검 시트(기준)" sequence="10"
-                      action="iatf_work_environment.action_check_sheet"/>
-            <menuitem id="menu_iatf_check_record" name="점검 실적" sequence="20"
-                      action="iatf_work_environment.action_check_record"/>
-            <menuitem id="menu_iatf_check_overdue" name="미실시 점검 목록" sequence="30"
-                      action="iatf_work_environment.action_check_sheet_overdue"/>
-            <menuitem id="menu_iatf_env_check" name="작업환경/5S 점검" sequence="40"
-                      action="iatf_work_environment.action_environment_check"/>
-        </menuitem>
+        <menuitem id="iatf_work_environment.menu_iatf_work_env_root" name="점검 일지 / 작업환경"
+                  parent="menu_iatf_equipment" sequence="40"/>
 
         <!-- 6. 구매 및 자재 관리 -->
         <menuitem id="menu_iatf_procurement" name="구매 및 자재 관리"
@@ -136,8 +119,8 @@
         <menuitem id="menu_iatf_logistics" name="물류 및 인도 관리"
                   parent="iatf_document_control.menu_iatf_root" sequence="7"/>
 
-        <menuitem id="menu_iatf_traceability" name="추적성관리" parent="menu_iatf_logistics" sequence="10"
-                  action="iatf_traceability.action_iatf_traceability_record"/>
+        <menuitem id="iatf_traceability.menu_iatf_traceability_records" name="추적성관리"
+                  parent="menu_iatf_logistics" sequence="10"/>
 
         <menuitem id="menu_iatf_packaging" name="포장관리" parent="menu_iatf_logistics" sequence="20"
                   action="iatf_packaging.action_packaging_spec"/>
@@ -149,17 +132,23 @@
         <menuitem id="menu_iatf_contingency" name="비상대응계획" parent="menu_iatf_safety" sequence="10"
                   action="iatf_contingency.action_iatf_contingency"/>
 
-        <menuitem id="menu_iatf_recall" name="리콜시뮬레이션" parent="menu_iatf_safety" sequence="20"
-                  action="iatf_traceability.action_iatf_recall_simulation"/>
+        <menuitem id="iatf_traceability.menu_iatf_recall_simulations" name="리콜시뮬레이션"
+                  parent="menu_iatf_safety" sequence="20"/>
 
-        <menuitem id="menu_iatf_safety_assessment" name="위험성평가" parent="menu_iatf_safety" sequence="30"
-                  action="iatf_work_environment.action_safety_assessment"/>
+        <menuitem id="iatf_work_environment.menu_iatf_safety_assessment" name="위험성평가"
+                  parent="menu_iatf_safety" sequence="30"/>
+        <menuitem id="iatf_work_environment.menu_iatf_safety_incident" name="아차사고/사고 이력"
+                  parent="menu_iatf_safety" sequence="40"/>
+        <menuitem id="iatf_work_environment.menu_iatf_safety_check_sheet" name="안전점검 시트"
+                  parent="menu_iatf_safety" sequence="50"/>
 
-        <menuitem id="menu_iatf_safety_incident" name="아차사고/사고 이력" parent="menu_iatf_safety" sequence="40"
-                  action="iatf_work_environment.action_safety_incident"/>
-
-        <menuitem id="menu_iatf_safety_check_sheet" name="안전점검 시트" parent="menu_iatf_safety" sequence="50"
-                  action="iatf_work_environment.action_safety_check_sheet"/>
+        <!-- 자식을 전부 옮겨 비게 된 옛 그룹. 지우면 모듈 -u 때 되살아나므로 비활성으로 둔다. -->
+        <record id="iatf_work_environment.menu_iatf_safety_root" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
+        <record id="iatf_traceability.menu_iatf_traceability_root" model="ir.ui.menu">
+            <field name="active" eval="False"/>
+        </record>
 
         <!-- 9. 리포트 및 분석 -->
         <menuitem id="menu_iatf_reports" name="리포트 및 분석"
