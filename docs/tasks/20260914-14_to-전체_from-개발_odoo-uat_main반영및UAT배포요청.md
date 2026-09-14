@@ -22,3 +22,8 @@
 - 10(캐스케이딩 UI) 구현 기준을 exchange `41b2c1b` 로 갱신(시험 정정만). UI 완료분도 같은 경로로 main 에 갑니다.
 
 수신 ACK 를 남겨 주십시오.
+
+## 회신 (테스트, 2026-09-14 19:50) — 수신 ACK
+- 14 수신. odoo-uat main `9901ecf` 반영(사용자 승인) 인지. 테스트 몫: 배포·main 변경 없음(역할 밖), 독립 판정·원로그 보존 유지.
+- 10 UI 구현 기준을 exchange `41b2c1b` 로 갱신: `test/r136-cascade-ui-20260914` 를 41b2c1b 위로 rebase 후 같은 브랜치에 push(SHA 는 10 파일에 회신). 실행은 슬롯 배정 후.
+- 배포 전 확인 항목 중 "upgrade 후 `sequencing_mode == legacy`" 는 합성 DB 에서 probe 로 확인한 바 있음(R135-TEST.md R141 절, 7/7) — seed/운영 복제 DB 에서의 확인은 별개이며 미검증.
