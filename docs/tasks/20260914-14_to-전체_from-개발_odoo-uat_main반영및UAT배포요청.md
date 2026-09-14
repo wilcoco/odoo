@@ -36,3 +36,13 @@
 - 연결 추가 6 노드: 공급사 계획(`outsource.planning.run`)·부품 입고(`stock.picking` incoming 만)·고객 클레임(`iatf.customer.complaint`)·설비 고장(`iatf.equipment.breakdown`)·계측기(`iatf.measurement.equipment`)·결재(`iatf.approval.request` 체계만). 부분 연결은 응답 `note` 로 드러냄. 합계 16/30 L2 연결.
 - 시험 0 failed/11 (로그 `artifacts/r134_update_6650335_20260914T103254Z.log`). **정직히**: 검증 DB 에 `supplier_portal_purchase`·`iatf_customer_complaint`·`iatf_calibration` 이 설치돼 있지 않아 그 3 노드는 `not_installed` 경로만 확인됨(설치 후 재시험 진행 중, 결과 추가 회신). `-u cams_ops_dashboard` 필요.
 - (추가, 20:35) 3 모듈 설치 후 재시험: `install --modules supplier_portal_purchase,iatf_customer_complaint,iatf_calibration,cams_ops_dashboard --test-tags /cams_ops_dashboard` @ 6650335 → **0 failed/11**, 16 노드 전부 `linked` 경로로 검증(로그 `artifacts/r134_install_6650335_20260914T103411Z.log`). main `0954818` 변경 없음.
+
+## 회신 (개발, 2026-09-14 21:45 KST) — **UAT 배포 실행 완료(개발이 직접)** — 사용자 지시 "아스트라 토큰 떨어져서 니가 해야해"
+승인: 사용자(채팅 직접 지시) 2026-09-14 21:3x — Railway UAT 배포를 개발이 수행.
+- 배포 원본: `work/railway-uat`(아스트라가 준비해 둔 배포 저장소, private-runtime 보유) 를 odoo-uat main **`6250814`** 로 맞춤 = `0954818` + `deploy/start.py` 1건 수정(아래).
+- **start.py 수정**: 기존엔 seed 복원만 하고 모듈 업그레이드가 없어 새 필드·모델이 채워진 DB 에 반영되지 않음 → 환경변수 `UAT_UPDATE_MODULES`(예: `gh_vendor_settlement,injection_planning,cams_ops_dashboard`) 가 있으면 부팅 시 `odoo -u … --stop-after-init` 1회 실행, `ir_config_parameter uat.update_applied` 에 값 기록해 같은 값은 재적용 안 함. odoo-uat main 에 push(`6250814`).
+- Railway: 변수 `UAT_UPDATE_MODULES` 설정(`--skip-deploys`) → `railway up --no-gitignore --detach` → 배포 `47e2540b` **SUCCESS**(21:43). 배포 전 `/uat-health` 는 **502(이미 내려가 있었음)** → 배포 후 **200**. `/web/login` 200, `/odoo/action-cams_ops_dashboard.action_factory_flow` 303(로그인 요구, 정상).
+- 업그레이드 근거: 로그에 pid 3 이 `update_module` 로 216 모듈 전체 적재(`Loading module … (216/216)`, `Registry loaded in 24.8s`) 후 pid 1 이 서비스(`Registry loaded in 1.8s`). 로그 창(500줄)에 우리 모듈 줄은 잘려 직접 안 보임 — DB 의 `uat.update_applied` 확인은 사용자 로그인 화면(설정 > 기술 > 시스템 매개변수)에서 가능.
+- 로그 ERROR: `Model br.db.model has no table` ×6 — `escon_br` 의 기존 문제(우리 변경과 무관, 배포 전부터 있었을 가능성 큼). 서비스 기동엔 영향 없음. 별도 결함으로 기록 요망.
+- **미검증**: 브라우저에서 "회사 운영 흐름" 4단 클릭, R134/R135 화면 사용 — 사용자·테스트가 UAT 에서 직접 확인. URL `https://odoo-production-beb1.up.railway.app` (계정은 사용자 보유, 큐에 기록하지 않음).
+- 테스트: UAT 화면 결함 재현·정정 담당 시작해 주십시오(10 의 역할). 아스트라: 토큰 소진으로 당분간 개발이 배포까지 맡음.
