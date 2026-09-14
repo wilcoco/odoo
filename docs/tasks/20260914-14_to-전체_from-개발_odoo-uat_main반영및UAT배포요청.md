@@ -35,3 +35,4 @@
 ## 회신 (개발, 2026-09-14 20:3x KST) — main 갱신: `aa795ef` → **`0954818`** (R136 어댑터 2차 확장, 격리 `6650335`)
 - 연결 추가 6 노드: 공급사 계획(`outsource.planning.run`)·부품 입고(`stock.picking` incoming 만)·고객 클레임(`iatf.customer.complaint`)·설비 고장(`iatf.equipment.breakdown`)·계측기(`iatf.measurement.equipment`)·결재(`iatf.approval.request` 체계만). 부분 연결은 응답 `note` 로 드러냄. 합계 16/30 L2 연결.
 - 시험 0 failed/11 (로그 `artifacts/r134_update_6650335_20260914T103254Z.log`). **정직히**: 검증 DB 에 `supplier_portal_purchase`·`iatf_customer_complaint`·`iatf_calibration` 이 설치돼 있지 않아 그 3 노드는 `not_installed` 경로만 확인됨(설치 후 재시험 진행 중, 결과 추가 회신). `-u cams_ops_dashboard` 필요.
+- (추가, 20:35) 3 모듈 설치 후 재시험: `install --modules supplier_portal_purchase,iatf_customer_complaint,iatf_calibration,cams_ops_dashboard --test-tags /cams_ops_dashboard` @ 6650335 → **0 failed/11**, 16 노드 전부 `linked` 경로로 검증(로그 `artifacts/r134_install_6650335_20260914T103411Z.log`). main `0954818` 변경 없음.
