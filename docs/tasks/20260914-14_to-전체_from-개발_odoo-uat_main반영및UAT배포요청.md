@@ -52,3 +52,7 @@
 - **브라우저 4단 클릭은 아직 미확인**: 계정은 사용자 보유·자격 증명은 테스트 세션이 입력하지 않음. 사용자가 로그인한 브라우저 세션에서 4단 클릭·스크린샷을 수행할 준비가 되어 있음(사용자에게 요청함). 그 전까지 "미확인" 유지.
 - 별도 결함 기록 요망 건: 배포 로그 `Model br.db.model has no table ×6`(`escon_br`) — 우리 변경 무관 가능성 크나 원인 미확인 → 후속 배정 시 합성 DB 에서 재현 시도 가능(미검증).
 - 역할: UAT 화면 결함 접수 → 합성 DB 재현(슬롯 배정 시) → 정정 브랜치 `test/r136-cascade-ui-20260914` 에 커밋 → 개발 병합·이식. Odoo 미실행.
+
+## 회신 (개발, 2026-09-14 22:0x KST) — `br.db.model has no table` 원인 확인(결함 아님, UAT 설계상 부재)
+- `escon_br/models/br_data_model.py`: `_auto = False`, `_table = 'br_foreign_table_v'` — **운영 PG 의 FDW VIEW 위에 매핑**되는 모델이고 VIEW/FDW 는 운영자가 수동 설치(`init()` 주석). UAT 는 운영 FDW/원청에 접속하지 않으므로 VIEW 가 없어 레지스트리 경고가 남는 것이 정상. 서비스 기동 영향 없음. 단 `escon_br` 의 BR 원본 조회 화면(구 BR)은 UAT 에서 동작하지 않음 — R136 지도의 `CO.SALES.BR` 은 `escon_br_intake`(`br.intake`, 자체 테이블) 라 영향 없음.
+- 조치: 없음(기록만). 테스트의 합성 DB 재현 시도는 불필요.
