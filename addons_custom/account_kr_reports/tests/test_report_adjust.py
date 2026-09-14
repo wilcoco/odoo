@@ -43,9 +43,15 @@ class TestReportAdjust(TransactionCase):
 
     def test_upgrade_hook_reapplies_fix(self):
         expression = self._kr_expression("l10n_kr_reports.l10n_kr_pl_income")
+        standard_expression = self._standard_operating_income_expression()
         expression.formula = "KR_GRP.balance + KR_EXP.balance"  # 표준 모듈 업그레이드로 되돌아간 상황
+        standard_expression.formula = "GRP.balance + EXP.balance"
         self.env["kr.fs.line"]._kr_adjust_standard_reports()
         self.assertEqual(expression.formula, "KR_GRP.balance - KR_EXP.balance")
+        self.assertEqual(
+            standard_expression.formula,
+            "REV.balance - COS.balance - EXP.balance",
+        )
 
     def test_non_operating_income_accounts_become_income_other(self):
         Account = self.env["account.account"]
@@ -64,6 +70,40 @@ class TestReportAdjust(TransactionCase):
         report_adjust.fix_sga_depreciation_types(self.env)
         self.assertEqual(sga.account_type, "expense")
         self.assertEqual(other.account_type, "expense_depreciation", "61 외 계정은 그대로")
+
+    def _standard_operating_income_expression(self):
+        expression = report_adjust._balance_expression(
+            self.env,
+            "account_reports.account_financial_report_operating_income0",
+        )
+        if not expression:
+            self.skipTest("account_reports 기본 손익계산서 영업이익 라인 없음")
+        return expression
+
+    def test_standard_pl_operating_income_subtracts_expenses(self):
+        expression = self._standard_operating_income_expression()
+        for wrong in (
+            "GRP.balance + EXP.balance",
+            "REV.balance - COS.balance + EXP.balance",
+        ):
+            with self.subTest(wrong=wrong):
+                expression.formula = wrong
+                self.assertTrue(report_adjust.fix_standard_pl_operating_income(self.env))
+                self.assertEqual(
+                    expression.formula,
+                    "REV.balance - COS.balance - EXP.balance",
+                )
+        self.assertFalse(
+            report_adjust.fix_standard_pl_operating_income(self.env),
+            "재실행 멱등",
+        )
+
+    def test_standard_pl_custom_operating_income_is_preserved(self):
+        expression = self._standard_operating_income_expression()
+        custom = "REV.balance - COS.balance - EXP.balance + CUSTOM.balance"
+        expression.formula = custom
+        self.assertFalse(report_adjust.fix_standard_pl_operating_income(self.env))
+        self.assertEqual(expression.formula, custom)
 
     def test_standard_pl_net_profit_subtracts_tax_line(self):
         report = self.env.ref("account_reports.profit_and_loss", raise_if_not_found=False)
@@ -88,3 +128,25 @@ class TestReportAdjust(TransactionCase):
             "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance - TAX.balance",
         )
         self.assertFalse(report_adjust.fix_standard_pl_net_profit_tax(self.env), "재실행 멱등")
+
+    def test_standard_pl_custom_net_profit_is_preserved(self):
+        report = self.env.ref("account_reports.profit_and_loss", raise_if_not_found=False)
+        if not report:
+            self.skipTest("account_reports 미설치")
+        tax_line = report.line_ids.filtered(lambda l: l.code == "TAX")[:1]
+        if not tax_line:
+            tax_line = self.env["account.report.line"].create({
+                "report_id": report.id, "name": "법인세등", "code": "TAX", "sequence": 95,
+                "expression_ids": [Command.create({
+                    "label": "balance", "engine": "domain",
+                    "formula": "[('account_id.code', '=', '670001')]", "subformula": "sum",
+                })],
+            })
+        net_line = report.line_ids.filtered(lambda l: l.code == "NEP")[:1]
+        if not tax_line or not net_line:
+            self.skipTest("기본 손익계산서 TAX 또는 NEP 라인 없음")
+        net_expression = net_line.expression_ids.filtered(lambda e: e.label == "balance")
+        custom = "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance - CUSTOM.balance"
+        net_expression.formula = custom
+        self.assertFalse(report_adjust.fix_standard_pl_net_profit_tax(self.env))
+        self.assertEqual(net_expression.formula, custom)

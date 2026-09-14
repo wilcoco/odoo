@@ -308,4 +308,3 @@ class TestMoldCheckIntegrity(TransactionCase):
         chk.write({"notes": "정정: 재측정"})
         chk.action_done()
         self.assertEqual(chk.state, "done")
-

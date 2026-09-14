@@ -135,7 +135,46 @@ def fix_sga_depreciation_types(env):
 # ---------------------------------------------------------------------------
 # 기본 손익계산서 — account_reports.profit_and_loss
 # ---------------------------------------------------------------------------
+STANDARD_PL_OPERATING_INCOME_XMLID = (
+    "account_reports.account_financial_report_operating_income0"
+)
+STANDARD_PL_OPERATING_INCOME_RIGHT = "REV.balance - COS.balance - EXP.balance"
+STANDARD_PL_OPERATING_INCOME_WRONG = {
+    "GRP.balance + EXP.balance",
+    "REV.balance - COS.balance + EXP.balance",
+}
 STANDARD_PL_TAX_LINE_CODE = "TAX"
+STANDARD_PL_NET_PROFIT_WITHOUT_TAX = (
+    "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance"
+)
+
+
+def fix_standard_pl_operating_income(env):
+    """기본 손익계산서 영업이익에서 판관비가 더해진 결함 수식만 바로잡는다.
+
+    Odoo 18 원본 수식은 ``REV - COS - EXP``다. DB에서 매출총이익에 판관비를
+    더하는 알려진 두 변형일 때만 원본 수식으로 복원하고, 그 밖의 사용자 정의
+    수식은 보존한다. 고쳤으면 True.
+    """
+    expression = _balance_expression(env, STANDARD_PL_OPERATING_INCOME_XMLID)
+    if not expression or expression.engine != "aggregation":
+        return False
+    current = _norm(expression.formula)
+    if current == _norm(STANDARD_PL_OPERATING_INCOME_RIGHT):
+        return False
+    if current not in {_norm(formula) for formula in STANDARD_PL_OPERATING_INCOME_WRONG}:
+        _logger.warning(
+            "기본 손익계산서 영업이익 수식이 예상과 달라 보정하지 않음: %r",
+            expression.formula,
+        )
+        return False
+    expression.sudo().write({"formula": STANDARD_PL_OPERATING_INCOME_RIGHT})
+    _logger.info(
+        "기본 손익계산서 영업이익 수식 보정: %r → %r",
+        current,
+        STANDARD_PL_OPERATING_INCOME_RIGHT,
+    )
+    return True
 
 
 def fix_standard_pl_net_profit_tax(env):
@@ -158,6 +197,12 @@ def fix_standard_pl_net_profit_tax(env):
     if not tax_expression or not net_expression or net_expression.engine != "aggregation":
         return False
     if re.search(r"\bTAX\.balance\b", net_expression.formula or ""):
+        return False
+    if _norm(net_expression.formula) != _norm(STANDARD_PL_NET_PROFIT_WITHOUT_TAX):
+        _logger.warning(
+            "기본 손익계산서 당기순이익 수식이 예상과 달라 보정하지 않음: %r",
+            net_expression.formula,
+        )
         return False
     # 법인세 라인이 비용을 양수로 집계(sum / 부호 없는 계정코드)하면 차감, 음수 집계면 가산
     if tax_expression.engine == "domain":

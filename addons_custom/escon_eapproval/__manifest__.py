@@ -1,6 +1,6 @@
 {
     "name": "에스콘 전자결재",
-    "version": "18.0.6.0.0",
+    "version": "18.0.6.0.1",
     "summary": "통합 전자결재 앱 — 결재 대시보드(OWL)·부서/직급 기반 결재선·품의서/휴가 연동 뼈대",
     "description": """
 에스콘 전자결재
@@ -14,7 +14,7 @@
     "category": "Human Resources/Approvals",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "web", "hr", "hr_holidays", "iatf_approval",
+    "depends": ["base", "mail", "web", "hr", "hr_contract", "hr_holidays", "iatf_approval",
                 "approvals", "approvals_purchase"],
     "data": [
         "security/security.xml",

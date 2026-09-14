@@ -47,4 +47,3 @@ class TestUomDigits(TransactionCase):
             self.assertEqual(prec.digits, 3, "사용자가 올린 3자리를 끌어내리면 안 된다")
         finally:
             prec.write({"digits": original})
-

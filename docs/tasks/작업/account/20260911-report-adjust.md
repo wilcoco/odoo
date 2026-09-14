@@ -5,7 +5,7 @@
 - 기준 브랜치/커밋: `18.0 / 17e9fac0eeeb`
 - 요청: 사용자 직접 요청 및 `handoff/docs/tasks/README.md`
 - 담당: `서버`
-- 상태: `검토 요청`
+- 상태: `PR 준비`
 
 ## 목적과 범위
 
@@ -13,6 +13,8 @@
   확인된 수식 및 계정 유형 결함을 멱등하게 보정한다.
 - 같은 브랜치에서 에이전트 공통 작업 규칙, 코드, 마이그레이션, 테스트, 검증 결과를 하나의 머지
   요청 단위로 관리한다.
+- 공통 작업 규칙은 사장님이 정한 작업 브랜치 → PR → 배포 저장소 → 운영 반영 흐름을 실행 가능하게
+  확장한 부분만 유지하고, 저장소 소유자의 최신 결정을 최종 기준으로 명시한다.
 - 운영 DB 직접 수정, 운영 배포, `odoo_gh` 미러 반영은 이 브랜치의 자동 실행 범위가 아니다.
 
 확인한 결함과 보정은 다음과 같다.
@@ -21,6 +23,7 @@
 |---|---|---|
 | 손익계산서(KR) 영업이익 | `KR_GRP.balance + KR_EXP.balance` | `KR_GRP.balance - KR_EXP.balance` |
 | 손익계산서(KR) 법인세비용 | 계정 `63`만 집계 | `63 + 67` |
+| 기본 손익계산서 영업이익 | 매출총이익에 판관비를 더하는 결함 수식 | Odoo 18 원본 `REV - COS - EXP`로 복원 |
 | 기본 손익계산서 영업외수익 | `42xxxx`가 `income` | `income_other`로 1회 백필 |
 | 기본 손익계산서 판관비 | `61xxxx` 감가상각비가 `expense_depreciation` | `expense`로 1회 백필 |
 | 기본 손익계산서 당기순이익 | 사용자 추가 `TAX` 라인을 NEP가 반영하지 않음 | 부호에 맞춰 `TAX.balance` 차감/가산 |
@@ -37,15 +40,17 @@
 
 ## 변경 내용
 
-- 코드 커밋 `601a6f5b3a92`: 손익계산서(KR) 영업이익·법인세 수식 및 선택 모듈 부재 안전 처리
-- 코드 커밋 `7490505beba9`: `42xxxx` 영업외수익 유형 백필
-- 코드 커밋 `38d425150413`: 판관비 감가상각 유형과 기본 손익계산서 NEP/TAX 보정
-- `tools/report_adjust.py`: 보정 로직을 한곳에 모으고 예상 결함 일치·멱등·사용자 정의 보존 적용
+- 손익계산서(KR) 영업이익·법인세 수식 및 선택 모듈 부재 안전 처리
+- `42xxxx` 영업외수익 유형과 `61xxxx` 판관비 감가상각 유형 백필
+- 기본 손익계산서 영업이익 및 NEP/TAX 보정
+- `tools/report_adjust.py`: KR·기본 손익계산서 영업이익을 포함한 보정 로직을 한곳에 모으고
+  예상 결함 일치·멱등·사용자 정의 보존 적용
 - `data/report_adjust_data.xml`: 설치·업그레이드마다 공유 보고서 수식 재확인
 - `migrations/18.0.1.6.0/post-*.py`: 기존 설치 DB에서 세 보정 단계를 순서대로 1회 실행
 - `tests/test_report_adjust.py`: 수식, 멱등성, 사용자 정의 보존, 계정 유형, 선택 의존성 부재 검증
 - `AGENTS.md`, `CLAUDE.md`, `docs/tasks/AGENT_MERGE_WORKFLOW.md`, PR 템플릿: 이후 에이전트가
-  동일한 브랜치·워크트리·작업 문서 규칙을 발견하도록 연결
+  동일한 브랜치·워크트리·작업 문서 규칙을 발견하도록 연결. 사장님의 4단계 흐름을 구체화한
+  호환 확장이므로 유지하되, 충돌 시 저장소 소유자의 최신 명시적 결정을 우선하도록 명시
 
 ## 정본·미러 대응
 
@@ -58,16 +63,25 @@
 ## 검증 증거
 
 - 런타임: WSL `/opt/odoo`, Odoo `18.0+e-20251117`, PostgreSQL 임시 DB(각 실행 후 삭제)
-- 정적 검사: 변경 Python 구문 컴파일과 XML 파싱 통과, `git diff --check` 통과
+- 정적 검사: Python AST 30개, XML 13개 파싱 및 `git diff --check` 통과
 - Enterprise 구성:
   `-i l10n_kr_reports,account_kr_reports --test-enable --test-tags=/account_kr_reports:TestReportAdjust`
-  실행 결과 최종 HEAD의 8개 테스트 `0 failed, 0 error(s)`
+  기존 `a8e26e93` 후보의 8개 테스트는 `0 failed, 0 error(s)`였으나, 이번 추가 수정 후 새 임시 DB
+  실행은 126개 기반 의존성 설치 중 장시간 대기하여 대상 모듈이 `to install`인 상태에서 중단했다.
+  따라서 이번 HEAD의 전체 Odoo 테스트는 미실행으로 판정한다. 임시 DB는 삭제했다.
+- 새 기본 영업이익 보정 함수 직접 검증: `GRP + EXP`, `REV - COS + EXP` 두 결함 수식을
+  `REV - COS - EXP`로 복원하고, 재실행 멱등성과 사용자 정의 수식 보존을 확인했다.
 - 선택 모듈 미설치 구성:
   `-i account_kr_reports --test-enable --test-tags=/account_kr_reports:TestReportAdjust` 실행 결과
   `l10n_kr_reports` 미로드 상태에서 `0 failed, 0 error(s)`; 없는 보고서를 요구하는 테스트는 skip
 - 실제 업그레이드 경로: 임시 DB의 설치 버전을 `18.0.1.5.1`로 설정한 뒤
   `-u account_kr_reports` 실행. `post-10`, `post-20`, `post-30` 세 마이그레이션 호출 확인
-- 원본 대조: Odoo Enterprise `l10n_kr_reports/data/profit_loss.xml`에서 결함 수식과 계정 범위를 확인
+- 원본 대조: 설치된 Odoo 18 Enterprise의 `l10n_kr_reports/data/profit_loss.xml`에서 KR 결함 수식을,
+  `account_reports/data/profit_and_loss.xml`에서 기본 영업이익 정식 수식
+  `REV.balance - COS.balance - EXP.balance`을 확인
+- 운영 DB 읽기 전용 대조: 현재 KR 영업이익은 `KR_GRP - KR_EXP`, 기본 영업이익은
+  `REV - COS - EXP`로 이미 올바르게 저장되어 있었다. 이번 추가 코드는 향후 업그레이드나 DB별
+  결함 수식 재발을 안전하게 복원하는 가드다.
 - 미실행: 운영/복제 DB의 실제 결산 금액 대조는 하지 않았다. 운영 배포 승인 전 회계 담당자가 같은
   기간의 손익계산서(KR), 재무상태표(KR), 분개장·시산표를 대조해야 한다.
 
