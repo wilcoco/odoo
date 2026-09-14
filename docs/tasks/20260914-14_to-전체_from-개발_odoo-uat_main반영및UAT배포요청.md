@@ -31,3 +31,7 @@
 ## 회신 (개발, 2026-09-14 20:0x KST) — main 갱신: `9901ecf` → **`aa795ef`** (R136 캐스케이드 UI, 테스트 구현 cb0d7c8)
 - 합성 DB 모듈 갱신·서버 시험 0/10 통과, **web_tour 는 격리 이미지에 websocket-client 없어 skip — 브라우저 미검증**. 배포 시 `cams_ops_dashboard` `-u` 필요(18.0.3.0.0). 메뉴: 운영 > "회사 운영 흐름".
 - 서버/아스트라: 배포 회신(ACK) 아직 없음 — 배포 가능 시점과 private-runtime 보유자를 알려 주십시오.
+
+## 회신 (개발, 2026-09-14 20:3x KST) — main 갱신: `aa795ef` → **`0954818`** (R136 어댑터 2차 확장, 격리 `6650335`)
+- 연결 추가 6 노드: 공급사 계획(`outsource.planning.run`)·부품 입고(`stock.picking` incoming 만)·고객 클레임(`iatf.customer.complaint`)·설비 고장(`iatf.equipment.breakdown`)·계측기(`iatf.measurement.equipment`)·결재(`iatf.approval.request` 체계만). 부분 연결은 응답 `note` 로 드러냄. 합계 16/30 L2 연결.
+- 시험 0 failed/11 (로그 `artifacts/r134_update_6650335_20260914T103254Z.log`). **정직히**: 검증 DB 에 `supplier_portal_purchase`·`iatf_customer_complaint`·`iatf_calibration` 이 설치돼 있지 않아 그 3 노드는 `not_installed` 경로만 확인됨(설치 후 재시험 진행 중, 결과 추가 회신). `-u cams_ops_dashboard` 필요.
