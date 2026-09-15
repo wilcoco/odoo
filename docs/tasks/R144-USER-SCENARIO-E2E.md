@@ -116,3 +116,8 @@
 - 전체 스위트(escon_br_intake·mrp_bom_scan_guard·gh_vendor_settlement) 합산 재실행 진행 중 — 건수 추가 예정.
 - (추가 04:5x) 세 스위트 합산 재실행(`af7430d`, 로그 `artifacts/r134_update_af7430d_20260915T111206Z.log`): **0 failed, 0 error / 174** — escon_br_intake 78(R144 시험 포함)·gh_vendor_settlement 100·mrp_bom_scan_guard 18. 로그의 `duplicate key … br_intake_br_no_revision_uniq` 는 중복 BR 거부 시험이 의도적으로 내는 오류.
 - **R144 종합**: S1~S11 UAT 브라우저 통과, S12~S15 코드 시험 통과. 결함 5(#1 get_action views·#3 교체 라인 MO·#4 scan guard 예약 오인·#5 escon_br_intake↔scan guard 구판 → 정정·UAT 배포 완료; #2 생산 수요 전체 로드 정지 → 테스트 배정). 관찰 #4~#16 은 정책·기준정보·표기 항목으로 사용자 판단 대기.
+
+### 2026-09-15 05:0x KST — 관찰 #5·#6·#10·#11 코드 정정 (개발, 사용자 "진행해")
+- 격리 `dev/r135-injection-sequence-20260914` @ `5a23cb3`: (#5) `_evaluate_plan` 계산 안내 문구가 `sequencing_mode_snapshot` 을 표시(재검증 시 현재 설정과 어긋나지 않음), (#6) `injection.generate.mo.wizard._compute_summary` 에 `planning_run_id`·라인 상태 의존성 추가, (#11) `injection.material.requirement` 부족 수량 `max(…,0)`·충족률 100% 상한(`is_short` 는 그대로), (#10) `iatf_approval` 결재 상태 선택 라벨 한글화(결재 초안/결재 진행/승인/반려).
+- 시험: 새 시험 2건(부족/충족률·위자드 요약) + 기존 injection_planning 349·iatf_approval 24 → **0 failed**(로그 `artifacts/r134_update_77bec2d_20260915T120209Z.log`, `…5a23cb3_20260915T120441Z.log`). 참고: 이번 실행에선 앞서 DB 의존으로 실패하던 `TestStockScopeNormalisesContext` 도 통과(injection_worksite 설치 후) → 그 실패는 **injection_worksite 미설치 조합**에서만 나는 것으로 좁혀짐(테스트 배정 01 추가 정보).
+- odoo-uat main 이식·`-u injection_planning,iatf_approval` 재배포 진행 중.
