@@ -137,3 +137,8 @@
 - **복구**: main 에 revert 커밋, `UAT_UPDATE_MODULES` 를 직전 값으로 되돌려 재배포 진행 중. DB 는 `-u` 실패 시 롤백되므로 데이터 영향 없음(확인 예정).
 - **재시도 계획**: `iatf_document_control` 을 포함한 4 모듈 세트(import 닫힘 확인: document_control 은 코어만 의존)로 이식·`-u`.
 - (추가 06:0x) 롤백 배포 `837fc1a3` SUCCESS(health 200, 13:47) → 재이식(import 닫힘 4모듈, main `6d26701`) + `-u iatf_document_control,…` 재배포 **`6be9d55f` SUCCESS**(health 200, 13:51). 정책 #9/#12·#14 코드가 UAT 에 반영됨. 다음: 사용자 로그인 후 SIM26 합성 기준정보(검사 기준·관리계획서) 투입·확인.
+
+### 2026-09-16 00:5x KST — 기준정보 자동 상속 **흐름 시험** 통과 (개발, 사용자 "그것도 코드로 테스트해라")
+- `iatf_incoming_inspection/tests/test_r144_criteria_flow.py`: 검사 기준 마스터(수분 함량·외관 이물, AQL 합성, 샘플 5/Ac0/Re1) → **입고 전표 확정으로 자동 생성된 수입검사**가 항목·샘플링·샘플 수량·Ac/Re 를 물려받음 → 실측·판정만 채워 판정 완료 → 결재 상신·승인(approved). 
+- `iatf_process_inspection/tests/test_r144_control_plan_flow.py`: 승인 관리계획서 → **MO 검사 준비(정상 경로)로 생긴 공정검사**가 관리계획서 항목을 물려받음.
+- 실행: 격리 `dev/r135-injection-sequence-20260914` @ `0761196`, **0 failed / 2**(로그 `artifacts/r134_update_0761196_20260915T155704Z.log`). 앞선 직접 생성 단위 시험 2건과 합쳐 정책 #9/#12 는 코드로 입증. UAT 합성 기준정보 투입은 데이터 작업이라 사용자 로그인 시점에 선택 사항.
