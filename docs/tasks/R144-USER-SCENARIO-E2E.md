@@ -122,3 +122,10 @@
 - 시험: 새 시험 2건(부족/충족률·위자드 요약) + 기존 injection_planning 349·iatf_approval 24 → **0 failed**(로그 `artifacts/r134_update_77bec2d_20260915T120209Z.log`, `…5a23cb3_20260915T120441Z.log`). 참고: 이번 실행에선 앞서 DB 의존으로 실패하던 `TestStockScopeNormalisesContext` 도 통과(injection_worksite 설치 후) → 그 실패는 **injection_worksite 미설치 조합**에서만 나는 것으로 좁혀짐(테스트 배정 01 추가 정보).
 - odoo-uat main 이식·`-u injection_planning,iatf_approval` 재배포 진행 중.
 - (추가 05:1x) 관찰 #5·#6·#10·#11 정정 배포: odoo-uat main ← `5a23cb3` 이식(injection_planning·iatf_approval), `-u` 포함 재배포 **`5fd6c068` SUCCESS**(health 200). UAT 화면 재확인은 사용자/테스트 몫(재로그인 필요).
+
+### 2026-09-15 05:3x KST — 사용자 정책 답변 반영 (개발)
+사용자(05:2x): "8은 바코드 찍게 되어있지 않나? 9/12 기준정보를 한번 넣으면 되는거 아닌가? 13 승인 자기승인 허용 14 네"
+- **#8 확인**: 맞음. 사출 실적은 **작업자 앱(태블릿)·PLC 가 bearer 토큰 API**(`/api/injection/mo/start|progress|end`, `temp-barcode/issue` 등, `injection_worksite/controllers/main.py`)로 임시 바코드 기준으로 넣는 구조이고, 웹의 수동 위자드는 디버그용이 맞음. UAT 에는 앱/PLC 가 없어 브라우저 E2E 에선 표준 MO Produce 로 대체했음. 코드 시험은 injection_worksite 스위트가 API 경로를 다룸. **추가 조치 없음**(정책 확정: 실적 = 앱/바코드 API).
+- **#9/#12 구현**(격리 dev/r135): 기준정보를 한 번 넣으면 물려받도록 — `iatf.inspection.criteria`(제품·협력업체별 검사 기준)에 샘플 크기·Ac·Re 추가, **수입검사 생성 시 항목·샘플링 기준·샘플 수량·Ac/Re 자동 적재**(협력업체 전용 기준 우선, 없으면 공통), **공정검사 생성 시 승인된 관리계획서 항목 자동 적재**. 시험 2건. UAT 에는 SIM26 제품 기준정보(합성)를 넣어 실제 값은 회사 관리계획서로 교체해야 함(회사 점검표 원본 참조).
+- **#13 확정**: 검사원=승인자 자기 승인 **허용**(현 동작 유지, 코드 변경 없음). IATF 감사 관점 근거는 결재선 로그로 남음.
+- **#14 구현**: 수입검사 합격 해제 → 사일로 자동 반입은 이미 **발주에 대상 SILO 가 지정된 경우** 동작(`_silo_for_move_line`: IQC 해제 이동 → 입고 라인 → 발주 → SILO). E2E 의 P00008 은 SILO 미지정이라 WH/Stock 으로 갔음. 정정: **사일로 미지정 수지 발주 확정 시 그 원재료를 담은 사일로가 하나뿐이면 자동 지정**(둘 이상이면 사람이 선택). 시험 2건.
