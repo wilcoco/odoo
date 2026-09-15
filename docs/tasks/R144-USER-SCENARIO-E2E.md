@@ -108,3 +108,9 @@
 ### 2026-09-15 04:3x KST — 사용자 지시 "그냥 코드상으로 테스트해라" → S12~S15 코드 시험으로 전환 (개발)
 - 새 시험 `escon_br_intake/tests/test_r144_two_step_assembly.py`(격리 `dev/r136-factory-flow-20260914`): BR 수신 → 조립 지시 **2공정** → 예약 상태에서 정상 스캔 = `ok`(결함 #4 회귀) → 이종 스캔 차단 로그(`blocking`)·해소 → 완료(`button_mark_done`, 결함 #5 회귀) → 출하·납품 연결·도착(2h 이내 `pass`) → 확정 양품 → 월말 정산 마법사 → 정산행 `billed`.
 - 1차 실행(`fb57e7f`, DB `cams_night_r134_r136_20260914`, escon_br_intake 신규 설치): **2 failed/2 error/74** — 기존 3건은 `mrp.production.inj_bodyfull` 부재(=`injection_worksite` 미설치 환경) 때문, 내 시험 1건은 확정 양품 기록을 기존 신뢰 API(`_confirm_good_output`)로 하지 않은 시험 쪽 누락. 정정 후 `injection_worksite` 설치해 재실행 중.
+
+### 2026-09-15 04:4x KST — S12~S15 코드 시험 **통과** (개발, 격리 VM)
+- 실행 조합: `dev/r135-injection-sequence-20260914` @ **`af7430d`**(R135 injection_planning + injection_worksite 신판 + escon_br_intake + mrp_bom_scan_guard 신판 + gh_vendor_settlement — odoo-uat main 과 같은 계열), DB `cams_night_r134_r136_20260914`(injection_worksite·escon_br_intake 추가 설치).
+- `TestR144TwoStepAssembly.test_two_step_assembly_scans_completes_delivers_and_settles`: **0 failed / 1** (로그 `artifacts/r134_update_af7430d_20260915T111132Z.log`). 검증 내용: BR 수신 → 조립 지시 **2공정** → 부품 예약 상태 정상 스캔 `ok`(결함 #4 회귀) → 이종 스캔 `blocking` 로그·해소 → 2공정 스캔 → `button_mark_done` 완료(결함 #5 회귀) → 출하 → 납품 연결 → 도착 기록 → 납기 판정 `pass`(2h 이내) → 확정 양품 → **R134 가드**("공급사 주장 수량 대사·내부승인·공급사 확인 완료 전 청구 불가") 확인 → 대사 작성·승인·공급사 확인 → 월말 정산 마법사 → 정산행 `billed`.
+- 경로에서 발견한 것: 결함 없음(신규). 정산 가드가 정상 동작해 시험을 정상 절차로 맞춤. 앞선 실행의 3건 오류는 `injection_worksite` 미설치 환경 때문(설치 후 escon_br_intake 74건 중 0 failed).
+- 전체 스위트(escon_br_intake·mrp_bom_scan_guard·gh_vendor_settlement) 합산 재실행 진행 중 — 건수 추가 예정.
