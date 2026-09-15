@@ -93,3 +93,8 @@
 - **S12 통과**: BR 수신 원장 New → `BR-20260915-0001`(합성 출처, 수신 15:50·납기 18:00, FG_A 2개, BODYFULL SIM26-BODY-0001) 저장 → **조립 제조오더 생성** → 상태 **생산 반영**, MO **WH/MO/00106**(2개, draft) 에 작업지시 2개(조립1라인 120분·조립2라인 60분, waiting) 생성. 처분 필요 없음(이전 개정 없음).
 - **관찰 #15**: `회사 운영 흐름` 액션을 **전체 페이지 로드**로 열면 첫 화면이 빈 채로 남고(웹클라이언트는 ready), 웹클라이언트 안에서 다시 열면 정상 — 관찰 #2(생산 수요 정지)와 같은 "전체 로드 경로" 계열. 테스트 배정 01 에 함께 볼 것.
 - 입력 UX 메모: 폼에서 좌표 클릭·입력이 어긋나 품목 필드에 수량이 들어간 경우가 있었음(자동화 오조작, 제품 결함 아님) → ORM write 로 정정 후 진행.
+
+### 2026-09-15 04:0x KST — S13 조립 공정 이종검사(BOM Scan Guard) (개발, UAT 브라우저)
+- MO WH/MO/00106 Confirm → 작업지시 1(조립1라인) 폼 → **Scan Component** 위자드: 예상 부품 4종(INJ_A·clip·bracket·label) 표시.
+- **이종 스캔 `SIM26-INJ_B` → "Not in BOM: 이 MO 에 예상되지 않음"** + 알림·로그(Scan Guard Logs) — **S13 이종검사 통과**.
+- **결함 #4(중)**: 정상 부품 `SIM26-INJ_A` 첫 스캔이 **"Component already fully consumed — Over-consumed 2.00/2.00"** 로 표시. 원인: UAT 의 `mrp_bom_scan_guard` 가 구판(`move.quantity`=예약분을 소비로 읽음, Odoo 18 의미 변경). 격리 branch 엔 아스트라 20260912 지적 반영판(`_qty_done_of_move` 가 done/picked 만 계산 + 회사 범위 검색, 시험 `test_scan_gate.py` 403줄)이 있으나 **odoo-uat main 에 이식되지 않음**(모듈 drift). 조치: 격리 VM 에서 모듈 시험 실행 후 main 이식·재배포(다음 체크포인트).
