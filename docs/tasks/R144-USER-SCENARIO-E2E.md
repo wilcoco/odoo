@@ -142,3 +142,7 @@
 - `iatf_incoming_inspection/tests/test_r144_criteria_flow.py`: 검사 기준 마스터(수분 함량·외관 이물, AQL 합성, 샘플 5/Ac0/Re1) → **입고 전표 확정으로 자동 생성된 수입검사**가 항목·샘플링·샘플 수량·Ac/Re 를 물려받음 → 실측·판정만 채워 판정 완료 → 결재 상신·승인(approved). 
 - `iatf_process_inspection/tests/test_r144_control_plan_flow.py`: 승인 관리계획서 → **MO 검사 준비(정상 경로)로 생긴 공정검사**가 관리계획서 항목을 물려받음.
 - 실행: 격리 `dev/r135-injection-sequence-20260914` @ `0761196`, **0 failed / 2**(로그 `artifacts/r134_update_0761196_20260915T155704Z.log`). 앞선 직접 생성 단위 시험 2건과 합쳐 정책 #9/#12 는 코드로 입증. UAT 합성 기준정보 투입은 데이터 작업이라 사용자 로그인 시점에 선택 사항.
+
+### 2026-09-16 01:1x KST — 관찰 #16·#7 (개발)
+- **#16 도구**: `tools/uat_transplant_check.py --base uat/main --src HEAD <모듈…>` — 이식 세트의 `odoo.addons.X` 참조 중 base(UAT)와 drift 가 있거나 없는 X, 매니페스트 depends 중 UAT 에 없는 모듈을 잡아 종료코드 1. 자가검증: 사고 2 세트(3모듈) → 위반(`iatf_document_control` drift), 재이식 세트(4모듈) → OK. 이식 절차에 필수 단계로 편입(메모리 `uat-partial-transplant-import-closure`).
+- **#7**: MO 의 `금형`(actual_mold_id)은 현장 장착 시 채워지는 실제값이라 계획 단계엔 비어 있는 것이 설계 — 대신 `계획 금형`·`계획 사출기`(planning_line 의 related)를 MO 폼에 표시. 시험 1건.
