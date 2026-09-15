@@ -121,3 +121,4 @@
 - 격리 `dev/r135-injection-sequence-20260914` @ `5a23cb3`: (#5) `_evaluate_plan` 계산 안내 문구가 `sequencing_mode_snapshot` 을 표시(재검증 시 현재 설정과 어긋나지 않음), (#6) `injection.generate.mo.wizard._compute_summary` 에 `planning_run_id`·라인 상태 의존성 추가, (#11) `injection.material.requirement` 부족 수량 `max(…,0)`·충족률 100% 상한(`is_short` 는 그대로), (#10) `iatf_approval` 결재 상태 선택 라벨 한글화(결재 초안/결재 진행/승인/반려).
 - 시험: 새 시험 2건(부족/충족률·위자드 요약) + 기존 injection_planning 349·iatf_approval 24 → **0 failed**(로그 `artifacts/r134_update_77bec2d_20260915T120209Z.log`, `…5a23cb3_20260915T120441Z.log`). 참고: 이번 실행에선 앞서 DB 의존으로 실패하던 `TestStockScopeNormalisesContext` 도 통과(injection_worksite 설치 후) → 그 실패는 **injection_worksite 미설치 조합**에서만 나는 것으로 좁혀짐(테스트 배정 01 추가 정보).
 - odoo-uat main 이식·`-u injection_planning,iatf_approval` 재배포 진행 중.
+- (추가 05:1x) 관찰 #5·#6·#10·#11 정정 배포: odoo-uat main ← `5a23cb3` 이식(injection_planning·iatf_approval), `-u` 포함 재배포 **`5fd6c068` SUCCESS**(health 200). UAT 화면 재확인은 사용자/테스트 몫(재로그인 필요).
