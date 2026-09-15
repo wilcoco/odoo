@@ -146,3 +146,5 @@
 ### 2026-09-16 01:1x KST — 관찰 #16·#7 (개발)
 - **#16 도구**: `tools/uat_transplant_check.py --base uat/main --src HEAD <모듈…>` — 이식 세트의 `odoo.addons.X` 참조 중 base(UAT)와 drift 가 있거나 없는 X, 매니페스트 depends 중 UAT 에 없는 모듈을 잡아 종료코드 1. 자가검증: 사고 2 세트(3모듈) → 위반(`iatf_document_control` drift), 재이식 세트(4모듈) → OK. 이식 절차에 필수 단계로 편입(메모리 `uat-partial-transplant-import-closure`).
 - **#7**: MO 의 `금형`(actual_mold_id)은 현장 장착 시 채워지는 실제값이라 계획 단계엔 비어 있는 것이 설계 — 대신 `계획 금형`·`계획 사출기`(planning_line 의 related)를 MO 폼에 표시. 시험 1건.
+- (추가 01:5x) #7 시험 통과(`6ab139d`, TestR144Policies 6/6; 첫 실행 오류 1건은 시험이 계획 연결 MO 의 능력 원천 가드를 안 갖춘 것). 이식 닫힘 도구로 검사 후 UAT main 이식·재배포 진행 중.
+- Q3(R114) 배경 확인: R131 문서(`docs/tasks/R131-LOCAL-MATCHING-BACKUP-RESTORE-20260914.md`) 에 "R114 의 원격 백업 회수·복원 승인 대기는 별도 유지" — 즉 **운영 서버의 원격 백업을 우리 쪽으로 가져와(회수) 복원 시험하는 것**에 대한 사용자 승인 대기. 아직 승인 없음.
