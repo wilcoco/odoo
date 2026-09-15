@@ -43,3 +43,9 @@
 - **관찰 #4**: 계획 번호가 `PP-202609-0003`(10월 계획인데 9월 접두) — 시퀀스가 생성일 기준. 정책 확인.
 - **S3 준비**: 최적화 로직(setup_aware 순서·평가)은 설정 `sequencing_mode=legacy` 라 비활성. UAT 검증을 위해 설정을 setup_aware 로 바꿔 재계산 예정(합성 UAT 한정, 운영 기본은 legacy 유지).
 - 배포: `escon_br_intake`·`cams_quality_rework`·`cams_sq_dashboard` 를 main 에 추가하고 `UAT_INSTALL_MODULES` 로 설치 재배포 진행 중(사용자 지시).
+
+### 2026-09-15 02:0x~02:1x KST — 모듈 설치 재배포 사고·복구, 정책 ①② 확정(사용자 위임)
+- **사고**: main `e80c8e2`(escon_br_intake·cams_quality_rework·cams_sq_dashboard 추가) + `UAT_INSTALL_MODULES` 3개 → 배포 `535d4b92` 가 **CRASHED**(01:57~): `cams_quality_rework` 가 `iatf_quality_precedence`(UAT 에 없음) 에 의존해 `-i` 실패 → start.py 예외 → 컨테이너 재시작 루프, health 502/000 약 2분. 원인은 개발이 의존성 확인 없이 설치 목록을 넣은 것.
+- **복구**: `UAT_INSTALL_MODULES=escon_br_intake` 로 축소(재배포 `0811b1dd` SUCCESS 01:58, health 200). `escon_br_intake` 설치 확인(로그 "Module escon_br_intake loaded"). 재로그인 필요.
+- 미설치 잔여: `cams_quality_rework`(deps repair·iatf_quality_precedence·iatf_incoming_inspection·gh_vendor_settlement·iatf_traceability), `cams_sq_dashboard`(deps iatf_dashboard·cams_ops_process), `iatf_quality_precedence`(deps iatf_control_plan·iatf_process_inspection·account_kr_reports·gh_total_mes·injection_worksite). 다음 설치 전 UAT 존재 여부를 모듈 목록으로 확인한 뒤 순서대로.
+- **정책 확정(사용자 "정책 두개 일단 알아서 해")**: ① 수량 0 이하 수요 확정 불가, 확정/완료 수요의 수량·일자·제품 잠금(폼 readonly + write 가드, '초안으로' 되돌린 뒤 수정). ② 계획 번호 연월 = 계획 시작월(`sequence_date=plan_date_from`). 구현 `dev/r135-injection-sequence-20260914` 최신 커밋, 시험 3건 `test_r144_policies.py` — 격리 실행 중, 통과 시 main 이식·재배포.
