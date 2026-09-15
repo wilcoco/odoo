@@ -61,3 +61,11 @@
 - **관찰 #6(경미)**: `MO 생성 확인` 위자드 요약이 계획 라인 수 0·총 수량 0.00·교체 0 으로 표시(실제 6·18·2). `_compute_summary` 가 위자드 기본값 적용 전에 계산되거나 planning_run_id 컨텍스트 미전달.
 - **결함 #3(높음, 기능)**: 확정 → 4 MO(13개) 생성, **교체가 필요한 첫 라인 2건(10/01 A 3·B 2)은 MO 생성 실패**로 초안 잔류(계획은 확정 상태로 이동, 채터에 "생성 실패 2건(재시도 가능)"). 서버 로그 전문: "제조오더의 소요시간이 계획보다 짧습니다… 계획 종료 08:33 / 제조오더 종료 08:03" — 라인은 `changeover_in_span_hours=0.5`, 시작 08:00(교체 포함)·종료 08:33 인데 MO 종료가 생산 3분만 반영(교체 0.5h 누락). `_get_mo_vals` 는 `planning_changeover_hours=line.changeover_in_span_hours` 를 얼리고 worksite 작업지시 소요도 그 값을 더하므로, 누락 경로는 (a) MO 에 라우팅(수동 공정) 이 있어 core 소요(교체 없음)가 쓰였거나 (b) 얼린 값이 0 인 경우. 성공 MO 4건의 `planning_changeover_hours/hourly_capacity`·작업지시·BOM 공정 플래그 대조로 확정 예정(세션 만료로 대기). 확정 뒤 재시도 경로는 있으나 사용자 관점에선 "확정했는데 일부 작업지시가 없음" — 우선 결함.
 - 02:15:43 `/web/session/logout` 기록 → 세션 종료(재로그인 필요). 재배포 아님.
+
+### 2026-09-15 02:2x~02:3x KST — 결함 #3 원인 확정·정정, S5 실적 · S7 수지 차감 (개발)
+- **결함 #3 원인(UAT 실측)**: BOM 에 수동 공정 "사출성형"(사이클 1분) → 계획 연결 MO 의 종료가 작업지시 소요(생산분만)로 계산되어 첫 구간의 금형 교체(0.5h)가 빠짐. UAT 의 `injection_worksite` 18.0.7.35 에는 원가 연계 자동 공정(`injection_cost_generated`) 자체가 없음(격리 branch 보다 오래된 판). 성공 MO 4건은 교체 0 이라 우연히 일치. seed 의 legacy 계획(PP-0001) 교체 라인은 `changeover_in_span_hours=0` 으로 구식 코드가 만든 것.
+- **정정**(격리 `dev/r135-injection-sequence-20260914` @ `eb852ad`): `injection_planning/models/mrp_production.py` 에 `mrp.workorder._get_duration_expected` 확장 — 계획 연결 MO·작업지시 1개·사출기 일치 시 라우팅 소요에 확정 교체시간(`planning_changeover_hours`)을 더함. 시험 `TestR144ChangeoverManualRouting`(수동 공정 + 교체 2h → MO 생성·종료=계획 종료). **반증**: 정정만 되돌린 임시 커밋 `cf4591f` 에서 같은 시험 1 error(재현됨). 회귀 `/injection_planning,/production_planning` 1 failed/241 = 기존 DB 의존 1건뿐(변화 없음). → UAT 이식·재배포는 다음 체크포인트(재로그인 최소화)에서.
+- **S5(표준 MO 경로) 통과**: MO WH/MO/00100(3개) Start → Produce All(시리얼 3개 생성 17260924000055~57) → 00100-001/002/003 **Done**, 양품 3.
+- **S7 통과**: 수지 재고 28,854.1 → **28,844.5 kg(−9.6 = 3×3.2)** 사일로 위치 `WH/Stock/SIM26 S1 30t` 에서 차감, 사출품 INJ_A 재고 1 → 4.
+- **관찰 #7**: MO 폼 `금형`·`차종` 이 비어 있음(계획 라인엔 금형 있음) — 계획→MO 금형 전달 필드 미연결(worksite 버전 차이 가능).
+- **관찰 #8(정책/갭)**: 사출 실적(양품·불량·shot) 수동 입력 위자드가 **디버그 관리자 그룹 전용**(uat 사용자 접근 불가). PLC/MQTT 가 차단된 UAT 에서 현장 담당이 실적을 넣는 정규 경로가 없음 → 표준 MO Produce 로 대체. 현장 실적 입력 UI 필요 여부는 사용자 결정.
