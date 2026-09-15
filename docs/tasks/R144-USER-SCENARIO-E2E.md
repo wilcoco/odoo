@@ -136,3 +136,4 @@
 - **원인**: 격리판 `iatf_incoming_inspection/models/iqc_evidence.py`(및 process_inspection/outgoing_inspection.py)가 `iatf_document_control.models.inspection_evidence` 를 import 하는데 UAT 의 `iatf_document_control` 은 구판(해당 파일 없음, drift 7 files). 결함 #5 와 같은 계열 — **모듈 세트를 import 닫힘(closure) 없이 부분 이식**한 개발 귀책. 이식 전 `odoo.addons.X` import 를 세트로 검사했어야 함(이번에 검사 절차로 추가).
 - **복구**: main 에 revert 커밋, `UAT_UPDATE_MODULES` 를 직전 값으로 되돌려 재배포 진행 중. DB 는 `-u` 실패 시 롤백되므로 데이터 영향 없음(확인 예정).
 - **재시도 계획**: `iatf_document_control` 을 포함한 4 모듈 세트(import 닫힘 확인: document_control 은 코어만 의존)로 이식·`-u`.
+- (추가 06:0x) 롤백 배포 `837fc1a3` SUCCESS(health 200, 13:47) → 재이식(import 닫힘 4모듈, main `6d26701`) + `-u iatf_document_control,…` 재배포 **`6be9d55f` SUCCESS**(health 200, 13:51). 정책 #9/#12·#14 코드가 UAT 에 반영됨. 다음: 사용자 로그인 후 SIM26 합성 기준정보(검사 기준·관리계획서) 투입·확인.
