@@ -98,3 +98,4 @@
 - MO WH/MO/00106 Confirm → 작업지시 1(조립1라인) 폼 → **Scan Component** 위자드: 예상 부품 4종(INJ_A·clip·bracket·label) 표시.
 - **이종 스캔 `SIM26-INJ_B` → "Not in BOM: 이 MO 에 예상되지 않음"** + 알림·로그(Scan Guard Logs) — **S13 이종검사 통과**.
 - **결함 #4(중)**: 정상 부품 `SIM26-INJ_A` 첫 스캔이 **"Component already fully consumed — Over-consumed 2.00/2.00"** 로 표시. 원인: UAT 의 `mrp_bom_scan_guard` 가 구판(`move.quantity`=예약분을 소비로 읽음, Odoo 18 의미 변경). 격리 branch 엔 아스트라 20260912 지적 반영판(`_qty_done_of_move` 가 done/picked 만 계산 + 회사 범위 검색, 시험 `test_scan_gate.py` 403줄)이 있으나 **odoo-uat main 에 이식되지 않음**(모듈 drift). 조치: 격리 VM 에서 모듈 시험 실행 후 main 이식·재배포(다음 체크포인트).
+- (추가 04:0x) 결함 #4 정정판(격리 `21337bf` 의 `mrp_bom_scan_guard`) 격리 VM 설치·시험: **0 failed / 16**(로그 `artifacts/r134_install_21337bf_20260915T065630Z.log`). S14 완료 후 odoo-uat main 이식·`-u` 재배포 예정.
