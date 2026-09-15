@@ -130,3 +130,9 @@
 - **#13 확정**: 검사원=승인자 자기 승인 **허용**(현 동작 유지, 코드 변경 없음). IATF 감사 관점 근거는 결재선 로그로 남음.
 - **#14 구현**: 수입검사 합격 해제 → 사일로 자동 반입은 이미 **발주에 대상 SILO 가 지정된 경우** 동작(`_silo_for_move_line`: IQC 해제 이동 → 입고 라인 → 발주 → SILO). E2E 의 P00008 은 SILO 미지정이라 WH/Stock 으로 갔음. 정정: **사일로 미지정 수지 발주 확정 시 그 원재료를 담은 사일로가 하나뿐이면 자동 지정**(둘 이상이면 사람이 선택). 시험 2건.
 - (추가 05:4x) 정책 #9/#12·#14 구현 시험(격리 `09935f0`): 신규 4건(수입검사 기준 적재 1·공정검사 관리계획서 적재 1·발주 사일로 자동 지정 2) **통과**. iatf_process_inspection 스위트의 오류 11건은 **구현 전 `5a23cb3` 기준선에서도 동일**(4건 `iatf.spc.study` 미설치, 7건 `양의 검사 수량과 실제 검사항목이 필요합니다` — 이 DB 의 모듈 조합에서 기존 시험이 항목 없이 판정하는 경로) → 내 변경과 무관, 테스트 세션에 환경/기존 시험 정비로 넘김. odoo-uat main 이식(iatf_incoming_inspection·iatf_process_inspection·**injection_worksite 최신판**) + `-u` 재배포 진행 중. 롤백 대상 = 직전 main.
+
+### 2026-09-15 05:5x KST — 배포 사고 2 (개발): 정책 #9/#12·#14 배포에서 UAT 다운 → 롤백
+- main `6b9fb60`(iatf_incoming_inspection·iatf_process_inspection·injection_worksite 이식) 배포 `380f5d5b`: `-u` 단계에서 **`Couldn't load module iatf_incoming_inspection`** → 레지스트리 로드 실패 → start.py 예외 → 재시작 루프, health 502(13:43~).
+- **원인**: 격리판 `iatf_incoming_inspection/models/iqc_evidence.py`(및 process_inspection/outgoing_inspection.py)가 `iatf_document_control.models.inspection_evidence` 를 import 하는데 UAT 의 `iatf_document_control` 은 구판(해당 파일 없음, drift 7 files). 결함 #5 와 같은 계열 — **모듈 세트를 import 닫힘(closure) 없이 부분 이식**한 개발 귀책. 이식 전 `odoo.addons.X` import 를 세트로 검사했어야 함(이번에 검사 절차로 추가).
+- **복구**: main 에 revert 커밋, `UAT_UPDATE_MODULES` 를 직전 값으로 되돌려 재배포 진행 중. DB 는 `-u` 실패 시 롤백되므로 데이터 영향 없음(확인 예정).
+- **재시도 계획**: `iatf_document_control` 을 포함한 4 모듈 세트(import 닫힘 확인: document_control 은 코어만 의존)로 이식·`-u`.
