@@ -49,3 +49,7 @@
 - **복구**: `UAT_INSTALL_MODULES=escon_br_intake` 로 축소(재배포 `0811b1dd` SUCCESS 01:58, health 200). `escon_br_intake` 설치 확인(로그 "Module escon_br_intake loaded"). 재로그인 필요.
 - 미설치 잔여: `cams_quality_rework`(deps repair·iatf_quality_precedence·iatf_incoming_inspection·gh_vendor_settlement·iatf_traceability), `cams_sq_dashboard`(deps iatf_dashboard·cams_ops_process), `iatf_quality_precedence`(deps iatf_control_plan·iatf_process_inspection·account_kr_reports·gh_total_mes·injection_worksite). 다음 설치 전 UAT 존재 여부를 모듈 목록으로 확인한 뒤 순서대로.
 - **정책 확정(사용자 "정책 두개 일단 알아서 해")**: ① 수량 0 이하 수요 확정 불가, 확정/완료 수요의 수량·일자·제품 잠금(폼 readonly + write 가드, '초안으로' 되돌린 뒤 수정). ② 계획 번호 연월 = 계획 시작월(`sequence_date=plan_date_from`). 구현 `dev/r135-injection-sequence-20260914` 최신 커밋, 시험 3건 `test_r144_policies.py` — 격리 실행 중, 통과 시 main 이식·재배포.
+
+### 2026-09-15 02:2x KST — 정책 ①② 배포
+- 격리 `dev/r135-injection-sequence-20260914` @ `5697f81`(정책 3커밋: 14b190c·231aa55·5697f81), `test_r144_policies` 3/3. 회귀 `/injection_planning,/production_planning` **1 failed / 240** — `TestStockScopeNormalisesContext.test_a_strict_context_still_counts_stock_child_locations`(재고 범위, 정책 변경과 무관한 영역). 변경 전 `4e88e94` 로 같은 DB(`cams_night_r134_r136_20260914`) 재실행해 환경(모듈 구성) 문제인지 분리 중 — 결과 아래 추가.
+- odoo-uat main → 정책 이식 커밋(production_planning·injection_planning 교체) 후 `UAT_UPDATE_MODULES=production_planning,injection_planning,gh_vendor_settlement,cams_ops_dashboard` 로 재배포 `56317778` SUCCESS(02:04, health 200). 재로그인 필요.
