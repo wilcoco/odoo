@@ -17,8 +17,8 @@ class TestIqcLifecycle(TransactionCase):
         cls.inspector = new_test_user(cls.env, login='phase3_inspector', groups=groups)
         cls.stock = new_test_user(cls.env, login='phase3_stock', groups='stock.group_stock_user')
         cls.reviewer = new_test_user(cls.env, login='phase3_reviewer', groups=groups+',iatf_incoming_inspection.group_quality_release_reviewer')
-        cls.approver = new_test_user(cls.env, login='phase3_approver', groups=groups+',iatf_incoming_inspection.group_quality_release_approver')
-        cls.executor = new_test_user(cls.env, login='phase3_executor', groups=groups+',iatf_incoming_inspection.group_quality_release_executor')
+        cls.approver = new_test_user(cls.env, login='phase3_approver', groups='iatf_incoming_inspection.group_quality_release_approver')
+        cls.executor = new_test_user(cls.env, login='phase3_executor', groups='iatf_incoming_inspection.group_quality_release_executor')
 
     def _receipt(self, quantities=(4, 6), uom=None, demand=None, stock_user=False, route='picking'):
         uom = uom or self.product.uom_id
@@ -87,6 +87,46 @@ class TestIqcLifecycle(TransactionCase):
         pick = self._receipt((1, 2), uom=self.env.ref('uom.product_uom_dozen'), demand=4)
         self.assertEqual(sorted(pick.iqc_inspection_ids.mapped('quantity_received')), [12, 24])
         self.assertEqual(sum(pick.iqc_inspection_ids.mapped('quantity_received')), 36)
+
+    def _supplier_return(self, picking):
+        wizard = self.env['stock.return.picking'].with_context(active_model='stock.picking', active_id=picking.id).create({'picking_id': picking.id})
+        wizard.product_return_moves.quantity = 1
+        action = wizard.action_create_returns()
+        returned = self.env['stock.picking'].browse(action['res_id'])
+        returned.move_ids.move_line_ids.unlink()
+        move = returned.move_ids
+        self.env['stock.move.line'].create({'move_id': move.id, 'product_id': self.product.id,
+            'product_uom_id': self.product.uom_id.id, 'lot_id': self.lots[0].id,
+            'quantity': 1, 'picked': True, 'location_id': move.location_id.id, 'location_dest_id': move.location_dest_id.id})
+        move.picked = True
+        return returned
+
+    def test_standard_supplier_return_keeps_hold_and_needs_no_customer_oqc(self):
+        pick = self._receipt((4,))
+        returned = self._supplier_return(pick)
+        returned.with_context(skip_sms=True).button_validate()
+        self.assertEqual(returned.state, 'done')
+        self.assertFalse(returned.oqc_inspection_ids)
+        self.assertTrue(self.lots[0].quality_hold)
+
+    def test_supplier_return_rejects_wrong_lot_and_excess_cumulative_quantity(self):
+        pick = self._receipt((4,))
+        returned = self._supplier_return(pick)
+        line = returned.move_ids.move_line_ids
+        line.lot_id = self.lots[1]
+        with self.assertRaises(UserError), self.cr.savepoint():
+            returned._action_done()
+        line.write({'lot_id': self.lots[0].id, 'quantity': 5})
+        with self.assertRaises(UserError), self.cr.savepoint():
+            returned._action_done()
+        line.quantity = 3
+        returned.move_ids.product_uom_qty = 3
+        returned.with_context(skip_sms=True).button_validate()
+        self.assertEqual(returned.state, 'done')
+        another = self._supplier_return(pick)
+        another.move_ids.move_line_ids.quantity = 2
+        with self.assertRaises(UserError), self.cr.savepoint():
+            another._action_done()
 
     def test_old_decision_cannot_release_new_hold_or_changed_reason(self):
         iqc = self._pass(self._receipt().iqc_inspection_ids[0])
@@ -173,6 +213,14 @@ class TestIqcLifecycle(TransactionCase):
         iqc.release_approver_id = self.inspector
         with self.assertRaises(UserError), self.cr.savepoint():
             iqc.action_request_release()
+
+    def test_production_approver_role_does_not_edit_inspection(self):
+        iqc = self._exception()
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            iqc.with_user(self.approver).write({'quantity_accepted': 999})
+        self._approve(iqc)
+        iqc.with_user(self.executor).action_release_hold()
+        self.assertFalse(iqc.lot_id.quality_hold)
 
     def test_hold_after_approval_or_role_revocation_blocks_execution(self):
         iqc = self._exception()

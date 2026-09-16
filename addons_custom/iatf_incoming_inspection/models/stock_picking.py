@@ -117,7 +117,7 @@ class StockPicking(models.Model):
             self.env.cr.execute('UPDATE stock_picking SET write_date=write_date WHERE id=%s', [picking.id])
             IQC = self.env['iatf.incoming.inspection'].sudo().with_company(picking.company_id).with_context(_iqc_lifecycle=_LIFECYCLE)
             held_lots = set()
-            for move in picking.move_ids.filtered(lambda m: m.state == 'done' and m.product_id.type != 'service' and not m.origin_returned_move_id):
+            for move in picking.move_ids.filtered(lambda m: m.state == 'done' and m.product_id.type != 'service' and (not m.origin_returned_move_id or m.location_id.usage == 'supplier')):
                 quantities = {}
                 for line in move.move_line_ids.filtered(lambda l: l.quantity > 0):
                     lot = line.lot_id

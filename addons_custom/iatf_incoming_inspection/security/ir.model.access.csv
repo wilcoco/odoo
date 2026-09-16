@@ -6,3 +6,6 @@ access_incoming_inspection_line_manager,iatf.incoming.inspection.line.manager,mo
 access_inspection_criteria_user,iatf.inspection.criteria.user,model_iatf_inspection_criteria,group_incoming_inspection_user,1,1,1,0
 access_inspection_criteria_manager,iatf.inspection.criteria.manager,model_iatf_inspection_criteria,group_incoming_inspection_manager,1,1,1,1
 access_iqc_lot_read,iqc.lot.read,stock.model_stock_lot,group_incoming_inspection_user,1,0,0,0
+access_iqc_production_read,iqc.production.read,model_iatf_incoming_inspection,group_quality_release_approver,1,0,0,0
+access_iqc_line_production_read,iqc.line.production.read,model_iatf_incoming_inspection_line,group_quality_release_approver,1,0,0,0
+access_iqc_lot_production_read,iqc.lot.production.read,stock.model_stock_lot,group_quality_release_approver,1,0,0,0

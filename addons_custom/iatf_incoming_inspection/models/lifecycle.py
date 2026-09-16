@@ -117,7 +117,7 @@ class IncomingInspection(models.Model):
                 'reviewer': self.release_reviewer_id.id, 'approver': self.release_approver_id.id,
                 'executor': self.release_executor_id.id, 'reason': self.release_reason,
                 'disposal_move': self.disposal_move_id.id,
-                'disposal_date': str(self.disposal_move_id.write_date)}
+                'disposal_date': str(self.disposal_move_id.sudo().write_date)}
 
     def _check_scope_quantities(self):
         self.ensure_one()
@@ -190,7 +190,7 @@ class IncomingInspection(models.Model):
     def _quantity_resolved(self):
         self.ensure_one()
         disposed = 0
-        move = self.disposal_move_id
+        move = self.disposal_move_id.sudo()
         if move and move.state == 'done' and move.product_id == self.product_id and move.company_id == self.company_id:
             disposed = sum(l.product_uom_id._compute_quantity(l.quantity, self.product_id.uom_id, round=False)
                            for l in move.move_line_ids if l.lot_id == self.lot_id)

@@ -19,12 +19,12 @@
     <record id="group_quality_release_approver" model="res.groups">
         <field name="name">LOT 예외 해제: 생산 승인</field>
         <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
-        <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user'))]"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
     </record>
     <record id="group_quality_release_executor" model="res.groups">
         <field name="name">LOT 예외 해제: 최종 처리</field>
         <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
-        <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user')), (4, ref('stock.group_stock_user'))]"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('group_incoming_inspection_user')])]"/>
     </record>
     <record id="rule_iqc_company" model="ir.rule">
         <field name="name">IQC: allowed companies</field>
