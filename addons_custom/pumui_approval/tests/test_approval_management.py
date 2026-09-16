@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from odoo.exceptions import AccessError, UserError
 from odoo.tests.common import new_test_user, tagged
 
@@ -69,6 +71,10 @@ class TestApprovalManagement(IntegrityCase):
         self.assertEqual(p.approval_state, 'draft')
         self.assertEqual(old.state, 'approved')
         self.assertEqual(p.approval_request_id.previous_request_id, old)
+        self.assertEqual(p.approval_request_id.requester_id, self.author)
+        self.assertEqual(p.approval_request_id.create_uid, self.manager)
+        p.approval_request_id.with_user(self.author).read(['state'])
+        p.approval_line_ids.with_user(self.author).write({'sequence': 3})
         p.approval_line_ids.unlink()
         p.write({'approval_line_ids': [(0, 0, {'user_id': self.author.id})]})
         self.assertEqual(old.line_ids.user_id, self.approver)
@@ -81,6 +87,11 @@ class TestApprovalManagement(IntegrityCase):
         requests = self.env['iatf.approval.request'].with_user(self.manager)
         self.assertTrue(requests.search([('id', '=', p.approval_request_id.id)]))
         self.assertFalse(requests.search([('id', '=', other.approval_request_id.id)]))
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            other.with_user(self.peer).read(['title'])
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self.env['pumui.request.line'].with_user(self.peer).with_context(default_pumui_id=other.id).create({
+                'name': 'Forbidden other company', 'quantity': 1, 'price_unit': 1})
         with self.assertRaises(AccessError), self.cr.savepoint():
             other.with_user(self.manager).write({'approval_line_ids': [(0, 0, {'user_id': self.manager.id})]})
         self.manager.groups_id = self.env.ref('pumui_approval.group_pumui_user')
@@ -100,3 +111,21 @@ class TestApprovalManagement(IntegrityCase):
         self.assertFalse(requests.search([('id', '=', p.approval_request_id.id)]))
         with self.assertRaises(AccessError), self.cr.savepoint():
             p.with_user(self.manager).action_submit_approval()
+
+    def test_context_parent_is_locked_before_detail_insert(self):
+        p = self._request()
+        original_lock = type(p)._approval_lock
+        observed = []
+
+        def capture_lock(parents):
+            if p.id in parents.ids:
+                observed.append(self.env['pumui.request.line'].search_count([
+                    ('pumui_id', '=', p.id), ('name', '=', 'Context extra')]))
+            return original_lock(parents)
+
+        with patch.object(type(p), '_approval_lock', capture_lock):
+            self.env['pumui.request.line'].with_user(self.author).with_context(default_pumui_id=p.id).create({
+                'name': 'Context extra', 'quantity': 1, 'price_unit': 1})
+        self.assertTrue(observed)
+        self.assertEqual(observed[0], 0)
+        self.assertEqual(p.approval_state, 'draft')

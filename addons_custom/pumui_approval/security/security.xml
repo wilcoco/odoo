@@ -15,4 +15,14 @@
         <field name="implied_ids" eval="[(4, ref('group_pumui_user'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+    <record id="rule_pumui_company" model="ir.rule">
+        <field name="name">품의: 허용된 회사</field>
+        <field name="model_id" ref="model_pumui_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_pumui_line_company" model="ir.rule">
+        <field name="name">품의 항목: 허용된 회사</field>
+        <field name="model_id" ref="model_pumui_request_line"/>
+        <field name="domain_force">[('pumui_id.company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

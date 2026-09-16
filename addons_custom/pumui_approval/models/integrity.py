@@ -90,7 +90,9 @@ class PumuiRequest(models.Model):
                        'quantity': l.quantity, 'price_unit': l.price_unit,
                        'tax_ids': l.tax_ids.ids, 'price_total': l.price_total,
                        'tax_details': [{'id': t.id, 'amount': t.amount, 'amount_type': t.amount_type,
-                                        'price_include': t.price_include, 'include_base_amount': t.include_base_amount}
+                                        'price_include': t.price_include, 'include_base_amount': t.include_base_amount,
+                                        'sequence': t.sequence, 'is_base_affected': t.is_base_affected,
+                                        'children_tax_ids': t.children_tax_ids.ids}
                                        for t in (l.tax_ids | l.tax_ids.children_tax_ids).sorted('id')],
                        'payment_stage': l.payment_stage} for l in self.line_ids],
         }
@@ -138,7 +140,9 @@ class PumuiLine(models.Model):
     def create(self, vals_list):
         if any(set(v) & (_LINE_TOTALS | {'invoice_line_id'}) for v in vals_list):
             raise AccessError(_('계산 금액과 청구 연결은 직접 지정할 수 없습니다.'))
-        parents = self.env['pumui.request'].browse([v['pumui_id'] for v in vals_list if v.get('pumui_id')])
+        default_parent = self.default_get(['pumui_id']).get('pumui_id')
+        parents = self.env['pumui.request'].browse([
+            v.get('pumui_id', default_parent) for v in vals_list if v.get('pumui_id', default_parent)])
         self._lock_parents(parents)
         records = super().create(vals_list)
         records.pumui_id._invalidate_line_approval()

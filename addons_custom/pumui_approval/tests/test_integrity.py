@@ -310,3 +310,13 @@ class TestBillingIntegrity(IntegrityCase):
         bill.invoice_line_ids.tax_ids = tax
         with self.assertRaises(UserError), self.cr.savepoint():
             bill._post(soft=False)
+
+    def test_tax_calculation_order_change_requires_new_approval(self):
+        tax = self.env['account.tax'].create({'name': 'Phase21 ordered tax', 'amount': 10, 'type_tax_use': 'purchase'})
+        p = self._request(approve=False)
+        p.line_ids.tax_ids = tax
+        p.action_submit_approval()
+        p.with_user(self.approver).action_approve_approval()
+        tax.sequence += 1
+        with self.assertRaises(UserError), self.cr.savepoint():
+            p.action_create_invoice()

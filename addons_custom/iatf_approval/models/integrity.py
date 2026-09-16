@@ -21,6 +21,7 @@ class ApprovalRequest(models.Model):
     _inherit = 'iatf.approval.request'
 
     previous_request_id = fields.Many2one('iatf.approval.request', readonly=True, copy=False, ondelete='restrict')
+    next_request_ids = fields.One2many('iatf.approval.request', 'previous_request_id', readonly=True, copy=False)
     snapshot = fields.Json(readonly=True, copy=False)
     can_manage = fields.Boolean(compute='_compute_can_manage', search='_search_can_manage')
 
@@ -146,7 +147,8 @@ class ApprovalRequest(models.Model):
             request._clear_activities(target)
             new = internal(self.env['iatf.approval.request']).create({
                 'res_model': request.res_model, 'res_id': request.res_id,
-                'requester_id': self.env.uid, 'previous_request_id': request.id,
+                # Delegated managers must not take ownership away from the author.
+                'requester_id': request.requester_id.id, 'previous_request_id': request.id,
                 'line_ids': [(0, 0, {'sequence': line.sequence, 'user_id': line.user_id.id})
                              for line in request._get_ordered_lines()],
             })

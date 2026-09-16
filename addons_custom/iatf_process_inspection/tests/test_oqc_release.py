@@ -103,3 +103,84 @@ class TestOqcRelease(TransactionCase):
         inspection.product_id = self.env["product.product"].create({"name": "Unrelated OQC", "is_storable": True})
         with self.assertRaises(UserError), self.cr.savepoint():
             picking.move_ids._action_done()
+
+    def test_cancelled_inspection_requires_replacement_and_does_not_block_it(self):
+        picking, old = self._picking(approve=True)
+        old.action_cancel()
+        action = picking.with_user(self.stock_user).button_validate()
+        self.assertEqual(action['tag'], 'display_notification')
+        current = picking.oqc_inspection_ids - old
+        self.assertEqual(len(current), 1)
+        with self.assertRaises(UserError), self.cr.savepoint():
+            picking._action_done()
+        current.write({'state': 'decided', 'result': 'pass', 'disposition': 'ship',
+                       'approval_line_ids': [(0, 0, {'user_id': self.env.uid})]})
+        current.action_submit_approval()
+        current.action_approve_approval()
+        picking.with_context(skip_sms=True).button_validate()
+        self.assertEqual(picking.state, 'done')
+        self.assertEqual(old.state, 'cancelled')
+
+    def test_partial_shipping_backorder_requires_its_own_inspection(self):
+        picking, inspection = self._picking(approve=True)
+        picking.move_ids.product_uom_qty = 2
+        action = picking.with_context(skip_sms=True).button_validate()
+        self.assertEqual(action['res_model'], 'stock.backorder.confirmation')
+        wizard = self.env[action['res_model']].with_context(action['context']).create({
+            'pick_ids': [(6, 0, picking.ids)]})
+        wizard.process()
+        self.assertEqual(picking.state, 'done')
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', picking.id)])
+        self.assertEqual(len(backorder), 1)
+        self.assertFalse(backorder.oqc_inspection_ids)
+        with self.assertRaises(UserError), self.cr.savepoint():
+            backorder._action_done()
+        self.env['stock.quant']._update_available_quantity(self.product, self.warehouse.lot_stock_id, 1)
+        backorder.action_assign()
+        backorder.move_ids.move_line_ids.write({'quantity': 1, 'picked': True})
+        backorder.with_context(skip_sms=True).button_validate()
+        oqc = backorder.oqc_inspection_ids
+        oqc.write({'state': 'decided', 'result': 'pass', 'disposition': 'ship',
+                   'approval_line_ids': [(0, 0, {'user_id': self.env.uid})]})
+        oqc.action_submit_approval()
+        oqc.action_approve_approval()
+        backorder.with_context(skip_sms=True).button_validate()
+        self.assertEqual(backorder.state, 'done')
+
+    def test_detail_changes_require_new_approval_and_preserve_old_values(self):
+        picking, inspection = self._picking()
+        line = self.env['iatf.process.inspection.line'].create({
+            'inspection_id': inspection.id, 'characteristic_name': 'Length', 'measured_value': '10'})
+        inspection.write({'approval_line_ids': [(0, 0, {'user_id': self.env.uid})]})
+        inspection.action_submit_approval()
+        inspection.action_approve_approval()
+        old = inspection.approval_request_id
+        line.measured_value = '11'
+        self.assertEqual(inspection.approval_state, 'draft')
+
+        self.assertEqual(old.state, 'approved')
+        self.assertEqual(old.snapshot['lines'][0]['measured_value'], '10')
+        with self.assertRaises(UserError), self.cr.savepoint():
+            picking._action_done()
+        inspection.action_submit_approval()
+        inspection.action_approve_approval()
+        line.unlink()
+        self.assertEqual(inspection.approval_state, 'draft')
+        inspection.action_submit_approval()
+        inspection.action_approve_approval()
+        self.env['iatf.process.inspection.line'].with_context(default_inspection_id=inspection.id).create({
+            'characteristic_name': 'New length', 'measured_value': '12'})
+        self.assertEqual(inspection.approval_state, 'draft')
+
+    def test_lot_held_after_oqc_approval_cannot_ship(self):
+        picking, inspection = self._picking(approve=True)
+        lot = self.env['stock.lot'].create({'name': 'PHASE21-SHIP-HOLD', 'product_id': self.product.id,
+                                          'company_id': self.env.company.id})
+        picking.move_ids.move_line_ids.lot_id = lot
+        picking._check_oqc_release()
+        lot.quality_hold = True
+        for operation in (picking.button_validate, picking._action_done, picking.move_ids._action_done):
+            with self.assertRaises(UserError), self.cr.savepoint():
+                operation()
+        self.assertEqual(inspection.approval_state, 'approved')
+        self.assertNotEqual(picking.state, 'done')

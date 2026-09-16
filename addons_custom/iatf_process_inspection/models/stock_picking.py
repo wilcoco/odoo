@@ -22,7 +22,7 @@ class StockPicking(models.Model):
         # 출하 시 OQC 자동 생성
         created = False
         for picking in self:
-            if picking.picking_type_code == "outgoing" and not picking.sudo().oqc_inspection_ids:
+            if picking.picking_type_code == "outgoing" and picking.state not in ("done", "cancel") and not picking.sudo().oqc_inspection_ids.filtered(lambda r: r.state != "cancelled"):
                 picking.sudo()._create_oqc_inspections()
                 created = True
         if created:
@@ -37,7 +37,13 @@ class StockPicking(models.Model):
     def _check_oqc_release(self):
         """Validate again at stock completion, including wizard/internal routes."""
         for picking in self.filtered(lambda p: p.picking_type_code == "outgoing" and p.state not in ("done", "cancel")):
-            inspections = picking.sudo().oqc_inspection_ids
+            lots = picking.move_ids.filtered(lambda m: m.state != 'cancel').move_line_ids.filtered(
+                lambda line: line.quantity > 0).lot_id.sudo()
+            if 'quality_hold' in lots._fields:
+                lots.invalidate_recordset(['quality_hold'])
+                if lots.filtered('quality_hold'):
+                    raise UserError(_('품질 보류 중인 LOT이 있어 출하할 수 없습니다. 보류 해제 절차를 먼저 완료해 주세요.'))
+            inspections = picking.sudo().oqc_inspection_ids.filtered(lambda r: r.state != "cancelled")
             if not inspections:
                 raise UserError(_("출하검사(OQC)가 없어 출하할 수 없습니다."))
             products = picking.move_ids.filtered(lambda m: m.state != "cancel" and m.product_id.type != "service").product_id
@@ -60,7 +66,7 @@ class StockPicking(models.Model):
     def _create_oqc_inspections(self):
         """출하 확정 시 제품별 출하검사(OQC) 레코드 자동 생성"""
         PQC = self.env["iatf.process.inspection"]
-        for move in self.move_ids.filtered(lambda m: m.product_id.type != "service"):
+        for move in self.move_ids.filtered(lambda m: m.state not in ("done", "cancel") and m.product_id.type != "service"):
             vals = {
                 "company_id": self.company_id.id,
                 "inspection_stage": "oqc",
