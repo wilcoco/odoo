@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 매출처 세금계산서·취소 세금계산서 전용 목록: 받을 돈(수금) 관점 -->
+    <!-- 매출처 세금계산서 목록: 받을 돈(수금) 관점 -->
     <record id="view_kr_customer_tax_invoice_list" model="ir.ui.view">
         <field name="name">account.move.kr.customer.tax.invoice.list</field>
         <field name="model">account.move</field>
@@ -10,8 +10,7 @@
                   decoration-muted="state == 'cancel'">
                 <field name="name" column_invisible="True"/>
                 <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
-                <field name="kr_approval_number" string="세금계산서승인번호"/>
-                <field name="is_manually_modified" string="수기" readonly="1"/>
+                <field name="kr_approval_number" string="세금계산서승인번호" optional="hide"/>
                 <field name="partner_id" string="매출처"/>
                 <field name="invoice_date" string="매출일" readonly="state != 'draft'"/>
                 <field name="kr_product_names" string="품목명"/>
@@ -45,6 +44,24 @@
         </field>
     </record>
 
+    <record id="view_kr_customer_tax_refund_list" model="ir.ui.view">
+        <field name="name">account.move.kr.customer.tax.refund.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="view_kr_customer_tax_invoice_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="string">매출처 취소 세금계산서</attribute>
+            </xpath>
+            <xpath expr="//field[@name='kr_payment_display_date']" position="attributes">
+                <attribute name="string">환불기한</attribute>
+            </xpath>
+            <xpath expr="//field[@name='kr_paid_amount']" position="attributes">
+                <attribute name="string">환불완료 금액</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_kr_customer_tax_invoice_search" model="ir.ui.view">
         <field name="name">account.move.kr.customer.tax.invoice.search</field>
         <field name="model">account.move</field>
@@ -72,7 +89,7 @@
         </field>
     </record>
 
-    <!-- 매입처 세금계산서·취소 세금계산서 전용 목록 -->
+    <!-- 매입처 세금계산서 목록 -->
     <record id="view_kr_vendor_tax_invoice_list" model="ir.ui.view">
         <field name="name">account.move.kr.vendor.tax.invoice.list</field>
         <field name="model">account.move</field>
@@ -82,7 +99,7 @@
                   decoration-muted="state == 'cancel'">
                 <field name="name" column_invisible="True"/>
                 <field name="kr_move_number_display" string="전표번호" decoration-bf="1"/>
-                <field name="kr_approval_number" string="세금계산서승인번호"/>
+                <field name="kr_approval_number" string="세금계산서승인번호" optional="hide"/>
                 <field name="is_manually_modified" string="수기" readonly="1"/>
                 <field name="partner_id" string="매입처"/>
                 <field name="invoice_date" string="매입일" readonly="state != 'draft'"/>
@@ -108,7 +125,7 @@
                 <field name="pumui_approval_state" column_invisible="True"/>
                 <field name="kr_residual_display" string="미지급금액"
                        sum="미지급금액 합계" decoration-danger="kr_residual_display &gt; 0"/>
-                <field name="kr_payment_display_date" string="지급기한"
+                <field name="kr_payment_display_date" string="입금기한"
                        decoration-danger="kr_payment_overdue"/>
                 <field name="kr_paid_amount" string="지급완료 금액" sum="지급금액 합계"/>
                 <field name="status_in_payment" string="지급상태" widget="badge"
@@ -121,6 +138,24 @@
                 <field name="currency_id" column_invisible="True"/>
                 <field name="kr_payment_overdue" column_invisible="True"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_kr_vendor_tax_refund_list" model="ir.ui.view">
+        <field name="name">account.move.kr.vendor.tax.refund.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="view_kr_vendor_tax_invoice_list"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="string">매입처 취소 세금계산서</attribute>
+            </xpath>
+            <xpath expr="//field[@name='kr_payment_display_date']" position="attributes">
+                <attribute name="string">환불기한</attribute>
+            </xpath>
+            <xpath expr="//field[@name='kr_paid_amount']" position="attributes">
+                <attribute name="string">환불완료 금액</attribute>
+            </xpath>
         </field>
     </record>
 
