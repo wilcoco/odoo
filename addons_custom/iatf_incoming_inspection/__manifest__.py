@@ -1,6 +1,6 @@
 {
     "name": "IATF 수입검사",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "summary": "수입검사 관리 (IATF 16949 §8.6.4)",
     "category": "Quality",
     "license": "LGPL-3",

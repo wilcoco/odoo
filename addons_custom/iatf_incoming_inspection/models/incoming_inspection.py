@@ -139,8 +139,9 @@ class IatfIncomingInspection(models.Model):
 
     def _release_quality_hold(self):
         """IQC 합격 시 로트 품질 보류 해제 (L3-1)"""
+        self.ensure_one()
         if self.lot_id and self.lot_id.quality_hold:
-            self.lot_id.write({"quality_hold": False, "hold_reason": False})
+            self.lot_id._release_quality_hold_from_iqc(self)
             self.message_post(body=_("로트 %s 품질 보류 해제됨 (IQC 합격)") % self.lot_id.name)
 
     def _auto_create_nc(self):

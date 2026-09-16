@@ -1,8 +1,9 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 import logging
 
 _logger = logging.getLogger(__name__)
+_IQC_RELEASE = object()
 
 
 class StockLot(models.Model):
@@ -10,6 +11,35 @@ class StockLot(models.Model):
 
     quality_hold = fields.Boolean(string="품질 보류", default=False, tracking=True)
     hold_reason = fields.Char(string="보류 사유")
+
+    def write(self, vals):
+        if "quality_hold" in vals and not vals["quality_hold"]:
+            self.invalidate_recordset(["quality_hold"])
+            if self.filtered("quality_hold"):
+                permission = self.env.context.get("_iqc_release")
+                if not (
+                    isinstance(permission, tuple) and len(permission) == 2
+                    and permission[0] is _IQC_RELEASE
+                    and permission[1] == tuple(self.ids)
+                ):
+                    raise AccessError(_("품질 보류는 LOT 직접 수정으로 해제할 수 없습니다. 수입검사 판정 절차를 사용해 주세요."))
+        return super().write(vals)
+
+    def _release_quality_hold_from_iqc(self, inspection):
+        """Private, record-bound capability; client context cannot authorize release."""
+        self.ensure_one()
+        inspection.ensure_one()
+        inspection.check_access("write")
+        if (
+            inspection.lot_id != self or inspection.product_id != self.product_id
+            or inspection.company_id != self.company_id
+            or inspection.state not in ("decided", "closed")
+            or inspection.result not in ("pass", "conditional")
+        ):
+            raise UserError(_("해제할 LOT과 합격한 수입검사의 품목·회사·판정을 확인해 주세요."))
+        return self.with_context(_iqc_release=(_IQC_RELEASE, tuple(self.ids))).write({
+            "quality_hold": False, "hold_reason": False,
+        })
 
 
 class StockPicking(models.Model):
@@ -87,6 +117,7 @@ class StockMove(models.Model):
             if not (move.raw_material_production_id or move.production_id):
                 continue
             lots = move.lot_ids | move.move_line_ids.lot_id
+            lots.invalidate_recordset(["quality_hold", "hold_reason"])
             held = lots.filtered(lambda l: l.quality_hold)
             if held:
                 raise UserError(_(

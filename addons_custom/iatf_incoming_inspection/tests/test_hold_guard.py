@@ -36,7 +36,12 @@ class TestHoldGuard(TransactionCase):
         with self.assertRaises(UserError):
             move._action_done()
         # 보류 해제 후엔 가드 통과 (Odoo18: picked 지정 후 완료)
-        self.held.quality_hold = False
+        inspection = self.env["iatf.incoming.inspection"].create({
+            "supplier_id": self.env.company.partner_id.id,
+            "product_id": self.raw.id, "lot_id": self.held.id,
+            "quantity_received": 1, "quantity_inspected": 1, "result": "pass",
+        })
+        inspection.action_decide()
         move.picked = True
         move._action_done()
         self.assertEqual(move.state, "done")
