@@ -278,20 +278,21 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
 
         for arch in (customer_invoice_arch, customer_refund_arch):
             self.assertIn('string="미수금액"', arch)
-            self.assertIn('string="수금완료 금액"', arch)
             self.assertIn('string="수금상태"', arch)
             self.assertNotIn('name="pumui_id"', arch)
             self.assertNotIn('name="is_manually_modified"', arch)
         self.assertIn('string="수금기한"', customer_invoice_arch)
+        self.assertIn('string="수금완료 금액"', customer_invoice_arch)
         self.assertNotIn('string="환불기한"', customer_invoice_arch)
         self.assertIn('string="환불기한"', customer_refund_arch)
+        self.assertIn('string="환불완료 금액"', customer_refund_arch)
+        self.assertNotIn('string="수금완료 금액"', customer_refund_arch)
 
         for arch in (vendor_invoice_arch, vendor_refund_arch):
             self.assertIn('name="is_manually_modified" string="수기"', arch)
             self.assertIn('name="pumui_id" string="품의서"', arch)
             self.assertIn('string="품의 결재상태"', arch)
             self.assertIn('string="미지급금액"', arch)
-            self.assertIn('string="지급완료 금액"', arch)
             self.assertIn('string="지급상태"', arch)
             self.assertLess(
                 arch.index('name="pumui_id"'),
@@ -302,8 +303,11 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
                 arch.index('name="kr_residual_display"'),
             )
         self.assertIn('string="입금기한"', vendor_invoice_arch)
+        self.assertIn('string="지급완료 금액"', vendor_invoice_arch)
         self.assertNotIn('string="환불기한"', vendor_invoice_arch)
         self.assertIn('string="환불기한"', vendor_refund_arch)
+        self.assertIn('string="환불완료 금액"', vendor_refund_arch)
+        self.assertNotIn('string="지급완료 금액"', vendor_refund_arch)
 
         search_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_vendor_tax_invoice_search"

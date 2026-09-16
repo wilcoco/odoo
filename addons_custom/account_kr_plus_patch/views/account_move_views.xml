@@ -56,6 +56,9 @@
             <xpath expr="//field[@name='kr_payment_display_date']" position="attributes">
                 <attribute name="string">환불기한</attribute>
             </xpath>
+            <xpath expr="//field[@name='kr_paid_amount']" position="attributes">
+                <attribute name="string">환불완료 금액</attribute>
+            </xpath>
         </field>
     </record>
 
@@ -149,6 +152,9 @@
             </xpath>
             <xpath expr="//field[@name='kr_payment_display_date']" position="attributes">
                 <attribute name="string">환불기한</attribute>
+            </xpath>
+            <xpath expr="//field[@name='kr_paid_amount']" position="attributes">
+                <attribute name="string">환불완료 금액</attribute>
             </xpath>
         </field>
     </record>
