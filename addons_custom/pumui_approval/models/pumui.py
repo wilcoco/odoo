@@ -150,7 +150,7 @@ class PumuiRequest(models.Model):
         # 품의 라인 ↔ 청구 라인 연결 (순서 매핑)
         product_mls = move.invoice_line_ids.filtered(lambda ml: ml.display_type == "product")
         for l, ml in zip(lines, product_mls):
-            l.invoice_line_id = ml.id
+            l._link_invoice_line(ml)
         self.message_post(body=_("청구서 %s 생성 (%s)") % (
             move.name or move.id, dict(PAYMENT_STAGE).get(stage, _("전체 잔여"))))
         return {

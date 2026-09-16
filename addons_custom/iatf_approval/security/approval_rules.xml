@@ -1,0 +1,12 @@
+<odoo>
+    <record id="approval_request_participant_rule" model="ir.rule">
+        <field name="name">Approval evidence: participants and administrators</field>
+        <field name="model_id" ref="model_iatf_approval_request"/>
+        <field name="domain_force">[(1, '=', 1)] if user.has_group('base.group_system') else ['|', ('requester_id', '=', user.id), ('line_ids.user_id', '=', user.id)]</field>
+    </record>
+    <record id="approval_line_participant_rule" model="ir.rule">
+        <field name="name">Approval lines: request participants and administrators</field>
+        <field name="model_id" ref="model_iatf_approval_line"/>
+        <field name="domain_force">[(1, '=', 1)] if user.has_group('base.group_system') else ['|', ('request_id.requester_id', '=', user.id), ('request_id.line_ids.user_id', '=', user.id)]</field>
+    </record>
+</odoo>
