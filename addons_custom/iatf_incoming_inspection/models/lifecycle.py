@@ -292,6 +292,20 @@ class IncomingInspection(models.Model):
             origin = rec.source_move_id
             if origin.state != 'done' or origin.company_id != rec.company_id or origin.product_id != rec.product_id:
                 raise UserError(_('원 입고 이동과 검사 범위가 일치하지 않습니다.'))
+            self.env.cr.execute('SELECT id FROM stock_move WHERE id=%s FOR UPDATE', [origin.id])
+            self.env.cr.execute('UPDATE stock_move SET write_date=write_date WHERE id=%s', [origin.id])
+            if rec.disposition == 'return':
+                existing = self.env['stock.move'].sudo().search([
+                    ('origin_returned_move_id', '=', origin.id), ('state', '=', 'done'),
+                    ('move_line_ids.lot_id', '=', rec.lot_id.id)])
+                if existing:
+                    qty = sum(line.product_uom_id._compute_quantity(line.quantity, rec.product_id.uom_id, round=False)
+                              for line in existing.move_line_ids if line.lot_id == rec.lot_id)
+                    if len(existing) == 1 and existing.company_id == rec.company_id and existing.location_dest_id == origin.location_id and float_compare(qty, rec.quantity_rejected, precision_rounding=rec.product_id.uom_id.rounding) == 0:
+                        rec._internal().write({'disposal_move_id': existing.id})
+                        rec.message_post(body=_('이미 완료한 반품 이동 %s를 검사 처분 근거로 연결했습니다.') % existing.id)
+                        continue
+                    raise UserError(_('이미 별도 반품한 수량이 있습니다. 중복 반품하지 않도록 기존 이동과 검사 수량을 대사해 주세요.'))
             location = origin.location_dest_id
             available = self.env['stock.quant']._get_available_quantity(rec.product_id, location, lot_id=rec.lot_id, strict=True)
             if float_compare(available, rec.quantity_rejected, precision_rounding=rec.product_id.uom_id.rounding) < 0:

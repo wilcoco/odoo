@@ -109,6 +109,19 @@ class TestIqcLifecycle(TransactionCase):
         self.assertFalse(returned.oqc_inspection_ids)
         self.assertTrue(self.lots[0].quality_hold)
 
+    def test_standard_return_is_reused_as_iqc_disposition_without_duplicate(self):
+        pick = self._receipt((4,))
+        iqc = pick.iqc_inspection_ids
+        iqc.write({'result': 'conditional', 'disposition': 'return', 'quantity_accepted': 3, 'quantity_rejected': 1})
+        iqc.action_decide()
+        returned = self._supplier_return(pick)
+        returned.with_context(skip_sms=True).button_validate()
+        count = self.env['stock.move'].search_count([('origin_returned_move_id', '=', iqc.source_move_id.id)])
+        iqc.action_process_disposition()
+        self.assertEqual(iqc.disposal_move_id, returned.move_ids)
+        self.assertEqual(self.env['stock.move'].search_count([('origin_returned_move_id', '=', iqc.source_move_id.id)]), count)
+        self.assertTrue(iqc._quantity_resolved())
+
     def test_supplier_return_rejects_wrong_lot_and_excess_cumulative_quantity(self):
         pick = self._receipt((4,))
         returned = self._supplier_return(pick)
