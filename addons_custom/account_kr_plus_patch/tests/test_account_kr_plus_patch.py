@@ -231,16 +231,31 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('name="kr_bank_journal_ids"', journal_list_arch)
         self.assertIn('optional="show"', journal_list_arch)
 
-        customer_arch = self.env.ref(
+        customer_invoice_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_customer_tax_invoice_list"
-        ).arch_db
-        vendor_arch = self.env.ref(
+        ).get_combined_arch()
+        customer_refund_arch = self.env.ref(
+            "account_kr_plus_patch.view_kr_customer_tax_refund_list"
+        ).get_combined_arch()
+        vendor_invoice_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_vendor_tax_invoice_list"
-        ).arch_db
+        ).get_combined_arch()
+        vendor_refund_arch = self.env.ref(
+            "account_kr_plus_patch.view_kr_vendor_tax_refund_list"
+        ).get_combined_arch()
 
-        for arch in (customer_arch, vendor_arch):
+        for arch in (
+            customer_invoice_arch,
+            customer_refund_arch,
+            vendor_invoice_arch,
+            vendor_refund_arch,
+        ):
             self.assertIn('name="kr_move_number_display"', arch)
             self.assertIn('name="name" column_invisible="True"', arch)
+            self.assertIn(
+                'name="kr_approval_number" string="세금계산서승인번호" optional="hide"',
+                arch,
+            )
             self.assertIn('name="status_in_payment"', arch)
             self.assertIn('name="kr_doc_type"', arch)
             self.assertIn('name="kr_tax_type"', arch)
@@ -261,26 +276,34 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
                 arch.index('name="status_in_payment"'),
             )
 
-        self.assertIn('string="미수금액"', customer_arch)
-        self.assertIn('string="수금기한"', customer_arch)
-        self.assertIn('string="수금완료 금액"', customer_arch)
-        self.assertIn('string="수금상태"', customer_arch)
-        self.assertNotIn('name="pumui_id"', customer_arch)
+        for arch in (customer_invoice_arch, customer_refund_arch):
+            self.assertIn('string="미수금액"', arch)
+            self.assertIn('string="수금완료 금액"', arch)
+            self.assertIn('string="수금상태"', arch)
+            self.assertNotIn('name="pumui_id"', arch)
+            self.assertNotIn('name="is_manually_modified"', arch)
+        self.assertIn('string="수금기한"', customer_invoice_arch)
+        self.assertNotIn('string="환불기한"', customer_invoice_arch)
+        self.assertIn('string="환불기한"', customer_refund_arch)
 
-        self.assertIn('name="pumui_id" string="품의서"', vendor_arch)
-        self.assertIn('string="품의 결재상태"', vendor_arch)
-        self.assertIn('string="미지급금액"', vendor_arch)
-        self.assertIn('string="지급기한"', vendor_arch)
-        self.assertIn('string="지급완료 금액"', vendor_arch)
-        self.assertIn('string="지급상태"', vendor_arch)
-        self.assertLess(
-            vendor_arch.index('name="pumui_id"'),
-            vendor_arch.index('name="kr_approval_status_display"'),
-        )
-        self.assertLess(
-            vendor_arch.index('name="kr_approval_status_display"'),
-            vendor_arch.index('name="kr_residual_display"'),
-        )
+        for arch in (vendor_invoice_arch, vendor_refund_arch):
+            self.assertIn('name="is_manually_modified" string="수기"', arch)
+            self.assertIn('name="pumui_id" string="품의서"', arch)
+            self.assertIn('string="품의 결재상태"', arch)
+            self.assertIn('string="미지급금액"', arch)
+            self.assertIn('string="지급완료 금액"', arch)
+            self.assertIn('string="지급상태"', arch)
+            self.assertLess(
+                arch.index('name="pumui_id"'),
+                arch.index('name="kr_approval_status_display"'),
+            )
+            self.assertLess(
+                arch.index('name="kr_approval_status_display"'),
+                arch.index('name="kr_residual_display"'),
+            )
+        self.assertIn('string="입금기한"', vendor_invoice_arch)
+        self.assertNotIn('string="환불기한"', vendor_invoice_arch)
+        self.assertIn('string="환불기한"', vendor_refund_arch)
 
         search_arch = self.env.ref(
             "account_kr_plus_patch.view_kr_vendor_tax_invoice_search"
@@ -289,18 +312,29 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('name="approval_pending"', search_arch)
         self.assertIn('name="group_approval"', search_arch)
 
-        self.assertEqual(
-            self.env.ref("account.menu_action_move_out_invoice_type").action.id,
-            self.env.ref(
-                "account_kr_plus_patch.action_kr_customer_tax_invoice"
-            ).id,
-        )
-        self.assertEqual(
-            self.env.ref("account.menu_action_move_in_invoice_type").action.id,
-            self.env.ref(
-                "account_kr_plus_patch.action_kr_vendor_tax_invoice"
-            ).id,
-        )
+        for menu_xmlid, action_xmlid in (
+            (
+                "account.menu_action_move_out_invoice_type",
+                "account_kr_plus_patch.action_kr_customer_tax_invoice",
+            ),
+            (
+                "account.menu_action_move_out_refund_type",
+                "account_kr_plus_patch.action_kr_customer_tax_refund",
+            ),
+            (
+                "account.menu_action_move_in_invoice_type",
+                "account_kr_plus_patch.action_kr_vendor_tax_invoice",
+            ),
+            (
+                "account.menu_action_move_in_refund_type",
+                "account_kr_plus_patch.action_kr_vendor_tax_refund",
+            ),
+        ):
+            self.assertEqual(
+                self.env.ref(menu_xmlid).action.id,
+                self.env.ref(action_xmlid).id,
+            )
+
         for action_xmlid, list_xmlid, search_xmlid in (
             (
                 "account.action_move_out_invoice_type",
@@ -308,8 +342,18 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
                 "account_kr_plus_patch.view_kr_customer_tax_invoice_search",
             ),
             (
+                "account.action_move_out_refund_type",
+                "account_kr_plus_patch.view_kr_customer_tax_refund_list",
+                "account_kr_plus_patch.view_kr_customer_tax_invoice_search",
+            ),
+            (
                 "account.action_move_in_invoice_type",
                 "account_kr_plus_patch.view_kr_vendor_tax_invoice_list",
+                "account_kr_plus_patch.view_kr_vendor_tax_invoice_search",
+            ),
+            (
+                "account.action_move_in_refund_type",
+                "account_kr_plus_patch.view_kr_vendor_tax_refund_list",
                 "account_kr_plus_patch.view_kr_vendor_tax_invoice_search",
             ),
         ):
@@ -342,6 +386,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
         self.assertIn('name="ref" string="참조"', form_arch)
         self.assertIn('name="kr_approval_number"', form_arch)
         self.assertIn('string="세금계산서승인번호"', form_arch)
+        self.assertIn('name="is_manually_modified"', form_arch)
         self.assertIn('name="kr_origin_number"', form_arch)
         self.assertIn('string="원본 세금계산서 승인번호"', form_arch)
         self.assertIn('name="kr_move_number_display"', form_arch)
