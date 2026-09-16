@@ -53,9 +53,9 @@
 | 단계 | 상태 / 근거 |
 |---|---|
 | 개발 PR·리뷰 / 병합 SHA | 준비 중 |
-| ERP 원본 SHA → 배포 복제 경로 | `c5b94dd2e998a9c98a9f49516fc6aafbc1788178` → `odoo_gh/iatf_plugins/account_kr_plus_patch` |
+| ERP 원본 SHA → 배포 복제 경로 | `c5b94dd2e998a9c98a9f49516fc6aafbc1788178` → `odoo_gh/iatf_plugins/account_kr_plus_patch` 코드 `454dc8c28eedd4cedf5423f0e93c32513918f090` |
 | MES 변경 SHA(해당 시) | 해당 없음 |
-| 배포 저장소 PR / 최종 배포 후보 SHA | 준비 중 |
+| 배포 저장소 PR / 최종 배포 후보 SHA | `sync/tax-invoice-list-labels`, 코드 `454dc8c28`; PR 준비 중 |
 | 원본-복제본 차이 검토 / 중복 addons 경로 확인 | 변경 파일의 내용 비교 예정; 운영 addons_path 미확인 |
 | 배포 후보 통합 시험 | 미실행 |
 | 운영 대상·DB / 서버 담당 | 미확인 |
