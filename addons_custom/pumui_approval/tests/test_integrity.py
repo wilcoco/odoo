@@ -320,3 +320,28 @@ class TestBillingIntegrity(IntegrityCase):
         tax.sequence += 1
         with self.assertRaises(UserError), self.cr.savepoint():
             p.action_create_invoice()
+
+    def test_compound_tax_order_recomputes_amount_before_resubmission(self):
+        percentage = self.env['account.tax'].create({
+            'name': 'Phase21 percentage', 'amount': 10, 'sequence': 10,
+            'price_include_override': 'tax_excluded', 'type_tax_use': 'purchase'})
+        fixed = self.env['account.tax'].create({
+            'name': 'Phase21 fixed base', 'amount': 10, 'amount_type': 'fixed', 'sequence': 20,
+            'include_base_amount': True, 'price_include_override': 'tax_excluded',
+            'type_tax_use': 'purchase'})
+        p = self._request(amount=100, approve=False)
+        p.line_ids.tax_ids = percentage | fixed
+        self.assertEqual(p.amount_total, 120)
+        p.action_submit_approval()
+        p.with_user(self.approver).action_approve_approval()
+        old = p.approval_request_id
+        percentage.sequence = 30
+        self.assertEqual(p.amount_total, 121)
+        with self.assertRaises(UserError), self.cr.savepoint():
+            p._approval_check_approved()
+        p.action_reset_approval()
+        p.action_submit_approval()
+        p.with_user(self.approver).action_approve_approval()
+        self.assertTrue(p._approval_check_approved())
+        self.assertEqual(old.snapshot['amount_total'], 120)
+        self.assertEqual(p.approval_request_id.snapshot['amount_total'], 121)

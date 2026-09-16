@@ -121,7 +121,12 @@ class PumuiLine(models.Model):
     _inherit = 'pumui.request.line'
 
     @api.depends('quantity', 'price_unit', 'tax_ids', 'tax_ids.amount', 'tax_ids.amount_type',
-                 'tax_ids.price_include', 'pumui_id.currency_id', 'pumui_id.partner_id', 'product_id')
+                 'tax_ids.price_include', 'tax_ids.sequence', 'tax_ids.include_base_amount',
+                 'tax_ids.is_base_affected', 'tax_ids.children_tax_ids',
+                 'tax_ids.children_tax_ids.amount', 'tax_ids.children_tax_ids.amount_type',
+                 'tax_ids.children_tax_ids.price_include', 'tax_ids.children_tax_ids.sequence',
+                 'tax_ids.children_tax_ids.include_base_amount', 'tax_ids.children_tax_ids.is_base_affected',
+                 'pumui_id.currency_id', 'pumui_id.partner_id', 'product_id')
     def _compute_price(self):
         return super()._compute_price()
 
