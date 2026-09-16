@@ -11,4 +11,29 @@
         <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+    <record id="group_quality_release_reviewer" model="res.groups">
+        <field name="name">LOT 예외 해제: 품질 검토</field>
+        <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user'))]"/>
+    </record>
+    <record id="group_quality_release_approver" model="res.groups">
+        <field name="name">LOT 예외 해제: 생산 승인</field>
+        <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user'))]"/>
+    </record>
+    <record id="group_quality_release_executor" model="res.groups">
+        <field name="name">LOT 예외 해제: 최종 처리</field>
+        <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('group_incoming_inspection_user')), (4, ref('stock.group_stock_user'))]"/>
+    </record>
+    <record id="rule_iqc_company" model="ir.rule">
+        <field name="name">IQC: allowed companies</field>
+        <field name="model_id" ref="model_iatf_incoming_inspection"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_iqc_line_company" model="ir.rule">
+        <field name="name">IQC lines: allowed companies</field>
+        <field name="model_id" ref="model_iatf_incoming_inspection_line"/>
+        <field name="domain_force">[('inspection_id.company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

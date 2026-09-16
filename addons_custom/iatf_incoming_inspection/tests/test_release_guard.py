@@ -10,7 +10,8 @@ class TestIqcReleaseGuard(TransactionCase):
         cls.stock_user = new_test_user(cls.env, login="phase1_stock", groups="stock.group_stock_user")
         cls.inspector = new_test_user(cls.env, login="phase1_iqc", groups="stock.group_stock_user,iatf_incoming_inspection.group_incoming_inspection_user")
         cls.product = cls.env["product.product"].create({"name": "Phase1 IQC", "is_storable": True, "tracking": "lot"})
-        cls.lot = cls.env["stock.lot"].create({"name": "PHASE1-IQC", "product_id": cls.product.id, "company_id": cls.env.company.id, "quality_hold": True})
+        cls.lot = cls.env["stock.lot"].create({"name": "PHASE1-IQC", "product_id": cls.product.id, "company_id": cls.env.company.id})
+        cls.lot._place_iqc_hold('IQC waiting')
 
     def _inspection(self, result="pass", product=None):
         return self.env["iatf.incoming.inspection"].with_user(self.inspector).create({
@@ -35,7 +36,10 @@ class TestIqcReleaseGuard(TransactionCase):
     def test_failed_or_unfinished_inspection_cannot_release(self):
         for result, state in (("pass", "draft"), ("fail", "decided")):
             inspection = self._inspection(result)
-            inspection.state = state
+            # State is now server-owned; a raw decided state is rejected too.
+            if state == 'decided':
+                with self.assertRaises(AccessError), self.cr.savepoint():
+                    inspection.state = state
             with self.assertRaises(UserError), self.cr.savepoint():
                 self.lot._release_quality_hold_from_iqc(inspection)
             self.assertTrue(self.lot.quality_hold)

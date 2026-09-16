@@ -40,6 +40,7 @@ class StockPicking(models.Model):
             lots = picking.move_ids.filtered(lambda m: m.state != 'cancel').move_line_ids.filtered(
                 lambda line: line.quantity > 0).lot_id.sudo()
             if 'quality_hold' in lots._fields:
+                lots._check_quality_usable()
                 lots.invalidate_recordset(['quality_hold'])
                 if lots.filtered('quality_hold'):
                     raise UserError(_('품질 보류 중인 LOT이 있어 출하할 수 없습니다. 보류 해제 절차를 먼저 완료해 주세요.'))

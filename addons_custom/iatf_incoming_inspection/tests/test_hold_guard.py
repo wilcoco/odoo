@@ -23,7 +23,8 @@ class TestHoldGuard(TransactionCase):
         cls.held = cls.env["stock.lot"].create({
             "name": "HOLD-T-001", "product_id": cls.raw.id,
             "company_id": cls.env.company.id,
-            "quality_hold": True, "hold_reason": "IQC 대기"})
+            })
+        cls.held._place_iqc_hold('IQC 대기')
 
     def test_consume_blocked_after_confirm(self):
         """확정 후 lot 지정 → 실소비 시점 차단 (기존 확정 시점만 검사하던 구멍 보강)."""

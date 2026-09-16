@@ -51,6 +51,7 @@
                            decoration-danger="approval_state == 'rejected'"
                            decoration-info="approval_state == 'in_progress'"/>
                     <field name="state" widget="statusbar"
+                           readonly="1"
                            statusbar_visible="draft,inspecting,decided,closed"/>
                 </header>
                 <sheet>
@@ -68,6 +69,7 @@
                         </group>
                         <group>
                             <field name="picking_id"/>
+                            <field name="source_move_id"/>
                             <field name="purchase_id"/>
                             <field name="inspector_id"/>
                             <field name="approved_by"/>
@@ -76,6 +78,7 @@
                     <group>
                         <group string="수량">
                             <field name="quantity_received"/>
+                            <field name="product_uom_id"/>
                             <field name="quantity_inspected"/>
                             <field name="quantity_accepted"/>
                             <field name="quantity_rejected"/>
@@ -102,6 +105,28 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string="보류 해제·처분">
+                            <group>
+                                <group>
+                                    <field name="hold_version"/>
+                                    <field name="release_reviewer_id"/>
+                                    <field name="release_approver_id"/>
+                                    <field name="release_executor_id"/>
+                                    <field name="release_reason"/>
+                                    <field name="release_requested"/>
+                                </group>
+                                <group>
+                                    <field name="released_version"/>
+                                    <field name="released_by"/>
+                                    <field name="released_at"/>
+                                    <field name="disposal_move_id"/>
+                                </group>
+                            </group>
+                            <p>정상 입고의 전량 합격은 자동 해제합니다. 수동 보류·조건부 합격은 품질 검토와 생산 승인 후 지정 담당자가 해제합니다. 같은 LOT의 미판정·불합격 수량이 남으면 전체 해제할 수 없습니다.</p>
+                            <button name="action_request_release" type="object" string="예외 해제 상신" class="btn-primary" invisible="state not in ('decided', 'closed')"/>
+                            <button name="action_release_hold" type="object" string="승인 근거로 LOT 해제" groups="iatf_incoming_inspection.group_quality_release_executor" invisible="not release_requested or approval_state != 'approved'"/>
+                            <button name="action_process_disposition" type="object" string="불합격 수량 반품·폐기" confirm="이 입고 LOT의 불합격 수량만 실제 반품 또는 폐기 이동합니다. 계속하시겠습니까?" invisible="state not in ('decided', 'closed') or disposition not in ('return', 'scrap') or disposal_move_id"/>
+                        </page>
                         <page string="검사 항목">
                             <field name="line_ids">
                                 <list editable="bottom">
