@@ -75,6 +75,29 @@ class TestOqcRelease(TransactionCase):
         with self.assertRaises(UserError), self.cr.savepoint():
             picking.with_user(self.stock_user).button_validate()
 
+    def test_quality_user_can_manage_stock_created_oqc_and_finish_shipment(self):
+        inspector = new_test_user(self.env, login='approval_oqc_inspector', groups='iatf_process_inspection.group_process_inspection_user')
+        approver = new_test_user(self.env, login='approval_oqc_approver', groups='iatf_process_inspection.group_process_inspection_user')
+        picking, inspection = self._picking()
+        inspection.unlink()
+        picking.with_user(self.stock_user).button_validate()
+        inspection = picking.oqc_inspection_ids.with_user(inspector)
+        self.assertEqual(inspection.approval_request_id.requester_id, self.stock_user)
+        inspection.check_access('write')
+        inspection.approval_line_ids.unlink()
+        inspection.write({'result': 'pass', 'disposition': 'ship',
+                          'approval_line_ids': [(0, 0, {'user_id': approver.id})]})
+        inspection.action_decide()
+        inspection.action_submit_approval()
+        with self.assertRaises(UserError), self.cr.savepoint():
+            inspection.action_approve_approval()
+        inspection.with_user(approver).action_approve_approval()
+        group = self.env.ref('iatf_packaging.group_packaging_user', raise_if_not_found=False)
+        if group:
+            self.stock_user.write({'groups_id': [(4, group.id)]})
+        picking.with_user(self.stock_user).with_context(skip_sms=True).button_validate()
+        self.assertEqual(picking.state, 'done')
+
     def test_unrelated_product_approval_does_not_authorize_shipping(self):
         picking, inspection = self._picking(approve=True)
         inspection.product_id = self.env["product.product"].create({"name": "Unrelated OQC", "is_storable": True})

@@ -3,6 +3,7 @@ from psycopg2 import sql
 
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.osv import expression
 
 
 _TRANSITION = object()
@@ -21,6 +22,50 @@ class ApprovalRequest(models.Model):
 
     previous_request_id = fields.Many2one('iatf.approval.request', readonly=True, copy=False, ondelete='restrict')
     snapshot = fields.Json(readonly=True, copy=False)
+    can_manage = fields.Boolean(compute='_compute_can_manage', search='_search_can_manage')
+
+    @api.model
+    def _approval_management_roles(self):
+        """Business modules opt in their existing document-management roles."""
+        return {}
+
+    @api.model
+    def _management_domain(self):
+        # Odoo expands record-rule domains with sudo while retaining the uid.
+        # Restore that user's ACLs/rules before querying the source document.
+        self = self.sudo(False)
+        domains = []
+        for model_name, group_xmlid in self._approval_management_roles().items():
+            if not self.env.user.has_group(group_xmlid):
+                continue
+            target = self.env[model_name].with_context(active_test=False)
+            if not target.has_access('read') or not target.has_access('write'):
+                continue
+            # Resolve at query time, not inside the cached ir.rule evaluation.
+            # The subquery applies read rules; add write rules and company scope.
+            domain = [('company_id', 'in', self.env.companies.ids)]
+            domain = expression.AND([domain, self.env['ir.rule']._compute_domain(model_name, 'write')])
+            domains.append([('res_model', '=', model_name), ('res_id', 'in', target._search(domain))])
+        return expression.OR(domains)
+
+    @api.model
+    def _search_can_manage(self, operator, value):
+        if operator not in ('=', '!=') or not isinstance(value, bool):
+            raise ValueError('can_manage supports boolean equality only')
+        domain = self._management_domain()
+        return domain if (value == (operator == '=')) else ['!'] + domain
+
+    @api.depends_context('uid', 'allowed_company_ids')
+    def _compute_can_manage(self):
+        # No request search here: its record rule itself uses can_manage.
+        roles = self._approval_management_roles()
+        for request in self:
+            group = roles.get(request.res_model)
+            target = request._get_target_record() if group else False
+            request.can_manage = bool(
+                group and self.env.user.has_group(group) and target.exists()
+                and target.has_access('read') and target.has_access('write')
+                and target.company_id in self.env.companies)
 
     @api.model
     def default_get(self, fields_list):
@@ -42,6 +87,8 @@ class ApprovalRequest(models.Model):
             if not target or target.approval_request_id != request:
                 raise UserError(_('현재 원문서의 결재 버전이 아닙니다.'))
             target.check_access(operation)
+            if 'company_id' in target._fields and target.company_id and target.company_id not in self.env.companies:
+                raise AccessError(_('현재 허용된 회사의 결재만 처리할 수 있습니다.'))
         return True
 
     def _lock_current(self, operation='write'):
@@ -120,7 +167,9 @@ class ApprovalLine(models.Model):
         if not trusted(self.env):
             if any(set(v) & {'state', 'action_date', 'note', 'is_current'} for v in vals_list):
                 raise AccessError(_('결재 판정은 승인/반려 동작으로만 기록됩니다.'))
-            self._check_editable_requests(self.env['iatf.approval.request'].browse([v.get('request_id') for v in vals_list if v.get('request_id')]))
+            default_request = self.default_get(['request_id']).get('request_id')
+            self._check_editable_requests(self.env['iatf.approval.request'].browse([
+                v.get('request_id', default_request) for v in vals_list if v.get('request_id', default_request)]))
         return super().create([dict(v, state='new', action_date=False, note=False) for v in vals_list])
 
     def write(self, vals):

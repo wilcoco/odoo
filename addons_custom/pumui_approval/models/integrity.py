@@ -7,6 +7,16 @@ _TOTALS = {'amount_total', 'amount_tax', 'amount_untaxed'}
 _LINE_TOTALS = {'price_subtotal', 'price_tax', 'price_total', 'invoiced'}
 
 
+class ApprovalRequest(models.Model):
+    _inherit = 'iatf.approval.request'
+
+    @api.model
+    def _approval_management_roles(self):
+        return dict(super()._approval_management_roles(), **{
+            'pumui.request': 'pumui_approval.group_pumui_manager',
+        })
+
+
 class PumuiRequest(models.Model):
     _inherit = 'pumui.request'
 
