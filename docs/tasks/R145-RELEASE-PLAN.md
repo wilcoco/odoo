@@ -45,12 +45,12 @@
 
 아래 항목이 하나라도 미완료면 운영 배포하지 않는다.
 
-1. 운영 사출품 BOM 정리 — **완료 확인**(서버 담당 쿼리 2026-09-17: 활성 사출품 BOM 6건 전부 injection/관리/활성, 표준 9건은 비활성): `select bom_purpose,is_escon_managed,active,count(*) from mrp_bom b join product_template t on t.id=b.product_tmpl_id where t.is_injection_part group by 1,2,3` (기대: injection/true/true 가 사출품 전부)
+1. 운영 사출품 BOM 정리 — **완료 확인**(서버 담당 쿼리 원문 2026-09-17: `injection|t|t|6`, `odoo_standard|f|f|9`, 2 rows. 활성 사출품 BOM 6건 전부 injection/관리/활성, 표준 9건 비활성 → 사출 계획이 읽는 조건 충족). **잔여 확인 1건**: 쿼리 합계 15건 vs 앞선 회신 "18건" 의 3건 차이(삭제·병합·다른 품목 분류 여부)를 서버 담당이 회신. 쿼리: `select bom_purpose,is_escon_managed,active,count(*) from mrp_bom b join product_template t on t.id=b.product_tmpl_id where t.is_injection_part group by 1,2,3` (기대: injection/true/true 가 사출품 전부)
 2. `release/r145-0b6f56b` 브랜치와 PR 생성 — **완료** (PR #9)
 3. PR 검토 및 `escon-odoo/odoo_gh main` 머지 완료
 4. 승인된 **40자리 릴리스 커밋 SHA** 확정
 5. 모듈별 원본→미러 매핑표 및 트리 해시 검증 완료 — **완료**(91모듈 동일, .vscode 제거 5모듈은 그 파일만 차이; PR 본문·release_mapping.json)
-6. `tools/uat_transplant_check.py` 또는 동등 검증 도구 통과
+6. `tools/uat_transplant_check.py` 통과 — **완료**(2026-09-17 개발 재실행, 미러 clone 에서 `--base origin/main --src release/r145-0b6f56b` 25모듈 닫힘 OK; 스크립트가 미러 배치를 인식하도록 정정, 릴리스 브랜치 bd454e5·정본 5d645c4). release_mapping.json 에 91모듈 트리 해시(uat/release/mirror main) 기록
 7. 운영 복제본에서 본 문서의 백업·업그레이드·설치·검증·복원 절차 전체 리허설 통과
 8. 운영 유지보수 시간 및 명시적 운영 승인 확보
 9. 새 Python 패키지 의존성 또는 이미지 재빌드 필요 여부 확인 — **완료: 신규 의존 없음, 재빌드 불필요**(비표준 import openpyxl/xlrd/oracledb/attr 등은 운영 코드에 기존재, freezegun 은 시험 전용)
@@ -106,8 +106,8 @@
 - `injection_planning` → 18.0.1.24.0
 - `injection_worksite` → 18.0.8.9.0
 - `supplier_portal_purchase` → 18.0.1.4.0
-- `gh_provisional_pricing` → 18.0.2.2.0 (버전 누락 정정: 저장 필드 retro_price_id 추가분)
-- `production_planning` → 18.0.1.1.0 (버전 누락 정정: R144 정책 ① 수요 잠금)
+- `gh_provisional_pricing` → 18.0.2.2.0 (운영 현재 18.0.2.1.0; 버전 누락 정정: 저장 필드 retro_price_id 추가분)
+- `production_planning` → 18.0.1.1.0 (운영 현재 18.0.1.0.0; 버전 누락 정정: R144 정책 ① 수요 잠금)
 
 ### 3.2 신규 설치 3개(명시)
 
@@ -259,7 +259,7 @@ docker compose -f "$compose_file" run \
 
 `set -o pipefail`이 적용된 상태에서 명령 종료 코드가 0인지 확인한다. `CRITICAL`, `Traceback`, migration 오류가 하나라도 있으면 신규 설치로 넘어가지 않는다.
 
-### 6.5 신규 모듈 2개 설치
+### 6.5 신규 모듈 3개 설치 (escon_br_intake, cams_sq_dashboard + mrp_bom_scan_guard 명시)
 
 ```bash
 install_log="$backup_dir/r145_install_${r145_ts}.log"
@@ -347,7 +347,7 @@ ORDER BY name;"
 다음을 확인한다.
 
 - 업그레이드 22개가 모두 `installed`이며 승인된 릴리스 매니페스트 버전과 일치
-- 신규 2개 및 `mrp_bom_scan_guard`가 `installed`
+- 신규 3개(`escon_br_intake`, `cams_sq_dashboard`, `mrp_bom_scan_guard`)가 `installed`
 - `cams_quality_rework`, `iatf_quality_precedence`가 미설치 또는 목록에 없음
 - `escon_web_trace`가 `uninstalled` 또는 목록에 없음
 
@@ -366,7 +366,7 @@ ORDER BY name;"
 
 - 운영 로그인 및 기본 메뉴 진입
 - 사출 계획 화면 열림
-- BOM 18건 정리 완료 후 대상 BOM 선택 및 MO 생성
+- 사출품 BOM(활성 injection 6건) 중 하나로 사출 계획에서 MO 생성
 - BR 생산지시표 조회
 - 작업자 목록 및 `escon_employee` 연동
 - 정산 원장 조회
@@ -481,7 +481,8 @@ docker compose -f "$compose_file" up -d odoo_green
 
 ## 10. 현재 남은 항목
 
-- 운영 사출품 BOM 18건 정리 확인 쿼리 회신
+- 사출품 BOM 쿼리 15건 vs 회신 18건의 3건 차이 설명 (원도영)
+- self-hosted CI 러너(`cams`) 배치 결정 — 개발 장비에 없음, 복제본 서버 권장 (원도영); 이번 릴리스는 CI 필수 체크 아님(브랜치 보호 없음)
 - PR #9 검토·머지 → 확정 릴리스 SHA(머지 후 40자리) 기록
 - 복제본 백업·업그레이드·복원 리허설
 - 운영 유지보수 일정 및 승인
