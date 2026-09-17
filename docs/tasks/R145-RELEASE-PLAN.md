@@ -3,13 +3,13 @@
 > odoo-uat `main` → `escon-odoo/odoo_gh` PR → 운영 `odoo18`
 
 - 작성 기준: 2026-09-17
-- UAT 기준: `odoo-uat main` **0b6f56b** (321530e + 버전 누락 정정 2건)
+- UAT 기준: `odoo-uat main` **be41a21** (321530e + 버전 누락 정정 2건 + supplier_portal_purchase 공백 정리)
 - 검증 후보: **bc8be21** → rc ed91279(버전 정정)
 - UAT 배포: **f588dec3**, SUCCESS, health 200, CRITICAL 0
 - 운영 미러 현재 기준: `escon-odoo/odoo_gh main` **0b36e7f**
 - 운영환경 실측: `escon-server`, 2026-09-17
 - 실행 주체: 서버 담당
-- 상태: **v2 — 릴리스 PR 생성됨(escon-odoo/odoo_gh #9, 브랜치 `release/r145-0b6f56b`, 커밋 27ae9bb259bf41083c39cb169ca01ee86cb3c852). 머지·복제본 리허설·승인 완료 전 운영 실행 금지**
+- 상태: **v2 — 릴리스 PR 생성됨(escon-odoo/odoo_gh #9, 브랜치 `release/r145-0b6f56b`, 커밋 6ce15c6ef6a4a5eec2b82b3a8b55b1568baff12d = 27ae9bb + 검증 증적). 머지·복제본 리허설·승인 완료 전 운영 실행 금지**
 - 원칙: 미러 `main` 직접 커밋 금지. 작업 브랜치 → PR → 머지 후 운영서버는 fast-forward만 수행한다.
 
 ## 0. 확정된 사용자 결정
@@ -45,7 +45,7 @@
 
 아래 항목이 하나라도 미완료면 운영 배포하지 않는다.
 
-1. 운영 사출품 BOM 18건의 목적 값 정리 완료 — 서버 담당 2026-09-17 '정리 완료' 보고. **확인 쿼리 결과 회신 필요**: `select bom_purpose,is_escon_managed,active,count(*) from mrp_bom b join product_template t on t.id=b.product_tmpl_id where t.is_injection_part group by 1,2,3` (기대: injection/true/true 가 사출품 전부)
+1. 운영 사출품 BOM 정리 — **완료 확인**(서버 담당 쿼리 2026-09-17: 활성 사출품 BOM 6건 전부 injection/관리/활성, 표준 9건은 비활성): `select bom_purpose,is_escon_managed,active,count(*) from mrp_bom b join product_template t on t.id=b.product_tmpl_id where t.is_injection_part group by 1,2,3` (기대: injection/true/true 가 사출품 전부)
 2. `release/r145-0b6f56b` 브랜치와 PR 생성 — **완료** (PR #9)
 3. PR 검토 및 `escon-odoo/odoo_gh main` 머지 완료
 4. 승인된 **40자리 릴리스 커밋 SHA** 확정
@@ -109,14 +109,15 @@
 - `gh_provisional_pricing` → 18.0.2.2.0 (버전 누락 정정: 저장 필드 retro_price_id 추가분)
 - `production_planning` → 18.0.1.1.0 (버전 누락 정정: R144 정책 ① 수요 잠금)
 
-### 3.2 신규 설치 2개
+### 3.2 신규 설치 3개(명시)
 
-- `escon_br_intake`
-- `cams_sq_dashboard`
+- `mrp_bom_scan_guard` (iatf_plugins, 18.0.1.0.4)
+- `escon_br_intake` (→ odoo_plugins)
+- `cams_sq_dashboard` (→ odoo_plugins; 의존 iatf_dashboard·cams_ops_process 운영 설치됨)
 
 의존성:
 
-- `escon_br_intake` 설치 시 기존 미러에 있으나 운영 DB에서 미설치 상태인 `mrp_bom_scan_guard`가 의존성으로 설치되어야 한다.
+- `mrp_bom_scan_guard`(미러에 있으나 운영 미설치)는 `escon_br_intake` 의 manifest 의존이 **아니므로** 자동 설치되지 않는다 → **-i 명령에 명시**(서버 담당 지적 반영). BR 접수·이종검사 관문 연동에 필요.
 
 ### 3.3 보류
 
@@ -144,7 +145,7 @@
 - 기존 `mrp_bom_scan_guard`는 현재 위치인 `iatf_plugins`를 유지한다.
 - 동일한 기술 모듈을 두 addons 디렉터리에 중복 배치하지 않는다.
 - `odoo-uat addons/` 원본과 미러 대상 모듈의 트리 해시를 비교한다.
-- 개발자는 `release/r145-321530e` 형태의 작업 브랜치를 만들고 PR을 연다.
+- 개발자는 `release/r145-0b6f56b` 형태의 작업 브랜치를 만들고 PR을 연다.
 - 서버 담당은 PR을 검토·머지하며 `main`에 직접 커밋하지 않는다.
 - PR 머지 후 정확한 40자리 SHA를 이 문서에 기록한다.
 
@@ -273,7 +274,7 @@ docker compose -f "$compose_file" run \
   --max-cron-threads=0 \
   --no-http \
   --stop-after-init \
-  -i escon_br_intake,cams_sq_dashboard \
+  -i mrp_bom_scan_guard,escon_br_intake,cams_sq_dashboard \
   2>&1 | tee "$install_log"
 ```
 
@@ -281,7 +282,7 @@ docker compose -f "$compose_file" run \
 
 - `escon_br_intake`: installed
 - `cams_sq_dashboard`: installed
-- `mrp_bom_scan_guard`: 의존성으로 installed
+- `mrp_bom_scan_guard`: installed(명시 설치)
 - `cams_quality_rework`: 설치하지 않음
 - `iatf_quality_precedence`: 설치하지 않음
 - `escon_web_trace`: uninstalled 유지
@@ -379,7 +380,7 @@ ORDER BY name;"
 
 ### 8.1 롤백 조건
 
-- 20개 업그레이드 또는 신규 설치가 비정상 종료
+- 22개 업그레이드 또는 신규 설치가 비정상 종료
 - registry 로드 실패
 - migration 오류
 - 핵심 화면 또는 업무 흐름 중단
@@ -429,7 +430,7 @@ docker compose -f "$compose_file" up -d odoo_green
 
 - `odoo_green` 실행
 - DB `odoo18` 연결
-- 이전 20개 모듈 버전 복원
+- 이전 22개 모듈 버전 복원
 - 로그인 및 주요 화면 정상
 - 파일스토어 첨부파일 조회
 - 런타임 로그에 registry 오류 없음
