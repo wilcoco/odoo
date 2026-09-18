@@ -1,0 +1,152 @@
+from odoo import Command
+from odoo.tests import TransactionCase, tagged
+
+from odoo.addons.account_kr_reports.tools import report_adjust
+
+
+@tagged("post_install", "-at_install")
+class TestReportAdjust(TransactionCase):
+    """표준 보고서·계정 설정 보정(tools/report_adjust.py) — 결함 복원 후 보정·멱등·사용자 수식 보존."""
+
+    def test_missing_optional_report_is_ignored(self):
+        """Enterprise 보고서가 없는 Community DB에서도 설치·업그레이드가 실패하지 않는다."""
+        expression = report_adjust._balance_expression(
+            self.env, "account_kr_reports.nonexistent_optional_report_line"
+        )
+        self.assertFalse(expression)
+
+    def _kr_expression(self, xmlid):
+        expression = report_adjust._balance_expression(self.env, xmlid)
+        if not expression:
+            self.skipTest("%s 없음 — l10n_kr_reports 미설치 DB" % xmlid)
+        return expression
+
+    def test_kr_pl_operating_income_subtracts_expenses(self):
+        expression = self._kr_expression("l10n_kr_reports.l10n_kr_pl_income")
+        expression.formula = "KR_GRP.balance + KR_EXP.balance"  # 표준 모듈의 결함 수식
+        report_adjust.fix_kr_pl_formulas(self.env)
+        self.assertEqual(expression.formula, "KR_GRP.balance - KR_EXP.balance")
+        self.assertEqual(report_adjust.fix_kr_pl_formulas(self.env), 0, "재실행 멱등")
+
+    def test_kr_pl_tax_expense_includes_corporate_tax_account(self):
+        expression = self._kr_expression("l10n_kr_reports.l10n_kr_pl_tax_expense")
+        expression.formula = "63"
+        report_adjust.fix_kr_pl_formulas(self.env)
+        self.assertEqual(expression.formula, "63 + 67")
+
+    def test_kr_pl_user_customized_formula_is_preserved(self):
+        expression = self._kr_expression("l10n_kr_reports.l10n_kr_pl_income")
+        custom = "KR_REV.balance - KR_COS.balance - KR_EXP.balance"
+        expression.formula = custom
+        report_adjust.fix_kr_pl_formulas(self.env)
+        self.assertEqual(expression.formula, custom, "예상 결함과 다른 수식은 건드리지 않음")
+
+    def test_upgrade_hook_reapplies_fix(self):
+        expression = self._kr_expression("l10n_kr_reports.l10n_kr_pl_income")
+        standard_expression = self._standard_operating_income_expression()
+        expression.formula = "KR_GRP.balance + KR_EXP.balance"  # 표준 모듈 업그레이드로 되돌아간 상황
+        standard_expression.formula = "GRP.balance + EXP.balance"
+        self.env["kr.fs.line"]._kr_adjust_standard_reports()
+        self.assertEqual(expression.formula, "KR_GRP.balance - KR_EXP.balance")
+        self.assertEqual(
+            standard_expression.formula,
+            "REV.balance - COS.balance - EXP.balance",
+        )
+
+    def test_non_operating_income_accounts_become_income_other(self):
+        Account = self.env["account.account"]
+        other = Account.create({"code": "429991", "name": "T-영업외수익", "account_type": "income"})
+        sales = Account.create({"code": "419991", "name": "T-매출", "account_type": "income"})
+        changed = report_adjust.fix_non_operating_income_types(self.env)
+        self.assertIn(other, changed)
+        self.assertEqual(other.account_type, "income_other")
+        self.assertEqual(sales.account_type, "income", "41 매출 계정은 그대로")
+        self.assertFalse(report_adjust.fix_non_operating_income_types(self.env), "재실행 멱등")
+
+    def test_sga_depreciation_account_becomes_expense(self):
+        Account = self.env["account.account"]
+        sga = Account.create({"code": "619991", "name": "T-감가상각비", "account_type": "expense_depreciation"})
+        other = Account.create({"code": "629991", "name": "T-영업외", "account_type": "expense_depreciation"})
+        report_adjust.fix_sga_depreciation_types(self.env)
+        self.assertEqual(sga.account_type, "expense")
+        self.assertEqual(other.account_type, "expense_depreciation", "61 외 계정은 그대로")
+
+    def _standard_operating_income_expression(self):
+        expression = report_adjust._balance_expression(
+            self.env,
+            "account_reports.account_financial_report_operating_income0",
+        )
+        if not expression:
+            self.skipTest("account_reports 기본 손익계산서 영업이익 라인 없음")
+        return expression
+
+    def test_standard_pl_operating_income_subtracts_expenses(self):
+        expression = self._standard_operating_income_expression()
+        for wrong in (
+            "GRP.balance + EXP.balance",
+            "REV.balance - COS.balance + EXP.balance",
+        ):
+            with self.subTest(wrong=wrong):
+                expression.formula = wrong
+                self.assertTrue(report_adjust.fix_standard_pl_operating_income(self.env))
+                self.assertEqual(
+                    expression.formula,
+                    "REV.balance - COS.balance - EXP.balance",
+                )
+        self.assertFalse(
+            report_adjust.fix_standard_pl_operating_income(self.env),
+            "재실행 멱등",
+        )
+
+    def test_standard_pl_custom_operating_income_is_preserved(self):
+        expression = self._standard_operating_income_expression()
+        custom = "REV.balance - COS.balance - EXP.balance + CUSTOM.balance"
+        expression.formula = custom
+        self.assertFalse(report_adjust.fix_standard_pl_operating_income(self.env))
+        self.assertEqual(expression.formula, custom)
+
+    def test_standard_pl_net_profit_subtracts_tax_line(self):
+        report = self.env.ref("account_reports.profit_and_loss", raise_if_not_found=False)
+        if not report:
+            self.skipTest("account_reports 미설치")
+        net_line = report.line_ids.filtered(lambda l: l.code == "NEP")[:1]
+        if not net_line:
+            self.skipTest("기본 손익계산서 NEP 라인 없음")
+        if not report.line_ids.filtered(lambda l: l.code == "TAX"):
+            self.env["account.report.line"].create({
+                "report_id": report.id, "name": "법인세등", "code": "TAX", "sequence": 95,
+                "expression_ids": [Command.create({
+                    "label": "balance", "engine": "domain",
+                    "formula": "[('account_id.code', '=', '670001')]", "subformula": "sum",
+                })],
+            })
+        net_expression = net_line.expression_ids.filtered(lambda e: e.label == "balance")
+        net_expression.formula = "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance"
+        self.assertTrue(report_adjust.fix_standard_pl_net_profit_tax(self.env))
+        self.assertEqual(
+            net_expression.formula,
+            "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance - TAX.balance",
+        )
+        self.assertFalse(report_adjust.fix_standard_pl_net_profit_tax(self.env), "재실행 멱등")
+
+    def test_standard_pl_custom_net_profit_is_preserved(self):
+        report = self.env.ref("account_reports.profit_and_loss", raise_if_not_found=False)
+        if not report:
+            self.skipTest("account_reports 미설치")
+        tax_line = report.line_ids.filtered(lambda l: l.code == "TAX")[:1]
+        if not tax_line:
+            tax_line = self.env["account.report.line"].create({
+                "report_id": report.id, "name": "법인세등", "code": "TAX", "sequence": 95,
+                "expression_ids": [Command.create({
+                    "label": "balance", "engine": "domain",
+                    "formula": "[('account_id.code', '=', '670001')]", "subformula": "sum",
+                })],
+            })
+        net_line = report.line_ids.filtered(lambda l: l.code == "NEP")[:1]
+        if not tax_line or not net_line:
+            self.skipTest("기본 손익계산서 TAX 또는 NEP 라인 없음")
+        net_expression = net_line.expression_ids.filtered(lambda e: e.label == "balance")
+        custom = "REV.balance + OIN.balance - COS.balance - EXP.balance - OEXP.balance - CUSTOM.balance"
+        net_expression.formula = custom
+        self.assertFalse(report_adjust.fix_standard_pl_net_profit_tax(self.env))
+        self.assertEqual(net_expression.formula, custom)

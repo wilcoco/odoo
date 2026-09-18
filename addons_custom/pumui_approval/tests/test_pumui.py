@@ -1,4 +1,4 @@
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -48,6 +48,69 @@ class TestPumui(TransactionCase):
             "invoice_line_ids": [(0, 0, {"name": "x", "quantity": 1, "price_unit": 100})]})
         with self.assertRaises(UserError):
             move.action_post()
+
+    def test_manual_vendor_bills_can_share_matching_purchase_request(self):
+        p = self._pumui()
+        first = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "partner_id": self.partner.id,
+            "invoice_date": "2026-07-01",
+            "pumui_id": p.id,
+            "invoice_line_ids": [(0, 0, {
+                "name": "월도품 1차",
+                "quantity": 1,
+                "price_unit": 40000,
+            })],
+        })
+        second = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "partner_id": self.partner.id,
+            "invoice_date": "2026-08-01",
+            "pumui_id": p.id,
+            "invoice_line_ids": [(0, 0, {
+                "name": "월도품 2차",
+                "quantity": 1,
+                "price_unit": 60000,
+            })],
+        })
+
+        self.assertEqual(first.pumui_id, p)
+        self.assertEqual(second.pumui_id, p)
+        self.assertEqual(p.move_count, 2)
+        self.assertAlmostEqual(p.invoiced_amount, 100000.0, delta=0.01)
+        self.assertAlmostEqual(p.uninvoiced_amount, 0.0, delta=0.01)
+        self.assertAlmostEqual(p.amount_diff, 0.0, delta=0.01)
+        with self.assertRaises(UserError):
+            p.action_create_invoice()
+        with self.assertRaises(UserError):
+            p.unlink()
+
+    def test_manual_pumui_link_rejects_wrong_partner_or_document_type(self):
+        p = self._pumui()
+        other_partner = self.env["res.partner"].create({"name": "다른 거래처"})
+
+        with self.assertRaises(ValidationError):
+            self.env["account.move"].create({
+                "move_type": "in_invoice",
+                "partner_id": other_partner.id,
+                "invoice_date": "2026-07-01",
+                "pumui_id": p.id,
+            })
+        with self.assertRaises(ValidationError):
+            self.env["account.move"].create({
+                "move_type": "out_invoice",
+                "partner_id": self.partner.id,
+                "invoice_date": "2026-07-01",
+                "pumui_id": p.id,
+            })
+
+    def test_vendor_bill_form_allows_draft_pumui_selection(self):
+        arch = self.env.ref("pumui_approval.view_move_form_pumui").arch_db
+
+        self.assertIn('name="pumui_id" string="품의서"', arch)
+        self.assertIn('readonly="state != \'draft\'"', arch)
+        self.assertIn("('pumui_type', '=', 'purchase')", arch)
+        self.assertIn('string="품의 결재상태"', arch)
 
     def test_full_chain_and_reconcile(self):
         p = self._pumui()

@@ -86,6 +86,53 @@ class IatfMoldCheck(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.mold.check") or _("New")
         return super().create(vals_list)
 
+    # 완료 뒤에도 고칠 수 있는 것. 그 외 필드는 완료 점검표에서 잠근다.
+    _DONE_EDITABLE = {"state", "notes", "message_main_attachment_id"}
+
+    def write(self, vals):
+        """완료된 점검표의 사실(날짜·금형·항목)은 바꿀 수 없다.
+
+        완료 실적은 '그때 그렇게 점검했다' 는 증빙이다. 완료 후 날짜를 옮기거나
+        항목을 갈아끼우면 증빙이 아니라 편집물이 된다. 고쳐야 하면 '작성 중' 으로
+        되돌리고(상태 변경은 chatter 에 남는다) 고친 뒤 다시 완료한다.
+        (2026-09-10 제3자 검토 Q10)
+        """
+        locked = self.filtered(lambda r: r.state == "done")
+        touched = set(vals) - self._DONE_EDITABLE
+        if locked and touched and vals.get("state", "done") == "done":
+            raise ValidationError(_(
+                "완료된 점검표는 수정할 수 없습니다: %(names)s\n"
+                "고치려면 먼저 '작성 중' 으로 되돌리십시오. (변경 항목: %(fields)s)",
+                names=", ".join(locked.mapped("name")), fields=", ".join(sorted(touched))))
+        return super().write(vals)
+
+    @api.constrains("check_date")
+    def _check_date_not_future(self):
+        """미래 날짜 점검은 실적이 아니다.
+
+        차기 예정일이 최근 점검일에서 계산되므로, 미래 날짜로 기록하면 미실시
+        목록에서 사라진다 — '아직 하지 않은 점검' 을 이행한 것처럼 만드는 경로다.
+        점검 시트에는 있던 규칙이 금형 점검엔 빠져 있었다. (제3자 검토 Q10)
+        """
+        today = fields.Date.context_today(self)
+        for rec in self:
+            if rec.check_date and rec.check_date > today:
+                raise ValidationError(_(
+                    "점검일(%(date)s)을 미래로 지정할 수 없습니다. 오늘은 %(today)s 입니다.",
+                    date=rec.check_date, today=today))
+
+    @api.constrains("state", "line_ids")
+    def _check_done_is_complete(self):
+        """완료 상태의 백스톱. `write({'state': 'done'})` 우회를 막는다.
+
+        `action_done` 의 검사는 버튼 경로에만 걸린다. API·가져오기로 상태만 'done'
+        으로 쓰면 판정이 비어 있는 점검표가 실적으로 집계된다. (제3자 검토 Q10)
+        """
+        for rec in self:
+            if rec.state == "done" and rec.overall_result == "pending":
+                raise ValidationError(_(
+                    "판정이 비어 있는 항목이 있어 완료 상태로 둘 수 없습니다. (%s)", rec.name))
+
     def action_done(self):
         """완료 처리. 판정이 덜 된 점검표는 완료할 수 없다.
 
@@ -205,6 +252,40 @@ class IatfMoldCheckLine(models.Model):
                     low=rec.spec_min or "-", high=rec.spec_max or "-",
                     judged=labels.get(judged), given=labels.get(rec.result) or _("미판정"),
                 ))
+            # 기준이 있는 항목에 측정값 없이 '양호/불량' 을 넣는 경로를 막는다.
+            # 측정값 0(미기입)은 판정 불가이므로 결과도 비어 있어야 한다. 이걸
+            # 열어 두면 상한이 있는 항목을 재지 않고 '양호' 로 채울 수 있다.
+            # (제3자 검토 Q12 — 순수 함수 재현으로 실제 뚫림을 확인함)
+            if judged == "no_value" and rec.result in ("ok", "ng"):
+                raise ValidationError(_(
+                    "'%(item)s' 은 기준(%(low)s ~ %(high)s)이 있는 항목입니다. 측정값 없이 "
+                    "'%(given)s' 을 기록할 수 없습니다. 측정값을 적으면 자동 판정됩니다.",
+                    item=rec.item_name, low=rec.spec_min or "-", high=rec.spec_max or "-",
+                    given=labels.get(rec.result)))
+
+    def write(self, vals):
+        """완료된 점검표의 항목은 고칠 수 없다. 부모의 잠금과 같은 이유다."""
+        locked = self.filtered(lambda l: l.check_id.state == "done")
+        if locked:
+            raise ValidationError(_(
+                "완료된 점검표(%s)의 항목은 수정할 수 없습니다. 먼저 '작성 중' 으로 되돌리십시오.",
+                ", ".join(locked.mapped("check_id.name"))))
+        return super().write(vals)
+
+    def unlink(self):
+        """완료된 점검표의 항목은 지울 수 없다. 지운 뒤에는 부모를 다시 검사한다.
+
+        자식 삭제는 부모의 `@api.constrains("line_ids")` 를 트리거하지 않는다.
+        """
+        locked = self.filtered(lambda l: l.check_id.state == "done")
+        if locked:
+            raise ValidationError(_(
+                "완료된 점검표(%s)의 항목은 삭제할 수 없습니다.",
+                ", ".join(locked.mapped("check_id.name"))))
+        parents = self.check_id
+        res = super().unlink()
+        parents.exists()._check_done_is_complete()
+        return res
 
     @api.constrains("spec_min", "spec_max")
     def _check_spec_range(self):
