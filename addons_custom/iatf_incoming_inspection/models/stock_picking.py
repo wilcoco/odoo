@@ -32,38 +32,29 @@ class StockPicking(models.Model):
         return res
 
     def _create_iqc_inspections(self):
-        """입고 완료 시 제품별 수입검사 레코드 자동 생성"""
-        IQC = self.env["iatf.incoming.inspection"]
-        for move in self.move_ids.filtered(lambda m: m.state == "done" and m.product_id.type != "service"):
-            supplier = self.partner_id
-            if not supplier:
-                continue
-            vals = {
-                "picking_id": self.id,
-                "purchase_id": self.origin and self._get_purchase_order_id() or False,
-                "supplier_id": supplier.id,
-                "product_id": move.product_id.id,
-                "lot_id": move.lot_ids[:1].id if move.lot_ids else False,
-                "quantity_received": move.quantity,
-                "quantity_inspected": move.quantity,
-                "inspection_type": "sampling",
-            }
-            iqc = IQC.create(vals)
-            # 로트에 품질 보류 설정 (L3-1)
-            if move.lot_ids:
-                move.lot_ids.write({
-                    "quality_hold": True,
-                    "hold_reason": _("IQC 검사 대기: %s") % iqc.name,
+        """One draft per actual receipt detail; the stock transaction owns scope."""
+        from .iqc_service import service
+        self.check_access('write')
+        IQC = service(self.env['iatf.incoming.inspection'].sudo())
+        for picking in self:
+            if not self.env.su and picking.company_id not in self.env.companies:
+                raise UserError(_('허용된 회사의 입고만 검사 대상으로 만들 수 있습니다.'))
+            for line in picking.move_ids.move_line_ids.filtered(lambda l: l.state == 'done' and l.iqc_receipt_managed and l.quantity > 0):
+                self.env.cr.execute('UPDATE stock_move_line SET write_date=write_date WHERE id=%s', [line.id])
+                if IQC.search_count([('receipt_move_line_id', '=', line.id)], limit=1):
+                    continue
+                po_line = line.move_id.purchase_line_id
+                IQC.create({
+                    'receipt_move_line_id': line.id,
+                    'receipt_snapshot': IQC._iqc_receipt_values(line),
+                    'picking_id': picking.id, 'company_id': line.company_id.id,
+                    'purchase_id': po_line.order_id.id if po_line else False,
+                    'supplier_id': picking.partner_id.id, 'product_id': line.product_id.id,
+                    'product_uom_id': line.product_uom_id.id,
+                    'lot_id': line.lot_id.id, 'quantity_received': line.quantity,
+                    'quantity_inspected': 0, 'inspector_id': False,
+                    'inspection_type': 'sampling', 'state': 'draft',
                 })
-            _logger.info("IQC auto-created: %s for picking %s, product %s",
-                         iqc.name, self.name, move.product_id.name)
-
-    def _get_purchase_order_id(self):
-        """origin 필드에서 PO 찾기"""
-        if self.origin:
-            po = self.env["purchase.order"].search([("name", "=", self.origin)], limit=1)
-            return po.id if po else False
-        return False
 
     def action_view_iqc(self):
         self.ensure_one()
@@ -80,11 +71,54 @@ class StockPicking(models.Model):
 class StockMove(models.Model):
     _inherit = "stock.move"
 
+    def _is_held_output_into_stock(self):
+        """**제조 산출물이 보류 재고로 들어오는** 이동인가.
+
+        [아스트라 20260911-15] 이 격리 후보에 한해 배정된 수정이다.
+        기존 조건은 `raw_material_production_id or production_id` 였는데
+        `production_id` 는 **완제품 move 필드**다(이 파일 주석에도 그렇게 적혀 있다).
+        그래서 보류 LOT 의 **완제품 입고 move 자체가 막혔고**, 불량 실물이 재고에
+        잡힐 방법이 없었다 — 「추적 가능한 격리 재고에 남긴다」가 성립하지 않았다.
+
+        **`production_id` 가 있다는 이유만으로 면제하지 않는다.** 아래를 전부 확인한다.
+          - 실제 제조오더가 있고, 그 오더의 **완제품**(또는 승인된 부산물)이다
+          - 회사가 같다
+          - **출발이 생산 위치**(`usage == 'production'`)이고
+          - **도착이 같은 회사 내부 재고**다 (고객·공급자 등 외부 직송은 제외)
+          - 수량이 **양수**다 (역방향·음수 이동 제외)
+          - 원재료 소비 이동이 아니다
+        """
+        self.ensure_one()
+        mo = self.production_id
+        if not mo or self.raw_material_production_id:
+            return False
+        if self.company_id and mo.company_id and self.company_id != mo.company_id:
+            return False
+        finished = mo.move_finished_ids
+        if self not in finished:
+            return False
+        if self.location_id.usage != 'production':
+            return False
+        if self.location_dest_id.usage != 'internal':
+            return False
+        if self.location_dest_id.company_id and self.company_id \
+                and self.location_dest_id.company_id != self.company_id:
+            return False
+        quantity = self.quantity if 'quantity' in self._fields else self.product_uom_qty
+        if not quantity or quantity <= 0:
+            return False
+        return True
+
     def _kr_check_held_lots(self, stage):
-        """원자재 소비 move 의 보류 로트 차단. raw_material_production_id 가 원자재 move 의
-        정확한 링크 (기존 production_id 는 완제품 move 필드 — 투입을 못 거르던 결함 교정)."""
+        """보류 로트의 **유출**을 막는다. 제조 산출물의 **유입**은 막지 않는다.
+
+        원재료 소비와 보류 완제품의 고객출하·다른 생산 투입은 그대로 막힌다."""
         for move in self:
             if not (move.raw_material_production_id or move.production_id):
+                continue
+            if move._is_held_output_into_stock():
+                # 실물은 이미 만들어졌다. 보류 재고로 **들어오는** 것까지 막으면
+                # 어디에도 기록되지 않는다. 쓰는 것은 하류에서 막는다.
                 continue
             lots = move.lot_ids | move.move_line_ids.lot_id
             held = lots.filtered(lambda l: l.quality_hold)

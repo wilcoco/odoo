@@ -1,10 +1,12 @@
 import json
+import math
 from datetime import datetime
 
 from odoo import http, fields, _
 from odoo.http import request
-from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.addons.portal.controllers.portal import CustomerPortal
+from ..models.scm_utils import _PORTAL_SCOPE
 
 
 def _to_int(value, default=0):
@@ -26,6 +28,17 @@ def _to_float(value, default=0.0):
 class SupplierPortalController(http.Controller):
     """협력사 포탈 컨트롤러"""
 
+    def _activate_portal_scope(self, partner):
+        company = request.env.company
+        try:
+            partner._scm_check_portal_company(company, user=request.env.user)
+        except AccessError as exc:
+            raise AccessDenied(str(exc)) from exc
+        request.update_env(context=dict(request.env.context,
+            allowed_company_ids=company.ids,
+            _scm_portal_scope=(_PORTAL_SCOPE, partner.id, company.id)))
+        return request.env["res.partner"].browse(partner.id)
+
     def _validate_portal_access(self, token):
         """협력사 반환 — 아이디/비번 로그인 우선, 없으면 토큰(공존).
 
@@ -39,7 +52,7 @@ class SupplierPortalController(http.Controller):
         if user and not user._is_public():
             partner = user.partner_id.commercial_partner_id
             if partner.is_supplier_portal:
-                return partner
+                return self._activate_portal_scope(partner)
             # 로그인은 됐으나 협력사 계정이 아니면(내부/타 포탈) 토큰으로 재시도
         # 2) 토큰 방식 (기존) — 빈 값·데모·짧은 토큰 거부
         if not token or token.startswith("demo_token_") or len(token) < 20:
@@ -59,17 +72,17 @@ class SupplierPortalController(http.Controller):
         if expiry and expiry < fields.Date.context_today(partner):
             raise AccessDenied(_("접근 토큰이 만료되었습니다. 담당자에게 재발급을 요청하세요."))
 
-        return partner
+        return self._activate_portal_scope(partner)
 
     def _validate_po_access(self, po_id, token):
         """PO 접근 권한 검증"""
         partner = self._validate_portal_access(token)
 
-        po = request.env["purchase.order"].sudo().browse(int(po_id))
+        po = request.env["purchase.order"].sudo().search([("id", "=", int(po_id)), ("company_id", "=", request.env.company.id)], limit=1)
         if not po.exists():
             raise AccessDenied(_("발주서를 찾을 수 없습니다."))
 
-        if po.partner_id.id != partner.id:
+        if po.partner_id.id != partner.id or po.company_id != request.env.company:
             raise AccessDenied(_("이 발주서에 대한 접근 권한이 없습니다."))
 
         return partner, po
@@ -96,7 +109,7 @@ class SupplierPortalController(http.Controller):
             ("auto_generated", "=", True),
         ]
         po_stats = {
-            state: PO.search_count(base_domain + [("portal_state", "=", state)])
+            state: PO.search_count(base_domain + [("portal_state", "=", state)] + [("company_id", "=", request.env.company.id)])
             for state in ("new", "responded", "approved", "rejected", "done")
         }
 
@@ -111,7 +124,7 @@ class SupplierPortalController(http.Controller):
             ("portal_state", "in", ["approved", "responded"]),
             ("date_planned", ">=", today),
             ("date_planned", "<=", week_later),
-        ], order="date_planned asc", limit=5)
+        ] + [("company_id", "=", request.env.company.id)], order="date_planned asc", limit=5)
 
         return request.render("supplier_portal_purchase.portal_dashboard", {
             "partner": partner,
@@ -148,11 +161,11 @@ class SupplierPortalController(http.Controller):
         # 페이징
         page = int(page)
         per_page = 10
-        total = PO.search_count(domain)
+        total = PO.search_count(domain + [("company_id", "=", request.env.company.id)])
         offset = (page - 1) * per_page
 
         orders = PO.search(
-            domain,
+            domain + [("company_id", "=", request.env.company.id)],
             order="create_date desc",
             limit=per_page,
             offset=offset,
@@ -220,14 +233,10 @@ class SupplierPortalController(http.Controller):
         Response = request.env["purchase.order.response"].sudo()
         LineResponse = request.env["purchase.order.line.response"].sudo()
 
-        response = Response.create({
-            "purchase_order_id": po.id,
-            "response_type": response_type,
-            "note": note,
-        })
+        line_values = []
 
         # 품목별 응답 생성
-        for line in po.order_line:
+        for line in po.order_line.filtered(lambda item: not item.display_type):
             if response_type == "full_accept":
                 # 전체 승인: 요청대로
                 confirmed_qty = line.product_qty
@@ -245,14 +254,15 @@ class SupplierPortalController(http.Controller):
                 else:
                     confirmed_date = line.date_planned.date() if line.date_planned else fields.Date.today()
 
-            LineResponse.create({
-                "response_id": response.id,
+            line_values.append((0, 0, {
                 "order_line_id": line.id,
                 "confirmed_qty": confirmed_qty,
                 "confirmed_date": confirmed_date,
                 "line_note": post.get(f"note_{line.id}", ""),
-            })
+            }))
 
+        Response.create({"purchase_order_id": po.id, "response_type": response_type,
+            "note": note, "line_response_ids": line_values})
         return request.redirect(f"/supplier/po/{po_id}?token={token}&success=1")
 
     # ─────────────────────────────────────────────
@@ -267,9 +277,7 @@ class SupplierPortalController(http.Controller):
             return {"success": False, "error": "access_denied"}
 
         if notification_id:
-            notification = request.env["supplier.portal.notification"].sudo().browse(
-                int(notification_id)
-            )
+            notification = request.env["supplier.portal.notification"].sudo().search([("id", "=", int(notification_id)), ("company_id", "=", request.env.company.id)], limit=1)
             if notification.exists() and notification.partner_id.id == partner.id:
                 notification.action_mark_read()
 
@@ -286,7 +294,7 @@ class SupplierPortalController(http.Controller):
         notifications = request.env["supplier.portal.notification"].sudo().search([
             ("partner_id", "=", partner.id),
             ("is_read", "=", False),
-        ])
+        ] + [("company_id", "=", request.env.company.id)])
         notifications.action_mark_read()
 
         return {"success": True}
@@ -311,7 +319,7 @@ class SupplierPortalController(http.Controller):
             ("partner_id", "=", partner.id),
             ("auto_generated", "=", True),
             ("portal_state", "=", "approved"),
-        ], order="date_planned asc")
+        ] + [("company_id", "=", request.env.company.id)], order="date_planned asc")
 
         # 납품 완료 (최근 30일)
         thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
@@ -320,7 +328,7 @@ class SupplierPortalController(http.Controller):
             ("auto_generated", "=", True),
             ("portal_state", "=", "done"),
             ("date_planned", ">=", thirty_days_ago),
-        ], order="date_planned desc", limit=20)
+        ] + [("company_id", "=", request.env.company.id)], order="date_planned desc", limit=20)
 
         return request.render("supplier_portal_purchase.portal_delivery", {
             "partner": partner,
@@ -352,13 +360,13 @@ class SupplierPortalController(http.Controller):
         elif filter == "completed":
             domain.append(("state", "=", "completed"))
 
-        all_statuses = Status.search(domain, order="expected_date asc")
+        all_statuses = Status.search(domain + [("company_id", "=", request.env.company.id)], order="expected_date asc")
 
         # 처리 필요 건 (알림받음, 확정, 출하 상태)
         pending_actions = Status.search([
             ("supplier_id", "=", partner.id),
             ("state", "in", ["notified", "confirmed", "shipped"]),
-        ], order="expected_date asc")
+        ] + [("company_id", "=", request.env.company.id)], order="expected_date asc")
 
         return request.render("supplier_portal_purchase.portal_supply_chain", {
             "partner": partner,
@@ -380,7 +388,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Status = request.env["supply.chain.order.status"].sudo()
-        status = Status.browse(status_id)
+        status = Status.search([("id", "=", status_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if status.exists() and status.supplier_id.id == partner.id:
             status.action_confirm()
@@ -399,7 +407,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Status = request.env["supply.chain.order.status"].sudo()
-        status = Status.browse(status_id)
+        status = Status.search([("id", "=", status_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if status.exists() and status.supplier_id.id == partner.id:
             status.action_ship()
@@ -408,7 +416,7 @@ class SupplierPortalController(http.Controller):
                 next_status = Status.search([
                     ("chain_order_id", "=", status.chain_order_id.id),
                     ("tier_id", "=", status.next_tier_id.id),
-                ], limit=1)
+                ] + [("company_id", "=", request.env.company.id)], limit=1)
                 if next_status and next_status.state == "pending":
                     next_status.action_notify()
 
@@ -426,7 +434,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Status = request.env["supply.chain.order.status"].sudo()
-        status = Status.browse(status_id)
+        status = Status.search([("id", "=", status_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if status.exists() and status.supplier_id.id == partner.id:
             status.action_complete()
@@ -445,7 +453,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Status = request.env["supply.chain.order.status"].sudo()
-        status = Status.browse(status_id)
+        status = Status.search([("id", "=", status_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if not status.exists() or status.supplier_id.id != partner.id:
             return request.redirect(f"/supplier/supply-chain?token={token}")
@@ -468,7 +476,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Status = request.env["supply.chain.order.status"].sudo()
-        status = Status.browse(status_id)
+        status = Status.search([("id", "=", status_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if status.exists() and status.supplier_id.id == partner.id:
             status.write({
@@ -496,6 +504,7 @@ class SupplierPortalController(http.Controller):
         Product = request.env["product.product"].sudo()
         products = Product.search([
             ("is_outsourced", "=", True),
+            ("company_id", "in", [False, request.env.company.id]),
             ("outsource_partner_id", "=", partner.id),
         ])
 
@@ -504,7 +513,7 @@ class SupplierPortalController(http.Controller):
         chain_statuses = Status.search([
             ("supplier_id", "=", partner.id),
             ("state", "not in", ["completed", "issue"]),
-        ])
+        ] + [("company_id", "=", request.env.company.id)])
         chain_products = chain_statuses.mapped("chain_order_id.product_id")
         products |= chain_products
 
@@ -519,14 +528,14 @@ class SupplierPortalController(http.Controller):
                 ("next_supplier_id", "=", partner.id),
                 ("chain_order_id.product_id", "=", product.id),
                 ("state", "in", ["confirmed", "shipped"]),
-            ])
+            ] + [("company_id", "=", request.env.company.id)])
 
             # 출고 예정 (내가 하위로)
             outgoing = Status.search_count([
                 ("supplier_id", "=", partner.id),
                 ("chain_order_id.product_id", "=", product.id),
                 ("state", "in", ["notified", "confirmed"]),
-            ])
+            ] + [("company_id", "=", request.env.company.id)])
 
             incoming_count += incoming
             outgoing_count += outgoing
@@ -574,11 +583,11 @@ class SupplierPortalController(http.Controller):
 
         page = int(page)
         per_page = 10
-        total = Order.search_count(domain)
+        total = Order.search_count(domain + [("company_id", "=", request.env.company.id)])
         offset = (page - 1) * per_page
 
         orders = Order.search(
-            domain,
+            domain + [("company_id", "=", request.env.company.id)],
             order="create_date desc",
             limit=per_page,
             offset=offset,
@@ -609,11 +618,13 @@ class SupplierPortalController(http.Controller):
         suppliers = request.env["res.partner"].sudo().search([
             ("is_supplier_portal", "=", True),
             ("id", "!=", partner.id),
+            ("supplier_portal_company_ids", "in", request.env.company.ids),
         ])
 
         # 제품 목록
         products = request.env["product.product"].sudo().search([
             ("is_outsourced", "=", True),
+            ("company_id", "in", [False, request.env.company.id]),
         ])
 
         return request.render("supplier_portal_purchase.portal_new_order", {
@@ -645,7 +656,7 @@ class SupplierPortalController(http.Controller):
             return request.redirect(f"/supplier/orders/new?token={token}&error=missing_fields")
 
         # 입력값 검증 — 음수·0 수량, 형식 오류·과거 납기 차단
-        if quantity <= 0:
+        if not math.isfinite(quantity) or quantity <= 0:
             return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_qty")
         try:
             req_date = datetime.strptime(date_required, "%Y-%m-%d").date()
@@ -656,10 +667,11 @@ class SupplierPortalController(http.Controller):
 
         # 스푸핑 방지: 판매자·품목이 폼 허용집합(new_order_form)에 속하는지 서버측 재검증.
         seller = request.env["res.partner"].sudo().browse(seller_id)
-        if not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id:
+        if (not seller.exists() or not seller.is_supplier_portal or seller.id == partner.id
+                or request.env.company not in seller.sudo().supplier_portal_company_ids):
             return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_seller")
         product = request.env["product.product"].sudo().browse(product_id)
-        if not product.exists() or not product.is_outsourced:
+        if not product.exists() or product not in seller._scm_supply_products(request.env.company):
             return request.redirect(f"/supplier/orders/new?token={token}&error=invalid_product")
 
         order = Order.create({
@@ -687,7 +699,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Order = request.env["supplier.order"].sudo()
-        order = Order.browse(order_id)
+        order = Order.search([("id", "=", order_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if not order.exists() or order.buyer_partner_id.id != partner.id:
             return request.redirect(f"/supplier/orders?token={token}&error=access_denied")
@@ -711,7 +723,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Order = request.env["supplier.order"].sudo()
-        order = Order.browse(order_id)
+        order = Order.search([("id", "=", order_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if order.exists() and order.buyer_partner_id.id == partner.id:
             try:
@@ -743,11 +755,11 @@ class SupplierPortalController(http.Controller):
 
         page = int(page)
         per_page = 10
-        total = Order.search_count(domain)
+        total = Order.search_count(domain + [("company_id", "=", request.env.company.id)])
         offset = (page - 1) * per_page
 
         orders = Order.search(
-            domain,
+            domain + [("company_id", "=", request.env.company.id)],
             order="create_date desc",
             limit=per_page,
             offset=offset,
@@ -776,7 +788,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Order = request.env["supplier.order"].sudo()
-        order = Order.browse(order_id)
+        order = Order.search([("id", "=", order_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if not order.exists() or order.seller_partner_id.id != partner.id:
             return request.redirect(f"/supplier/incoming-orders?token={token}&error=access_denied")
@@ -800,7 +812,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Order = request.env["supplier.order"].sudo()
-        order = Order.browse(order_id)
+        order = Order.search([("id", "=", order_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
             try:
@@ -823,7 +835,7 @@ class SupplierPortalController(http.Controller):
             })
 
         Order = request.env["supplier.order"].sudo()
-        order = Order.browse(order_id)
+        order = Order.search([("id", "=", order_id), ("company_id", "=", request.env.company.id)], limit=1)
 
         if order.exists() and order.seller_partner_id.id == partner.id:
             try:
@@ -853,13 +865,13 @@ class SupplierPortalController(http.Controller):
         pending = Order.search([
             ("buyer_partner_id", "=", partner.id),
             ("state", "=", "shipped"),
-        ], order="date_required asc")
+        ] + [("company_id", "=", request.env.company.id)], order="date_required asc")
 
         # 입고 예정 (확정됨, 아직 출하 안됨)
         upcoming = Order.search([
             ("buyer_partner_id", "=", partner.id),
             ("state", "=", "confirmed"),
-        ], order="date_required asc")
+        ] + [("company_id", "=", request.env.company.id)], order="date_required asc")
 
         # 최근 입고 완료 (30일)
         thirty_days_ago = fields.Date.subtract(fields.Date.today(), days=30)
@@ -867,7 +879,7 @@ class SupplierPortalController(http.Controller):
             ("buyer_partner_id", "=", partner.id),
             ("state", "=", "received"),
             ("date_received", ">=", thirty_days_ago),
-        ], order="date_received desc", limit=20)
+        ] + [("company_id", "=", request.env.company.id)], order="date_received desc", limit=20)
 
         return request.render("supplier_portal_purchase.portal_receiving", {
             "partner": partner,
@@ -893,7 +905,7 @@ class SupplierPortalController(http.Controller):
         Inventory = request.env["supplier.inventory"].sudo()
         inventory_items = Inventory.search([
             ("partner_id", "=", partner.id),
-        ])
+        ] + [("company_id", "=", request.env.company.id)])
 
         return request.render("supplier_portal_purchase.portal_my_inventory", {
             "partner": partner,
@@ -915,13 +927,21 @@ class SupplierPortalController(http.Controller):
         Inventory = request.env["supplier.inventory"].sudo()
 
         product_id = _to_int(post.get("product_id"))
-        quantity = _to_float(post.get("quantity"))
+        try:
+            quantity = float(post.get("quantity"))
+        except (TypeError, ValueError):
+            return request.redirect(f"/supplier/my-inventory?token={token}&error=invalid_inventory")
+
+        product = request.env["product.product"].sudo().browse(product_id).exists()
+        if (not product or not math.isfinite(quantity) or quantity < 0
+                or product not in partner._scm_supply_products(request.env.company)):
+            return request.redirect(f"/supplier/my-inventory?token={token}&error=invalid_inventory")
 
         if product_id:
             inv = Inventory.search([
                 ("partner_id", "=", partner.id),
                 ("product_id", "=", product_id),
-            ], limit=1)
+            ] + [("company_id", "=", request.env.company.id)], limit=1)
 
             if inv:
                 inv.write({

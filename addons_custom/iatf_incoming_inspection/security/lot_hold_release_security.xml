@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_lot_hold_quality" model="res.groups">
+        <field name="name">LOT 보류 해제 품질책임자</field>
+        <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_lot_hold_production" model="res.groups">
+        <field name="name">LOT 보류 해제 생산책임자</field>
+        <field name="category_id" ref="iatf_document_control.module_category_iatf"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="lot_hold_policy_company_rule" model="ir.rule">
+        <field name="name">LOT release policy allowed companies</field>
+        <field name="model_id" ref="model_iatf_lot_hold_policy"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="lot_hold_release_company_rule" model="ir.rule">
+        <field name="name">LOT release allowed companies</field>
+        <field name="model_id" ref="model_iatf_lot_hold_release"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

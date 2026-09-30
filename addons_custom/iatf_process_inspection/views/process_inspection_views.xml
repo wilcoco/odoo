@@ -10,6 +10,7 @@
                 <field name="inspection_date"/>
                 <field name="product_id"/>
                 <field name="production_id"/>
+                            <field name="picking_id"/>
                 <field name="quantity_inspected"/>
                 <field name="defect_rate"/>
                 <field name="result"/>
@@ -67,6 +68,7 @@
                         </group>
                         <group>
                             <field name="production_id"/>
+                            <field name="picking_id"/>
                             <field name="workcenter_id"/>
                             <field name="control_plan_id"/>
                             <field name="inspector_id"/>
@@ -75,6 +77,8 @@
                     </group>
                     <group>
                         <group string="수량">
+                            <field name="quantity_uom_id"/>
+                            <field name="inspection_type"/>
                             <field name="quantity_produced"/>
                             <field name="quantity_inspected"/>
                             <field name="quantity_accepted"/>

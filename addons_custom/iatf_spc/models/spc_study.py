@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 import math
 
 
@@ -45,7 +45,20 @@ class IatfSpcStudy(models.Model):
     nominal = fields.Float(string="목표값")
 
     # ── Subgroup config ──
-    subgroup_size = fields.Integer(string="부분군 크기 (n)", default=5)
+    subgroup_size = fields.Integer(
+        string="부분군 크기 (n)", default=5,
+        help="한 부분군의 표본 수. 측정 칸이 x1~x10 뿐이라 1~10 만 쓸 수 있다.")
+    incomplete_subgroup_count = fields.Integer(
+        string="미완성 부분군 수", readonly=True,
+        help="표본이 n 개에 못 미쳐 관리한계·공정능력 계산에서 제외한 부분군 수. "
+             "0 이 아니면 그만큼의 측정이 아직 분석에 반영되지 않았다는 뜻이다.")
+    unknown_basis_subgroup_count = fields.Integer(
+        string="근거불명 부분군 수", readonly=True,
+        help="어느 칸을 실제로 입력했는지 알 수 없어 이번 분석에서 제외한 과거 부분군 수. "
+             "원자료와 이미 저장된 보고값은 그대로 보존한다.")
+    excluded_reason_note = fields.Char(
+        string="분석 제외 사유", readonly=True,
+        help="이번 분석에서 무엇을 왜 뺐는지. 계산할 때마다 다시 적는다.")
 
     # ── Data ──
     subgroup_ids = fields.One2many("iatf.spc.subgroup", "study_id", string="부분군")
@@ -104,6 +117,20 @@ class IatfSpcStudy(models.Model):
     D4_TABLE = {2: 3.267, 3: 2.575, 4: 2.282, 5: 2.114,
                 6: 2.004, 7: 1.924, 8: 1.864, 9: 1.816, 10: 1.777}
 
+    @api.constrains("subgroup_size")
+    def _check_subgroup_size(self):
+        """부분군 크기는 측정 칸 수(10)를 넘을 수 없다.
+
+        넘겨 두면 어떤 부분군도 완성군이 될 수 없어 관리한계가 조용히 계산되지 않는다.
+        (아스트라 후속 과제 — 군 크기 검사)
+        """
+        for study in self:
+            if study.subgroup_size and not 1 <= study.subgroup_size <= 10:
+                raise ValidationError(_(
+                    "부분군 크기는 1~10 이어야 합니다(측정 칸이 x1~x10 뿐입니다). "
+                    "입력값: %(size)s (%(name)s)",
+                    size=study.subgroup_size, name=study.title or study.display_name))
+
     @api.depends("subgroup_ids")
     def _compute_stats(self):
         for rec in self:
@@ -121,6 +148,21 @@ class IatfSpcStudy(models.Model):
 
     def action_calculate(self):
         for study in self:
+            if not any(sg._eligibility()[1] for sg in study.subgroup_ids):
+                unknown = study.subgroup_ids.filtered(
+                    lambda sg: sg._eligibility()[2] == "excluded_unknown")
+                if unknown:
+                    # 근거불명 군만 남은 경우 — 무엇이 왜 막혔는지 분명히 말한다.
+                    raise UserError(_(
+                        "분석에 쓸 수 있는 부분군이 없습니다. 완성 부분군 %(count)d건은 "
+                        "어느 칸을 실제로 입력했는지 기록이 없어(입력 칸 미기록) 새 분석에서 "
+                        "제외했습니다.\n원자료와 이미 저장된 보고값은 그대로 보존됩니다. "
+                        "해당 부분군의 입력 표본 수를 확인해 기입한 뒤 다시 계산하십시오. (%(name)s)",
+                        count=len(unknown), name=study.name))
+                raise UserError(_(
+                    "완성된 부분군이 없습니다. 부분군 크기(n=%(n)s)만큼 표본이 모인 군이 "
+                    "하나도 없으면 관리한계·공정능력을 계산할 수 없습니다. (%(name)s)",
+                    n=study.subgroup_size or 5, name=study.name))
             study._calculate_control_limits()
             study._calculate_capability()
             study._count_ooc()
@@ -139,15 +181,45 @@ class IatfSpcStudy(models.Model):
             return
 
         n = self.subgroup_size or 5
+        # **완성된 부분군만** 쓴다. n=5 상수로 A2/D3/D4 를 적용하면서 표본이 1개뿐인
+        # 부분군을 함께 넣으면, 그 군의 범위 0 이 평균 범위를 끌어내려 관리한계가
+        # 실제보다 좁아진다(그러면 정상 공정이 이탈로 찍힌다). 반대로 평균은
+        # 적은 표본에 끌려간다. 재현: 제3자 재검토 R07 — n=5 완성군(평균10/범위4) 과
+        # 1개만 모인 군(20) 을 함께 분석해 전체 평균 15 / 평균범위 2 가 나왔다.
+        # [아스트라 후속] 근거불명 군(어느 칸을 입력했는지 모르는 과거 기록)도 뺀다.
+        # 추정으로 읽은 값을 새 관리한계·새 승인근거의 바탕으로 쓰지 않는다.
+        # [275 리뷰 Q275-04] 저장된 표시가 아니라 **원자료에서 지금 다시 판정한다.**
+        # 저장 필드만 손으로 바꿔 제외 규칙을 우회하는 경로를 없앤다.
+        verdicts = {sg.id: sg._eligibility() for sg in subgroups}
+        usable = subgroups.filtered(lambda sg: verdicts[sg.id][1])
+        incomplete = subgroups.filtered(
+            lambda sg: verdicts[sg.id][2] == "excluded_incomplete")
+        unknown = subgroups.filtered(
+            lambda sg: verdicts[sg.id][2] == "excluded_unknown")
+        reasons = []
+        if incomplete:
+            reasons.append(_("미완성 %d건") % len(incomplete))
+        if unknown:
+            reasons.append(_("근거불명(입력 칸 미기록) %d건") % len(unknown))
+        self.incomplete_subgroup_count = len(incomplete)
+        self.unknown_basis_subgroup_count = len(unknown)
+        self.excluded_reason_note = (
+            _("분석 대상 %(used)d건 / 제외 %(note)s",
+              used=len(usable), note=", ".join(reasons))
+            if reasons else _("제외 없음 (분석 대상 %d건)") % len(usable))
         means = []
         ranges = []
-        for sg in subgroups:
+        for sg in usable:
             vals = sg._get_values()
             if vals:
                 means.append(sum(vals) / len(vals))
                 ranges.append(max(vals) - min(vals))
 
         if not means:
+            # 완성된 부분군이 하나도 없으면 관리한계를 만들지 않는다.
+            # 0 으로 채운 한계는 "계산했다" 는 착각만 준다.
+            self.write({"grand_mean": 0.0, "mean_range": 0.0, "ucl_xbar": 0.0,
+                        "lcl_xbar": 0.0, "ucl_range": 0.0, "lcl_range": 0.0})
             return
 
         x_dbar = sum(means) / len(means)
@@ -180,7 +252,8 @@ class IatfSpcStudy(models.Model):
         # Overall std dev from all individual values
         all_vals = []
         for sg in self.subgroup_ids:
-            all_vals.extend(sg._get_values())
+            if sg._eligibility()[1]:
+                all_vals.extend(sg._get_values())
 
         if len(all_vals) > 1:
             mean_all = sum(all_vals) / len(all_vals)
@@ -225,22 +298,31 @@ class IatfSpcStudy(models.Model):
         })
 
     def _count_ooc(self):
+        """관리 이탈 판정 — **분석 대상 군만** 본다.
+
+        이탈 판정은 부적합을 자동 생성하는 새 승인근거다. 어느 칸을 입력했는지 모르는
+        과거 기록을 추정해서 그런 판정을 새로 내리지 않는다. 그런 군의 기존 `is_ooc`
+        값은 그대로 둔다 — 이미 저장된 보고값을 덮어쓰지 않기 위해서다.
+        (아스트라 2026-09-10 후속)
+        """
         self.ensure_one()
         ooc = 0
         for sg in self.subgroup_ids:
+            if not sg._eligibility()[1]:
+                continue                      # 기존 값 보존 — 지우지도 세지도 않는다
             vals = sg._get_values()
-            if vals:
-                sg_mean = sum(vals) / len(vals)
-                sg_range = max(vals) - min(vals)
-                is_ooc = (
-                    sg_mean > self.ucl_xbar or sg_mean < self.lcl_xbar
-                    or sg_range > self.ucl_range
-                )
-                sg.is_ooc = is_ooc
-                if is_ooc:
-                    ooc += 1
-            else:
+            if not vals:
                 sg.is_ooc = False
+                continue
+            sg_mean = sum(vals) / len(vals)
+            sg_range = max(vals) - min(vals)
+            is_ooc = (
+                sg_mean > self.ucl_xbar or sg_mean < self.lcl_xbar
+                or sg_range > self.ucl_range
+            )
+            sg.is_ooc = is_ooc
+            if is_ooc:
+                ooc += 1
         self.ooc_count = ooc
         if ooc > 0:
             self._auto_create_spc_nc(ooc)

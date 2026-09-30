@@ -1,5 +1,6 @@
 import base64
 import io
+import math
 import re
 from datetime import date, datetime
 
@@ -43,10 +44,19 @@ def _norm(s):
 def _to_float(v):
     if v in (None, ""):
         return 0.0
-    if isinstance(v, (int, float)):
-        return float(v)
-    s = re.sub(r"[^\d.\-]", "", str(v))
-    return float(s) if s not in ("", "-", ".") else 0.0
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        result = float(v)
+    else:
+        # 잘못된 값에서 숫자만 추출하면 '오류100원'도 정상 100원으로 반입된다.
+        s = str(v).strip()
+        s = re.sub(r"^[₩￦]\s*", "", s)
+        s = re.sub(r"\s*원$", "", s)
+        if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", s):
+            raise UserError(_("금액을 읽지 못했습니다 (%s)") % v)
+        result = float(s.replace(",", ""))
+    if not math.isfinite(result):
+        raise UserError(_("유한한 금액이 필요합니다 (%s)") % v)
+    return result
 
 
 def _to_date(v):
@@ -164,7 +174,6 @@ class KrTaxInvoiceImport(models.TransientModel):
         head_idx, cmap = self._find_header(rows)
 
         Move = self.env["account.move"]
-        Partner = self.env["res.partner"]
         company = self.env.company
         is_sale = self.direction == "out_invoice"
 
@@ -194,105 +203,30 @@ class KrTaxInvoiceImport(models.TransientModel):
                 dup += 1
                 continue
 
-            d = _to_date(cell("date"))
-            if not d:
-                errors.append(_("%s행: 작성일자를 읽지 못했습니다 (%s)") % (line_no, cell("date")))
-                continue
-
-            supply = _to_float(cell("supply"))
-            tax_amt = _to_float(cell("tax"))
-            total = _to_float(cell("total"))
-            if total and abs((supply + tax_amt) - total) > 1.0:
-                errors.append(_("%s행: 공급가액+세액(%s) 과 합계금액(%s) 이 다릅니다")
-                              % (line_no, supply + tax_amt, total))
-                continue
-
-            vat = _clean_vat(cell("vat"))
-            pname = str(cell("partner") or "").strip()
-            partner = Partner.browse()
-            if vat:
-                partner = Partner.search(
-                    [("vat", "in", (vat, self._dashed(vat)))], limit=1)
-            if not partner and pname:
-                partner = Partner.search([("name", "=", pname)], limit=1)
-            if not partner:
-                if not self.create_partner:
-                    skipped.append(_("%s행: 미등록 거래처 %s (%s)")
-                                   % (line_no, pname or "(상호없음)", self._dashed(vat) or "-"))
-                    continue
-                partner = Partner.create({
-                    "name": pname or self._dashed(vat) or _("미상 거래처"),
-                    "vat": self._dashed(vat) or False,
-                    "company_type": "company",
-                    ("supplier_rank" if not is_sale else "customer_rank"): 1,
-                })
-
-            kind = str(cell("kind") or "")
-            if tax_amt > 0:
-                kr_tax_type, doc_type = "taxable", "tax_invoice"
-            elif any(k in kind for k in DOC_KIND_ZERO):
-                kr_tax_type, doc_type = "zero", "tax_invoice"
-            elif any(k in kind for k in DOC_KIND_EXEMPT):
-                kr_tax_type, doc_type = "exempt", "invoice"
-            else:
-                kr_tax_type, doc_type = "exempt", "tax_invoice"
-
-            tax = self._pick_tax(is_sale, tax_amt, supply, company)
-            if tax_amt > 0 and not tax:
-                # 세액이 있는데 세금 코드를 못 찾으면 **만들지 않는다** —
-                # 그대로 넣으면 부가세가 조용히 누락된 전표가 된다
-                errors.append(_("%s행: 세액 %s 에 맞는 세금 코드를 찾지 못했습니다 "
-                                "(회계 설정 › 세금 확인 후 다시 시도)") % (line_no, tax_amt))
-                continue
-            label = str(cell("item") or "").strip() or _("세금계산서 반입")
-
-            # 한국 세목은 기본이 **내부포함(price included)** 이다 —
-            # 그 경우 단가에 세액을 포함한 금액을 넣어야 공급가액/세액이 파일과 일치한다
-            price_unit = supply + tax_amt if (tax and tax.price_include) else supply
-            vals = {
-                "move_type": self.direction,
-                "partner_id": partner.id,
-                "invoice_date": d,
-                "kr_approval_number": approval,
-                "kr_doc_type": doc_type,
-                "kr_tax_type": kr_tax_type,
-                "kr_tax_type_manual": True,
-                "invoice_line_ids": [(0, 0, {
-                    "name": label,
-                    "quantity": 1,
-                    "price_unit": price_unit,
-                    "tax_ids": [(6, 0, tax.ids)] if tax else [(5, 0, 0)],
-                })],
-            }
-            origin = str(cell("origin") or "").strip()
-            if origin:
-                vals["kr_origin_number"] = origin
             try:
-                # 세이브포인트로 **행 단위 롤백**. 없으면 create 가 중간까지 진행된 뒤
-                # 예외가 나도 그 부분 생성분이 트랜잭션에 남아, 결과는 "생성 0건" 인데
-                # 초안 청구서가 실제로 생기는 상태가 된다.
+                # 파트너 생성부터 전표·라인의 지연 제약까지 한 행 전체를 격리한다.
+                # 성공 목록은 savepoint 종료 후 갱신해야 롤백된 ID가 남지 않는다.
                 with self.env.cr.savepoint():
-                    mv = Move.create(vals)
-                    mv.flush_recordset()   # 지연 제약을 세이브포인트 **안에서** 터뜨린다
-                created.append(mv.id)
-                seen_in_file.add(approval_key)
-            except Exception as e:  # noqa: BLE001 — 한 행 실패가 전체를 막지 않게
-                errors.append(_("%s행: 생성 실패 — %s") % (line_no, str(e)[:120]))
+                    mv, skip_reason = self._import_row(cell, approval, company, is_sale)
+                if skip_reason:
+                    skipped.append(_("%s행: %s") % (line_no, skip_reason))
+                else:
+                    created.append(mv.id)
+                    seen_in_file.add(approval_key)
+            except Exception as e:  # noqa: BLE001 — 행 실패 후 다음 행을 계속 처리
+                errors.append(_("%s행: 생성 실패 — %s") % (line_no, str(e)[:160]))
 
         moves = Move.browse(created)
         posted = 0
-        if self.post_moves and moves:
-            # 게시도 건별 세이브포인트로 격리한다. 한꺼번에 게시하면 뒤쪽 한 건이
-            # 실패할 때 앞서 게시된 것까지 되돌아가거나, 반대로 일부만 게시된 채
-            # 남는다. 어느 쪽이든 "무엇이 게시됐는지" 를 말할 수 없게 된다.
+        if self.post_moves:
             for mv in moves:
                 try:
                     with self.env.cr.savepoint():
                         mv.action_post()
                     posted += 1
-                except Exception as e:  # noqa: BLE001
-                    errors.append(_("%(name)s 게시 실패(초안으로 남김) — %(err)s")
-                                  % {"name": mv.name or mv.id, "err": str(e)[:150]})
+                except Exception as e:  # noqa: BLE001 — 실패 건만 초안으로 유지
+                    errors.append(_("%(approval)s 게시 실패(초안으로 남김) — %(err)s")
+                                  % {"approval": mv.kr_approval_number, "err": str(e)[:150]})
 
         self.result = self._summary(cmap, len(created), dup, skipped, errors,
                                     posted=posted if self.post_moves else None)
@@ -309,6 +243,97 @@ class KrTaxInvoiceImport(models.TransientModel):
             "domain": [("id", "in", created)],
         }
 
+    def _import_row(self, cell, approval, company, is_sale):
+        """호출자의 행 단위 savepoint 안에서만 실행한다."""
+        d = _to_date(cell("date"))
+        if not d:
+            raise UserError(_("작성일자를 읽지 못했습니다 (%s)") % cell("date"))
+        if cell("supply") in (None, ""):
+            raise UserError(_("공급가액이 비어 있습니다."))
+        supply = _to_float(cell("supply"))
+        tax_amt = _to_float(cell("tax"))
+        total_cell = cell("total")
+        total = _to_float(total_cell)
+        currency = company.currency_id
+        if total_cell not in (None, "") and currency.compare_amounts(supply + tax_amt, total):
+            raise UserError(_("공급가액+세액(%s) 과 합계금액(%s) 이 다릅니다")
+                            % (supply + tax_amt, total))
+        if tax_amt and (not supply or supply * tax_amt < 0):
+            raise UserError(_("공급가액과 세액의 부호 또는 세율을 확인하세요."))
+
+        kind = str(cell("kind") or "")
+        if tax_amt:
+            kr_tax_type, doc_type = "taxable", "tax_invoice"
+        elif any(k in kind for k in DOC_KIND_ZERO):
+            kr_tax_type, doc_type = "zero", "tax_invoice"
+        elif any(k in kind for k in DOC_KIND_EXEMPT):
+            kr_tax_type, doc_type = "exempt", "invoice"
+        else:
+            kr_tax_type, doc_type = "exempt", "tax_invoice"
+        tax = self._pick_tax(is_sale, tax_amt, supply, company)
+        if tax_amt and not tax:
+            raise UserError(_("세액 %s 에 맞는 세금 코드를 찾지 못했습니다 "
+                              "(회계 설정 › 세금 확인 후 다시 시도)") % tax_amt)
+
+        Partner = self.env["res.partner"]
+        # 여러 회사가 활성화돼 있어도 이번 반입 회사와 공유 거래처만 선택한다.
+        partner_domain = [("company_id", "in", (False, company.id))]
+        vat = _clean_vat(cell("vat"))
+        pname = str(cell("partner") or "").strip()
+        partner = Partner.browse()
+        if vat:
+            partner = Partner.search(partner_domain + [
+                ("vat", "in", (vat, self._dashed(vat)))], limit=1)
+        if not partner and pname:
+            partner = Partner.search(partner_domain + [("name", "=", pname)], limit=1)
+        if not partner:
+            if not self.create_partner:
+                return False, _("미등록 거래처 %s (%s)") % (
+                    pname or "(상호없음)", self._dashed(vat) or "-")
+            partner = Partner.create({
+                "name": pname or self._dashed(vat) or _("미상 거래처"),
+                "vat": self._dashed(vat) or False,
+                "company_type": "company",
+                ("supplier_rank" if not is_sale else "customer_rank"): 1,
+            })
+
+        # Odoo 환불 전표는 양수 금액+refund 유형으로 취소 방향을 나타낸다.
+        # 파일의 음수 공급가액/세액은 둘 다 보존해 검산한다.
+        sign = -1 if supply < 0 else 1
+        move_type = self.direction.replace("_invoice", "_refund") if sign < 0 else self.direction
+        price_unit = (supply + tax_amt if tax and tax.price_include else supply) * sign
+        vals = {
+            "move_type": move_type,
+            "company_id": company.id,
+            "currency_id": currency.id,
+            "partner_id": partner.id,
+            "invoice_date": d,
+            "kr_approval_number": approval,
+            "kr_doc_type": doc_type,
+            "kr_tax_type": kr_tax_type,
+            "kr_tax_type_manual": True,
+            "invoice_line_ids": [(0, 0, {
+                "name": str(cell("item") or "").strip() or _("세금계산서 반입"),
+                "quantity": 1,
+                "price_unit": price_unit,
+                "tax_ids": [(6, 0, tax.ids)],
+            })],
+        }
+        origin = str(cell("origin") or "").strip()
+        if origin:
+            vals["kr_origin_number"] = origin
+        mv = self.env["account.move"].with_company(company).create(vals)
+        for label, actual, expected in (
+            (_("공급가액"), mv.amount_untaxed * sign, supply),
+            (_("세액"), mv.amount_tax * sign, tax_amt),
+            (_("합계금액"), mv.amount_total * sign, supply + tax_amt),
+        ):
+            if currency.compare_amounts(actual, expected):
+                raise UserError(_("계산된 %(label)s %(actual)s 이 파일 금액 %(expected)s 과 다릅니다. "
+                                  "세금 설정과 원본 금액을 확인하세요.")
+                                % {"label": label, "actual": actual, "expected": expected})
+        return mv, False
+
     # ── 도우미 ────────────────────────────────────────────────
     @staticmethod
     def _dashed(vat):
@@ -317,7 +342,7 @@ class KrTaxInvoiceImport(models.TransientModel):
 
     def _pick_tax(self, is_sale, tax_amt, supply, company):
         """세액이 있으면 10% 세금, 없으면 세금 없음. 회사 기본 세금을 우선 사용."""
-        if tax_amt <= 0:
+        if not tax_amt:
             return self.env["account.tax"].browse()
         use = "sale" if is_sale else "purchase"
         rate = round(tax_amt / supply * 100.0) if supply else 10

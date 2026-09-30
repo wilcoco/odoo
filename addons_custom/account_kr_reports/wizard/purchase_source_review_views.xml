@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_kr_purchase_source_review_form" model="ir.ui.view">
+        <field name="name">kr.purchase.source.review.form</field>
+        <field name="model">kr.purchase.source.review</field>
+        <field name="arch" type="xml">
+            <form string="매입 원천 중복 후보 검토">
+                <group>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <div class="alert alert-info" role="alert">
+                    같은 금액이 서로 다른 경로로 청구됐는지 검토합니다.
+                    후보가 실제 중복인지는 계약·마감명세·구매 및 세금 증빙으로 확인하세요.
+                </div>
+                <field name="result" invisible="not result"/>
+                <field name="line_ids" readonly="1">
+                    <list create="0" edit="0" delete="0">
+                        <field name="partner_id"/>
+                        <field name="move_type"/>
+                        <field name="source_labels"/>
+                        <field name="currency_id" column_invisible="True"/>
+                        <field name="amount_untaxed"/>
+                        <field name="amount_tax"/>
+                        <field name="invoice_count"/>
+                        <button name="action_open_invoices" type="object" string="전표 보기"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_review" type="object" string="검토 후보 조회" class="btn-primary"/>
+                    <button string="닫기" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_kr_purchase_source_review" model="ir.actions.act_window">
+        <field name="name">매입 원천 중복 후보 검토</field>
+        <field name="res_model">kr.purchase.source.review</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_kr_purchase_source_review" name="매입 원천 중복 후보 검토"
+              parent="account_kr_guard.menu_kr_guard_root" action="action_kr_purchase_source_review"
+              sequence="92" groups="account.group_account_invoice"/>
+</odoo>

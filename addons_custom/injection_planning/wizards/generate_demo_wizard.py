@@ -1,7 +1,8 @@
 import logging
 from datetime import date, timedelta
 
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import AccessError
 
 _logger = logging.getLogger(__name__)
 
@@ -26,6 +27,10 @@ class GenerateDemoWizard(models.TransientModel):
 
     def action_generate(self):
         """샘플 데이터 일괄 생성"""
+        # 메뉴·액션 숨김만으로는 RPC 호출을 막지 못한다. 품목의 관리 BOM 까지
+        # 지우는 도구이므로 시스템 관리자 외에는 실행 자체를 거부한다.
+        if not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("샘플 데이터 생성은 시스템 관리자만 실행할 수 있습니다."))
         self.ensure_one()
         summary = []
 

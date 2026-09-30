@@ -1,6 +1,11 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from dateutil.relativedelta import relativedelta
+from markupsafe import escape
+
+
+_WORKFLOW_CONTEXT = '_iatf_document_workflow'
+_WORKFLOW_TOKEN = object()
 
 
 class IatfDocument(models.Model):
@@ -61,8 +66,8 @@ class IatfDocument(models.Model):
     )
     reviewer_id = fields.Many2one("res.users", string="검토자", tracking=True)
     approver_id = fields.Many2one("res.users", string="승인자", tracking=True)
-    review_date = fields.Date(string="검토일")
-    approval_date = fields.Date(string="승인일")
+    review_date = fields.Date(string="검토일", readonly=True, copy=False)
+    approval_date = fields.Date(string="승인일", readonly=True, copy=False)
     next_review_date = fields.Date(
         string="다음 검토일",
         help="Periodic review date as required by IATF 16949 §7.5.3.1",
@@ -128,24 +133,92 @@ class IatfDocument(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        defaults = self.default_get(['state', 'review_date', 'approval_date'])
         for vals in vals_list:
+            effective = dict(defaults, **vals)
+            if (effective.get('state', 'draft') != 'draft'
+                    or effective.get('approval_date') or effective.get('review_date')):
+                raise UserError(_('새 문서는 초안으로 작성한 뒤 검토와 승인을 진행하십시오.'))
             if vals.get("doc_number", _("New")) == _("New"):
                 vals["doc_number"] = self.env["ir.sequence"].next_by_code("iatf.document") or _("New")
         return super().create(vals_list)
+
+    def write(self, vals):
+        workflow = self.env.context.get(_WORKFLOW_CONTEXT) is _WORKFLOW_TOKEN
+        self._lock_document()
+        content = {'name', 'description', 'doc_number', 'doc_type', 'category_id', 'owner_id',
+                   'department_id', 'company_id', 'current_revision', 'revision_date',
+                   'attachment_ids', 'external_origin', 'retention_years'}
+        if not workflow and content & vals.keys() and any(doc.state != 'draft' for doc in self):
+            raise UserError(_('검토·승인한 문서 내용은 회수 또는 새 개정으로 변경하십시오.'))
+        if not workflow and {'state', 'review_date', 'approval_date'} & vals.keys():
+            raise UserError(_('문서 상태와 승인일은 검토·승인·회수 메뉴로만 변경할 수 있습니다.'))
+        if not workflow and {'reviewer_id', 'approver_id', 'company_id'} & vals.keys():
+            if any(doc.state != 'draft' for doc in self):
+                raise UserError(_('검토자·승인자·회사는 문서를 초안으로 회수한 뒤 변경하십시오.'))
+        return super().write(vals)
+
+    def _lock_document(self):
+        self.check_access('write')
+        if self.ids:
+            self.flush_recordset()
+            self.env.cr.execute('SELECT id FROM iatf_document WHERE id IN %s ORDER BY id FOR UPDATE',
+                                [tuple(self.ids)])
+            self.invalidate_recordset()
+        if any(doc.company_id and doc.company_id not in self.env.companies for doc in self):
+            raise AccessError(_('허용된 회사의 문서만 처리할 수 있습니다.'))
+
+    def copy(self, default=None):
+        default = dict(default or {})
+        default.update(state='draft', review_date=False, approval_date=False)
+        return super().copy(default)
+
+    def unlink(self):
+        self._lock_document()
+        if any(doc.state in ('approved', 'obsolete') or doc.revision_ids for doc in self):
+            raise UserError(_('승인 문서와 개정 이력은 삭제하지 말고 폐기 상태로 보존하십시오.'))
+        return super().unlink()
+
+    def _workflow_write(self, vals):
+        self.check_access('write')
+        return self.with_context(**{_WORKFLOW_CONTEXT: _WORKFLOW_TOKEN}).write(vals)
+
+    def _check_approval_actor(self):
+        self.check_access('write')
+        if self.ids:
+            self.flush_recordset(['state', 'approver_id', 'company_id'])
+            self.env.cr.execute(
+                'SELECT id FROM iatf_document WHERE id IN %s ORDER BY id FOR UPDATE',
+                [tuple(self.ids)])
+            self.invalidate_recordset(['state', 'approver_id', 'company_id'])
+        for doc in self:
+            if doc.company_id and doc.company_id not in self.env.companies:
+                raise AccessError(_('현재 허용된 회사의 문서만 승인할 수 있습니다.'))
+            if doc.state != 'review':
+                raise UserError(_('검토 중인 문서만 승인할 수 있습니다.'))
+            if not doc.approver_id:
+                raise UserError(_('문서 승인자를 지정하십시오.'))
+            if (doc.approver_id != self.env.user
+                    or not self.env.user.has_group('iatf_document_control.group_document_manager')):
+                raise AccessError(_('지정된 문서 승인자이면서 문서관리 책임자 권한이 있어야 승인할 수 있습니다.'))
+            if (not doc.approver_id.active or doc.approver_id.share
+                    or (doc.company_id and doc.company_id not in doc.approver_id.company_ids)):
+                raise AccessError(_('승인자의 활성 상태와 소속 회사를 확인하십시오.'))
 
     # ── Workflow actions ──
 
     def action_submit_review(self):
         for doc in self:
+            if doc.state != 'draft':
+                raise UserError(_('초안 문서만 검토를 요청할 수 있습니다.'))
             if not doc.reviewer_id:
                 raise UserError(_("Please assign a Reviewer before submitting for review."))
-            doc.write({"state": "review", "review_date": fields.Date.today()})
+            doc._workflow_write({"state": "review", "review_date": fields.Date.today()})
 
     def action_approve(self):
+        self._check_approval_actor()
         for doc in self:
-            if not doc.approver_id:
-                raise UserError(_("Please assign an Approver."))
-            doc.write({
+            doc._workflow_write({
                 "state": "approved",
                 "approval_date": fields.Date.today(),
             })
@@ -153,29 +226,51 @@ class IatfDocument(models.Model):
                 doc.next_review_date = fields.Date.today() + relativedelta(years=1)
 
     def action_obsolete(self):
-        self.write({"state": "obsolete"})
+        self._lock_document()
+        if not self.env.user.has_group('iatf_document_control.group_document_manager'):
+            raise AccessError(_('문서관리 책임자만 승인 문서를 폐기할 수 있습니다.'))
+        self._workflow_write({"state": "obsolete"})
 
     def action_reset_draft(self):
-        self.write({"state": "draft", "review_date": False, "approval_date": False})
+        self._lock_document()
+        if any(doc.state in ('approved', 'obsolete') for doc in self):
+            raise UserError(_('승인 문서는 새 개정을 만들어 이전 승인 내용을 보존하십시오.'))
+        self._workflow_write({"state": "draft", "review_date": False, "approval_date": False})
 
     def action_new_revision(self):
         self.ensure_one()
+        self._lock_document()
+        if not self.env.user.has_group('iatf_document_control.group_document_manager'):
+            raise AccessError(_('문서관리 책임자만 새 개정을 시작할 수 있습니다.'))
         if self.state != "approved":
             raise UserError(_("Only approved documents can be revised."))
         # Create revision record for current version
-        self.env["iatf.document.revision"].create({
+        revision = self.env["iatf.document.revision"].with_context(
+            **{_WORKFLOW_CONTEXT: _WORKFLOW_TOKEN}).create({
             "document_id": self.id,
             "revision_number": self.current_revision,
             "revision_date": self.revision_date or self.approval_date or fields.Date.today(),
             "reason": _("Superseded by new revision"),
             "revised_by": self.env.user.id,
+            "approved_by": self.approver_id.id,
+            "change_description": self.description,
+            "snapshot_name": self.name,
+            "snapshot_approval_date": self.approval_date,
         })
+        # Duplicate the binary attachment records so editing a future revision
+        # cannot replace the bytes attached to this historical revision.
+        copies = self.env['ir.attachment']
+        for attachment in self.attachment_ids:
+            attachment.check_access('read')
+            copies |= attachment.copy({'res_model': 'iatf.document.revision', 'res_id': revision.id})
+        revision.with_context(**{_WORKFLOW_CONTEXT: _WORKFLOW_TOKEN}).write(
+            {'attachment_ids': [(6, 0, copies.ids)]})
         # Increment revision
         try:
             next_rev = str(int(self.current_revision) + 1).zfill(2)
         except (ValueError, TypeError):
-            next_rev = self.current_revision + ".1"
-        self.write({
+            next_rev = (self.current_revision or '00') + ".1"
+        self._workflow_write({
             "current_revision": next_rev,
             "revision_date": fields.Date.today(),
             "state": "draft",
@@ -196,7 +291,8 @@ class IatfDocument(models.Model):
             "change_category": "planned",
             "change_source": "engineering",
             "description": "<p>문서 개정에 의한 자동 변경요청 생성<br/>문서: %s<br/>문서번호: %s<br/>신규 개정: %s</p>" % (
-                self.title, self.doc_number, new_rev),
+                escape(self.name), escape(self.doc_number), escape(new_rev)),
             "reason": "<p>문서 개정</p>",
+            "company_id": self.company_id.id,
         })
         self.message_post(body=_("문서 개정 → 변경요청(CR) 자동 생성됨"))

@@ -18,7 +18,8 @@ class PlanningDailySummary(models.Model):
 
     # ── 수량 ──
     demand_qty = fields.Float(string="소요량", help="BOM 전개 후 사출 부품 일일 소요량")
-    planned_qty = fields.Float(string="생산량", help="해당일 생산 계획량 합계")
+    planned_qty = fields.Float(string="생산량", help="해당일 생산 계획량 합계(총생산량, 불량·초기불량 포함)")
+    expected_good_qty = fields.Float(string="예상 양품", help="[R135] (계획 − 초기불량) × (1 − 불량률) 합계. 총생산량과 구별한다.")
     safety_stock_qty = fields.Float(string="안전재고", help="해당 날짜로부터 향후 N일간 실제 수요 합계")
 
     # ── 재고 ──
@@ -40,7 +41,10 @@ class PlanningDailySummary(models.Model):
     )
 
     company_id = fields.Many2one(
-        "res.company", default=lambda self: self.env.company,
+        "res.company", related="planning_run_id.company_id",
+        store=True, index=True, readonly=True,
+        help="계획 실행의 회사를 그대로 따른다. 활성 회사가 아니라 **계획의 회사**여야 "
+             "다른 회사 계획의 산출물이 우리 목록에 섞이지 않는다. (PR08)",
     )
 
     @api.depends("stock_end", "safety_stock_qty")

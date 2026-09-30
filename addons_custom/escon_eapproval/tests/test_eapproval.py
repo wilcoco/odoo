@@ -74,21 +74,30 @@ class TestEapproval(TransactionCase):
 
     def test_dashboard_payload(self):
         """대시보드 페이로드: 키 존재 + JSON 직렬화 가능 + 결재 대기 반영."""
-        request = self.env["iatf.approval.request"].create({
-            "res_model": "res.partner",
-            "res_id": self.env.ref("base.main_partner").id,
-            "requester_id": self.user_writer.id,
-            "line_ids": [(0, 0, {"sequence": 10, "user_id": self.user_leader.id})],
-        })
-        request.action_submit()
+        # [R145] iatf_approval 의 guard(fd25c49, uat 반영본)는 결재 요청을 **결재 믹스인을 가진 문서**의
+        # 결재 기능에서만 만들게 한다(res.partner 같은 임의 모델 불가). 이 시험은 페이로드 모양을 보므로
+        # 설치된 믹스인 문서(iatf.mold)가 있으면 그 문서의 정상 경로로 결재를 올리고, 없으면 페이로드 키만 본다.
+        doc_model = None
+        if "iatf.mold" in self.env and "approval_request_id" in self.env["iatf.mold"]._fields:
+            # 결재 guard 는 결재자도 문서 쓰기 권한이 있어야 한다(_validate_approvers) — 기안자·결재자 모두 금형 담당자.
+            self.user_writer.groups_id |= self.env.ref("iatf_mold.group_mold_user")
+            self.user_leader.groups_id |= self.env.ref("iatf_mold.group_mold_user")
+            doc = self.env["iatf.mold"].with_user(self.user_writer).create(
+                {"name": "T-결재 대시보드 금형", "mold_type": "injection"})
+            # 금형 문서의 결재 제출 권한은 이 시험의 관심사가 아니다(대시보드 페이로드만 본다) — 기안은 sudo 로.
+            doc = doc.sudo()
+            doc.approval_line_ids = [(0, 0, {"sequence": 10, "user_id": self.user_leader.id})]
+            doc.action_submit_approval()
+            doc_model = "iatf.mold"
 
         data = self.env["escon.eapproval.dashboard"].with_user(
             self.user_leader).get_dashboard_data()
         for key in ("user", "kpi", "to_approve", "my_requests", "leaves",
                     "leave_balance", "pumui", "drill", "errors", "server_time"):
             self.assertIn(key, data)
-        self.assertEqual(data["kpi"]["to_approve"], 1)
-        self.assertEqual(data["to_approve"][0]["doc_model"], "res.partner")
+        if doc_model:
+            self.assertEqual(data["kpi"]["to_approve"], 1)
+            self.assertEqual(data["to_approve"][0]["doc_model"], doc_model)
         json.dumps(data)  # 직렬화 가능해야 한다
 
         data_writer = self.env["escon.eapproval.dashboard"].with_user(

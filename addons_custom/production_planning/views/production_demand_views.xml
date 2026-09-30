@@ -35,16 +35,16 @@
                     <button name="action_cancel" type="object" string="취소"
                             invisible="state in ('done', 'cancelled')"/>
                     <button name="action_reset_draft" type="object" string="초안으로"
-                            invisible="state != 'cancelled'"/>
+                            invisible="state not in ('cancelled', 'confirmed')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,done"/>
                 </header>
                 <sheet>
                     <group>
                         <group string="수요 정보">
-                            <field name="demand_date"/>
-                            <field name="product_id"/>
-                            <field name="quantity"/>
+                            <field name="demand_date" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="quantity" readonly="state != 'draft'"/>
                         </group>
                         <group string="분류">
                             <field name="demand_type"/>

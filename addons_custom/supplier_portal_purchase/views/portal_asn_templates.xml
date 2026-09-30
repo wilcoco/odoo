@@ -42,6 +42,12 @@
                                                     <option t-att-value="p.id"><t t-esc="p.display_name"/></option>
                                                 </t>
                                             </select>
+                                            <select t-attf-name="po_line_#{i}" class="form-select form-select-sm mt-1">
+                                                <option value="">— 원 구매/수량 요구 행 선택 —</option>
+                                                <t t-foreach="purchase_lines" t-as="source">
+                                                    <option t-att-value="source.id"><t t-esc="source.order_id.name"/> / <t t-esc="source.product_id.display_name"/> / 주문 <t t-esc="source.product_qty"/> · 입고 <t t-esc="source.qty_received"/></option>
+                                                </t>
+                                            </select>
                                         </td>
                                         <td><input type="number" step="any" min="0" t-attf-name="qty_#{i}" class="form-control form-control-sm"/></td>
                                         <td><input type="text" t-attf-name="lot_#{i}" class="form-control form-control-sm"/></td>
@@ -110,19 +116,21 @@
                 <header>
                     <button name="action_create_picking" type="object" string="입고전표 생성(도착)"
                             class="btn-primary" invisible="state != 'announced'"/>
-                    <button name="action_cancel" type="object" string="취소"
+                    <button name="action_cancel" type="object" string="ASN 취소(주문 유지)"
                             invisible="state != 'announced'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <h2><field name="name" readonly="1"/></h2>
                     <group>
-                        <group><field name="partner_id"/><field name="expected_date"/></group>
-                        <group><field name="note"/><field name="picking_id"/></group>
+                        <group><field name="company_id"/><field name="partner_id"/><field name="expected_date"/></group>
+                        <group><field name="note"/><field name="picking_id"/><field name="picking_ids" widget="many2many_tags"/></group>
                     </group>
                     <field name="line_ids">
                         <list editable="bottom">
                             <field name="product_id"/>
+                            <field name="company_id" column_invisible="True"/>
+                            <field name="purchase_line_id"/>
                             <field name="qty"/>
                             <field name="lot_name"/>
                         </list>

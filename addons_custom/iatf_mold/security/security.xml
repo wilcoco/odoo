@@ -11,4 +11,13 @@
         <field name="implied_ids" eval="[(4, ref('group_mold_user'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+
+    <!-- [305 품질 리뷰 (2)] 완료 스냅샷에 회사 규칙이 없어, 회사 A 전용 사용자가 회사 B
+         증빙을 조회할 수 있었다. 회사를 복사해 두는 것과 조회 격리는 별개다.
+         회사가 비어 있는 과거본을 공용으로 자동 공개하지 않는다 — 회사가 있는 것만 보인다. -->
+    <record id="rule_mold_check_snapshot_company" model="ir.rule">
+        <field name="name">완료 스냅샷: 회사 격리</field>
+        <field name="model_id" ref="model_iatf_mold_check_snapshot"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>
