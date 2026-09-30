@@ -1,4 +1,5 @@
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 # 로그 유형 → 금형 마스터의 어느 온도 기준과 대조할지.
 # 판정 자체는 iatf.mold.check_temp_in_spec() 하나만 쓴다. 여기에 상·하한 비교를
@@ -55,14 +56,20 @@ class IatfMoldTempLog(models.Model):
     # 화면에서 적합으로 바뀐다 — 심사에서 "이 값이 왜 부적합이었나" 에 답할 수 없고,
     # 판정 기록을 소급 변조하는 시스템이 된다. 점검 시트(`iatf.check.record.line`)와
     # 같은 원칙: 실적은 그때 기준을 들고 있는다. (2026-09-10 제3자 검토 Q11)
-    spec_min = fields.Float(string="기준 하한(℃)", compute="_compute_spec", store=True,
-                            digits=(16, 1))
-    spec_max = fields.Float(string="기준 상한(℃)", compute="_compute_spec", store=True,
-                            digits=(16, 1))
+    # **계산 필드가 아니다.** `create` 에서 한 번 박고 그 뒤로는 아무 것도 다시 쓰지 않는다.
+    #
+    # 앞선 수정은 `compute="_compute_spec"` + `depends("mold_id","log_type")` 이었다.
+    # 그러면 같은 금형 ID 를 다시 write 하는 것만으로 재계산이 돌아 스냅샷이 현행 마스터로
+    # 갈아치워진다 — 상한 90 으로 부적합이던 기록이, 마스터를 100 으로 고친 뒤 금형을
+    # 재입력하면 적합으로 뒤집힌다. 재현: 제3자 재검토 R03. 계산으로 두는 한 트리거를
+    # 하나씩 막는 방식으로는 새는 곳이 계속 생기므로, 아예 계산에서 떼어낸다.
+    spec_min = fields.Float(string="기준 하한(℃)", readonly=True, digits=(16, 1),
+                            help="측정 시점 마스터 기준의 스냅샷. 이후 어떤 경로로도 바뀌지 않는다.")
+    spec_max = fields.Float(string="기준 상한(℃)", readonly=True, digits=(16, 1))
 
     spec_result = fields.Selection(
         [("ok", "적합"), ("ng", "부적합"), ("no_spec", "기준 없음")],
-        string="합부 판정", compute="_compute_spec_result", store=True,
+        string="합부 판정", readonly=True,
         help="측정 당시 기준(스냅샷)과 대조한 결과. 기준이 없으면 '부적합' 이 아니라 "
              "'기준 없음' 이다 — 판정하지 않은 것과 불합격은 다른 사실이다.",
     )
@@ -85,23 +92,40 @@ class IatfMoldTempLog(models.Model):
         self.ensure_one()
         return SPEC_KIND_BY_LOG_TYPE.get(self.log_type)
 
-    # 마스터 기준값은 depends 에 넣지 않는다 — 넣으면 스냅샷이 아니라 링크가 된다.
-    # 금형이나 측정 구분을 바꾸는 것은 '다른 측정' 이므로 그때는 다시 읽는다.
-    @api.depends("mold_id", "log_type")
-    def _compute_spec(self):
-        for rec in self:
-            kind = rec._spec_kind()
-            if rec.mold_id and kind:
-                rec.spec_min, rec.spec_max = rec.mold_id._temp_spec(kind)
-            else:
-                rec.spec_min = rec.spec_max = 0.0
+    # 측정 사실 — 기록된 뒤에는 바꿀 수 없다. 잘못 쟀으면 취소하고 다시 측정한다.
+    # 이 목록에 있는 필드를 열어 두면 스냅샷·판정을 우회로 갈아치울 수 있다.
+    _MEASUREMENT_FACTS = ("mold_id", "log_type", "measured_at", "point", "method",
+                          "temperature", "spec_min", "spec_max", "spec_result")
 
-    @api.depends("temperature", "spec_min", "spec_max")
-    def _compute_spec_result(self):
-        # 판정은 iatf.mold.judge_temp 하나만 쓴다 — 여기 상·하한 비교를 다시 쓰지 않는다.
-        judge = self.env["iatf.mold"].judge_temp
-        for rec in self:
-            rec.spec_result = judge(rec.temperature, rec.spec_min, rec.spec_max)
+    @api.model_create_multi
+    def create(self, vals_list):
+        """측정 시점 기준을 스냅샷으로 박고, 그 기준으로 판정한다.
+
+        계산 필드로 두지 않는 이유는 필드 주석 참조 (R03).
+        """
+        Mold = self.env["iatf.mold"]
+        for vals in vals_list:
+            mold = Mold.browse(vals.get("mold_id")) if vals.get("mold_id") else Mold
+            kind = SPEC_KIND_BY_LOG_TYPE.get(vals.get("log_type", "preheat"))
+            low = high = 0.0
+            if mold and kind:
+                low, high = mold._temp_spec(kind)
+            # 호출자가 넘긴 값은 무시한다 — 스냅샷은 마스터에서만 온다.
+            vals["spec_min"], vals["spec_max"] = low, high
+            vals["spec_result"] = Mold.judge_temp(vals.get("temperature", 0.0), low, high)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """측정 사실은 고칠 수 없다. 비고·연결 생산지시만 열어 둔다."""
+        touched = [f for f in self._MEASUREMENT_FACTS if f in vals]
+        if touched and self:
+            labels = {f: (self._fields[f].string or f) for f in touched}
+            raise ValidationError(_(
+                "측정 기록은 수정할 수 없습니다: %(names)s\n"
+                "잘못 측정했다면 기록을 취소하고 다시 측정하십시오. (변경 항목: %(fields)s)",
+                names=", ".join(self.mapped("display_name")[:3]),
+                fields=", ".join(labels[f] for f in touched)))
+        return super().write(vals)
 
     @api.depends("temperature", "mold_id", "log_type",
                  "mold_id.preheat_temp_min", "mold_id.preheat_temp_max",

@@ -93,6 +93,13 @@
                             <field name="unit"/>
                             <field name="process_name"/>
                             <field name="subgroup_size"/>
+                            <field name="incomplete_subgroup_count"/>
+                            <field name="unknown_basis_subgroup_count"/>
+                            <field name="excluded_reason_note"/>
+                            <div class="text-muted" colspan="2">
+                                제외된 부분군의 이탈 표시는 <b>과거 판정을 보존한 값</b>이며
+                                이번 관리한계로 다시 판정한 결과가 아닙니다. 원자료는 바뀌지 않습니다.
+                            </div>
                             <field name="sample_size"/>
                         </group>
                         <group string="Specification Limits">
@@ -108,8 +115,12 @@
                     <notebook>
                         <page string="Subgroup Data" name="data">
                             <field name="subgroup_ids">
+                                <!-- 이탈 강조는 **이번 분석 대상**에만 준다. 제외된 군의
+                                     이탈 표시는 과거 판정 보존값이라, 같은 빨간색으로 두면
+                                     현재 관리한계로 다시 판정한 결과처럼 읽힌다. (Q275-06) -->
                                 <list editable="bottom"
-                                      decoration-danger="is_ooc == True">
+                                      decoration-danger="is_ooc == True and is_analyzable == True"
+                                      decoration-muted="is_analyzable == False">
                                     <field name="sequence"/>
                                     <field name="sample_date"/>
                                     <field name="x1"/>
@@ -122,9 +133,23 @@
                                     <field name="x8" optional="hide"/>
                                     <field name="x9" optional="hide"/>
                                     <field name="x10" optional="hide"/>
+                                    <field name="sample_count"/>
+                                    <field name="filled_mask" readonly="1" optional="show"/>
+                                    <field name="analysis_state" readonly="1" widget="badge"
+                                           decoration-success="analysis_state == 'analyzed'"
+                                           decoration-warning="analysis_state != 'analyzed'"/>
+                                    <field name="basis_known" readonly="1" optional="hide"/>
+                                    <field name="is_analyzable" readonly="1" column_invisible="1"/>
+                                    <field name="basis_confirmed_by_id" readonly="1" optional="hide"/>
+                                    <field name="basis_confirmed_at" readonly="1" optional="hide"/>
+                                    <button name="action_confirm_input_slots" type="object"
+                                            string="입력 칸 확인" icon="fa-check-square-o"
+                                            invisible="basis_known == True"
+                                            help="실제 기록지와 대조해 '입력 표본 수' 를 바로잡은 뒤 누르십시오. 원자료는 바뀌지 않습니다."/>
                                     <field name="sg_mean"/>
                                     <field name="sg_range"/>
-                                    <field name="is_ooc"/>
+                                    <field name="is_complete" readonly="1"/>
+                                    <field name="is_ooc" string="이탈(제외군은 과거 판정)"/>
                                     <field name="operator_id" optional="hide"/>
                                     <field name="notes" optional="hide"/>
                                 </list>
