@@ -44,8 +44,19 @@ class MrpWorkorder(models.Model):
 
     def _create_ipqc_inspection(self):
         """작업지시 완료 시 IPQC 자동 생성"""
-        PQC = self.env["iatf.process.inspection"]
+        self.ensure_one()
+        self.check_access('write')
+        if self.state != 'done':
+            return self.env['iatf.process.inspection']
+        # Production completion creates a pending inspection, never a quality
+        # decision. Keep operators' quality editing/approval permissions intact.
+        PQC = self.env["iatf.process.inspection"].sudo().with_company(self.company_id)
+        existing = PQC.search([('workorder_id', '=', self.id), ('inspection_stage', '=', 'ipqc'),
+                               ('company_id', '=', self.company_id.id)], limit=1)
+        if existing:
+            return existing
         vals = {
+            "company_id": self.company_id.id,
             "inspection_stage": "ipqc",
             "production_id": self.production_id.id,
             "workorder_id": self.id,
@@ -59,6 +70,7 @@ class MrpWorkorder(models.Model):
         ipqc = PQC.create(vals)
         _logger.info("IPQC auto-created: %s for WO %s, workcenter %s",
                      ipqc.name, self.name, self.workcenter_id.name)
+        return ipqc
 
     def action_view_ipqc(self):
         self.ensure_one()

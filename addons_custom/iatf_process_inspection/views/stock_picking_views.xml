@@ -5,7 +5,13 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_prepare_oqc" type="object" string="출하검사 준비"
+                        invisible="picking_type_code != 'outgoing' or state in ('done', 'cancel')"/>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_shipping_inspections" type="object" class="oe_stat_button"
+                        icon="fa-check-square" string="포장·라벨 검사" invisible="picking_type_code != 'outgoing'"/>
                 <button name="action_view_oqc" type="object"
                         class="oe_stat_button" icon="fa-clipboard-check"
                         invisible="picking_type_code != 'outgoing'">

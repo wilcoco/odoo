@@ -1,6 +1,7 @@
 from . import document_category
 from . import document
 from . import document_revision
+from . import attachment_guard
 from . import document_distribution
 from . import product_template
 from . import res_config_settings

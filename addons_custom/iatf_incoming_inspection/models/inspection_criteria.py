@@ -19,6 +19,10 @@ class IatfInspectionCriteria(models.Model):
     specification = fields.Char(string="규격 / 공차", required=True)
     measurement_method = fields.Char(string="측정 방법")
     sampling_plan = fields.Char(string="샘플링 기준")
+    # [R144 정책 #9/#12] 기준정보를 한 번 넣으면 수입검사가 자동으로 물려받는다.
+    sample_size = fields.Integer(string="샘플 크기")
+    accept_number = fields.Integer(string="합격 판정 개수 (Ac)")
+    reject_number = fields.Integer(string="불합격 판정 개수 (Re)")
     is_critical = fields.Boolean(string="중요 특성")
     active = fields.Boolean(default=True)
     notes = fields.Text(string="비고")
