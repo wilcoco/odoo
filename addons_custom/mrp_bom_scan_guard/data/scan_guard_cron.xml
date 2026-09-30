@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 납기를 넘겨 서 있는 이종검사 차단을 제조오더에 경보로 남긴다.
+         게이트(button_finish)에서 경보하지 않는 이유는 scan_gate.py 주석 참고 —
+         거기서 남기면 UserError 롤백과 함께 사라진다. -->
+    <record id="ir_cron_alert_overdue_scan_blocks" model="ir.cron">
+        <field name="name">이종검사 차단 경보 한도 초과</field>
+        <field name="model_id" ref="model_mrp_bom_scan_guard_log"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_alert_overdue_scan_blocks()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

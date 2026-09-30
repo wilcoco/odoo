@@ -18,4 +18,54 @@
         <field name="implied_ids" eval="[(4, ref('group_planning_user'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+
+    <!-- ── 회사 격리 (PR08) ──
+         담당자에게 run/line write·create 권한이 있는데 회사 규칙이 없어서, 회사 A 만
+         소속·허용된 담당자가 회사 B 의 계획을 검색하고 라인 수량을 고칠 수 있었다.
+         계획과 그 산출물은 전부 계획의 회사를 따른다. -->
+    <record id="rule_planning_run_company" model="ir.rule">
+        <field name="name">사출 계획: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_run"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_planning_line_company" model="ir.rule">
+        <field name="name">사출 계획 라인: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_line"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_planning_summary_company" model="ir.rule">
+        <field name="name">일별 요약: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_daily_summary"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_material_requirement_company" model="ir.rule">
+        <field name="name">원재료 소요: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_material_requirement"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_material_daily_company" model="ir.rule">
+        <field name="name">원재료 일별 추이: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_material_daily"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_planning_unassigned_company" model="ir.rule">
+        <field name="name">미배정 수요: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_unassigned"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_planning_violation_company" model="ir.rule">
+        <field name="name">계획 위반: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_violation"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_mold_company" model="ir.rule">
+        <field name="name">사출 금형: 회사 격리</field>
+        <field name="model_id" ref="model_injection_mold"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_planning_config_company" model="ir.rule">
+        <field name="name">생산계획 설정: 회사 격리</field>
+        <field name="model_id" ref="model_injection_planning_config"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

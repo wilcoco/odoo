@@ -1,7 +1,7 @@
 {
     "name": "MRP BOM Scan Guard",
     "summary": "Scan component barcode on Work Order and verify it matches the MO BOM (cross-check)",
-    "version": "18.0.1.0.3",
+    "version": "18.0.1.0.4",
     "category": "Manufacturing",
     "license": "LGPL-3",
     "depends": ["mrp", "stock", "web", "bus", "barcode_scanner_widget"],
@@ -9,6 +9,7 @@
     # 없으면 일반 입력(하드웨어 스캐너/키보드 웨지)로 동작합니다.
     "data": [
         "security/ir.model.access.csv",
+        "data/scan_guard_cron.xml",
         "views/mrp_bom_scan_guard_views.xml",
         "views/mrp_workorder_inherit_views.xml",
         "views/mrp_bom_scan_guard_log_views.xml",

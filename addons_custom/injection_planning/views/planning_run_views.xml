@@ -134,15 +134,45 @@
                         현재 재고가 계획 소요량보다 부족합니다.
                         '원재료 소요/재고' 탭에서 확인 후 확정하세요.
                     </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="derived_stale == False">
+                        <strong>⚠ 소요 재검증 필요</strong> — 계획 라인을 고친 뒤
+                        원재료 소요와 일별 차트가 다시 계산되지 않았습니다.
+                        <b>발주·MO 생성이 막혀 있습니다.</b>
+                        <button name="action_revalidate_requirements" type="object"
+                                string="소요 재검증" class="btn btn-primary btn-sm ms-2"/>
+                    </div>
+                    <div class="alert alert-danger" role="alert"
+                         invisible="unverified_line_count == 0">
+                        <strong>⚠ 적합성 미확인</strong> —
+                        <field name="unverified_line_count" class="oe_inline"/>개 라인이
+                        필수 적합성 자료(사출기 형체력 등)가 없어 물리적으로 가능한지
+                        확인되지 않았습니다. <b>확정·MO 생성이 막혀 있습니다.</b>
+                        기준정보를 채운 뒤 '초안으로' 되돌려 다시 계산하십시오.
+                    </div>
+                    <div class="alert alert-danger" role="alert"
+                         invisible="unassigned_count == 0">
+                        <strong>⚠ 미배정 수요</strong> —
+                        <field name="unassigned_count" class="oe_inline"/>건이 설비·금형의
+                        물리 제약으로 배정되지 않았습니다. '미배정 수요' 탭을 확인하십시오.
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
                             <field name="plan_date_from"/>
                             <field name="plan_date_to"/>
+                            <field name="schedule_not_before" readonly="state != 'draft'"/>
                         </group>
-                        <group>
-                            <field name="total_planned_qty"/>
+                        <group string="수량">
+                            <field name="theoretical_qty"/>
+                            <field name="total_planned_qty" string="확정 가능 배정량"/>
+                            <field name="unassigned_qty"/>
+                        </group>
+                        <group string="일정">
                             <field name="total_changeovers"/>
+                            <field name="changeover_hours_total"/>
+                            <field name="late_line_count"/>
+                            <field name="derived_stale" invisible="1"/>
                         </group>
                     </group>
 
@@ -150,9 +180,19 @@
                         <page string="계획 라인" name="lines">
                             <field name="line_ids">
                                 <list editable="bottom"
-                                      decoration-warning="changeover_needed == True">
+                                      decoration-warning="changeover_needed == True"
+                                      decoration-danger="is_late == True"
+                                      decoration-muted="fit_unverified == True">
                                     <field name="sequence" widget="handle"/>
                                     <field name="plan_date"/>
+                                    <field name="start_date" optional="show"/>
+                                    <field name="finish_date" optional="show"/>
+                                    <field name="is_late" optional="show"/>
+                                    <field name="fit_unverified" optional="show"/>
+                                    <field name="fit_note" optional="hide"/>
+                                    <field name="start_time" optional="show"/>
+                                    <field name="end_time" optional="show"/>
+                                    <field name="shift" optional="hide"/>
                                     <field name="workcenter_id"/>
                                     <field name="mold_id"/>
                                     <field name="product_id"/>
@@ -171,6 +211,28 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="미배정 수요" name="unassigned"
+                              invisible="unassigned_count == 0">
+                            <div class="alert alert-info" role="alert">
+                                <b>이론 최대 생산량</b> 은 금형 설치·교체 시간을 세지 않은
+                                값입니다. 실제로 생산할 수 있는 것은 <b>확정 가능 배정량</b>
+                                이며, 그 차이가 아래 미배정 수량입니다.
+                            </div>
+                            <div class="alert alert-warning" role="alert">
+                                설비·금형의 물리 제약(형체력·금형 상태·가동시간)으로 배정하지
+                                못한 수요입니다. 마스터를 고치거나 가동일정을 늘린 뒤 '초안으로'
+                                되돌려 다시 계산하십시오.
+                            </div>
+                            <field name="unassigned_ids" readonly="1">
+                                <list>
+                                    <field name="plan_date"/>
+                                    <field name="product_id"/>
+                                    <field name="qty"/>
+                                    <field name="reason" widget="badge"/>
+                                    <field name="detail"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="원재료 소요/재고" name="materials">
                             <field name="material_requirement_ids" readonly="1">
                                 <list decoration-danger="is_short == True"
@@ -179,6 +241,18 @@
                                     <field name="required_qty" sum="총 소요"/>
                                     <field name="available_qty"/>
                                     <field name="shortage_qty"/>
+                                    <!-- 검사대기는 가용재고가 아니다. 부족 판정·발주 계산에
+                                         들어가지 않으며, 여기서 다시 빼지도 않는다(이중 차감 금지).
+                                         '조회 불가' 와 '실제 0' 은 다른 사실이라 상태를 함께 보여 준다. -->
+                                    <field name="iqc_status" widget="badge"
+                                           decoration-info="iqc_status == 'counted'"
+                                           decoration-warning="iqc_status == 'unavailable'"
+                                           optional="show"/>
+                                    <field name="iqc_pending_qty" optional="show"
+                                           invisible="iqc_status != 'counted'"/>
+                                    <field name="iqc_reserved_qty" optional="hide"
+                                           invisible="iqc_status != 'counted'"/>
+                                    <field name="iqc_status_note" optional="hide"/>
                                     <field name="coverage_rate"/>
                                     <field name="uom_id" optional="show"/>
                                     <field name="first_need_date"/>
