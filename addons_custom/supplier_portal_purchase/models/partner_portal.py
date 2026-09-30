@@ -2,7 +2,7 @@ import logging
 import secrets
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +16,35 @@ class ResPartner(models.Model):
         default=False,
         help="협력사 포탈을 통해 발주 확인/응답 가능",
     )
+    supplier_portal_company_ids = fields.Many2many(
+        "res.company", "supplier_portal_company_rel", "partner_id", "company_id",
+        string="포털 허용 회사", groups="base.group_system",
+        help="관리자가 허용한 회사의 공급 자료만 공개합니다. 비어 있으면 포털이 차단됩니다.")
+
+    def _scm_check_portal_company(self, company, user=None):
+        self.ensure_one()
+        partner = self.commercial_partner_id.sudo()
+        if not partner.is_supplier_portal or company not in partner.supplier_portal_company_ids:
+            raise AccessError(_("이 업체의 포털 허용 회사가 확인되지 않았습니다. 구매 담당자에게 확인해 주세요."))
+        if user and not user._is_public() and company not in user.company_ids:
+            raise AccessError(_("로그인 계정에 허용되지 않은 회사입니다."))
+        return True
+
+    def _scm_supply_products(self, company):
+        self.ensure_one()
+        infos = self.env["product.supplierinfo"].sudo().search([
+            ("partner_id.commercial_partner_id", "=", self.commercial_partner_id.id),
+            ("company_id", "in", [False, company.id]),
+        ])
+        products = self.env["product.product"].sudo().browse()
+        for info in infos:
+            products |= info.product_id or info.product_tmpl_id.product_variant_ids
+        return products.filtered(lambda p: not p.company_id or p.company_id == company)
+
+    def _scm_check_supply_product(self, product, company):
+        if not company or not product or product not in self._scm_supply_products(company):
+            raise ValidationError(_("회사·협력사에 등록된 공급 품목만 사용할 수 있습니다."))
+        return True
     supplier_portal_token_expiry = fields.Date(
         string="포털 토큰 만료일",
         help="이 날짜가 지나면 포털 접근이 거부된다(운영 보안 수칙). "

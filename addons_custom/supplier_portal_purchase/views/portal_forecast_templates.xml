@@ -16,6 +16,7 @@
                     기준 시각: <t t-esc="snapshot_at" t-options="{'widget': 'datetime'}"/>
                 </small>
             </div>
+            <div t-if="refresh_required" class="alert alert-warning">원천 정보가 바뀌었거나 기준 시각이 없습니다. 전망 갱신 확인이 필요합니다.</div>
 
             <t t-if="by_product">
                 <t t-foreach="by_product.items()" t-as="entry">
@@ -40,6 +41,7 @@
                                         <th>소요일</th>
                                         <th class="text-end">일 소요량</th>
                                         <th class="text-end">누적 소요</th>
+                                        <th class="text-end">그날까지 입고 예정</th>
                                         <th class="text-end">누적 부족(예상)</th>
                                     </tr>
                                 </thead>
@@ -49,6 +51,7 @@
                                             <td><t t-esc="line.date"/></td>
                                             <td class="text-end"><t t-esc="line.qty_required"/></td>
                                             <td class="text-end"><t t-esc="line.cum_required"/></td>
+                                            <td class="text-end"><t t-esc="line.qty_incoming"/></td>
                                             <td class="text-end">
                                                 <strong t-if="line.qty_shortfall &gt; 0" class="text-danger">
                                                     <t t-esc="line.qty_shortfall"/>

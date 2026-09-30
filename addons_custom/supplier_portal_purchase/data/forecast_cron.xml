@@ -6,7 +6,7 @@
             <field name="name">협력사 소요 전망 갱신</field>
             <field name="model_id" ref="model_supplier_demand_forecast"/>
             <field name="state">code</field>
-            <field name="code">model.cron_generate_forecast()</field>
+            <field name="code">model._cron_generate_all_forecasts()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">days</field>
             <field name="active" eval="True"/>

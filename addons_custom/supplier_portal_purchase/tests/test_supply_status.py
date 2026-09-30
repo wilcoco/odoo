@@ -23,6 +23,7 @@ class TestSupplyStatus(TransactionCase):
         cls.partner = cls.env["res.partner"].create({
             "name": "TEST-부품공급사",
             "is_supplier_portal": True,
+            "supplier_portal_company_ids": [(6, 0, cls.env.company.ids)],
         })
         cls.product = cls.env["product.product"].create({
             "name": "TEST-부품-브라켓",
@@ -221,6 +222,7 @@ class TestSupplyStatusRoute(HttpCase):
         cls.partner = cls.env["res.partner"].create({
             "name": "TEST-라우트공급사",
             "is_supplier_portal": True,
+            "supplier_portal_company_ids": [(6, 0, cls.env.company.ids)],
             "supplier_portal_token": cls.token,
         })
         cls.product = cls.env["product.product"].create({
