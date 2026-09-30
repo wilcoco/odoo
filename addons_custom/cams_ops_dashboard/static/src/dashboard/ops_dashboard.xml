@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="cams_ops_dashboard.Dashboard" owl="1">
+        <div class="o_action ops-dashboard">
+            <div class="ops-dashboard__shell">
+                <header class="ops-header">
+                    <div>
+                        <div class="ops-eyebrow">COMPANY OPERATIONS</div>
+                        <h1>운영 대시보드</h1>
+                        <p t-if="data">
+                            <strong t-esc="data.user.name"/>
+                            <t t-if="data.user.department"> · <span t-esc="data.user.department"/></t>
+                            <t t-if="data.user.roles.length"> · <span t-esc="data.user.roles.join(', ')"/></t>
+                        </p>
+                    </div>
+                    <div class="ops-header__actions">
+                        <select t-if="data?.user.is_manager" class="ops-select"
+                                t-on-change="onDepartmentChange">
+                            <option value="">전체 부서</option>
+                            <option t-foreach="data.departments" t-as="department" t-key="department.id"
+                                    t-att-value="department.id" t-esc="department.name"/>
+                        </select>
+                        <span class="ops-updated" t-if="lastUpdatedLabel">최근 갱신 <t t-esc="lastUpdatedLabel"/></span>
+                        <button type="button" class="ops-iconbtn" t-on-click="refresh" title="새로고침">
+                            <i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}"/>
+                        </button>
+                    </div>
+                </header>
+
+                <div t-if="state.initialLoading" class="ops-empty ops-empty--page">운영 업무를 불러오는 중입니다.</div>
+                <div t-elif="state.error" class="ops-empty ops-empty--page ops-empty--error">
+                    <i class="fa fa-exclamation-triangle"/><span t-esc="state.error"/>
+                </div>
+                <t t-elif="data">
+                    <section class="ops-kpis">
+                        <button type="button" class="ops-kpi ops-kpi--primary" t-on-click="openToday">
+                            <span>오늘 할 일</span><strong t-esc="counts.today || 0"/><small>오늘까지 미완료</small>
+                        </button>
+                        <button type="button" class="ops-kpi ops-kpi--danger" t-on-click="openToday">
+                            <span>지연</span><strong t-esc="counts.overdue || 0"/><small>기한 경과</small>
+                        </button>
+                        <div class="ops-kpi ops-kpi--accent">
+                            <span>승인 대기</span><strong t-esc="counts.approval || 0"/><small>내 승인 대상</small>
+                        </div>
+                        <div class="ops-kpi ops-kpi--ok">
+                            <span>이번 주 예정</span><strong t-esc="counts.week || 0"/><small>7일 이내</small>
+                        </div>
+                    </section>
+
+                    <section class="ops-grid">
+                        <article class="ops-card ops-card--wide">
+                            <div class="ops-card__header">
+                                <div><h2>오늘의 업무</h2><p>내 부서와 담당 역할에 지정된 업무</p></div>
+                                <button type="button" class="ops-link" t-on-click="openToday">전체 보기</button>
+                            </div>
+                            <div t-if="!data.today_tasks.length" class="ops-empty ops-empty--ok">
+                                <i class="fa fa-check-circle"/> 오늘까지 남은 업무가 없습니다.
+                            </div>
+                            <div t-else="" class="ops-tasklist">
+                                <div t-foreach="data.today_tasks" t-as="task" t-key="task.id"
+                                     class="ops-task" t-att-class="{'ops-task--overdue': task.is_overdue}">
+                                    <button type="button" class="ops-task__body" t-on-click="() => this.openTask(task)">
+                                        <strong t-esc="task.name"/>
+                                        <span><t t-esc="task.role"/> · 기한 <t t-esc="task.due_date || '-'"/></span>
+                                    </button>
+                                    <span t-if="task.is_overdue" class="ops-badge ops-badge--danger">지연</span>
+                                    <button t-if="task.can_complete" type="button" class="ops-btn"
+                                            t-on-click="() => this.completeTask(task)">완료 보고</button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="ops-card">
+                            <div class="ops-card__header">
+                                <div><h2>승인 대기</h2><p>내가 검토할 완료 보고</p></div>
+                            </div>
+                            <div t-if="!data.approval_tasks.length" class="ops-empty">승인할 업무가 없습니다.</div>
+                            <div t-else="" class="ops-tasklist ops-tasklist--compact">
+                                <div t-foreach="data.approval_tasks" t-as="task" t-key="task.id" class="ops-task">
+                                    <button type="button" class="ops-task__body" t-on-click="() => this.openTask(task)">
+                                        <strong t-esc="task.name"/>
+                                        <span><t t-esc="task.done_by || task.role"/> · <t t-esc="task.due_date || '-'"/></span>
+                                    </button>
+                                    <button t-if="task.can_approve" type="button" class="ops-btn ops-btn--primary"
+                                            t-on-click="() => this.approveTask(task)">승인</button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="ops-card">
+                            <div class="ops-card__header">
+                                <div><h2>이번 주 예정</h2><p>앞으로 7일 이내 시작할 업무</p></div>
+                                <button type="button" class="ops-link" t-on-click="openAll">업무 현황</button>
+                            </div>
+                            <div t-if="!data.week_tasks.length" class="ops-empty">예정 업무가 없습니다.</div>
+                            <div t-else="" class="ops-tasklist ops-tasklist--compact">
+                                <button t-foreach="data.week_tasks" t-as="task" t-key="task.id" type="button"
+                                        class="ops-upcoming" t-on-click="() => this.openTask(task)">
+                                    <span class="ops-upcoming__date" t-esc="task.scheduled_date"/>
+                                    <span><strong t-esc="task.name"/><small t-esc="task.role"/></span>
+                                </button>
+                            </div>
+                        </article>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

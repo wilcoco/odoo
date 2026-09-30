@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="dashboard_singleton" model="cams.ops.dashboard">
+        <field name="name">전사 운영 현황</field>
+    </record>
+</odoo>

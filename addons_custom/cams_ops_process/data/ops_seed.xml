@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="1">
+    <!-- ═══ 역할 ═══ -->
+    <record id="role_mgmt" model="ops.role"><field name="name">경영</field><field name="sequence">1</field></record>
+    <record id="role_account" model="ops.role"><field name="name">회계</field><field name="sequence">2</field></record>
+    <record id="role_settle" model="ops.role"><field name="name">정산</field><field name="sequence">3</field></record>
+    <record id="role_cost" model="ops.role"><field name="name">원가</field><field name="sequence">4</field></record>
+    <record id="role_plan" model="ops.role"><field name="name">생산관리</field><field name="sequence">5</field></record>
+    <record id="role_inject" model="ops.role"><field name="name">사출현장</field><field name="sequence">6</field></record>
+    <record id="role_quality" model="ops.role"><field name="name">품질</field><field name="sequence">7</field></record>
+    <record id="role_assembly" model="ops.role"><field name="name">조립</field><field name="sequence">8</field></record>
+    <record id="role_purchase" model="ops.role"><field name="name">구매(협력사)</field><field name="sequence">9</field></record>
+
+    <!-- ═══ 일일 업무 ═══ -->
+    <record id="def_plan_daily" model="ops.task.def">
+      <field name="name">생산계획 계산·검토</field>
+      <field name="role_id" ref="role_plan"/>
+      <field name="periodicity">daily</field>
+      <field name="due_days">0</field>
+      <field name="menu_path">생산계획 &gt; 계획 실행</field>
+      <field name="doc_ref">docs/사출생산계획_구조분석_매뉴얼.md §2-2</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>생산계획 &gt; 계획 실행 → 새 Run 생성(기간 설정)</li>
+<li><b>[Oracle 조회]</b>로 원청 수요 수신(또는 수동/파일)</li>
+<li><b>[계획 계산]</b> 실행 → 계획라인·시각 검토</li>
+<li>⚠ 채터에 <b>"계획 계산 경고"</b>가 있으면 반드시 확인(수요 미매핑·배정 탈락·다중 BOM)</li>
+<li>이상 없으면 <b>[MO 생성]</b></li></ol>]]></field>
+    </record>
+    <record id="def_inject_daily" model="ops.task.def">
+      <field name="name">금일 사출 MO·실적 확인</field>
+      <field name="role_id" ref="role_inject"/>
+      <field name="periodicity">daily</field>
+      <field name="due_days">0</field>
+      <field name="requires_approval" eval="False"/>
+      <field name="menu_path">사출 현장 &gt; 생산관리 &gt; MO &gt; 오늘의 제조 주문서</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>오늘의 제조 주문서에서 계획 MO 진행 상태 확인</li>
+<li>양품/불량 수량이 실물과 맞는지 확인(불일치 시 반장 보고)</li>
+<li>PLC 미연동 시 '사출품 생산 기록' 수동 입력 — <b>측정 중량(저울값) + 실측중량 여부 체크</b> 필수</li></ol>]]></field>
+    </record>
+    <record id="def_silo_daily" model="ops.task.def">
+      <field name="name">SILO 잔량·소요통보 확인</field>
+      <field name="role_id" ref="role_inject"/>
+      <field name="periodicity">daily</field>
+      <field name="due_days">0</field>
+      <field name="requires_approval" eval="False"/>
+      <field name="menu_path">사출 현장 &gt; 사출 설정 &gt; 작업장 &gt; SILO 관리 / 소요예상 통보</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>SILO 잔량(current_qty)이 재발주점 근처인지 확인</li>
+<li>소요예상 통보가 발행됐으면 협력사 회신 여부 확인(구매와 공유)</li></ol>]]></field>
+    </record>
+    <record id="def_quality_daily" model="ops.task.def">
+      <field name="name">중량검사 불합격·품질알람 처리</field>
+      <field name="role_id" ref="role_quality"/>
+      <field name="periodicity">daily</field>
+      <field name="due_days">1</field>
+      <field name="menu_path">사출 현장 &gt; 품질관리 &gt; 중량 검사 불합격</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>미처리 품질 알람(NG) 목록 확인</li>
+<li>원인 분류 후 필요 시 부적합/8D 등록(IATF 16949 &gt; 부적합)</li></ol>]]></field>
+    </record>
+    <record id="def_assembly_daily" model="ops.task.def">
+      <field name="name">이종검사 결과 확인</field>
+      <field name="role_id" ref="role_assembly"/>
+      <field name="periodicity">daily</field>
+      <field name="due_days">0</field>
+      <field name="requires_approval" eval="False"/>
+      <field name="menu_path">MES &gt; 이종검사</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>금일 조립 라인 이종검사 결과(스캔 매칭 실패 건) 확인</li>
+<li>사출품 여부는 품목의 <b>사출품(자작)</b> 플래그 기준</li></ol>]]></field>
+    </record>
+
+    <!-- ═══ 월 마감 체인 (docs/월마감_체크리스트.md) ═══ -->
+    <record id="def_close_parts" model="ops.task.def">
+      <field name="name">[월마감1] 부품 생산량 정산 → 매입계산서</field>
+      <field name="role_id" ref="role_settle"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">1</field>
+      <field name="due_days">3</field>
+      <field name="approver_role_id" ref="role_account"/>
+      <field name="menu_path">정산 위저드(vendor.mrp.settlement)</field>
+      <field name="doc_ref">docs/월마감_체크리스트.md STEP 1</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>사전: 당월 MO 전부 done 인지, accrual 생성됐는지 확인</li>
+<li>정산 위저드에서 기간(전월 1일~말일) 지정 → <b>[매입계산서 생성]</b></li>
+<li>공급사별 초안 금액 검토 → 회계 승인 요청</li>
+<li>⚠ 단가는 계약단가(가/정) 적용 — 미등록 품목은 표준 폴백이므로 목록 확인</li></ol>]]></field>
+    </record>
+    <record id="def_close_resin" model="ops.task.def">
+      <field name="name">[월마감2] 수지 톤당 월정산</field>
+      <field name="role_id" ref="role_settle"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">1</field>
+      <field name="due_days">3</field>
+      <field name="approver_role_id" ref="role_account"/>
+      <field name="menu_path">사출 현장 &gt; 원재료 정산 &gt; 원재료 단가·정산 &gt; 원재료 톤당 월정산</field>
+      <field name="doc_ref">docs/월마감_체크리스트.md STEP 2</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>새 정산 생성(기간·수지·공급사)</li>
+<li><b>[원가 계산]</b>(적재로그 집계) → <b>[확정]</b> → <b>[매입계산서 생성]</b></li>
+<li>적재량(톤)×톤단가 = 금액 검산</li></ol>]]></field>
+    </record>
+    <record id="def_close_cost" model="ops.task.def">
+      <field name="name">[월마감3] 실제원가 재집계·월마감(정합 확인)</field>
+      <field name="role_id" ref="role_cost"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">2</field>
+      <field name="due_days">3</field>
+      <field name="approver_role_id" ref="role_mgmt"/>
+      <field name="menu_path">사출 현장 &gt; 원재료 정산 &gt; 실제원가 관리 &gt; MO 실제원가 / 실제원가 월마감</field>
+      <field name="doc_ref">docs/월마감_체크리스트.md STEP 3~4</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li><b>[실제원가 재집계]</b> 실행 → 대사정합(실제−표준=가격+수량+능률) 확인</li>
+<li>PLC 커버리지% 확인 — 낮은 품목은 데이터 점검 후 판단</li>
+<li>월마감 재집계 → <b>recon_ok 전건 True</b> 확인(불일치 경고 시 소급 이중/누락 점검)</li>
+<li>검토 후 잠금(마감)</li></ol>]]></field>
+    </record>
+    <record id="def_close_sq15" model="ops.task.def">
+      <field name="name">[월마감4] SQ 1_5 원단위 중량 대사 증빙</field>
+      <field name="role_id" ref="role_quality"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">3</field>
+      <field name="due_days">3</field>
+      <field name="menu_path">사출 현장 &gt; 원재료 정산 &gt; 실제원가 관리 &gt; SQ 1_5 원단위 중량 대사</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>원단위 편차%·신재대비수율·이상MO 확인</li>
+<li>편차 ±15% 초과 품목은 원단위 마스터/계량 점검 등록</li>
+<li>결과를 SQ 자기평가 증빙으로 저장</li></ol>]]></field>
+    </record>
+    <record id="def_close_exposure" model="ops.task.def">
+      <field name="name">[월마감5] 가단가 노출 점검·정단가 협상 현황</field>
+      <field name="role_id" ref="role_purchase"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">3</field>
+      <field name="due_days">5</field>
+      <field name="approver_role_id" ref="role_mgmt"/>
+      <field name="menu_path">회사 운영 센터 &gt; 정산 관리 &gt; 매입 &gt; 가단가 노출(매입)</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>가단가 청구누계(=정단가 확정 시 소급 규모) 확인</li>
+<li>협상 지연 품목은 경영 보고</li>
+<li>정단가 확정 건은 <b>[정단가 확정]</b> 실행 — 소급전표 초안 생성됨 → 회계 전기</li></ol>]]></field>
+    </record>
+    <record id="def_close_post" model="ops.task.def">
+      <field name="name">[월마감6] 매입계산서·소급전표 전기(회계)</field>
+      <field name="role_id" ref="role_account"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">4</field>
+      <field name="due_days">3</field>
+      <field name="menu_path">회계 &gt; 공급사 청구서(초안)</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>정산(부품/수지)·소급 전표 초안 검토 후 전기</li>
+<li>⚠ 소급 반려는 삭제 대신 반려(cancel) — 재실행 시 자동 재발행됨</li>
+<li>관리원가는 회계 정본 아님(재무제표 무영향) 원칙 확인</li></ol>]]></field>
+    </record>
+    <record id="def_mgmt_review" model="ops.task.def">
+      <field name="name">[월] 원가차이·수익성 리포트 검토</field>
+      <field name="role_id" ref="role_mgmt"/>
+      <field name="periodicity">monthly</field>
+      <field name="day_of_month">5</field>
+      <field name="due_days">5</field>
+      <field name="requires_approval" eval="False"/>
+      <field name="menu_path">사출 현장 &gt; 원재료 정산 &gt; 실제원가 관리 &gt; MO 실제원가 (Pivot)</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>Pivot: 품목×월 표준 vs 실제, 차이 드라이버(가격/수량/능률/수율) 확인</li>
+<li>커버리지 낮은 품목은 판단 보류(데이터 우선)</li>
+<li>개선 지시: 가격→구매 / 수량→공정 / 능률→설비 / 수율→품질</li></ol>]]></field>
+    </record>
+
+    <!-- ═══ 주간 ═══ -->
+    <record id="def_weekly_master" model="ops.task.def">
+      <field name="name">[주간] 기준정보 정합 점검(단가·capability·형체력)</field>
+      <field name="role_id" ref="role_plan"/>
+      <field name="periodicity">weekly</field>
+      <field name="weekday">0</field>
+      <field name="due_days">2</field>
+      <field name="requires_approval" eval="False"/>
+      <field name="menu_path">생산계획 &gt; 마스터 데이터</field>
+      <field name="manual_html"><![CDATA[<ol>
+<li>신규 품목의 사출품 플래그·capability 등록 여부</li>
+<li>사출기 형체력·금형 요구 형체력 입력 상태</li>
+<li>계약단가(가/정) 만료 임박 건</li></ol>]]></field>
+    </record>
+  </data>
+</odoo>
