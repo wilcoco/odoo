@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_loan_form_kr" model="ir.ui.view">
+        <field name="name">account.loan.form.kr</field>
+        <field name="model">account.loan</field>
+        <field name="inherit_id" ref="account_loans.account_loan_form_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='asset_group_id']" position="before">
+                <field name="partner_id" readonly="state not in ('draft', 'running')"/>
+                <field name="kr_interest_rate" readonly="state != 'draft'"/>
+            </xpath>
+
+            <xpath expr="//group[@name='loan_settings_column2']" position="inside">
+                <field name="kr_manage_only" readonly="state != 'draft'"/>
+                <field name="kr_open_ended" readonly="state != 'draft'"/>
+            </xpath>
+
+            <xpath expr="//page[@name='main_page']" position="after">
+                <page string="약정 정보" name="kr_contract_page">
+                    <group>
+                        <group name="kr_contract_column1" string="약정">
+                            <field name="kr_contract_no"/>
+                            <field name="kr_limit_amount" widget="monetary"/>
+                            <field name="kr_collateral"/>
+                            <field name="kr_purpose"/>
+                            <field name="kr_interest_day"/>
+                        </group>
+                        <group name="kr_contract_column2" string="차환(연장)">
+                            <field name="kr_rollover_from_id"
+                                   domain="[('id', '!=', id), ('company_id', '=', company_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="kr_new_money" widget="monetary"/>
+                            <field name="kr_rollover_to_ids" widget="many2many_tags" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="이자율 이력"/>
+                    <field name="kr_rate_ids">
+                        <list editable="bottom">
+                            <field name="date_from"/>
+                            <field name="rate"/>
+                            <field name="reason"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_account_loan_list_kr" model="ir.ui.view">
+        <field name="name">account.loan.list.kr</field>
+        <field name="model">account.loan</field>
+        <field name="inherit_id" ref="account_loans.account_loan_list_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="partner_id" optional="show"/>
+                <field name="kr_interest_rate" optional="show"/>
+                <field name="kr_manage_only" optional="hide"/>
+                <field name="kr_open_ended" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_loan_line_list_kr" model="ir.ui.view">
+        <field name="name">account.loan.line.list.kr</field>
+        <field name="model">account.loan.line</field>
+        <field name="inherit_id" ref="account_loans.account_loan_line_list_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='interest']" position="after">
+                <field name="kr_actual_interest" optional="show"/>
+                <field name="kr_interest_diff" optional="show" decoration-danger="kr_interest_diff != 0"/>
+                <field name="kr_capitalize_account_id" optional="hide"/>
+                <field name="kr_actual_move_ids" widget="many2many_tags" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_loan_search_kr" model="ir.ui.view">
+        <field name="name">account.loan.search.kr</field>
+        <field name="model">account.loan</field>
+        <field name="inherit_id" ref="account_loans.account_loan_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="partner_id"/>
+                <field name="kr_contract_no"/>
+            </xpath>
+            <xpath expr="//search" position="inside">
+                <filter name="kr_filter_manage_only" string="기준정보 전용" domain="[('kr_manage_only', '=', True)]"/>
+                <filter name="kr_filter_open_ended" string="만기 미정" domain="[('kr_open_ended', '=', True)]"/>
+                <filter name="kr_filter_rollover" string="차환(연장)" domain="[('kr_rollover_from_id', '!=', False)]"/>
+                <group expand="0" string="그룹화">
+                    <filter name="kr_group_partner" string="대주" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
