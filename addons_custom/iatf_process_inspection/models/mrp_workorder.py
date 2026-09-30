@@ -18,6 +18,11 @@ class MrpWorkorder(models.Model):
 
     def button_start(self):
         """작업 시작 시 이전 공정 IPQC 합격 확인 (B6 품질 게이트)"""
+        self._check_previous_ipqc()
+        return super().button_start()
+
+    def _check_previous_ipqc(self):
+        """IATF 검사 확인과 실제 작업 시작을 별도 경계로 유지한다."""
         from odoo.exceptions import UserError
         for wo in self:
             prev_wos = wo.production_id.workorder_ids.filtered(
@@ -33,7 +38,6 @@ class MrpWorkorder(models.Model):
                         "불합격 검사: %s\n"
                         "시정조치 후 진행하세요.") % (
                         prev.name, ", ".join(failed.mapped("name"))))
-        return super().button_start()
 
     def button_finish(self):
         res = super().button_finish()

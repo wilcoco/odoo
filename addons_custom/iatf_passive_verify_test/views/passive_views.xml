@@ -1,0 +1,77 @@
+<odoo>
+    <record id="passive_source_form" model="ir.ui.view">
+        <field name="name">iatf.passive.source.form</field>
+        <field name="model">iatf.passive.source</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0"><sheet><group>
+                <field name="path"/><field name="sha256"/>
+                <field name="filename" invisible="1"/><field name="content" filename="filename"/>
+            </group></sheet></form>
+        </field>
+    </record>
+    <record id="passive_log_list" model="ir.ui.view">
+        <field name="name">iatf.passive.log.list</field>
+        <field name="model">iatf.passive.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="passed_at"/><field name="area"/><field name="outcome"/>
+                <field name="description"/><field name="error_message" optional="show"/>
+                <field name="res_model"/><field name="res_id"/><field name="record_name"/>
+                <field name="user_id"/><field name="company_id" groups="base.group_multi_company"/>
+                <field name="point" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="passive_log_form" model="ir.ui.view">
+        <field name="name">iatf.passive.log.form</field>
+        <field name="model">iatf.passive.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header><button name="action_open_record" type="object" string="원본 레코드" class="oe_highlight"/>
+                    <button name="action_open_attachments" type="object" string="원본 첨부파일"/></header>
+                <sheet><group><group>
+                    <field name="passed_at"/><field name="area"/><field name="outcome"/>
+                    <field name="user_id"/><field name="company_id"/>
+                </group><group>
+                    <field name="res_model"/><field name="res_id"/><field name="record_name"/>
+                    <field name="source_id" options="{'no_create': True}"/><field name="source_line"/>
+                </group></group><group>
+                    <field name="description"/><field name="error_type"/><field name="error_message"/>
+                    <field name="point"/><field name="traceback_text"/>
+                </group></sheet>
+            </form>
+        </field>
+    </record>
+    <record id="passive_log_search" model="ir.ui.view">
+        <field name="name">iatf.passive.log.search</field>
+        <field name="model">iatf.passive.log</field>
+        <field name="arch" type="xml"><search>
+            <field name="area"/><field name="res_model"/><field name="res_id"/><field name="record_name"/>
+            <field name="error_message"/><field name="point"/>
+            <filter name="errors" string="실제 오류" domain="[('error_type', '!=', False)]"/>
+            <group expand="0" string="그룹"><filter name="area" string="분야" context="{'group_by': 'area'}"/>
+                <filter name="day" string="일자" context="{'group_by': 'passed_at:day'}"/>
+                <filter name="model" string="모델" context="{'group_by': 'res_model'}"/></group>
+        </search></field>
+    </record>
+    <record id="action_passive_log" model="ir.actions.act_window">
+        <field name="name">IATF 패스 검증 로그</field><field name="res_model">iatf.passive.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">통과 처리된 IATF 차단이 아직 없어요.</p>
+            <p>패스는 검사 합격이나 결재 승인을 뜻하지 않습니다. 업무가 최종 저장된 경우에 로그도 함께 보관됩니다.</p></field>
+    </record>
+    <record id="passive_company_list" model="ir.ui.view">
+        <field name="name">res.company.iatf.passive.list</field><field name="model">res.company</field>
+        <field name="arch" type="xml"><list create="0" delete="0" editable="bottom">
+            <field name="name" readonly="1"/><field name="iatf_passive_enabled"/>
+        </list></field>
+    </record>
+    <record id="action_passive_settings" model="ir.actions.act_window">
+        <field name="name">IATF 패스 회사 설정</field><field name="res_model">res.company</field>
+        <field name="view_mode">list</field><field name="view_id" ref="passive_company_list"/>
+        <field name="domain">[('id', 'in', allowed_company_ids)]</field>
+    </record>
+    <menuitem id="menu_passive_root" name="IATF 패스 검증" action="action_passive_log" sequence="95" groups="base.group_user"/>
+    <menuitem id="menu_passive_log" name="통과 로그" parent="menu_passive_root" action="action_passive_log" sequence="10"/>
+    <menuitem id="menu_passive_settings" name="패스 설정" parent="menu_passive_root" action="action_passive_settings" sequence="20" groups="base.group_system"/>
+</odoo>
