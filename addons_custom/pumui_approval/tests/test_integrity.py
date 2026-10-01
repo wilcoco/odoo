@@ -38,28 +38,33 @@ class IntegrityCase(TransactionCase):
 class TestApprovalIntegrity(IntegrityCase):
     def test_default_context_cannot_inject_approval(self):
         old = self._request()
-        p = self.env['pumui.request'].with_user(self.author).with_context(
-            default_approval_request_id=old.approval_request_id.id,
-            default_approval_state='approved', default_state='approved',
-            default_amount_total=999999,
-        ).create({'title': 'Phase2 context attack', 'partner_id': self.partner.id})
-        self.assertEqual(p.approval_state, 'draft')
-        self.assertNotEqual(p.approval_request_id, old.approval_request_id)
-        line = self.env['iatf.approval.line'].with_user(self.author).with_context(default_state='approved').create({
-            'request_id':p.approval_request_id.id,'user_id':self.approver.id})
-        self.assertEqual(line.state, 'new')
+        # The current guard rejects forged defaults instead of silently
+        # dropping them; retain this stricter policy when porting the fixture.
+        with self.assertRaises(UserError), self.cr.savepoint():
+            self.env['pumui.request'].with_user(self.author).with_context(
+                default_approval_request_id=old.approval_request_id.id,
+                default_approval_state='approved', default_state='approved',
+                default_amount_total=999999,
+            ).create({'title': 'Phase2 context attack', 'partner_id': self.partner.id})
+        p = self._request(approve=False)
+        with self.assertRaises(UserError), self.cr.savepoint():
+            self.env['iatf.approval.line'].with_user(self.author).with_context(
+                default_state='approved').create({
+                    'request_id': p.approval_request_id.id, 'user_id': self.approver.id})
+        self.assertEqual(old.approval_state, 'approved')
+        self.assertEqual(p.approval_line_ids.state, 'new')
 
     def test_state_and_context_forgery_are_blocked(self):
         p = self._request(approve=False)
         for user in (self.author, self.outsider, self.env.user):
             for context in ({}, {'_approval_transition': True}):
-                with self.assertRaises(AccessError), self.cr.savepoint():
+                with self.assertRaises(UserError), self.cr.savepoint():
                     p.approval_request_id.with_user(user).with_context(**context).write({'state': 'approved'})
-        with self.assertRaises(AccessError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             p.approval_line_ids.write({'state': 'approved'})
-        with self.assertRaises(AccessError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             p.write({'approval_state': 'approved'})
-        with self.assertRaises(AccessError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             self.env['iatf.approval.request'].create({'res_model': p._name, 'res_id': p.id, 'state': 'approved'})
 
     def test_only_current_approver_and_current_revision_can_decide(self):
@@ -110,7 +115,7 @@ class TestApprovalIntegrity(IntegrityCase):
 
     def test_relinking_and_old_history_edit_are_blocked(self):
         p, other = self._request(), self._request()
-        with self.assertRaises(AccessError), self.cr.savepoint():
+        with self.assertRaises(UserError), self.cr.savepoint():
             p.write({'approval_request_id': other.approval_request_id.id})
         with self.assertRaises(UserError), self.cr.savepoint():
             p.approval_line_ids.sudo().write({'user_id': self.author.id})

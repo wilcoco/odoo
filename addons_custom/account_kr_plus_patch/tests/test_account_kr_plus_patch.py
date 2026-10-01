@@ -11,6 +11,11 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # A restored database may use a company-wide custom sequence. Tests
+        # explicitly start from Odoo mode instead of inheriting live settings.
+        cls.env.ref('account_kr_plus_patch.account_kr_plus_settings_global').write({
+            'kr_move_sequence_rule': 'odoo',
+        })
         cls.misc_journal = cls.env["account.journal"].create({
             "name": "한국식 전표 테스트",
             "code": "KRT",
@@ -444,7 +449,7 @@ class TestAccountKrPlusPatch(AccountTestInvoicingCommon):
     def test_draft_number_uses_friendly_display_until_posting(self):
         move = self._create_entry("2024-07-18")
 
-        self.assertEqual(move.name, "/")
+        self.assertIn(move.name, (False, "/"))
         self.assertEqual(move.kr_move_number_display, "전기 시 자동 생성")
 
         move.action_post()

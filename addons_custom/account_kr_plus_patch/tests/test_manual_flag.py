@@ -1,4 +1,4 @@
-from odoo import Command
+from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 
@@ -10,6 +10,7 @@ class TestManualFlag(AccountTestInvoicingCommon):
     def _bill_vals(self, **values):
         vals = {
             "move_type": "in_invoice",
+            "invoice_date": fields.Date.today(),
             "partner_id": self.partner_a.id,
             "journal_id": self.company_data["default_journal_purchase"].id,
             "invoice_line_ids": [Command.create({

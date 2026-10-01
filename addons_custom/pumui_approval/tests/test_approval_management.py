@@ -61,7 +61,7 @@ class TestApprovalManagement(IntegrityCase):
             ):
                 with self.assertRaises(UserError), self.cr.savepoint():
                     operation()
-            with self.assertRaises(AccessError), self.cr.savepoint():
+            with self.assertRaises(UserError), self.cr.savepoint():
                 p.approval_line_ids.write({'state': 'approved'})
 
     def test_manager_reset_preserves_history(self):

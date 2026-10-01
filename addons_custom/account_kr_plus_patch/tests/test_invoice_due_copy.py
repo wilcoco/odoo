@@ -232,6 +232,13 @@ class TestInvoiceCopy(InvoiceDueCopyCommon):
         copied.invoice_line_ids.write({"tax_ids": [Command.set(exempt_tax.ids)]})
         self.assertEqual(copied.kr_tax_type, "exempt")
 
+    def test_copy_respects_explicit_manual_tax_flag_default(self):
+        invoice = self.env['account.move'].create(self._invoice_vals('out_invoice', 14))
+        invoice.write({'kr_tax_type': 'exempt', 'kr_tax_type_manual': True})
+        values = invoice.copy_data({'kr_tax_type_manual': False})[0]
+        self.assertFalse(values['kr_tax_type_manual'])
+        self.assertTrue(invoice.kr_tax_type_manual)
+
     def test_copy_keeps_payment_term_and_recomputes_due_date(self):
         invoice = self.env["account.move"].create(self._invoice_vals(
             "out_invoice", 12, invoice_payment_term_id=self.term_30.id,

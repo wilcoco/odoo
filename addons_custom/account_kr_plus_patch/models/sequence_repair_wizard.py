@@ -68,6 +68,9 @@ class AccountKrMoveSequenceRepairWizard(models.TransientModel):
         string="대상 전표",
         required=True,
         default=lambda self: self._default_journal_ids(),
+        # Keep archived journals when reading the relation as well as when
+        # building its default; otherwise the repair scope silently narrows.
+        context={'active_test': False},
         domain="[('company_id', '=', company_id)]",
         help=(
             "선택한 회사의 활성·보관 저널이 모두 기본 선택됩니다. "
