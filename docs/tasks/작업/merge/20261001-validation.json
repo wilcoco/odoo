@@ -1,0 +1,63 @@
+{
+  "code_commit": "a4093619e4f4d75a6ea89f59aa305e567005bbae",
+  "database": "codex_merge_20261001_handoff",
+  "core": "18.0+e-20251117",
+  "enterprise": true,
+  "result": {
+    "tests": 294,
+    "failures": 0,
+    "errors": 0
+  },
+  "log": "/tmp/codex-merge-20261001/tests-r5.log",
+  "source_files": 1042,
+  "source_sha256": "ca04aa32cf490c8f0e845cd3a3d50289566e55e370b48c0c0cdf64dd10955b52",
+  "installed_modules": [
+    {
+      "module": "account_kr_plus_patch",
+      "state": "installed",
+      "version": "18.0.2.5.8"
+    },
+    {
+      "module": "account_kr_plus_patch_loans",
+      "state": "installed",
+      "version": "18.0.1.0.0"
+    },
+    {
+      "module": "account_kr_plus_patch_ncasset",
+      "state": "installed",
+      "version": "18.0.1.0.0"
+    },
+    {
+      "module": "iatf_approval",
+      "state": "installed",
+      "version": "18.0.1.2.2"
+    },
+    {
+      "module": "iatf_incoming_inspection",
+      "state": "installed",
+      "version": "18.0.2.1.2"
+    },
+    {
+      "module": "iatf_passive_verify_test",
+      "state": "installed",
+      "version": "18.0.1.0.0"
+    },
+    {
+      "module": "iatf_process_inspection",
+      "state": "installed",
+      "version": "18.0.1.0.15"
+    },
+    {
+      "module": "pumui_approval",
+      "state": "installed",
+      "version": "18.0.2.4.1"
+    }
+  ],
+  "neutralization_counts": {
+    "active_cron": 0,
+    "active_mail_servers": 0,
+    "active_fetchmail": 0,
+    "foreign_user_mappings": 0,
+    "pending_modules": 0
+  }
+}
