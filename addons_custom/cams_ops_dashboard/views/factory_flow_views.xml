@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- [R136] 회사 운영 흐름 — 4단 캐스케이드 client action (설계 §4) -->
+    <record id="action_factory_flow" model="ir.actions.client">
+        <field name="name">회사 운영 흐름</field>
+        <field name="tag">cams_ops_dashboard.factory_flow</field>
+    </record>
+
+    <menuitem id="menu_factory_flow"
+              name="회사 운영 흐름"
+              parent="cams_ops_process.menu_ops_root"
+              action="action_factory_flow"
+              groups="base.group_user"
+              sequence="6"/>
+</odoo>

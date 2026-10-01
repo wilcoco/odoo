@@ -10,7 +10,7 @@ IATF 16949 통합 메뉴
 타 모듈의 액션을 참조하므로 모든 iatf 모듈에 의존하며, 메뉴 골격(menu_iatf_root 등)은
 iatf_document_control 모듈이 제공한다.
 """,
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

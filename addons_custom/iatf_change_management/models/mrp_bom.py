@@ -17,6 +17,26 @@ class MrpBom(models.Model):
                          "routing_id", "operation_ids", "type"}
         trigger_fields = set(vals.keys()) & change_fields
 
+        self._check_pending_change_requests(vals)
+        old_values = {}
+        if trigger_fields:
+            for rec in self:
+                old_values[rec.id] = {
+                    "product": rec.product_tmpl_id.name,
+                    "qty": rec.product_qty,
+                    "lines": len(rec.bom_line_ids),
+                }
+
+        res = super().write(vals)
+        self._create_bom_change_requests(vals, old_values)
+        return res
+
+    def _check_pending_change_requests(self, vals):
+        """BOM 자체 저장과 분리된 IATF 변경요청 사전 확인."""
+        change_fields = {"bom_line_ids", "product_tmpl_id", "product_qty",
+                         "routing_id", "operation_ids", "type"}
+        trigger_fields = set(vals.keys()) & change_fields
+
         # 미승인 CR 존재 시 BOM 변경 차단
         if trigger_fields and "change_locked" not in vals:
             CR = self.env.get("iatf.change.request")
@@ -31,17 +51,12 @@ class MrpBom(models.Model):
                             "미승인 변경요청(CR)이 존재하여 BOM을 수정할 수 없습니다.\n"
                             "CR 승인 후 BOM을 수정하세요.\n"
                             "관련 CR: %s") % ", ".join(pending_crs.mapped("name")))
-        old_values = {}
-        if trigger_fields:
-            for rec in self:
-                old_values[rec.id] = {
-                    "product": rec.product_tmpl_id.name,
-                    "qty": rec.product_qty,
-                    "lines": len(rec.bom_line_ids),
-                }
 
-        res = super().write(vals)
-
+    def _create_bom_change_requests(self, vals, old_values):
+        """BOM 저장 후 변경요청 자동 생성을 별도 경계로 유지한다."""
+        change_fields = {"bom_line_ids", "product_tmpl_id", "product_qty",
+                         "routing_id", "operation_ids", "type"}
+        trigger_fields = set(vals.keys()) & change_fields
         if trigger_fields:
             for rec in self:
                 old = old_values.get(rec.id, {})
@@ -59,5 +74,3 @@ class MrpBom(models.Model):
                     "risk_level": "medium",
                 })
                 _logger.info("Change Request auto-created for BOM %s change", rec.display_name)
-
-        return res

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 에스콘 품의서(전자결재) 유형 — 정본 스펙은 models/setup.py CATEGORY_SPECS.
+             이 파일은 최초 생성용이며, 구조 설정은 업그레이드 때마다 스펙으로 정합된다.
+             기본 영문 유형(Business Trip 등)은 escon.eapproval.setup 이 자동 보관 처리.
+             공통: 부서장 자동 결재자 + 순차 결재 + 자동 문서번호.
+             근태(휴가) 신청서는 휴가 메뉴(hr_holidays + 연차 엔진)가 담당한다. -->
+
+        <!-- ═════════ 인사 및 근태 관리 ═════════ -->
+        <record id="category_overtime" model="approval.category">
+            <field name="name">초과/휴일 근무 신청서</field>
+            <field name="description">야근·주말 특근 사전 승인 및 연장 근로 수당 청구</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Books.png"/>
+            <field name="escon_group">hr</field>
+            <field name="sequence">110</field>
+            <field name="has_period">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">OT</field>
+        </record>
+
+        <record id="category_remote" model="approval.category">
+            <field name="name">재택/유연근무 신청서</field>
+            <field name="description">근무 형태 변경 또는 특정 일자 재택근무 신청</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Folder.png"/>
+            <field name="escon_group">hr</field>
+            <field name="sequence">120</field>
+            <field name="has_period">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">WFH</field>
+        </record>
+
+        <record id="category_cert" model="approval.category">
+            <field name="name">제증명 발급 요청</field>
+            <field name="description">재직·경력증명서, 원천징수영수증 등 공식 서류 발급 요청 (인사팀)</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Award.png"/>
+            <field name="escon_group">hr</field>
+            <field name="sequence">130</field>
+            <field name="has_date">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">CERT</field>
+        </record>
+
+        <record id="category_trip" model="approval.category">
+            <field name="name">출장 신청·보고</field>
+            <field name="description">국내외 출장 계획(기간·출장지·예상 경비) 승인 — 복귀 후 결과는 문서 메시지로 보고</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Suitcase.png"/>
+            <field name="escon_group">hr</field>
+            <field name="sequence">140</field>
+            <field name="has_period">required</field>
+            <field name="has_location">required</field>
+            <field name="has_partner">optional</field>
+            <field name="has_amount">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">TRIP</field>
+        </record>
+
+        <!-- ═════════ 재무 및 비용 처리 ═════════ -->
+        <record id="category_expense" model="approval.category">
+            <field name="name">지출 결의서</field>
+            <field name="description">개인/법인카드 경비 청구 — 금액과 영수증(증빙) 첨부 필수</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Credit-card.png"/>
+            <field name="escon_group">finance</field>
+            <field name="sequence">210</field>
+            <field name="has_date">required</field>
+            <field name="has_amount">required</field>
+            <field name="has_payment_method">optional</field>
+            <field name="has_partner">optional</field>
+            <field name="requirer_document">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">EXP</field>
+        </record>
+
+        <record id="category_tax_invoice" model="approval.category">
+            <field name="name">세금계산서 발행 요청</field>
+            <field name="description">거래처 대금 청구용 세금계산서 발행 의뢰 (재무팀)</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Credit-card.png"/>
+            <field name="escon_group">finance</field>
+            <field name="sequence">220</field>
+            <field name="has_partner">required</field>
+            <field name="has_amount">required</field>
+            <field name="has_reference">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">TAX</field>
+        </record>
+
+        <!-- 승인 완료 시 공급업체별 구매 견적요청서(RFQ) 자동 생성 (approvals_purchase) -->
+        <record id="category_rfq" model="approval.category">
+            <field name="name">견적 요청서 (RFQ)</field>
+            <field name="description">구매 품목 승인 — 승인 완료 시 공급업체별 구매 RFQ 자동 생성</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Bag.png"/>
+            <field name="escon_group">finance</field>
+            <field name="sequence">230</field>
+            <field name="approval_type">purchase</field>
+            <field name="has_product">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">RFQ</field>
+        </record>
+
+        <!-- ═════════ 일반 행정 및 총무 ═════════ -->
+        <record id="category_general" model="approval.category">
+            <field name="name">일반 기안서</field>
+            <field name="description">정형 양식이 없는 사업 계획·제도 변경·제안 등 일반 기안</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Folder.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">310</field>
+            <field name="has_reference">optional</field>
+            <field name="requirer_document">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">GEN</field>
+        </record>
+
+        <record id="category_supply" model="approval.category">
+            <field name="name">비품/기기 구매 신청</field>
+            <field name="description">PC·소프트웨어·사무용품 등 업무 물품 구매 요청 (총무팀)</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Bag.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">320</field>
+            <field name="has_product">optional</field>
+            <field name="has_quantity">optional</field>
+            <field name="has_amount">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">SUPPLY</field>
+        </record>
+
+        <record id="category_namecard" model="approval.category">
+            <field name="name">명함 제작 요청</field>
+            <field name="description">신규 입사자·승진자 명함 제작 의뢰 (총무팀)</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Contract.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">330</field>
+            <field name="has_quantity">optional</field>
+            <field name="has_date">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">CARD</field>
+        </record>
+
+        <record id="category_notice" model="approval.category">
+            <field name="name">사내 공지 승인</field>
+            <field name="description">전사 공지·지침 게시 전 책임자 확인 (공지문 첨부)</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Books.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">340</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">NOTICE</field>
+        </record>
+
+        <record id="category_gate" model="approval.category">
+            <field name="name">출입신청</field>
+            <field name="description">외부인/협력사 출입 및 휴일·야간 출입 신청 — 기간과 방문 업체를 입력</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Contract.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">350</field>
+            <field name="has_period">required</field>
+            <field name="has_partner">optional</field>
+            <field name="has_location">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">GATE</field>
+        </record>
+
+        <record id="category_car" model="approval.category">
+            <field name="name">자동차 대여</field>
+            <field name="description">법인/렌트 차량 사용 신청 — 사용 기간을 입력</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Car.png"/>
+            <field name="escon_group">admin</field>
+            <field name="sequence">360</field>
+            <field name="has_period">required</field>
+            <field name="has_location">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">CAR</field>
+        </record>
+
+        <!-- ═════════ 영업 및 타 부서 협조 ═════════ -->
+        <record id="category_coop" model="approval.category">
+            <field name="name">업무 협조전</field>
+            <field name="description">타 부서에 디자인·개발·데이터 추출 등 실무 협조 공식 요청</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Folder.png"/>
+            <field name="escon_group">sales</field>
+            <field name="sequence">410</field>
+            <field name="has_period">optional</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">COOP</field>
+        </record>
+
+        <record id="category_seal" model="approval.category">
+            <field name="name">계약서 날인 요청</field>
+            <field name="description">대표 직인/법인 인감 날인 전 계약서 검토 — 계약서 첨부 필수</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Contract.png"/>
+            <field name="escon_group">sales</field>
+            <field name="sequence">420</field>
+            <field name="has_partner">required</field>
+            <field name="requirer_document">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">SEAL</field>
+        </record>
+
+        <record id="category_quote" model="approval.category">
+            <field name="name">견적서 승인</field>
+            <field name="description">고객사 견적 발송 전 내부 승인 — 고객사와 금액을 입력</field>
+            <field name="image" type="base64" file="approvals/static/src/img/Award.png"/>
+            <field name="escon_group">sales</field>
+            <field name="sequence">430</field>
+            <field name="has_partner">required</field>
+            <field name="has_amount">required</field>
+            <field name="manager_approval">approver</field>
+            <field name="approver_sequence" eval="True"/>
+            <field name="automated_sequence" eval="True"/>
+            <field name="sequence_code">QUOTE</field>
+        </record>
+    </data>
+</odoo>

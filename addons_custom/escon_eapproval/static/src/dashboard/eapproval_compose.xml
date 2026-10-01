@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="escon_eapproval.Compose" owl="1">
+        <div class="o_action eap-dashboard eap-compose">
+            <div class="eap-topbar">
+                <div class="eap-topbar__title">
+                    <h1>품의서 작성</h1>
+                    <span class="eap-topbar__who">결재 유형을 선택하면 작성 화면이 열립니다</span>
+                </div>
+            </div>
+
+            <div class="eap-body">
+                <t t-if="state.error">
+                    <div class="eap-empty eap-empty--page">
+                        <i class="fa fa-exclamation-circle"/>
+                        <span t-esc="state.error"/>
+                    </div>
+                </t>
+                <t t-elif="data">
+                    <t t-foreach="data.groups" t-as="grp" t-key="grp.key">
+                        <section class="eap-section"
+                                 t-if="categoriesFor(grp.key).length || hasSpecialCards(grp.key)">
+                            <div class="eap-section__head">
+                                <div><h2 t-esc="grp.label"/></div>
+                            </div>
+                            <div class="eap-compose__grid">
+                                <!-- 근태(휴가) 신청서 — 휴가 현황판(연차 엔진)으로 연결 -->
+                                <button t-if="grp.key === 'hr'" type="button"
+                                        class="eap-card eap-compose__card"
+                                        t-on-click="() => this.openXml('leave_dashboard')">
+                                    <span class="eap-compose__icon eap-compose__icon--tint"><i class="fa fa-plane"/></span>
+                                    <span class="eap-compose__body">
+                                        <span class="eap-compose__name">근태(휴가) 신청서</span>
+                                        <span class="eap-compose__desc">연차·반차·병가·공가·경조사·대체휴무 신청</span>
+                                    </span>
+                                    <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
+                                </button>
+                                <!-- 품의서(청구 연계) — 승인 후 청구서 생성·잔액 관리 (pumui) -->
+                                <button t-if="grp.key === 'finance' &amp;&amp; data.pumui.installed" type="button"
+                                        class="eap-card eap-compose__card"
+                                        t-on-click="() => this.newPumui()">
+                                    <span class="eap-compose__icon eap-compose__icon--tint"><i class="fa fa-file-text-o"/></span>
+                                    <span class="eap-compose__body">
+                                        <span class="eap-compose__name">품의서 (청구 연계)</span>
+                                        <span class="eap-compose__desc">지출/수금 품의 — 승인 후 청구서 생성·잔액 관리</span>
+                                    </span>
+                                    <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
+                                </button>
+
+                                <t t-foreach="categoriesFor(grp.key)" t-as="cat" t-key="cat.id">
+                                    <button type="button" class="eap-card eap-compose__card"
+                                            t-on-click="() => this.openCategory(cat)">
+                                        <span class="eap-compose__icon">
+                                            <img t-if="imgSrc(cat)" t-att-src="imgSrc(cat)" alt=""/>
+                                            <i t-else="" class="fa fa-file-text-o"/>
+                                        </span>
+                                        <span class="eap-compose__body">
+                                            <span class="eap-compose__name" t-esc="cat.name"/>
+                                            <span class="eap-compose__desc" t-esc="cat.description"/>
+                                        </span>
+                                        <span t-if="cat.my_open" class="eap-chip eap-chip--xs eap-chip--running">
+                                            진행 <t t-esc="cat.my_open"/>건
+                                        </span>
+                                        <span class="eap-compose__chev"><i class="fa fa-chevron-right"/></span>
+                                    </button>
+                                </t>
+                            </div>
+                        </section>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

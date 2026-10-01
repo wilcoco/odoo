@@ -15,4 +15,25 @@
         <field name="implied_ids" eval="[(4, ref('group_pumui_user'))]"/>
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+    <record id="rule_pumui_company" model="ir.rule">
+        <field name="name">품의: 허용된 회사</field>
+        <field name="model_id" ref="model_pumui_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_pumui_line_company" model="ir.rule">
+        <field name="name">품의 항목: 허용된 회사</field>
+        <field name="model_id" ref="model_pumui_request_line"/>
+        <field name="domain_force">[('pumui_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <!-- Other document types retain their existing visibility policy. -->
+    <record id="approval_request_pumui_participant_rule" model="ir.rule">
+        <field name="name">Pumui approvals: participants and document managers</field>
+        <field name="model_id" ref="iatf_approval.model_iatf_approval_request"/>
+        <field name="domain_force">[(1, '=', 1)] if user.has_group('base.group_system') else ['|', '|', '|', ('res_model', '!=', 'pumui.request'), ('requester_id', '=', user.id), ('line_ids.user_id', '=', user.id), ('can_manage', '=', True)]</field>
+    </record>
+    <record id="approval_line_pumui_participant_rule" model="ir.rule">
+        <field name="name">Pumui approval lines: participants and document managers</field>
+        <field name="model_id" ref="iatf_approval.model_iatf_approval_line"/>
+        <field name="domain_force">[(1, '=', 1)] if user.has_group('base.group_system') else ['|', '|', '|', ('request_id.res_model', '!=', 'pumui.request'), ('request_id.requester_id', '=', user.id), ('request_id.line_ids.user_id', '=', user.id), ('request_id.can_manage', '=', True)]</field>
+    </record>
 </odoo>

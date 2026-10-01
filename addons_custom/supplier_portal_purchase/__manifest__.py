@@ -1,6 +1,6 @@
 {
     "name": "외주 자동발주 및 협력사 포탈",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.4.0",
     "summary": "생산계획 기반 외주 자동발주 + 협력사 포탈 (응답/승인 워크플로우)",
     "description": """
 외주 자동발주 및 협력사 포탈 시스템
@@ -28,6 +28,7 @@
     "data": [
         # Security
         "security/security.xml",
+        "security/scm_company_rules.xml",
         "security/ir.model.access.csv",
         # Data
         "data/sequence.xml",

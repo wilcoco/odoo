@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 회사 운영 센터 전용 임직원 화면: 표준 임직원 앱 메뉴는 변경하지 않는다. -->
+    <record id="view_ops_employee_list" model="ir.ui.view">
+        <field name="name">hr.employee.ops.center.list</field>
+        <field name="model">hr.employee</field>
+        <field name="arch" type="xml">
+            <list string="임직원 관리">
+                <field name="name"/>
+                <field name="user_id" string="사용자 계정"/>
+                <field name="department_id"/>
+                <field name="job_id" string="직책"/>
+                <field name="job_grade_id" string="직급"/>
+                <field name="parent_id" string="관리자" optional="show"/>
+                <field name="work_email" optional="show"/>
+                <field name="mobile_phone" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ops_employee_form" model="ir.ui.view">
+        <field name="name">hr.employee.ops.center.form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="job_grade_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_ops_employee" model="ir.actions.act_window">
+        <field name="name">임직원 관리</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_ops_employee_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_ops_employee_form')})]"/>
+        <field name="context">{'search_default_group_department': 1}</field>
+    </record>
+
+    <record id="view_ops_department_list" model="ir.ui.view">
+        <field name="name">hr.department.ops.center.list</field>
+        <field name="model">hr.department</field>
+        <field name="arch" type="xml">
+            <list string="부서">
+                <field name="name"/>
+                <field name="parent_id" string="상위 부서"/>
+                <field name="manager_id" string="부서장"/>
+                <field name="total_employee" string="임직원 수"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_ops_department" model="ir.actions.act_window">
+        <field name="name">부서</field>
+        <field name="res_model">hr.department</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_ops_department_list"/>
+    </record>
+
+    <record id="view_ops_job_grade_list" model="ir.ui.view">
+        <field name="name">escon.job.grade.ops.center.list</field>
+        <field name="model">escon.job.grade</field>
+        <field name="arch" type="xml">
+            <list string="직급" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="note"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_ops_job_grade" model="ir.actions.act_window">
+        <field name="name">직급</field>
+        <field name="res_model">escon.job.grade</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_ops_job_grade_list"/>
+    </record>
+
+    <menuitem id="menu_ops_employee" parent="menu_ops_config_employee"
+              name="임직원 관리" action="action_ops_employee" sequence="10"/>
+    <menuitem id="menu_ops_department" parent="menu_ops_config_employee"
+              name="부서" action="action_ops_department" sequence="20"/>
+    <menuitem id="menu_ops_job_grade" parent="menu_ops_config_employee"
+              name="직급" action="action_ops_job_grade" sequence="30"/>
+</odoo>

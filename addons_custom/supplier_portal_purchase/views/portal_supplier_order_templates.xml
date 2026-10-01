@@ -540,6 +540,7 @@
     <template id="portal_my_inventory" name="Portal - My Inventory">
         <t t-call="supplier_portal_purchase.portal_layout">
             <h2 class="mb-4"><i class="fa fa-cubes me-2"/> 내 재고 관리</h2>
+            <div class="alert alert-warning">업체가 신고한 수량입니다. 기준 시각과 실제 확보·납품 가능 여부를 확인해 주세요. 당사 재고 또는 납품 확약으로 자동 인정되지 않습니다.</div>
 
             <div class="card">
                 <div class="card-body p-0">

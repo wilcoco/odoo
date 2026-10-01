@@ -1,0 +1,29 @@
+<odoo>
+    <record id="view_approval_request_evidence_form" model="ir.ui.view">
+        <field name="name">iatf.approval.request.evidence.form</field>
+        <field name="model">iatf.approval.request</field>
+        <field name="arch" type="xml">
+            <form string="결재 증빙" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="alert alert-warning" invisible="guard_version != 0">
+                        기존 결재 자료입니다. 새 검증 절차의 승인 근거로 자동 인정하지 않습니다.
+                        원래 기록을 보존하고 대상 문서에서 새 결재를 진행하세요.
+                    </div>
+                    <group>
+                        <field name="res_model"/><field name="res_id"/><field name="company_id"/>
+                        <field name="requester_id"/><field name="state"/><field name="guard_version"/>
+                        <field name="approved_date"/><field name="rejected_date"/>
+                        <field name="previous_request_id"/>
+                    </group>
+                    <field name="line_ids" readonly="1">
+                        <list create="false" edit="false" delete="false">
+                            <field name="sequence"/><field name="user_id"/>
+                            <field name="state"/><field name="action_date"/><field name="note"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

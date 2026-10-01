@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 결재 요청 전체 목록 (관리/모니터링용 — iatf_approval 은 뷰를 제공하지 않는다) -->
+    <record id="view_iatf_approval_request_list" model="ir.ui.view">
+        <field name="name">iatf.approval.request.list.eapproval</field>
+        <field name="model">iatf.approval.request</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'approved'"
+                  decoration-danger="state == 'rejected'"
+                  decoration-info="state == 'in_progress'">
+                <field name="id"/>
+                <field name="res_model"/>
+                <field name="res_id"/>
+                <field name="requester_id"/>
+                <field name="current_approver_id"/>
+                <field name="state" widget="badge"/>
+                <field name="approved_date" optional="hide"/>
+                <field name="rejected_date" optional="hide"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_approval_request_form" model="ir.ui.view">
+        <field name="name">iatf.approval.request.form.eapproval</field>
+        <field name="model">iatf.approval.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="requester_id"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="current_approver_id"/>
+                            <field name="approved_date"/>
+                            <field name="rejected_date"/>
+                        </group>
+                    </group>
+                    <field name="line_ids">
+                        <list>
+                            <field name="sequence"/>
+                            <field name="user_id"/>
+                            <field name="state"/>
+                            <field name="action_date"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_iatf_approval_request_search" model="ir.ui.view">
+        <field name="name">iatf.approval.request.search.eapproval</field>
+        <field name="model">iatf.approval.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="res_model"/>
+                <field name="requester_id"/>
+                <field name="current_approver_id"/>
+                <filter name="in_progress" string="진행 중" domain="[('state','=','in_progress')]"/>
+                <filter name="approved" string="승인" domain="[('state','=','approved')]"/>
+                <filter name="rejected" string="반려" domain="[('state','=','rejected')]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_model" string="문서 모델" context="{'group_by':'res_model'}"/>
+                    <filter name="g_state" string="상태" context="{'group_by':'state'}"/>
+                    <filter name="g_requester" string="상신자" context="{'group_by':'requester_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_eapproval_requests" model="ir.actions.act_window">
+        <field name="name">결재 요청 전체</field>
+        <field name="res_model">iatf.approval.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_iatf_approval_request_search"/>
+    </record>
+</odoo>

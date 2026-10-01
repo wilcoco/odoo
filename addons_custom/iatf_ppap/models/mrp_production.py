@@ -21,8 +21,11 @@ class MrpProduction(models.Model):
         if not self.product_id:
             return
         # 해당 제품으로 이전 MO가 있는지 확인
+        # 회사 범위를 두지 않으면 여러 회사가 공유하는 품목에서 다른 회사의 선행 MO
+        # 때문에 이 회사의 최초 PPAP 요청이 생략된다. (제3자 검토 H13)
         prev_mo = self.search([
             ("product_id", "=", self.product_id.id),
+            ("company_id", "=", self.company_id.id),
             ("id", "!=", self.id),
         ], limit=1)
         if prev_mo:

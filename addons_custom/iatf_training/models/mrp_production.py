@@ -29,10 +29,14 @@ class MrpProduction(models.Model):
 
     def button_mark_done(self):
         """MO 완료 시 작업자 자격 검증 경고"""
+        self._notify_operator_qualification()
+        return super().button_mark_done()
+
+    def _notify_operator_qualification(self):
+        """자격 경고 후처리를 제조 완료 동작과 분리한다."""
         for production in self:
             if not production.operator_qualified and production.user_id:
                 production.message_post(
                     body=_("⚠ 작업자 %s의 역량 갭이 감지되었습니다. 교육 이수 확인이 필요합니다.") % production.user_id.name,
                     subject=_("작업자 자격 경고"),
                 )
-        return super().button_mark_done()

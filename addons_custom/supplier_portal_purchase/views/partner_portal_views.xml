@@ -13,6 +13,7 @@
                     <group>
                         <group string="포탈 설정">
                             <field name="is_supplier_portal"/>
+                            <field name="supplier_portal_company_ids" widget="many2many_tags" groups="base.group_system"/>
                             <field name="portal_language"
                                    invisible="not is_supplier_portal"/>
                             <field name="portal_notify_email"

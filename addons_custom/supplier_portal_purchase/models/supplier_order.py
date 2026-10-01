@@ -1,6 +1,7 @@
 import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from .scm_utils import check_actor, check_quantity
 
 _logger = logging.getLogger(__name__)
 
@@ -11,6 +12,30 @@ class SupplierOrder(models.Model):
     _description = "협력사 간 발주"
     _order = "create_date desc"
     _inherit = ["mail.thread"]
+    company_id = fields.Many2one("res.company", default=lambda self: self.env.company, index=True)
+
+    @api.constrains("company_id", "buyer_partner_id", "seller_partner_id", "product_id", "quantity", "chain_order_id")
+    def _check_scm_scope(self):
+        for order in self:
+            check_actor(order, order.buyer_partner_id | order.seller_partner_id)
+            check_quantity(order.quantity, positive=True)
+            order.seller_partner_id._scm_check_supply_product(order.product_id, order.company_id)
+            if order.chain_order_id and order.chain_order_id.company_id != order.company_id:
+                raise UserError(_("공급망과 협력사 주문의 회사가 다릅니다."))
+
+    def write(self, vals):
+        for order in self:
+            if not (not order.company_id and vals.get("company_id") and self.env.user.has_group("base.group_system")):
+                check_actor(order, order.buyer_partner_id | order.seller_partner_id)
+            if not self.env.user.has_group("base.group_user"):
+                if set(vals) & {"buyer_partner_id", "seller_partner_id", "product_id", "company_id",
+                                "chain_order_id", "tier_status_id", "quantity", "price_unit", "date_required"}:
+                    raise UserError(_("제출한 협력사 주문의 회사·거래 상대·품목·수량은 직접 변경할 수 없습니다."))
+                if vals.get("state"):
+                    order._check_transition(vals["state"])
+                    owner = order.seller_partner_id if vals["state"] in ("confirmed", "shipped") else order.buyer_partner_id
+                    check_actor(order, owner)
+        return super().write(vals)
 
     name = fields.Char(
         string="발주번호",
@@ -99,7 +124,13 @@ class SupplierOrder(models.Model):
                     self.env["ir.sequence"].next_by_code("supplier.order")
                     or _("New")
                 )
-        return super().create(vals_list)
+        if not self.env.user.has_group("base.group_user"):
+            for vals in vals_list:
+                vals["state"] = "draft"
+        records = super().create(vals_list)
+        for record in records:
+            check_actor(record, record.buyer_partner_id)
+        return records
 
     # 상태 전이 허용표 — 목표 상태: 허용 출발 상태
     _ALLOWED_TRANSITIONS = {
@@ -113,7 +144,7 @@ class SupplierOrder(models.Model):
     def _check_transition(self, target):
         """허용되지 않은 상태 전이 차단 (포털 URL 직접 호출·중복 클릭 방어)."""
         for order in self:
-            if order.state not in self._ALLOWED_TRANSITIONS[target]:
+            if order.state not in self._ALLOWED_TRANSITIONS.get(target, ()):
                 raise UserError(_(
                     "%(name)s: '%(state)s' 상태에서는 이 처리를 할 수 없습니다.")
                     % {"name": order.name, "state": order.state})
@@ -128,6 +159,7 @@ class SupplierOrder(models.Model):
         self.state = "sent"
         # 공급업체에게 알림
         self.env["supplier.portal.notification"].create({
+            "company_id": self.company_id.id,
             "partner_id": self.seller_partner_id.id,
             "notification_type": "supplier_order_new",
             "message": _(
@@ -160,6 +192,7 @@ class SupplierOrder(models.Model):
         self.date_shipped = fields.Date.today()
         # 발주업체에게 출하 알림
         self.env["supplier.portal.notification"].create({
+            "company_id": self.company_id.id,
             "partner_id": self.buyer_partner_id.id,
             "notification_type": "supplier_order_shipped",
             "message": _(
@@ -201,6 +234,32 @@ class SupplierInventory(models.Model):
     _name = "supplier.inventory"
     _description = "협력사 재고"
     _order = "partner_id, product_id"
+    company_id = fields.Many2one("res.company", default=lambda self: self.env.company, index=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.user.has_group("base.group_user"):
+            # A supplier may report a quantity, never invent its receipt time.
+            vals_list = [dict(vals, last_updated=fields.Datetime.now()) for vals in vals_list]
+        return super().create(vals_list)
+
+    @api.constrains("company_id", "partner_id", "product_id", "quantity")
+    def _check_scm_scope(self):
+        for record in self:
+            check_actor(record, record.partner_id)
+            check_quantity(record.quantity)
+            record.partner_id._scm_check_supply_product(record.product_id, record.company_id)
+
+    def write(self, vals):
+        for record in self:
+            if not (not record.company_id and vals.get("company_id") and self.env.user.has_group("base.group_system")):
+                check_actor(record, record.partner_id)
+        if not self.env.user.has_group("base.group_user"):
+            if "last_updated" in vals and "quantity" not in vals:
+                raise UserError(_("신고 수량 변경 없이 확인 시각만 바꿀 수 없습니다."))
+            if "quantity" in vals:
+                vals = dict(vals, last_updated=fields.Datetime.now())
+        return super().write(vals)
 
     partner_id = fields.Many2one(
         "res.partner",
@@ -225,7 +284,7 @@ class SupplierInventory(models.Model):
     _sql_constraints = [
         (
             "partner_product_uniq",
-            "UNIQUE(partner_id, product_id)",
+            "UNIQUE(company_id, partner_id, product_id)",
             "협력사별 제품 재고는 하나만 존재해야 합니다.",
         ),
     ]

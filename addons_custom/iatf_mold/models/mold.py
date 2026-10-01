@@ -230,6 +230,23 @@ class IatfMold(models.Model):
         low, high = self._temp_spec(kind)
         return bool(low) or bool(high)
 
+    @staticmethod
+    def judge_temp(temperature, spec_min, spec_max):
+        """주어진 상·하한으로 온도의 합·부를 판정한다 — 판정 로직의 **유일한** 구현.
+
+        'ok' | 'ng' | 'no_spec'. 기준값 0 은 '미설정' 으로 읽는다(0℃ 는 실무상 없다).
+        `check_temp_in_spec()` 은 이 금형의 현행 기준을, `iatf.mold.temp.log` 는
+        측정 당시 스냅샷 기준을 여기에 넣어 판정한다. 둘이 같은 함수를 써야
+        "현행 기준 재평가" 와 "당시 판정" 이 같은 잣대가 된다.
+        """
+        if not spec_min and not spec_max:
+            return "no_spec"
+        if spec_min and temperature < spec_min:
+            return "ng"
+        if spec_max and temperature > spec_max:
+            return "ng"
+        return "ok"
+
     def check_temp_in_spec(self, temperature, kind="preheat"):
         """측정 온도의 합·부를 이 금형의 상·하한과 대조해 판정한다.
 
