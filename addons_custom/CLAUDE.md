@@ -15,6 +15,8 @@
 | 품의(지출 승인→청구) | `pumui_approval` | |
 | 회계 한국화(가드/조회) | `account_kr_guard` / `account_kr_reports` | |
 | 회계 회사별 화면·전표번호·은행계좌 연결 | `account_kr_plus_patch` | reports → plus_patch 순서. `account.move.action_post`: plus_patch 은행 모호성 검사 후 pumui 승인 검사/표준 전기 호출 |
+| 차입금(대출) 대장·약정 기준정보 | `account_kr_plus_patch_loans` | 엔터프라이즈 `account_loans` 확장(auto_install). 이관 기간에는 `기준정보 전용`으로 전표를 만들지 않는다. 차입금 대장을 새로 만들지 말 것 — `kr.loan`(account_kr_reports)은 참고용으로만 남긴다 |
+| 비유동자산(고정자산) 자산별 계정·비상각 | `account_kr_plus_patch_ncasset` | 엔터프라이즈 `account_asset` 확장(auto_install). 자산별 계정 코드 = 기준 계정 코드 + 자산 일련번호(유형·태그 상속). 재분류는 **초안 전표만** 만든다(소급 금지) |
 | 급여 | `hr_payroll_kr` | 수치는 전부 데이터(요율·브래킷) |
 | IATF 검사·추적·부적합 등 | `iatf_*` (개별 모듈) | 자동생성 훅은 sudo, env.get 은 is None 검사 |
 | 시리얼·LOT 발행(14자리) | (odoo_gh) `escon_serial` | engel_injection 등에서 lot 임의 생성 금지 |
