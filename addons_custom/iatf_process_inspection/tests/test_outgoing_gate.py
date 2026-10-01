@@ -352,7 +352,13 @@ class TestOutgoingGate(PqcBasisMixin, TransactionCase):
                 SQL.identifier(record._table), record.id))
             record.invalidate_recordset()
             record.action_reset_approval()
-            record.write({'state': 'inspecting'})
+            if packaging:
+                record.write({'state': 'inspecting'})
+            else:
+                # Historical process decisions cannot be reopened even without
+                # the newer outgoing snapshot. Re-deciding must not backfill it.
+                with self.assertRaises(UserError), self.cr.savepoint():
+                    record.write({'state': 'inspecting'})
             with self.assertRaises(UserError):
                 record.action_decide()
             self.assertFalse(record.outgoing_decision_snapshot)

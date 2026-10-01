@@ -216,6 +216,12 @@ class TestPqcAggregation(PqcBasisMixin, TransactionCase):
                           "quantity_rejected": 0, "result": "pass",
                           # 판정은 **실제 로그인한 검사자**가 한다 (가드가 옳다)
                           "inspector_id": self.env.user.id})
+        # The fixture must provide observations even without an approved control
+        # plan; an empty template is correctly rejected by action_decide().
+        if not inspection.line_ids:
+            self.env['iatf.process.inspection.line'].create({
+                'inspection_id': inspection.id, 'characteristic_name': 'Synthetic visual',
+                'measured_value': '합성 관측', 'result': 'pass'})
         inspection.line_ids.write({"measured_value": "합성 관측", "result": "pass"})
         inspection.action_decide()
         return inspection

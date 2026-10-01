@@ -64,11 +64,21 @@ class MrpProduction(models.Model):
                 [target.id])
             target.invalidate_recordset()
             PQC = PQC.with_context(_process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN)
-            existing = PQC.search([
+            runs = PQC.search([
                 ("production_id", "=", target.id),
                 ("production_date", "=", prod_date),
                 ("shift", "=", shift or False),
-            ], order="id", limit=1)
+                ("company_id", "=", self.company_id.id),
+                ("product_id", "=", self.product_id.id),
+                ("inspection_stage", "=", "ipqc"),
+                ("correction_of_id", "=", False),
+            ], order="id")
+            # 입력/판정과 누적이 같은 검사 행 잠금을 사용한다. 이미 다른 묶음에
+            # 기여한 단위는 재호출 때 새로운 검사서에 다시 세지 않는다.
+            runs._lock_auto_evidence_records(runs)
+            if any(self.id in (run.run_unit_mo_ids or []) for run in runs):
+                return
+            existing = runs.filtered(lambda run: run._run_can_accumulate())[:1]
             if existing:
                 # [아스트라 20260912 05:1x] 「기존 묶음 메서드가 `quantity_inspected`
                 # 를 `qty_produced` 만큼 자동 누적하고 있습니다. **생산량을 검사량으로
@@ -80,14 +90,6 @@ class MrpProduction(models.Model):
                 # 같은 단위 MO 를 다시 완료해도 생산량은 한 번만 세며,
                 # 승인된 검사서는 **건드리지 않고 그 사실을 남깁니다.**
                 contributed = list(existing.run_unit_mo_ids or [])
-                if self.id in contributed:
-                    return                      # 이미 센 단위다 — 중복 누적 없음
-                if existing.approval_state == "approved":
-                    existing.message_post(body=_(
-                        "승인된 검사서라 단위 실적 %(mo)s (%(qty).2f) 을 더하지 "
-                        "않았습니다. 이 실적은 별도 검사 근거가 필요합니다.",
-                        mo=self.name, qty=self.qty_produced))
-                    return
                 self._assert_run_unit_contribution(target, prod_date, shift)
                 existing.with_context(
                     _process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).write({

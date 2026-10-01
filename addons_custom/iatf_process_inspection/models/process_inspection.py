@@ -139,6 +139,19 @@ class IatfProcessInspection(models.Model):
     auto_evidence_snapshot = fields.Json(
         string='자동 연동 원검사 근거', readonly=True, copy=False,
         help='SPC·부적합·LOT 보류에 사용한 원검사입니다. 정정은 새 검사로 기록합니다.')
+    run_scope_frozen = fields.Boolean(string='검사 대상 확정', readonly=True, copy=False)
+    inspection_input_locked = fields.Boolean(compute='_compute_inspection_input_locked')
+    correction_of_id = fields.Many2one(
+        'iatf.process.inspection', string='원검사', readonly=True, copy=False, ondelete='restrict')
+    correction_reason = fields.Text(string='재검사·정정 사유', copy=False)
+
+    # 생산 집계의 식별/범위와 검사자가 입력할 관측값은 서로 다른 잠금 대상이다.
+    _RUN_SCOPE_FIELDS = {
+        'company_id', 'product_id', 'lot_id', 'production_id', 'picking_id',
+        'workorder_id', 'workcenter_id', 'inspection_stage', 'article_stage',
+        'production_date', 'shift', 'quantity_produced', 'run_unit_mo_ids',
+        'correction_of_id', 'quantity_uom_id',
+    }
 
     _AUTO_SOURCE_FIELDS = {
         'company_id', 'product_id', 'lot_id', 'production_id', 'picking_id',
@@ -151,7 +164,58 @@ class IatfProcessInspection(models.Model):
         # **create/write/default 값 차단 및 원검사 스냅샷 필드 집합에 포함되지
         # 않았습니다. UI readonly 만으로 원천 근거를 보호할 수 없습니다.**」
         'run_unit_mo_ids',
+        'correction_of_id', 'correction_reason',
     }
+
+    @api.depends('state', 'auto_evidence_snapshot', 'approval_state')
+    def _compute_inspection_input_locked(self):
+        for rec in self:
+            rec.inspection_input_locked = bool(
+                rec.auto_evidence_snapshot or rec.state not in ('draft', 'inspecting')
+                or rec.approval_state in ('in_progress', 'approved'))
+
+    def _run_can_accumulate(self):
+        self.ensure_one()
+        return bool(self.run_unit_mo_ids and not self.correction_of_id
+                    and not self.run_scope_frozen and not self.inspection_input_locked
+                    and self.state == 'draft' and not self.result
+                    and not (self.quantity_inspected or self.quantity_accepted or self.quantity_rejected)
+                    and not any((line.measured_value or '').strip() for line in self.line_ids))
+
+    def _freeze_run_scope(self):
+        runs = self.filtered(lambda rec: rec.run_unit_mo_ids and not rec.run_scope_frozen)
+        if runs:
+            runs.with_context(_process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).write(
+                {'run_scope_frozen': True})
+
+    def action_create_reinspection(self):
+        """Keep the historical decision; create an empty, explicitly linked inspection."""
+        self.ensure_one()
+        self.check_access('write')
+        self._lock_auto_evidence_records(self)
+        if not self.inspection_input_locked:
+            raise UserError(_('작성 중인 검사서는 현재 문서에서 검사값을 입력하세요.'))
+        values = {}
+        for name in self._RUN_SCOPE_FIELDS - {'correction_of_id'}:
+            field = self._fields[name]
+            values[name] = self[name].id if field.type == 'many2one' else self[name]
+        values.update({
+            'correction_of_id': self.id, 'run_scope_frozen': bool(self.run_unit_mo_ids),
+            'inspection_type': self.inspection_type, 'control_plan_id': self.control_plan_id.id,
+            'quantity_inspected': 0, 'quantity_accepted': 0, 'quantity_rejected': 0,
+            'result': False, 'state': 'draft', 'inspector_id': self.env.uid,
+            'line_ids': [(0, 0, {
+                'characteristic_name': line.characteristic_name,
+                'characteristic_type': line.characteristic_type,
+                'specification': line.specification, 'measurement_method': line.measurement_method,
+                'special_characteristic': line.special_characteristic,
+                'sequence': line.sequence, 'measured_value': False, 'result': False,
+            }) for line in self.line_ids],
+        })
+        context = {key: value for key, value in self.env.context.items() if not key.startswith('default_')}
+        new = self.with_context(context, _process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).create(values)
+        return {'type': 'ir.actions.act_window', 'res_model': self._name,
+                'res_id': new.id, 'view_mode': 'form', 'target': 'current'}
 
     @api.depends("quantity_inspected", "quantity_rejected")
     def _compute_defect_rate(self):
@@ -163,6 +227,10 @@ class IatfProcessInspection(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self._run_aggregate_internal() and any(
+                name in vals or 'default_' + name in self.env.context
+                for vals in vals_list for name in ('run_scope_frozen', 'correction_of_id')):
+            raise UserError(_('검사 대상 확정과 원검사 연결은 전용 절차에서만 기록합니다.'))
         if 'default_auto_evidence_snapshot' in self.env.context or any(
                 'auto_evidence_snapshot' in vals for vals in vals_list):
             raise UserError(_('자동 연동 원검사 근거를 직접 생성할 수 없습니다.'))
@@ -187,16 +255,28 @@ class IatfProcessInspection(models.Model):
         return self.env.context.get('_process_auto_evidence_token') is _AUTO_EVIDENCE_TOKEN
 
     def write(self, vals):
+        vals = dict(vals)
         internal = self.env.context.get('_process_auto_evidence_token') is _AUTO_EVIDENCE_TOKEN
+        if not internal and {'run_scope_frozen', 'correction_of_id'} & vals.keys():
+            raise UserError(_('검사 대상 확정과 원검사 연결은 전용 절차에서만 기록합니다.'))
         if 'auto_evidence_snapshot' in vals and not internal:
             raise UserError(_('자동 연동 원검사 근거는 서버에서만 기록합니다.'))
         if 'run_unit_mo_ids' in vals and not internal:
             raise UserError(_('런 묶음 근거는 서버 집계 절차에서만 기록합니다.'))
-        if not internal and self.filtered('run_unit_mo_ids') and (
-                self._AUTO_SOURCE_FIELDS & vals.keys()):
-            # 승인 뒤든 아니든, 묶음 근거가 붙은 검사서의 범위는 사람이 직접
-            # 바꾸지 않는다. 정정은 새 검사로 남긴다.
-            raise UserError(_('런 묶음 검사서의 범위는 직접 변경할 수 없습니다. 정정은 새 검사로 기록하세요.'))
+        if not internal and (self._AUTO_SOURCE_FIELDS | self._RUN_SCOPE_FIELDS | {'state', 'disposition'}) & vals.keys():
+            self.check_access('write')
+            self._lock_auto_evidence_records(self)
+            for rec in self.filtered(lambda row: row.run_unit_mo_ids or row.correction_of_id):
+                for name in self._RUN_SCOPE_FIELDS & vals.keys():
+                    old = rec[name].id if rec._fields[name].type == 'many2one' else rec[name]
+                    if old != vals[name]:
+                        raise UserError(_('검사 대상 생산 범위는 변경할 수 없습니다. 후속 실적은 새 검사로 기록하세요.'))
+            if (self._AUTO_SOURCE_FIELDS | self._RUN_SCOPE_FIELDS | {'disposition'}) & vals.keys() and self.filtered('inspection_input_locked'):
+                raise UserError(_('판정·상신·연동된 검사값은 변경할 수 없습니다. 새 재검사를 생성하세요.'))
+            if vals.get('state') in ('draft', 'inspecting') and self.filtered('inspection_input_locked'):
+                raise UserError(_('확정된 검사서는 다시 열지 않고 새 재검사를 생성하세요.'))
+            if (self._AUTO_SOURCE_FIELDS - self._RUN_SCOPE_FIELDS) & vals.keys() or vals.get('state') == 'inspecting':
+                self._freeze_run_scope()
         if not internal and (self._AUTO_SOURCE_FIELDS | {'nonconformity_id'}) & vals.keys():
             self.check_access('write')
             self._lock_auto_evidence_records(self)
@@ -207,7 +287,7 @@ class IatfProcessInspection(models.Model):
     def unlink(self):
         self.check_access('unlink')
         self._lock_auto_evidence_records(self)
-        if self.filtered('auto_evidence_snapshot'):
+        if self.filtered(lambda rec: rec.auto_evidence_snapshot or rec.run_unit_mo_ids or rec.correction_of_id):
             raise UserError(_('자동 연동한 원검사는 삭제하지 않고 정정 이력으로 남겨야 합니다.'))
         return super().unlink()
 
@@ -232,11 +312,16 @@ class IatfProcessInspection(models.Model):
     def _auto_source_payload(self):
         self.ensure_one()
         payload = {}
-        for name in sorted(self._AUTO_SOURCE_FIELDS - {'line_ids'}):
+        # Empty new metadata must not change historical outgoing decision payloads,
+        # which compare the complete source dict rather than individual fields.
+        for name in sorted(self._AUTO_SOURCE_FIELDS - {'line_ids', 'correction_of_id', 'correction_reason'}):
             value = self[name]
             kind = self._fields[name].type
             payload[name] = ((value.ids[0] if value else False) if kind == 'many2one' else
                              str(value) if kind in ('date', 'datetime') and value else value)
+        if self.correction_of_id:
+            payload.update(correction_of_id=self.correction_of_id.id,
+                           correction_reason=self.correction_reason)
         payload['lines'] = [{
             'id': line.id, 'characteristic_name': line.characteristic_name,
             'characteristic_type': line.characteristic_type,
@@ -327,6 +412,8 @@ class IatfProcessInspection(models.Model):
         if any(not math.isfinite(qty) or qty < 0 for qty in quantities):
             raise UserError(_('검사 수량은 유한한 0 이상의 수여야 합니다.'))
         if require_decision:
+            if self.correction_of_id and not (self.correction_reason or '').strip():
+                raise UserError(_('원검사를 보존하고 새로 검사하는 사유를 입력하세요.'))
             if not self.result or self.state in ('closed', 'cancelled'):
                 raise UserError(_('판정할 수 있는 검사 상태와 결과를 확인하세요.'))
             if self.quantity_inspected <= 0 or not self.line_ids:
@@ -580,12 +667,12 @@ class IatfProcessInspectionLine(models.Model):
     def _lock_auto_evidence_parents(self, parents):
         parents.check_access('write')
         if parents:
-            parents.flush_recordset(['auto_evidence_snapshot'])
+            parents.flush_recordset()
             self.env.cr.execute(
                 'UPDATE iatf_process_inspection SET write_date=write_date WHERE id IN %s',
                 [tuple(sorted(parents.ids))])
-            parents.invalidate_recordset(['auto_evidence_snapshot'])
-            if parents.filtered('auto_evidence_snapshot'):
+            parents.invalidate_recordset()
+            if parents.filtered('inspection_input_locked'):
                 raise UserError(_('이미 연동한 검사항목은 변경·추가·삭제할 수 없습니다. 새 검사로 정정하세요.'))
 
     @api.model_create_multi
@@ -595,15 +682,19 @@ class IatfProcessInspectionLine(models.Model):
             vals.get('inspection_id', defaults.get('inspection_id')) for vals in vals_list
             if vals.get('inspection_id', defaults.get('inspection_id'))])
         self._lock_auto_evidence_parents(parents)
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records.filtered(lambda line: bool((line.measured_value or '').strip())).inspection_id._freeze_run_scope()
+        return records
 
     def write(self, vals):
         self.check_access('write')
         parents = self.inspection_id | self.env['iatf.process.inspection'].browse(vals.get('inspection_id'))
         self._lock_auto_evidence_parents(parents)
+        parents._freeze_run_scope()
         return super().write(vals)
 
     def unlink(self):
         self.check_access('unlink')
         self._lock_auto_evidence_parents(self.inspection_id)
+        self.inspection_id._freeze_run_scope()
         return super().unlink()
