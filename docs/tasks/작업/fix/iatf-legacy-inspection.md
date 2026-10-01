@@ -71,3 +71,5 @@ runuser -u odoo -- /opt/odoo/venv/bin/python /opt/odoo/odoo-bin \
 
 - 정본 코드와 이 기록을 같은 커밋에 포함한다. 미러 동기화 커밋은 해당 정본 코드 SHA를 기록한다.
 - 미러 반영 범위: `iatf_plugins/iatf_process_inspection`과 같은 상대 경로의 작업 기록. 기준 시점의 타 모듈·MES·PLC 설정은 보존한다.
+
+- 정본 검증 코드: `f54373c2536c0b1709cc1c5b0cde10263e95b3a6`. 미러 동기화: `ac7044eb7385206faca4c35289ccd7b594f299fe` (`fix/iatf-legacy-inspection`). 전체 모듈 26개 파일 바이트 일치, `odoo_plugins` 중복 모듈 없음. 이 대응 기록 추가에는 코드 변경이 없다.
