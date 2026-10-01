@@ -1,6 +1,7 @@
 import re
 
 from odoo import api, fields, models, _
+from odoo.addons.account_kr_reports.wizard.approval_number_merge import STUDIO_FIELD
 from odoo.exceptions import UserError
 
 
@@ -167,6 +168,25 @@ class AccountMove(models.Model):
         return super(
             AccountMove, self.with_context(kr_manual_edit=True)
         ).web_save(vals, specification, next_id=next_id)
+
+    def copy_data(self, default=None):
+        """전표를 복제해 새 세금계산서를 만들 때 증빙 고유값은 비우고 담당자 지정값은 둔다.
+
+        - 승인번호는 세금계산서마다 달라야 한다. 정본·원본 승인번호는 이미
+          ``copy=False``이지만, 이관 때 함께 채운 Studio 승인번호는 복사되므로 비운다.
+        - 과세 구분 값은 복사되지만 '수동 지정' 표시(``copy=False``)가 빠지면 라인 세금이
+          다시 저장될 때 자동 추정으로 덮여 면세가 영세로 바뀐다. 표시를 함께 옮긴다.
+        역분개처럼 호출자가 ``default``로 값을 넘기면 그 값을 따른다.
+        """
+        default = dict(default or {})
+        vals_list = super().copy_data(default)
+        for move, vals in zip(self, vals_list):
+            if STUDIO_FIELD in self._fields and STUDIO_FIELD not in default:
+                vals[STUDIO_FIELD] = False
+            if (move.kr_tax_type_manual and "kr_tax_type" not in default
+                    and "kr_tax_type_manual" not in default):
+                vals["kr_tax_type_manual"] = True
+        return vals_list
 
     @api.depends("name", "state")
     def _compute_kr_move_number_display(self):

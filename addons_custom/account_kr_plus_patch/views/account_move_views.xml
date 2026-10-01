@@ -330,6 +330,23 @@
                                    invisible="move_type == 'entry'" readonly="state != 'draft'"/>
                             <field name="date" string="전표일자"
                                    invisible="move_type != 'entry'" readonly="state != 'draft'"/>
+                            <!-- 기한은 결제조건이 없으면 직접 입력하고, 결제조건이 있으면 조건으로 계산한다. -->
+                            <div class="o_td_label" invisible="move_type == 'entry'">
+                                <label for="invoice_date_due" string="수금기한"
+                                       invisible="move_type not in ('out_invoice', 'out_receipt')"/>
+                                <label for="invoice_date_due" string="입금기한"
+                                       invisible="move_type not in ('in_invoice', 'in_receipt')"/>
+                                <label for="invoice_date_due" string="환불기한"
+                                       invisible="move_type not in ('out_refund', 'in_refund')"/>
+                            </div>
+                            <field name="invoice_date_due" nolabel="1" force_save="1"
+                                   invisible="move_type == 'entry'"
+                                   readonly="state == 'cancel' or invoice_payment_term_id"/>
+                            <field name="invoice_payment_term_id" string="결제조건"
+                                   invisible="move_type == 'entry'"
+                                   readonly="state != 'draft'"
+                                   context="{'example_date': invoice_date, 'example_amount': amount_total}"
+                                   options="{'no_quick_create': True}"/>
                             <field name="partner_id" string="거래처" readonly="state != 'draft'"/>
                             <field name="pumui_id" string="품의서"
                                    invisible="move_type not in ('in_invoice', 'in_refund')"
