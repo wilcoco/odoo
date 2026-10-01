@@ -105,7 +105,8 @@ class ApprovalRequest(models.Model):
             if not company or (not self.env.su and company not in self.env.companies):
                 raise AccessError(_('허용된 회사의 문서에만 결재를 생성할 수 있습니다.'))
             vals.update(company_id=company.id, guard_version=1, state='draft',
-                        approved_date=False, rejected_date=False, requester_id=self.env.uid,
+                        approved_date=False, rejected_date=False, requester_id=(self.browse(vals.get('previous_request_id')).requester_id.id
+                                      if vals.get('previous_request_id') else self.env.uid),
                         previous_request_id=vals.get('previous_request_id', False),
                         line_ids=vals.get('line_ids', []))
             safe_vals.append(vals)
