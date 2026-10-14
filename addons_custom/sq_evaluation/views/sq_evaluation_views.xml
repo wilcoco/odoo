@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sq_evaluation_list" model="ir.ui.view">
+        <field name="name">sq.evaluation.list</field>
+        <field name="model">sq.evaluation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="framework"/>
+                <field name="evaluation_date"/>
+                <field name="eval_type"/>
+                <field name="total_score"/>
+                <field name="total_max_score"/>
+                <field name="score_pct"/>
+                <field name="grade"/>
+                <field name="grade_label" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sq_evaluation_form" model="ir.ui.view">
+        <field name="name">sq.evaluation.form</field>
+        <field name="model">sq.evaluation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_load_criteria" string="기준 로드" type="object"
+                            class="btn-primary" invisible="state != 'draft'"
+                            confirm="활성 기준을 로드합니다. 이미 판정된 라인은 보존되고, 미판정·기준제외 라인만 정리됩니다. 진행할까요?"/>
+                    <button name="action_auto_propose" string="자동채점 제안" type="object"
+                            class="btn-secondary" invisible="state not in ('draft','in_progress')"
+                            help="증빙 실데이터 기반 이행상태 제안 (확정값은 안 건드림)"/>
+                    <button name="action_apply_proposal" string="제안 일괄 확정" type="object"
+                            class="btn-secondary" invisible="state not in ('draft','in_progress')"
+                            confirm="아직 판정하지 않은 라인에만 제안값을 확정 반영합니다. 진행할까요?"/>
+                    <button name="action_view_weak_lines" string="보강 필요 항목" type="object"
+                            class="btn-warning"/>
+                    <button name="action_done" string="평가 완료" type="object"
+                            class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_confirm" string="확정" type="object"
+                            class="btn-success" invisible="state != 'done'"/>
+                    <button name="action_reset_draft" string="초안으로" type="object"
+                            invisible="state == 'draft'"
+                            confirm="초안으로 되돌립니다. 판정 데이터는 유지되지만 기준 로드가 다시 활성화됩니다. 진행할까요?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="title" placeholder="예: 2026 SQ 수감 사전점검"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="framework"/>
+                            <field name="evaluation_date"/>
+                            <field name="eval_type"/>
+                            <field name="industry"/>
+                        </group>
+                        <group>
+                            <field name="evaluator_id"/>
+                            <field name="host_org"/>
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="점수">
+                            <field name="total_score"/>
+                            <field name="total_max_score"/>
+                            <field name="score_pct"/>
+                            <field name="grade"/>
+                            <field name="grade_label"/>
+                            <field name="na_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="평가 항목">
+                            <field name="line_ids">
+                                <list editable="bottom" default_order="sequence"
+                                      decoration-success="status in ('excellent','good')"
+                                      decoration-warning="status in ('supplement','partial_poor')"
+                                      decoration-danger="status in ('many_poor','poor')"
+                                      decoration-muted="status == 'na'">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="code"/>
+                                    <field name="category_id" optional="show"/>
+                                    <field name="name"/>
+                                    <field name="max_score"/>
+                                    <field name="proposed_status" optional="show"
+                                           decoration-success="proposed_status in ('excellent','good')"
+                                           decoration-warning="proposed_status in ('supplement','partial_poor')"
+                                           decoration-danger="proposed_status in ('many_poor','poor')"/>
+                                    <field name="proposed_reason" optional="show"/>
+                                    <field name="status"/>
+                                    <field name="score"/>
+                                    <field name="evidence_source" optional="hide"/>
+                                    <field name="evidence_available" column_invisible="1"/>
+                                    <field name="evidence_count" string="증빙"/>
+                                    <button name="action_view_evidence" type="object" string="증빙 보기"
+                                            class="btn-link" invisible="evidence_available == False"/>
+                                    <field name="observation" optional="show"/>
+                                    <field name="additional_finding" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="종합">
+                            <group>
+                                <field name="summary_opinion"/>
+                                <field name="main_problems"/>
+                                <field name="improvements"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sq_evaluation" model="ir.actions.act_window">
+        <field name="name">SQ 평가서</field>
+        <field name="res_model">sq.evaluation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 보강 필요 항목 (전 평가서 통합 — 자동채점/확정이 보완 이하) -->
+    <record id="view_sq_evaluation_line_weak_list" model="ir.ui.view">
+        <field name="name">sq.evaluation.line.weak.list</field>
+        <field name="model">sq.evaluation.line</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="proposed_status in ('many_poor','poor') or status in ('many_poor','poor')"
+                  decoration-warning="proposed_status in ('supplement','partial_poor') or status in ('supplement','partial_poor')">
+                <field name="evaluation_id"/>
+                <field name="code"/>
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="max_score"/>
+                <field name="proposed_status"/>
+                <field name="proposed_reason"/>
+                <field name="status" string="확정"/>
+                <field name="evidence_available" column_invisible="1"/>
+                <field name="evidence_count" string="증빙"/>
+                <button name="action_view_evidence" type="object" string="증빙 보기"
+                        class="btn-link" invisible="evidence_available == False"/>
+                <field name="improvement_plan" string="개선 대책"/>
+                <field name="improvement_deadline" string="기한"/>
+                <field name="improvement_owner_id" string="책임자"/>
+                <field name="improvement_state" string="조치" widget="badge"
+                       decoration-success="improvement_state == 'done'"
+                       decoration-warning="improvement_state == 'in_progress'"
+                       decoration-danger="improvement_state == 'open'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 영역(카테고리)별 점수 집계 — 보고서 메인 '5.평가결과' 표 대응 -->
+    <record id="view_sq_evaluation_line_pivot" model="ir.ui.view">
+        <field name="name">sq.evaluation.line.pivot</field>
+        <field name="model">sq.evaluation.line</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="evaluation_id" type="row"/>
+                <field name="category_id" type="col"/>
+                <field name="score" type="measure"/>
+                <field name="effective_max" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="action_sq_category_scores" model="ir.actions.act_window">
+        <field name="name">영역별 점수 집계</field>
+        <field name="res_model">sq.evaluation.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_sq_evaluation_line_pivot"/>
+    </record>
+    <record id="action_sq_weak_lines" model="ir.actions.act_window">
+        <field name="name">보강 필요 항목</field>
+        <field name="res_model">sq.evaluation.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sq_evaluation_line_weak_list"/>
+        <field name="domain">['|', ('proposed_status','in',('supplement','partial_poor','many_poor','poor')), ('status','in',('supplement','partial_poor','many_poor','poor'))]</field>
+        <field name="context">{'group_by': ['evaluation_id']}</field>
+    </record>
+</odoo>

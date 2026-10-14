@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="sq_chk_1_2_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_2"/>
+            <field name="sequence">10</field>
+            <field name="name">가동중단 유형 기록(계획/비계획)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_2_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_2"/>
+            <field name="sequence">20</field>
+            <field name="name">중단 직전 생산품 이상유무 검사</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_2_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_2"/>
+            <field name="sequence">30</field>
+            <field name="name">설비 조치후 초품 이상유무 검사</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_2_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_2"/>
+            <field name="sequence">40</field>
+            <field name="name">조치중 불량 폐기수량</field>
+            <field name="input_type">number</field>
+            <field name="spec"></field>
+            <field name="unit">EA</field>
+        </record>
+        <record id="sq_chk_1_2_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_2"/>
+            <field name="sequence">50</field>
+            <field name="name">재가동 전/후 LOT 구분·식별</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_4_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_4"/>
+            <field name="sequence">10</field>
+            <field name="name">교대 일상점검 실시</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_4_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_4"/>
+            <field name="sequence">20</field>
+            <field name="name">교대 자주검사/순회검사 실시</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_4_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_4"/>
+            <field name="sequence">30</field>
+            <field name="name">공정 Issue 인수인계</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_4_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_4"/>
+            <field name="sequence">40</field>
+            <field name="name">초/종품 검사 실시(필수)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_4_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_4"/>
+            <field name="sequence">50</field>
+            <field name="name">야간 생산품 검증 프로세스 이행</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_5_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_5"/>
+            <field name="sequence">10</field>
+            <field name="name">원단위 중량 마스터 최신화</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_5_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_5"/>
+            <field name="sequence">20</field>
+            <field name="name">월 신재투입 대비 생산 수율</field>
+            <field name="input_type">number</field>
+            <field name="spec">기준수율 이상</field>
+            <field name="unit">%</field>
+        </record>
+        <record id="sq_chk_1_5_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_5"/>
+            <field name="sequence">30</field>
+            <field name="name">스크랩 발생/매각 비교검증</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_5_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_5"/>
+            <field name="sequence">40</field>
+            <field name="name">수율 이상여부 판정</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_6_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_6"/>
+            <field name="sequence">10</field>
+            <field name="name">원소재별 수분 관리기준 준수</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_6_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_6"/>
+            <field name="sequence">20</field>
+            <field name="name">건조온도</field>
+            <field name="input_type">number</field>
+            <field name="spec">기준온도</field>
+            <field name="unit">℃</field>
+        </record>
+        <record id="sq_chk_1_6_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_6"/>
+            <field name="sequence">30</field>
+            <field name="name">건조시간</field>
+            <field name="input_type">number</field>
+            <field name="spec">기준시간</field>
+            <field name="unit">hr</field>
+        </record>
+        <record id="sq_chk_1_6_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_6"/>
+            <field name="sequence">40</field>
+            <field name="name">건조호퍼 가동시간 일보 기록</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_9_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_9"/>
+            <field name="sequence">10</field>
+            <field name="name">검증온도(건조호퍼 온도 동일)</field>
+            <field name="input_type">number</field>
+            <field name="spec"></field>
+            <field name="unit">℃</field>
+        </record>
+        <record id="sq_chk_1_9_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_9"/>
+            <field name="sequence">20</field>
+            <field name="name">검증시간 설정 적합</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_9_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_9"/>
+            <field name="sequence">30</field>
+            <field name="name">재가동/사양변경시 검증 실시</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_9_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_9"/>
+            <field name="sequence">40</field>
+            <field name="name">수분함유량 측정값</field>
+            <field name="input_type">number</field>
+            <field name="spec">기준 미만</field>
+            <field name="unit">%</field>
+        </record>
+        <record id="sq_chk_1_9_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_9"/>
+            <field name="sequence">50</field>
+            <field name="name">측정기 출력 증빙 유효성</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">10</field>
+            <field name="name">신재/스크랩 혼합기준·고객승인</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">20</field>
+            <field name="name">혼합사용시 물성 MS-SPEC 만족</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">30</field>
+            <field name="name">배합일지 LOT별 기록</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">40</field>
+            <field name="name">비규격/외부재생재 사용 여부</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec">없어야</field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">50</field>
+            <field name="name">융착 셋팅기준(높이) 준수</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_1_10_5" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_1_10"/>
+            <field name="sequence">60</field>
+            <field name="name">융착 리크/돌기 품질보증</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">10</field>
+            <field name="name">창고 Lay Out·선입선출 관리</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">20</field>
+            <field name="name">입고품 손상(찍힘/발청/오염)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec">없어야</field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">30</field>
+            <field name="name">원소재 포장/개봉후 식별</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">40</field>
+            <field name="name">장기보관 자재 처리</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">50</field>
+            <field name="name">불용자재 식별/혼입방지</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_2_5" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_2"/>
+            <field name="sequence">60</field>
+            <field name="name">항온항습 자재 보관 준수</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_3_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_3"/>
+            <field name="sequence">10</field>
+            <field name="name">검사 전/후 식별·미검사품 사용방지</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_3_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_3"/>
+            <field name="sequence">20</field>
+            <field name="name">소재사양·GRADE 식별</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_3_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_3"/>
+            <field name="sequence">30</field>
+            <field name="name">장기/불용/개발품 식별</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_3_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_3"/>
+            <field name="sequence">40</field>
+            <field name="name">공정투입후 잔량관리(식별/유효기간)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_3_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_3"/>
+            <field name="sequence">50</field>
+            <field name="name">SUB품 사양관리(라벨/바코드)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_4_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_4"/>
+            <field name="sequence">10</field>
+            <field name="name">장입 한계기준 준수(과다적재 예방)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_4_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_4"/>
+            <field name="sequence">20</field>
+            <field name="name">공정 전/후 재공품 용기 식별</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_4_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_4"/>
+            <field name="sequence">30</field>
+            <field name="name">청정도 대상품 용기 세척/커버</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_4_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_4"/>
+            <field name="sequence">40</field>
+            <field name="name">다단적재 관리기준 준수</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_5_4_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_5_4"/>
+            <field name="sequence">50</field>
+            <field name="name">완제품 보관(식별/청결/간지)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">10</field>
+            <field name="name">핸드폰 보관/시건 관리</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">20</field>
+            <field name="name">안전보호장구 착용</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">30</field>
+            <field name="name">설비 안전장치(센서/커버 등)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">40</field>
+            <field name="name">안전표지/수칙 게시·교육</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">50</field>
+            <field name="name">소화방재/비상대피 표시</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_1_5" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_1"/>
+            <field name="sequence">60</field>
+            <field name="name">설비 점검 2인1조 운영</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_9_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_9"/>
+            <field name="sequence">10</field>
+            <field name="name">정품(제자리 품목)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_9_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_9"/>
+            <field name="sequence">20</field>
+            <field name="name">정량(정한 수량)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_9_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_9"/>
+            <field name="sequence">30</field>
+            <field name="name">정위치(제자리 표시)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_9_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_9"/>
+            <field name="sequence">40</field>
+            <field name="name">청소/정리정돈</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_9_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_9"/>
+            <field name="sequence">50</field>
+            <field name="name">지적사항 시정조치 완료</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_11_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_11"/>
+            <field name="sequence">10</field>
+            <field name="name">공정이동 전표 활용(공정누락 방지)</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_11_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_11"/>
+            <field name="sequence">20</field>
+            <field name="name">자재소진 부품/부자재 누락방지</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_11_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_11"/>
+            <field name="sequence">30</field>
+            <field name="name">부자재 입고/소진 vs 생산실적 비교검증</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_0" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">10</field>
+            <field name="name">정성품질 업무분장(키맨) 지정</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_1" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">20</field>
+            <field name="name">통신문/현황판 게시·전파교육</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_2" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">30</field>
+            <field name="name">예방활동 이력</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_3" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">40</field>
+            <field name="name">개선활동(시정조치) 이력</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_4" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">50</field>
+            <field name="name">관리실태 정기점검·경영보고</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+        <record id="sq_chk_6_12_5" model="sq.checklist.template">
+            <field name="criteria_id" ref="sq_crit_6_12"/>
+            <field name="sequence">60</field>
+            <field name="name">포상제도 운영·실적</field>
+            <field name="input_type">pass_fail</field>
+            <field name="spec"></field>
+            <field name="unit"></field>
+        </record>
+    </data>
+</odoo>

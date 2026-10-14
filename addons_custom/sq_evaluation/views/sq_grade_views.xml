@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sq_grade_list" model="ir.ui.view">
+        <field name="name">sq.grade.list</field>
+        <field name="model">sq.grade</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="framework, min_pct desc">
+                <field name="framework"/>
+                <field name="name"/>
+                <field name="min_pct"/>
+                <field name="label"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_sq_grade" model="ir.actions.act_window">
+        <field name="name">자체 평가 등급표</field>
+        <field name="res_model">sq.grade</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>
