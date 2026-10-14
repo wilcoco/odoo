@@ -99,10 +99,13 @@
               action="action_planning_config"
               sequence="10"/>
 
+    <!-- 샘플 데이터 생성은 품목의 모든 BOM 을 지우고 다시 만든다(관리 BOM 포함).
+         운영에서는 시스템 관리자에게만 보인다. (BOM 관리체계 점검 A4, 2026-09-18) -->
     <menuitem id="menu_generate_demo"
               name="샘플 데이터 생성"
               parent="menu_planning_config_parent"
               action="action_generate_demo"
+              groups="base.group_system"
               sequence="90"/>
     <menuitem id="menu_test_demand_wizard" name="테스트 수요 입력"
               parent="menu_injection_planning_root"

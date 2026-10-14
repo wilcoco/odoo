@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_asset_kr_reclass_wizard_form" model="ir.ui.view">
+        <field name="name">account.asset.kr.reclass.wizard.form</field>
+        <field name="model">account.asset.kr.reclass.wizard</field>
+        <field name="arch" type="xml">
+            <form string="자산별 계정 재분류">
+                <p class="text-muted">
+                    선택한 자산의 취득원가를 원 계정에서 자산별 계정으로 옮기는 <b>초안</b> 전표를 만듭니다.
+                    전기는 하지 않습니다. 이미 검증이 끝난 기간으로 <b>소급하지 마세요</b>.
+                </p>
+                <group>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="journal_id"/>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="source_account_id"/>
+                        <field name="ref"/>
+                    </group>
+                </group>
+                <field name="asset_ids" readonly="1">
+                    <list>
+                        <field name="name"/>
+                        <field name="original_value"/>
+                        <field name="account_asset_id"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_create_draft_move" type="object"
+                            string="초안 전표 만들기" class="btn-primary"/>
+                    <button string="취소" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, time, timedelta
 
 import pytz
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -23,6 +23,22 @@ class InjectionPlanningConfig(models.Model):
     _rec_name = "id"
 
     # ── Oracle 연결 ──
+    sequencing_mode = fields.Selection(
+        [("legacy", "기존 — 풀 캐퍼 순수요 + 금형 그룹 연속 배치"),
+         ("setup_aware", "교체 인식 — 필요량·재고 상한 + 납기 우선 순서")],
+        string="순서 계산 방식", default="legacy", required=True,
+        help="[R135] 「교체 인식」은 순수요를 최소 필요량과 재고 상한으로 두고, 로트 길이와 사출기별 "
+             "순서를 유한 가동시간 위에서 납기 우선·교체 최소로 정한다(휴리스틱, 전역 최적 미보장). "
+             "「기존」은 이전 동작 그대로다. 필드 기본은 '기존' 이라 **업그레이드만으로 기존 설정이 바뀌지 않는다**; "
+             "새 설치는 post_init_hook 이 '교체 인식' 으로 둔다(아스트라 Q3). 계산한 계획은 그때의 방식을 "
+             "스냅샷으로 보존한다.")
+    inventory_aware_scheduling = fields.Boolean(
+        string="재고를 고려한 일정 배치",
+        default=False,
+        help="켜면 미래 필요분을 필요일보다 앞선 가동 구간으로 당기지 않는다. "
+             "납기를 지키기 위해 불가피할 때만 당기고 그 사유를 남긴다. "
+             "끄면 기존 동작(앞 윈도부터 채우기) 그대로다.",
+    )
     oracle_host = fields.Char(string="Oracle 호스트", default="59.3.91.1")
     oracle_port = fields.Integer(string="Oracle 포트", default=1521)
     oracle_sid = fields.Char(string="Oracle SID", default="orcl")
@@ -61,14 +77,21 @@ class InjectionPlanningConfig(models.Model):
     )
 
     # ── 글로벌 기본값 ──
+    # ※ 아래 세 값은 **새 마스터를 만들 때의 초깃값**이다. 계산은 조합·금형에 실제로
+    #    저장된 값을 쓴다. 예전에는 `조합값 or 설정기본값` 이라, 불량률 0%·초기불량
+    #    0개·교체 0시간처럼 **일부러 0 으로 둔 값**이 기본값으로 되살아났다.
+    #    (독립검토 PR07 의 '명시적 0 보존' 을 같은 이유로 여기까지 넓혔다.)
     default_changeover = fields.Float(
         string="기본 교체 시간 (시간)", default=2.0,
+        help="새 금형을 등록할 때의 초깃값. 계산은 금형에 저장된 값을 쓴다.",
     )
     default_defect_rate = fields.Float(
         string="기본 불량율 (%)", default=2.0,
+        help="새 조합을 등록할 때의 초깃값. 계산은 조합에 저장된 값을 쓴다.",
     )
     default_initial_scrap = fields.Integer(
         string="기본 초기 불량 (개)", default=20,
+        help="새 조합을 등록할 때의 초깃값. 계산은 조합에 저장된 값을 쓴다.",
     )
     default_min_lot_size = fields.Integer(
         string="기본 최소 로트 (개)", default=100,
@@ -102,9 +125,12 @@ class InjectionPlanningConfig(models.Model):
 
     # ── 안전재고 ──
     safety_stock_days = fields.Float(
-        string="안전재고 (일)", default=3,
-        help="안전재고 확보 일수. 각 날짜로부터 향후 N일간 실제 수요를 "
-             "충당할 수 있는 재고 수준 유지. 당일 생산 부족 없음 최우선.",
+        string="안전재고 일수", default=3,
+        help="[R144 사용자 확정 2026-09-16] 기본 3일, 여기(생산계획 설정 메뉴)에서 5일 등으로 바꾼다. "
+             "정수만 허용한다(소수를 조용히 자르지 않음). 뜻은 계산 방식과 무관하게 하나다 — 계획일 D 의 당일 수요를 "
+             "충족한 뒤, 원청 생산계획(7일치·14일치 기간 데이터)에서 D 뒤 **수요가 있는 날 N개**의 수요 합. "
+             "달력일이 아니므로 주말·연휴처럼 수요가 없는 날은 세지 않는다. "
+             "저장한 값은 새 계산·초안 재계산에만 반영되고 확정 계획은 그대로다(계획이 적용값을 스냅샷).",
     )
 
     # ── MO 분할 ──
@@ -115,13 +141,32 @@ class InjectionPlanningConfig(models.Model):
         ],
         string="MO 분할 방식",
         default="none",
-        help="교대별 분할: 생산이 교대를 넘어가면 별도 MO 생성. "
-             "실시간 재고 추적과 교대별 실적 관리에 유용.",
+        help="※ P1-PP06 수정 이후 계획 라인은 이 설정과 무관하게 **항상** 실제 가동 "
+             "구간(교대) 경계에서 끊긴다. 한 줄의 시작~종료가 비가동 시간대를 "
+             "가로지르면 현장에서 성립하지 않기 때문이다. 즉 두 값의 결과가 같다. "
+             "설정은 기존 데이터 호환을 위해 남겨 둔다.",
     )
 
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )
+
+    @api.constrains("safety_stock_days")
+    def _check_safety_stock_days(self):
+        for rec in self:
+            days = rec.safety_stock_days or 0.0
+            if days < 0 or abs(days - round(days)) > 1e-9:
+                raise ValidationError(_("안전재고 일수는 0 이상의 정수여야 합니다: %s") % days)
+
+    def _safety_stock_basis(self):
+        """안전재고 기간의 뜻 — 두 계산 방식 모두 '원청 생산계획에 수요가 있는 날 N개'.
+
+        [R144 사용자 확정 2026-09-16] 「교체 인식」이 가정했던 달력일(D+1~D+N)은 폐기. 달력일 기준으로
+        이미 계산된 계획은 스냅샷(`safety_stock_basis_applied`)이 남아 있어 `settings_changed` 로 재계산을
+        요구받는다. `_safety_stock_target` 의 달력일 분기는 그 스냅샷 평가용으로만 남긴다.
+        """
+        self.ensure_one()
+        return "demand_dates"
 
     @api.constrains("day_shift_start", "night_shift_start")
     def _check_shift_start_hours(self):

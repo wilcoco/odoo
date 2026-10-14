@@ -13,6 +13,9 @@
                 <field name="specification"/>
                 <field name="measurement_method"/>
                 <field name="sampling_plan"/>
+                    <field name="sample_size"/>
+                    <field name="accept_number"/>
+                    <field name="reject_number"/>
                 <field name="is_critical"/>
             </list>
         </field>

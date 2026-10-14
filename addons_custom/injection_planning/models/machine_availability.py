@@ -24,10 +24,17 @@ class MachineAvailability(models.Model):
     available_hours = fields.Float(
         string="총 가용시간 (h)", compute="_compute_available_hours", store=True,
     )
+    # ── 이 필드의 정본이 무엇인지 ──
+    # **현장이 기록하는 실제 장착 사실**이다. 계획 계산의 예측값이 아니다.
+    # 예전에는 계획 계산이 끝나면서 이 값을 스스로 갱신했다. 그러면 계산해 본 것만으로
+    # 실물 장착 이력이 바뀌고, 다른 초안 계산이나 재계산이 **다음 계획의 시작 금형**을
+    # 임의로 바꾼다(독립검토 PR03). 지금은 계획이 이 값을 쓰지 않는다 — 읽기만 한다.
+    # 계획이 예측한 종료 시점 금형은 그 계획의 마지막 라인(호기별)이 그대로 말해 준다.
     last_mold_id = fields.Many2one(
         "injection.mold", string="현재 장착 금형",
-        help="전일 기준 이 사출기에 장착되어 있는 금형. "
-             "스케줄링 시 금형 교환 여부 판단에 사용.",
+        help="이 날짜 기준으로 이 사출기에 실제 장착되어 있는 금형(현장 기록). "
+             "계획은 교환 여부 판단에 이 값을 **읽기만** 하고 쓰지 않는다. "
+             "계획이 예측한 장착 금형은 그 계획의 라인에서 확인한다.",
     )
 
     unavail_reason = fields.Selection(

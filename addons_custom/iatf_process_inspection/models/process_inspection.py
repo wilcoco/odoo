@@ -1,5 +1,12 @@
+import math
+
+from markupsafe import Markup
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools import SQL
+
+_AUTO_EVIDENCE_TOKEN = object()
 
 
 class IatfProcessInspection(models.Model):
@@ -32,6 +39,10 @@ class IatfProcessInspection(models.Model):
     )
     shift = fields.Char(string="교대조", help="예: 주간/야간 또는 1/2/3교대")
     production_date = fields.Date(string="생산일")
+    run_unit_mo_ids = fields.Json(
+        string="묶음에 센 단위 실적", readonly=True, copy=False,
+        help="이 런 묶음 검사서가 생산량으로 이미 센 사출 단위 MO. 같은 단위를 "
+             "다시 완료해도 중복 누적하지 않기 위한 근거다.")
     inspection_date = fields.Datetime(string="검사 일시", default=fields.Datetime.now, required=True)
 
     # ── 제조/출하 참조 ──
@@ -125,6 +136,86 @@ class IatfProcessInspection(models.Model):
         string="상태", default="draft", tracking=True,
     )
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+    auto_evidence_snapshot = fields.Json(
+        string='자동 연동 원검사 근거', readonly=True, copy=False,
+        help='SPC·부적합·LOT 보류에 사용한 원검사입니다. 정정은 새 검사로 기록합니다.')
+    run_scope_frozen = fields.Boolean(string='검사 대상 확정', readonly=True, copy=False)
+    inspection_input_locked = fields.Boolean(compute='_compute_inspection_input_locked')
+    correction_of_id = fields.Many2one(
+        'iatf.process.inspection', string='원검사', readonly=True, copy=False, ondelete='restrict')
+    correction_reason = fields.Text(string='재검사·정정 사유', copy=False)
+
+    # 생산 집계의 식별/범위와 검사자가 입력할 관측값은 서로 다른 잠금 대상이다.
+    _RUN_SCOPE_FIELDS = {
+        'company_id', 'product_id', 'lot_id', 'production_id', 'picking_id',
+        'workorder_id', 'workcenter_id', 'inspection_stage', 'article_stage',
+        'production_date', 'shift', 'quantity_produced', 'run_unit_mo_ids',
+        'correction_of_id', 'quantity_uom_id',
+    }
+
+    _AUTO_SOURCE_FIELDS = {
+        'company_id', 'product_id', 'lot_id', 'production_id', 'picking_id',
+        'workorder_id', 'workcenter_id', 'inspection_stage', 'inspection_date',
+        'inspection_type', 'quantity_produced', 'quantity_inspected',
+        'quantity_accepted', 'quantity_rejected', 'result', 'line_ids',
+        'visual_result', 'dimension_result', 'function_result', 'inspector_id',
+        'article_stage', 'shift', 'production_date', 'control_plan_id',
+        # [아스트라 20260912 05:27] 「`run_unit_mo_ids` 는 readonly JSON 이지만
+        # **create/write/default 값 차단 및 원검사 스냅샷 필드 집합에 포함되지
+        # 않았습니다. UI readonly 만으로 원천 근거를 보호할 수 없습니다.**」
+        'run_unit_mo_ids',
+        'correction_of_id', 'correction_reason',
+    }
+
+    @api.depends('state', 'auto_evidence_snapshot', 'approval_state')
+    def _compute_inspection_input_locked(self):
+        for rec in self:
+            rec.inspection_input_locked = bool(
+                rec.auto_evidence_snapshot or rec.state not in ('draft', 'inspecting')
+                or rec.approval_state in ('in_progress', 'approved'))
+
+    def _run_can_accumulate(self):
+        self.ensure_one()
+        return bool(self.run_unit_mo_ids and not self.correction_of_id
+                    and not self.run_scope_frozen and not self.inspection_input_locked
+                    and self.state == 'draft' and not self.result
+                    and not (self.quantity_inspected or self.quantity_accepted or self.quantity_rejected)
+                    and not any((line.measured_value or '').strip() for line in self.line_ids))
+
+    def _freeze_run_scope(self):
+        runs = self.filtered(lambda rec: rec.run_unit_mo_ids and not rec.run_scope_frozen)
+        if runs:
+            runs.with_context(_process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).write(
+                {'run_scope_frozen': True})
+
+    def action_create_reinspection(self):
+        """Keep the historical decision; create an empty, explicitly linked inspection."""
+        self.ensure_one()
+        self.check_access('write')
+        self._lock_auto_evidence_records(self)
+        if not self.inspection_input_locked:
+            raise UserError(_('작성 중인 검사서는 현재 문서에서 검사값을 입력하세요.'))
+        values = {}
+        for name in self._RUN_SCOPE_FIELDS - {'correction_of_id'}:
+            field = self._fields[name]
+            values[name] = self[name].id if field.type == 'many2one' else self[name]
+        values.update({
+            'correction_of_id': self.id, 'run_scope_frozen': bool(self.run_unit_mo_ids),
+            'inspection_type': self.inspection_type, 'control_plan_id': self.control_plan_id.id,
+            'quantity_inspected': 0, 'quantity_accepted': 0, 'quantity_rejected': 0,
+            'result': False, 'state': 'draft', 'inspector_id': self.env.uid,
+            'line_ids': [(0, 0, {
+                'characteristic_name': line.characteristic_name,
+                'characteristic_type': line.characteristic_type,
+                'specification': line.specification, 'measurement_method': line.measurement_method,
+                'special_characteristic': line.special_characteristic,
+                'sequence': line.sequence, 'measured_value': False, 'result': False,
+            }) for line in self.line_ids],
+        })
+        context = {key: value for key, value in self.env.context.items() if not key.startswith('default_')}
+        new = self.with_context(context, _process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).create(values)
+        return {'type': 'ir.actions.act_window', 'res_model': self._name,
+                'res_id': new.id, 'view_mode': 'form', 'target': 'current'}
 
     @api.depends("quantity_inspected", "quantity_rejected")
     def _compute_defect_rate(self):
@@ -136,31 +227,232 @@ class IatfProcessInspection(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self._run_aggregate_internal() and any(
+                name in vals or 'default_' + name in self.env.context
+                for vals in vals_list for name in ('run_scope_frozen', 'correction_of_id')):
+            raise UserError(_('검사 대상 확정과 원검사 연결은 전용 절차에서만 기록합니다.'))
+        if 'default_auto_evidence_snapshot' in self.env.context or any(
+                'auto_evidence_snapshot' in vals for vals in vals_list):
+            raise UserError(_('자동 연동 원검사 근거를 직접 생성할 수 없습니다.'))
+        # 런 묶음 근거는 **서버 집계 경로에서만** 만든다. 일반 검사 작성 권한으로
+        # 직접 넣거나 default 로 주입할 수 없다.
+        if not self._run_aggregate_internal() and (
+                'default_run_unit_mo_ids' in self.env.context
+                or any('run_unit_mo_ids' in vals for vals in vals_list)):
+            raise UserError(_('런 묶음 근거는 서버 집계 절차에서만 기록합니다.'))
         for vals in vals_list:
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.process.inspection") or _("New")
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        # [R144 정책 #9] 승인된 관리계획서가 있으면 검사 항목을 자동으로 물려받는다(항목이 이미 있으면 유지).
+        for rec in records:
+            if not rec.line_ids and rec.product_id:
+                rec.action_load_from_control_plan()
+        return records
+
+    @api.model
+    def _run_aggregate_internal(self):
+        return self.env.context.get('_process_auto_evidence_token') is _AUTO_EVIDENCE_TOKEN
+
+    def write(self, vals):
+        vals = dict(vals)
+        internal = self.env.context.get('_process_auto_evidence_token') is _AUTO_EVIDENCE_TOKEN
+        if not internal and {'run_scope_frozen', 'correction_of_id'} & vals.keys():
+            raise UserError(_('검사 대상 확정과 원검사 연결은 전용 절차에서만 기록합니다.'))
+        if 'auto_evidence_snapshot' in vals and not internal:
+            raise UserError(_('자동 연동 원검사 근거는 서버에서만 기록합니다.'))
+        if 'run_unit_mo_ids' in vals and not internal:
+            raise UserError(_('런 묶음 근거는 서버 집계 절차에서만 기록합니다.'))
+        if not internal and (self._AUTO_SOURCE_FIELDS | self._RUN_SCOPE_FIELDS | {'state', 'disposition'}) & vals.keys():
+            self.check_access('write')
+            self._lock_auto_evidence_records(self)
+            for rec in self.filtered(lambda row: row.run_unit_mo_ids or row.correction_of_id):
+                for name in self._RUN_SCOPE_FIELDS & vals.keys():
+                    old = rec[name].id if rec._fields[name].type == 'many2one' else rec[name]
+                    if old != vals[name]:
+                        raise UserError(_('검사 대상 생산 범위는 변경할 수 없습니다. 후속 실적은 새 검사로 기록하세요.'))
+            if (self._AUTO_SOURCE_FIELDS | self._RUN_SCOPE_FIELDS | {'disposition'}) & vals.keys() and self.filtered('inspection_input_locked'):
+                raise UserError(_('판정·상신·연동된 검사값은 변경할 수 없습니다. 새 재검사를 생성하세요.'))
+            if vals.get('state') in ('draft', 'inspecting') and self.filtered('inspection_input_locked'):
+                raise UserError(_('확정된 검사서는 다시 열지 않고 새 재검사를 생성하세요.'))
+            if (self._AUTO_SOURCE_FIELDS - self._RUN_SCOPE_FIELDS) & vals.keys() or vals.get('state') == 'inspecting':
+                self._freeze_run_scope()
+        if not internal and (self._AUTO_SOURCE_FIELDS | {'nonconformity_id'}) & vals.keys():
+            self.check_access('write')
+            self._lock_auto_evidence_records(self)
+            if self.filtered('auto_evidence_snapshot'):
+                raise UserError(_('이미 자동 연동한 검사 근거는 변경할 수 없습니다. 정정은 새 검사로 기록하세요.'))
+        return super().write(vals)
+
+    def unlink(self):
+        self.check_access('unlink')
+        self._lock_auto_evidence_records(self)
+        if self.filtered(lambda rec: rec.auto_evidence_snapshot or rec.run_unit_mo_ids or rec.correction_of_id):
+            raise UserError(_('자동 연동한 원검사는 삭제하지 않고 정정 이력으로 남겨야 합니다.'))
+        return super().unlink()
 
     def action_start_inspection(self):
         self.write({"state": "inspecting"})
 
     def action_decide(self):
-        for rec in self:
-            if not rec.result:
-                raise UserError(_("판정 결과를 입력해 주세요."))
-            rec.write({"state": "decided"})
-            rec._auto_feed_spc()
-            if rec.result == "fail":
-                rec._auto_create_nc()
-                rec._auto_quarantine_lot()
+        with self.env.cr.savepoint():
+            self.check_access('write')
+            self._lock_auto_evidence_records(self)
+            self._lock_auto_evidence_records(self.line_ids)
+            for rec in self:
+                rec._check_auto_evidence_source(require_decision=True)
+                rec._remember_auto_evidence()
+                rec.write({"state": "decided"})
+                rec._auto_feed_spc()
+                if rec.result == "fail":
+                    rec._auto_create_nc()
+                    rec._auto_quarantine_lot()
+        return True
+
+    def _auto_source_payload(self):
+        self.ensure_one()
+        payload = {}
+        # Empty new metadata must not change historical outgoing decision payloads,
+        # which compare the complete source dict rather than individual fields.
+        for name in sorted(self._AUTO_SOURCE_FIELDS - {'line_ids', 'correction_of_id', 'correction_reason'}):
+            value = self[name]
+            kind = self._fields[name].type
+            payload[name] = ((value.ids[0] if value else False) if kind == 'many2one' else
+                             str(value) if kind in ('date', 'datetime') and value else value)
+        if self.correction_of_id:
+            payload.update(correction_of_id=self.correction_of_id.id,
+                           correction_reason=self.correction_reason)
+        payload['lines'] = [{
+            'id': line.id, 'characteristic_name': line.characteristic_name,
+            'characteristic_type': line.characteristic_type,
+            'specification': line.specification, 'measurement_method': line.measurement_method,
+            'measured_value': line.measured_value, 'result': line.result,
+        } for line in self.line_ids.sorted('id')]
+        return {'version': 1, 'source': payload}
+
+    # 스냅샷을 찍은 **뒤에 추가된** 원천 키. 구자료에는 없을 수 있다.
+    _AUTO_SOURCE_ADDED_FIELDS = ('run_unit_mo_ids',)
+
+    def _auto_source_matches(self, stored):
+        """저장된 원천과 현재 원천이 **같은가** — 구버전 스냅샷 호환.
+
+        [아스트라 20260912 06:30] 「44 단위 중 42 실패 … 저장
+        `auto_evidence_snapshot.source` 와 현재 `_auto_source_payload().source` 의
+        차이는 **오직 `run_unit_mo_ids` 키: 기존 원본에는 없음, 새 계산값에는
+        false** 입니다. `_AUTO_SOURCE_FIELDS` 에 추가하면서 일반 개별 검사까지
+        직렬화 형태가 바뀐 **호환성 문제**입니다. **실제 철회로 판정하면 안
+        됩니다.**」
+
+        제 회귀입니다. 필드를 보호 집합에 넣으면서 **이미 승인된 과거 근거의
+        직렬화 모양까지 바꿨습니다.**
+
+        고치는 방식: 기존 승인 원본·시각·사용자를 **다시 쓰지 않습니다.**
+        비교할 때만, **나중에 추가된 키가 저장본에 없는 경우**를 이렇게 읽습니다.
+          - 지금 그 값이 **비어 있으면** → 구자료다. 그 키로 차이를 만들지 않는다.
+          - 지금 그 값이 **있으면** → 승인 뒤에 집계 근거가 생긴 것이다. **차단한다.**
+          - 그 밖의 키가 하나라도 다르면 → 종전대로 **차단한다.**
+        """
+        self.ensure_one()
+        if not isinstance(stored, dict):
+            return False
+        stored = dict(stored)
+        current = dict(self._auto_source_payload()['source'])
+        for name in self._AUTO_SOURCE_ADDED_FIELDS:
+            if name in stored:
+                continue                    # 구자료가 아니다 — 그대로 비교한다
+            if current.get(name):
+                return False                # 승인 뒤 집계 근거 후삽입 — 차단
+            current.pop(name, None)
+        return stored == current
+
+    def _remember_auto_evidence(self):
+        self.ensure_one()
+        payload = self._auto_source_payload()
+        if self.auto_evidence_snapshot:
+            if (self.auto_evidence_snapshot.get('version') != 1 or
+                    not self._auto_source_matches(
+                        self.auto_evidence_snapshot.get('source'))):
+                raise UserError(_('연동한 원검사와 현재 근거가 다릅니다. 새 검사로 정정하세요.'))
+            return
+        payload.update(recorded_by_id=self.env.uid,
+                       recorded_at=fields.Datetime.to_string(fields.Datetime.now()))
+        self.with_context(_process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).write({
+            'auto_evidence_snapshot': payload})
+
+    def _lock_auto_evidence_records(self, records):
+        """Version rows so an RR request retries instead of using stale evidence."""
+        if records:
+            records.flush_recordset()
+            self.env.cr.execute(SQL(
+                'UPDATE %s SET write_date = write_date WHERE id IN %s',
+                SQL.identifier(records._table), tuple(sorted(records.ids))))
+            records.invalidate_recordset()
+
+    def _check_auto_evidence_source(self, require_decision=False):
+        self.ensure_one()
+        self.check_access('write')
+        self.line_ids.check_access('read')
+        if not self.company_id or self.company_id not in self.env.companies:
+            raise UserError(_('허용된 회사가 명확한 검사만 자동 연동할 수 있습니다.'))
+        self.product_id.check_access('read')
+        if self.product_id.company_id and self.product_id.company_id != self.company_id:
+            raise UserError(_('검사 제품의 회사가 다릅니다.'))
+        for target in (self.lot_id, self.production_id, self.picking_id, self.workorder_id):
+            if not target:
+                continue
+            target.check_access('read')
+            if target.company_id != self.company_id:
+                raise UserError(_('검사와 연결된 LOT·생산·출하의 회사가 다릅니다.'))
+            if 'product_id' in target._fields and target.product_id != self.product_id:
+                raise UserError(_('검사와 연결된 LOT·생산의 제품이 다릅니다.'))
+        if self.workorder_id and self.production_id and self.workorder_id.production_id != self.production_id:
+            raise UserError(_('검사 작업지시와 제조 오더가 일치하지 않습니다.'))
+        quantities = (self.quantity_produced, self.quantity_inspected,
+                      self.quantity_accepted, self.quantity_rejected)
+        if any(not math.isfinite(qty) or qty < 0 for qty in quantities):
+            raise UserError(_('검사 수량은 유한한 0 이상의 수여야 합니다.'))
+        if require_decision:
+            if self.correction_of_id and not (self.correction_reason or '').strip():
+                raise UserError(_('원검사를 보존하고 새로 검사하는 사유를 입력하세요.'))
+            if not self.result or self.state in ('closed', 'cancelled'):
+                raise UserError(_('판정할 수 있는 검사 상태와 결과를 확인하세요.'))
+            if self.quantity_inspected <= 0 or not self.line_ids:
+                raise UserError(_('양의 검사 수량과 실제 검사항목이 필요합니다.'))
+            if any(not line.result or (line.result != 'na' and not (line.measured_value or '').strip())
+                   for line in self.line_ids):
+                raise UserError(_('검사 항목마다 실제 측정·관찰 근거와 판정을 기록하세요.'))
+            if self.result == 'pass' and any(line.result == 'fail' for line in self.line_ids):
+                raise UserError(_('불합격 항목이 있는 검사를 합격으로 판정할 수 없습니다.'))
+        # Even non-SPC inspections must never publish NaN/Infinity as evidence.
+        for line in self.line_ids:
+            try:
+                value = float((line.measured_value or '').strip())
+            except (TypeError, ValueError):
+                continue  # Qualitative observations are not numeric samples.
+            if not math.isfinite(value):
+                raise UserError(_('검사 측정값에 NaN 또는 무한대를 사용할 수 없습니다.'))
+
+    def _auto_evidence_model(self, model_name):
+        """Only use after checking the original inspection under its caller."""
+        self.ensure_one()
+        context = {key: value for key, value in self.env.context.items()
+                   if not key.startswith('default_')}
+        context['allowed_company_ids'] = self.company_id.ids
+        return self.env[model_name].sudo().with_context(context).with_company(self.company_id)
 
     def _auto_feed_spc(self):
-        """검사 결과를 활성 SPC 연구에 자동 반영"""
-        SpcStudy = self.env.get("iatf.spc.study")
-        if SpcStudy is None:
+        """Collect only matching company/product/characteristic evidence."""
+        self.ensure_one()
+        self._check_auto_evidence_source()
+        self._lock_auto_evidence_records(self)
+        self._lock_auto_evidence_records(self.line_ids)
+        self._check_auto_evidence_source()
+        self._remember_auto_evidence()
+        if self.env.get("iatf.spc.study") is None:
             return
         if not self.line_ids:
             return
+        SpcStudy = self._auto_evidence_model('iatf.spc.study')
         for line in self.line_ids:
             # 잠복 결함 수정: 라인 필드는 characteristic_name/measured_value(Char).
             # 기존 코드는 존재하지 않는 characteristic/actual_value 를 참조해
@@ -169,62 +461,102 @@ class IatfProcessInspection(models.Model):
                 value = float((line.measured_value or "").strip())
             except (TypeError, ValueError):
                 continue
+            if line.result == 'na':
+                continue
             studies = SpcStudy.search([
+                ("company_id", "=", self.company_id.id),
                 ("product_id", "=", self.product_id.id),
                 ("characteristic_name", "=", line.characteristic_name),
                 ("state", "=", "collecting"),
             ])
-            for study in studies:
-                next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
-                vals = {"study_id": study.id, "sequence": next_seq,
-                        "sample_date": self.inspection_date, "x1": value}
-                self.env["iatf.spc.subgroup"].create(vals)
+            origin = "pqc:%s:%s" % (self.id, line.id)
+            self._lock_auto_evidence_records(studies)
+            for study in studies.sorted('id'):
+                self._lock_auto_evidence_records(study.subgroup_ids)
+                # 같은 검사 라인을 두 번 주입하지 않는다 (판정 버튼 반복 실행).
+                # 부분일치로 보면 안 된다 — "pqc:2:1" 이 "pqc:2:12" 안에 들어 있어
+                # 라인 1 의 측정이 라인 12 의 것으로 오인돼 통째로 누락된다.
+                # (제3자 재검토 R05) 구분자로 잘라 정확히 비교한다.
+                if any(origin in (sg.origins or "").split(",") for sg in study.subgroup_ids):
+                    continue
+                n = study.subgroup_size or 5
+                # 열려 있는 부분군(자동 주입 중, 아직 n 미만)에 다음 칸을 채운다.
+                # 부분군마다 x1 만 넣고 새로 만들면 나머지 칸의 0 이 평균에 들어간다. (Q14)
+                # 열림 판단의 근거는 `sample_count`(앞에서부터 몇 칸)가 아니라
+                # 실제 입력 칸 수다. x5 만 손으로 채워 둔 부분군은 sample_count 가
+                # 0 이라 예전 규칙에선 '닫힌 군' 으로 보여 새 군이 계속 생겼다.
+                # (아스트라 독립재현 ① 반증)
+                # `filled_mask` 가 있는 군만 이어 채운다. 입력 칸이 기록되지 않은 과거
+                # 군에 한 칸 넣으면 추정 칸까지 근거로 승격된다. (275 리뷰 Q275-05)
+                open_sg = study.subgroup_ids.filtered(
+                    lambda s: s.filled_mask and 0 < s._filled_count() < n
+                ).sorted("sequence")[-1:]
+                if open_sg:
+                    # 다음 빈 칸을 찾는다. 사람이 x2~x5 를 손으로 채워 둔 경우
+                    # 그 값을 덮어쓰지 않는다. (제3자 재검토 R06)
+                    k = open_sg._next_free_slot()
+                    if not k:
+                        continue          # 이미 n 칸이 다 찼다 — 다음 부분군은 아래에서 만든다
+                    open_sg._record_measurement(k, value, origin=origin)
+                else:
+                    next_seq = (max(study.subgroup_ids.mapped("sequence"), default=0)) + 1
+                    self._auto_evidence_model('iatf.spc.subgroup').create({
+                        "study_id": study.id, "sequence": next_seq,
+                        "sample_date": self.inspection_date, "x1": value,
+                        # SPC 생성 API는 mask 직접 지정을 거절한다. 입력 1칸을
+                        # 명시해 서버가 mask를 만들고 실측 0도 보존하게 한다.
+                        "sample_count": 1, "origins": origin})
 
     def _auto_create_nc(self):
         """불합격 시 부적합 자동 생성"""
+        self.ensure_one()
+        self._check_auto_evidence_source(require_decision=True)
+        self._lock_auto_evidence_records(self)
+        if self.result != 'fail' or self.state != 'decided':
+            raise UserError(_('판정 완료된 불합격 검사에서만 부적합을 자동 생성합니다.'))
+        self._remember_auto_evidence()
         if self.nonconformity_id:
+            nc = self.nonconformity_id.sudo()
+            if (nc.company_id != self.company_id or nc.product_id != self.product_id or
+                    nc.lot_id != self.lot_id or nc.production_id != self.production_id):
+                raise UserError(_('연결된 부적합의 회사·제품·LOT·생산 근거가 다릅니다.'))
             return
-        nc = self.env["iatf.nonconformity"].create({
+        nc = self._auto_evidence_model('iatf.nonconformity').create({
+            'company_id': self.company_id.id,
+            'detected_by': self.env.uid,
             "title": _("공정검사 불합격: %s - %s") % (self.name, self.product_id.name),
             "nc_type": "process",
             "severity": "major",
-            "problem_description": "<p>공정검사 %s 불합격 자동 생성<br/>제품: %s<br/>MO: %s<br/>불량률: %s%%</p>" % (
+            "problem_description": Markup("<p>공정검사 %s 불합격 자동 생성<br/>제품: %s<br/>MO: %s<br/>불량률: %s%%<br/>재고 처분은 별도 승인된 이동으로 처리합니다.</p>") % (
                 self.name, self.product_id.name,
                 self.production_id.name if self.production_id else "-",
                 round(self.defect_rate, 2)),
             "product_id": self.product_id.id,
             "production_id": self.production_id.id if self.production_id else False,
             "lot_id": self.lot_id.id if self.lot_id else False,
-            "quantity_affected": self.quantity_produced,
+            "quantity_affected": self.quantity_inspected,
             "quantity_rejected": self.quantity_rejected or 0,
         })
-        self.nonconformity_id = nc.id
+        self.with_context(_process_auto_evidence_token=_AUTO_EVIDENCE_TOKEN).write({
+            'nonconformity_id': nc.id})
         self.message_post(body=_("부적합 %s 자동 생성됨") % nc.name)
 
     def _auto_quarantine_lot(self):
-        """불합격 로트를 격리 위치로 이동"""
+        """Record a hold; deciding a failure never disposes of physical stock."""
+        self.ensure_one()
+        self._check_auto_evidence_source(require_decision=True)
+        if self.result != 'fail' or self.state != 'decided' or not self.nonconformity_id:
+            raise UserError(_('불합격 판정과 부적합 근거가 있어야 LOT를 보류합니다.'))
+        self._remember_auto_evidence()
         if not self.lot_id:
             return
-        quarantine_loc = self.env.ref("stock.stock_location_scrapped", raise_if_not_found=False)
-        if not quarantine_loc:
-            return
-        quants = self.env["stock.quant"].search([
-            ("lot_id", "=", self.lot_id.id),
-            ("location_id.usage", "=", "internal"),
-            ("quantity", ">", 0),
-        ])
-        for quant in quants:
-            self.env["stock.move"].create({
-                "name": _("PQC 불합격 격리: %s") % self.name,
-                "product_id": quant.product_id.id,
-                "product_uom_qty": quant.quantity,
-                "product_uom": quant.product_id.uom_id.id,
-                "location_id": quant.location_id.id,
-                "location_dest_id": quarantine_loc.id,
-                "origin": self.name,
-            })._action_confirm()._action_done()
-        if quants:
-            self.message_post(body=_("로트 %s 격리 위치로 자동 이동됨") % self.lot_id.name)
+        lot = self.lot_id.sudo()
+        self._lock_auto_evidence_records(lot)
+        marker = '[PQC:%s / NC:%s]' % (self.id, self.nonconformity_id.id)
+        if not lot.quality_hold or marker not in (lot.hold_reason or ''):
+            reason = '%s %s' % (marker, _('불합격 판정; 실물 처분 승인 대기'))
+            lot._set_quality_hold_from_source(self, reason)
+            self.message_post(body=_('LOT %s 품질 보류. 재고 이동·폐기는 수행하지 않았습니다.') % lot.name)
 
     def action_load_from_control_plan(self):
         """Control Plan에서 검사항목/기준 자동 로딩 (L3-5)"""
@@ -331,3 +663,38 @@ class IatfProcessInspectionLine(models.Model):
         string="판정", default="pass",
     )
     notes = fields.Char(string="비고")
+
+    def _lock_auto_evidence_parents(self, parents):
+        parents.check_access('write')
+        if parents:
+            parents.flush_recordset()
+            self.env.cr.execute(
+                'UPDATE iatf_process_inspection SET write_date=write_date WHERE id IN %s',
+                [tuple(sorted(parents.ids))])
+            parents.invalidate_recordset()
+            if parents.filtered('inspection_input_locked'):
+                raise UserError(_('이미 연동한 검사항목은 변경·추가·삭제할 수 없습니다. 새 검사로 정정하세요.'))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        defaults = self.default_get(['inspection_id'])
+        parents = self.env['iatf.process.inspection'].browse([
+            vals.get('inspection_id', defaults.get('inspection_id')) for vals in vals_list
+            if vals.get('inspection_id', defaults.get('inspection_id'))])
+        self._lock_auto_evidence_parents(parents)
+        records = super().create(vals_list)
+        records.filtered(lambda line: bool((line.measured_value or '').strip())).inspection_id._freeze_run_scope()
+        return records
+
+    def write(self, vals):
+        self.check_access('write')
+        parents = self.inspection_id | self.env['iatf.process.inspection'].browse(vals.get('inspection_id'))
+        self._lock_auto_evidence_parents(parents)
+        parents._freeze_run_scope()
+        return super().write(vals)
+
+    def unlink(self):
+        self.check_access('unlink')
+        self._lock_auto_evidence_parents(self.inspection_id)
+        self.inspection_id._freeze_run_scope()
+        return super().unlink()

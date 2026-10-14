@@ -21,3 +21,5 @@ access_safety_incident_user,iatf.safety.incident.user,model_iatf_safety_incident
 access_safety_incident_manager,iatf.safety.incident.manager,model_iatf_safety_incident,group_work_environment_manager,1,1,1,1
 access_check_sheet_revision_user,iatf.check.sheet.revision.user,model_iatf_check_sheet_revision,group_work_environment_user,1,0,0,0
 access_check_sheet_revision_manager,iatf.check.sheet.revision.manager,model_iatf_check_sheet_revision,group_work_environment_manager,1,0,0,0
+access_check_record_snapshot_user,iatf.check.record.snapshot.user,model_iatf_check_record_snapshot,group_work_environment_user,1,0,0,0
+access_check_record_snapshot_manager,iatf.check.record.snapshot.manager,model_iatf_check_record_snapshot,group_work_environment_manager,1,0,0,0

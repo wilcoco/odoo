@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="lot_hold_policy_list" model="ir.ui.view">
+        <field name="name">iatf.lot.hold.policy.list</field>
+        <field name="model">iatf.lot.hold.policy</field>
+        <field name="arch" type="xml">
+            <list><field name="company_id"/><field name="quality_user_id"/><field name="production_user_id"/></list>
+        </field>
+    </record>
+    <record id="lot_hold_policy_form" model="ir.ui.view">
+        <field name="name">iatf.lot.hold.policy.form</field>
+        <field name="model">iatf.lot.hold.policy</field>
+        <field name="arch" type="xml">
+            <form><sheet><group><field name="company_id"/><field name="quality_user_id"/><field name="production_user_id"/></group>
+                <div>해당 회사의 서로 다른 품질·생산 책임자를 지정합니다. 두 단계 승인 후 생산책임자가 명시적으로 해제합니다. 설정 변경 시 이전 해제 요청은 다시 검토합니다.</div>
+            </sheet></form>
+        </field>
+    </record>
+    <record id="lot_hold_release_list" model="ir.ui.view">
+        <field name="name">iatf.lot.hold.release.list</field>
+        <field name="model">iatf.lot.hold.release</field>
+        <field name="arch" type="xml">
+            <list><field name="lot_id"/><field name="company_id"/><field name="reason"/>
+                <field name="approval_state"/><field name="release_state"/><field name="released_by"/><field name="released_at"/>
+            </list>
+        </field>
+    </record>
+    <record id="lot_hold_release_form" model="ir.ui.view">
+        <field name="name">iatf.lot.hold.release.form</field>
+        <field name="model">iatf.lot.hold.release</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_approval" type="object" string="결재 상신" class="btn-primary"
+                        invisible="approval_state != 'draft' or release_snapshot or release_state != 'draft'"/>
+                    <button name="action_approve_approval" type="object" string="승인" class="btn-success"
+                        groups="iatf_incoming_inspection.group_lot_hold_quality,iatf_incoming_inspection.group_lot_hold_production"
+                        invisible="approval_state != 'in_progress' or not approval_is_current_user or release_state != 'draft'"/>
+                    <button name="action_reject_approval" type="object" string="반려"
+                        groups="iatf_incoming_inspection.group_lot_hold_quality,iatf_incoming_inspection.group_lot_hold_production"
+                        invisible="approval_state != 'in_progress' or not approval_is_current_user or release_state != 'draft'"/>
+                    <button name="action_release_hold" type="object" string="두 단계 승인 후 보류 해제" class="btn-primary"
+                    groups="iatf_incoming_inspection.group_lot_hold_production" invisible="approval_state != 'approved' or release_state == 'executed'"/>
+                    <field name="approval_is_current_user" invisible="1"/>
+                    <field name="approval_state" string="결재 상태" widget="badge"
+                        decoration-success="approval_state == 'approved'"
+                        decoration-danger="approval_state == 'rejected'"
+                        decoration-info="approval_state == 'in_progress'"/>
+                    <field name="release_state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning">LOT 전체 일반 해제만 처리합니다. 고객 한정·부분수량 특채는 이 요청으로 해제하지 않습니다. IQC 검사대기 이동·사출 양품 판정·고객 출고 승인은 별도입니다.</div>
+                    <div class="alert alert-info" invisible="not release_snapshot">상신한 사유·파일과 승인 이력은 보존합니다. 반려되거나 현재 보류·증거·책임자가 달라졌다면 기존 요청을 수정하지 말고 새 요청으로 다시 두 단계 검토를 진행하세요.</div>
+                    <field name="release_snapshot" invisible="1"/>
+                    <group readonly="release_snapshot">
+                        <field name="company_id"/><field name="lot_id" domain="[('company_id','=',company_id),('quality_hold','=',True)]"/>
+                        <field name="reason"/><field name="evidence_note"/>
+                        <field name="evidence_filename" invisible="1"/>
+                        <field name="evidence_file" filename="evidence_filename"/>
+                        <field name="all_causes_reviewed"/>
+                    </group>
+                    <group string="결재 진행">
+                        <field name="approval_request_id" string="결재 요청" readonly="1" options="{'no_open': True}"/>
+                        <field name="approval_current_approver_id" string="현재 결재자" readonly="1" options="{'no_open': True}"/>
+                    </group>
+                    <group string="결재선·처리 이력">
+                        <field name="approval_line_ids" readonly="1" nolabel="1">
+                            <list create="0" edit="0" delete="0">
+                                <field name="sequence" string="순서"/>
+                                <field name="user_id" string="결재자" options="{'no_open': True}"/>
+                                <field name="state" string="처리 상태"/>
+                                <field name="action_date" string="처리 시각"/>
+                                <field name="note" string="처리 메모"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group><field name="released_by"/><field name="released_at"/></group>
+                </sheet><chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_lot_hold_policy" model="ir.actions.act_window">
+        <field name="name">보류 해제 책임자 설정</field><field name="res_model">iatf.lot.hold.policy</field><field name="view_mode">list,form</field>
+    </record>
+    <record id="action_lot_hold_release" model="ir.actions.act_window">
+        <field name="name">LOT 보류 해제 요청</field><field name="res_model">iatf.lot.hold.release</field><field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_lot_hold_release" name="LOT 보류 해제 요청" parent="menu_iatf_incoming_root" action="action_lot_hold_release" sequence="30"/>
+    <menuitem id="menu_lot_hold_policy" name="보류 해제 책임자 설정" parent="menu_iatf_incoming_root" action="action_lot_hold_policy" sequence="40" groups="base.group_system"/>
+</odoo>

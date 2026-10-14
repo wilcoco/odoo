@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_passive_log_user,passive.log.user,model_iatf_passive_log,base.group_user,1,0,0,0
+access_passive_source_user,passive.source.user,model_iatf_passive_source,base.group_user,1,0,0,0

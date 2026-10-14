@@ -1,4 +1,22 @@
+import hashlib
+import json
+
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError, ValidationError
+from .scm_utils import check_actor, check_quantity
+
+_REVIEW_WRITE = object()
+
+
+def request_snapshot(po):
+    return {"company": po.company_id.id, "partner": po.partner_id.id,
+        "lines": {str(line.id): {"product": line.product_id.id, "uom": line.product_uom.id,
+            "quantity": line.product_qty, "date": fields.Datetime.to_string(line.date_planned)}
+            for line in po.order_line if not line.display_type}}
+
+
+def request_revision(snapshot):
+    return hashlib.sha256(json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
 class PurchaseOrderResponse(models.Model):
@@ -6,6 +24,9 @@ class PurchaseOrderResponse(models.Model):
     _name = "purchase.order.response"
     _description = "협력사 발주 응답"
     _order = "create_date desc"
+    company_id = fields.Many2one(related="purchase_order_id.company_id", store=True, index=True)
+    request_snapshot = fields.Json(string="응답 당시 요청 근거", readonly=True, copy=False)
+    request_revision = fields.Char(string="요청 개정 식별자", readonly=True, copy=False)
 
     purchase_order_id = fields.Many2one(
         "purchase.order",
@@ -62,6 +83,16 @@ class PurchaseOrderResponse(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            po = self.env["purchase.order"].browse(vals.get("purchase_order_id", self.env.context.get("default_purchase_order_id")))
+            check_actor(po, po.partner_id)
+            self.env.cr.execute("SELECT id FROM purchase_order WHERE id=%s FOR UPDATE", (po.id,))
+            po.invalidate_recordset()
+            if po.portal_state not in ("new", "rejected"):
+                raise UserError(_("이미 응답이 접수됐습니다. 최신 요청과 응답을 확인하세요."))
+            snapshot = request_snapshot(po)
+            vals.update(request_snapshot=snapshot, request_revision=request_revision(snapshot),
+                review_state="pending", reviewed_by=False, reviewed_date=False)
         responses = super().create(vals_list)
         for response in responses:
             # PO 상태 변경
@@ -73,11 +104,31 @@ class PurchaseOrderResponse(models.Model):
             )
         return responses
 
+    def write(self, vals):
+        for response in self:
+            check_actor(response, response.partner_id)
+            if set(vals) & {"purchase_order_id", "request_snapshot", "request_revision"}:
+                raise UserError(_("응답 당시의 요청 근거는 변경할 수 없습니다."))
+            if set(vals) & {"review_state", "reviewed_by", "reviewed_date", "reject_reason"}:
+                if self.env.context.get("_scm_review_write") is not _REVIEW_WRITE:
+                    raise UserError(_("응답 검토 기록은 승인/반려 동작으로만 남길 수 있습니다."))
+            elif response.review_state != "pending":
+                raise UserError(_("검토가 완료된 응답은 변경할 수 없습니다."))
+        return super().write(vals)
+
+    def unlink(self):
+        if any(response.review_state != "pending" for response in self):
+            raise UserError(_("검토가 완료된 응답 증빙은 삭제할 수 없습니다."))
+        return super().unlink()
+
 
 class PurchaseOrderLineResponse(models.Model):
     """품목별 응답 상세"""
     _name = "purchase.order.line.response"
     _description = "품목별 발주 응답"
+    company_id = fields.Many2one(related="response_id.company_id", store=True, index=True)
+    _sql_constraints = [("response_order_line_unique", "unique(response_id, order_line_id)",
+                         "한 응답에서 같은 요청 품목을 중복 응답할 수 없습니다.")]
 
     response_id = fields.Many2one(
         "purchase.order.response",
@@ -98,11 +149,11 @@ class PurchaseOrderLineResponse(models.Model):
     # 요청 (원본)
     requested_qty = fields.Float(
         string="요청 수량",
-        related="order_line_id.product_qty",
+        readonly=True,
     )
     requested_date = fields.Datetime(
         string="요청 납기",
-        related="order_line_id.date_planned",
+        readonly=True,
     )
 
     # 협력사 응답
@@ -133,6 +184,41 @@ class PurchaseOrderLineResponse(models.Model):
         string="승인",
         default=True,
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            response = self.env["purchase.order.response"].browse(vals.get("response_id", self.env.context.get("default_response_id")))
+            check_actor(response, response.partner_id)
+            if response.review_state != "pending":
+                raise UserError(_("검토된 응답에 행을 추가할 수 없습니다."))
+            line_id = vals.get("order_line_id", self.env.context.get("default_order_line_id"))
+            source = (response.request_snapshot or {}).get("lines", {}).get(str(line_id))
+            if not source:
+                raise UserError(_("응답 당시 요청에 없는 품목 행입니다. 새 요청으로 다시 응답하세요."))
+            vals.update(requested_qty=source["quantity"], requested_date=source["date"])
+        return super().create(vals_list)
+
+    @api.constrains("response_id", "order_line_id", "confirmed_qty", "company_id")
+    def _check_scm_scope(self):
+        for line in self:
+            check_actor(line, line.response_id.partner_id)
+            check_quantity(line.confirmed_qty)
+            if line.order_line_id.order_id != line.response_id.purchase_order_id:
+                raise ValidationError(_("응답의 원 구매 주문과 품목 행이 다릅니다."))
+
+    def write(self, vals):
+        for line in self:
+            check_actor(line, line.response_id.partner_id)
+            if line.response_id.review_state != "pending" or set(vals) & {
+                    "response_id", "order_line_id", "requested_qty", "requested_date"}:
+                raise UserError(_("응답 요청 근거나 검토가 완료된 품목을 변경할 수 없습니다."))
+        return super().write(vals)
+
+    def unlink(self):
+        if any(line.response_id.review_state != "pending" for line in self):
+            raise UserError(_("검토된 응답의 품목은 삭제할 수 없습니다."))
+        return super().unlink()
 
     @api.depends("requested_qty", "confirmed_qty", "requested_date", "confirmed_date")
     def _compute_line_status(self):

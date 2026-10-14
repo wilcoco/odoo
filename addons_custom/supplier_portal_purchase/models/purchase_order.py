@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from .purchase_response import _REVIEW_WRITE, request_snapshot, request_revision
 
 
 class PurchaseOrder(models.Model):
@@ -107,8 +108,18 @@ class PurchaseOrder(models.Model):
     def action_approve_response(self):
         """협력사 응답 승인"""
         self.ensure_one()
+        self.check_access("write")
+        self.env.cr.execute("SELECT id FROM purchase_order WHERE id=%s FOR UPDATE", (self.id,))
+        self.invalidate_recordset()
         if self.portal_state != "responded":
             raise UserError(_("응답 완료 상태의 발주만 승인할 수 있습니다."))
+
+        response = self.latest_response_id
+        if (not response.request_revision or response.review_state != "pending"
+                or response.request_revision != request_revision(request_snapshot(self))):
+            raise UserError(_("응답 이후 요청이 개정됐거나 과거 요청 근거가 없습니다. 반려 후 현재 요청으로 다시 응답받으세요."))
+        if set(response.line_response_ids.order_line_id.ids) != set(self.order_line.filtered(lambda l: not l.display_type).ids):
+            raise UserError(_("요청의 모든 품목에 대한 응답이 필요합니다."))
 
         # PO Line에 확정 수량/납기 반영
         if self.latest_response_id:
@@ -124,6 +135,8 @@ class PurchaseOrder(models.Model):
             self.button_confirm()
 
         self.portal_state = "approved"
+        response.with_context(_scm_review_write=_REVIEW_WRITE).write({"review_state": "approved",
+            "reviewed_by": self.env.user.id, "reviewed_date": fields.Datetime.now()})
 
         # 협력사에게 승인 알림
         self._create_portal_notification("approved", partner=self.partner_id)

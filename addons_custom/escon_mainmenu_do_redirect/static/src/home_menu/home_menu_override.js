@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { EsconMainMenu } from "./mainmenu";
+import { EsconMainMenu } from "@escon_mainmenu/mainmenu/mainmenu";
 
 /**
  * Enterprise 홈 메뉴(앱 그리드) 전면 대체.

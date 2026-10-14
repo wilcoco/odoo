@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class MachineMoldCapability(models.Model):
@@ -46,7 +47,20 @@ class MachineMoldCapability(models.Model):
         store=True,
     )
 
+    changeover_override = fields.Boolean(
+        string="이 조합 교체시간 사용",
+        help="[R135 검토 #3] 켜면 아래 값을 쓴다 — **0 도 확인된 0시간으로 보존**한다. 끄면 금형 값을 쓴다. "
+             "0/미입력을 곧바로 금형 fallback 으로 읽지 않기 위한 별도 표지다.")
+    changeover_hours = fields.Float(
+        string="이 조합 교체시간 (h)",
+        help="[R135] 이 사출기에서 이 금형을 교체할 때 걸리는 시간. 「이 조합 교체시간 사용」 이 켜져 있을 때만 적용.")
     active = fields.Boolean(default=True)
+
+    @api.constrains("changeover_hours")
+    def _check_changeover_hours(self):
+        for rec in self:
+            if rec.changeover_hours < 0:
+                raise ValidationError(_("조합 교체시간은 음수일 수 없습니다."))
 
     _sql_constraints = [
         (

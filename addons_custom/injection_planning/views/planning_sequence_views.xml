@@ -1,0 +1,133 @@
+<odoo>
+    <!-- [R135] 설정: 순서 계산 방식 -->
+    <record id="view_planning_config_form_sequencing" model="ir.ui.view">
+        <field name="name">injection.planning.config.form.sequencing</field>
+        <field name="model">injection.planning.config</field>
+        <field name="inherit_id" ref="view_planning_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='inventory_aware_scheduling']" position="before">
+                <field name="sequencing_mode"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- [R135] 계획 폼: 실행 가능성·지표, 위반 탭, 일별 사출기 순서 탭 -->
+    <record id="view_planning_run_form_sequencing" model="ir.ui.view">
+        <field name="name">injection.planning.run.form.sequencing</field>
+        <field name="model">injection.planning.run</field>
+        <field name="inherit_id" ref="view_planning_run_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_acknowledge_violations" type="object" string="정책 위반 확인"
+                        groups="injection_planning.group_planning_manager"
+                        invisible="state not in ('review', 'confirmed') or violations_acknowledged"/>
+                <button name="action_apply_manual_order" type="object" string="수동 순서 적용(시간 재배치)"
+                        help="[R135] 일별 순서를 고친 뒤 누른다. 초안 라인의 시간을 그 순서대로 다시 놓고 교체·소요·재고를 갱신한다. 확정 MO 는 보존."
+                        confirm="초안 라인을 입력한 일별 순서대로 다시 배치합니다(라인이 다시 만들어집니다). 계속할까요?"
+                        invisible="state != 'review'"/>
+                <button name="action_revalidate_sequence" type="object" string="순서 재검증"
+                        help="[R135] 손으로 고친 순서·시각·수량을 다시 검증한다. 최적화를 다시 돌리지 않는다."
+                        invisible="state not in ('review', 'confirmed')"/>
+            </xpath>
+            <xpath expr="//page[@name='unassigned']" position="after">
+                <page string="계획 위반·지표" name="violations">
+                    <group>
+                        <group string="실행 가능성 (휴리스틱 — 전역 최적 미보장)">
+                            <field name="feasibility"/>
+                            <field name="sequencing_mode_snapshot"/>
+                            <field name="safety_stock_days_applied"/>
+                            <field name="safety_stock_basis_applied"/>
+                            <field name="settings_changed" decoration-danger="settings_changed"/>
+                            <field name="violations_acknowledged"/>
+                            <field name="violations_acknowledged_by" invisible="not violations_acknowledged"/>
+                            <field name="total_changeovers"/>
+                            <field name="late_qty"/>
+                            <field name="safety_shortfall_qty"/>
+                            <field name="max_excess_qty"/>
+                            <field name="early_qty"/>
+                        </group>
+                        <group string="계산 안내">
+                            <field name="sequencing_note" nolabel="1" colspan="2"/>
+                        </group>
+                    </group>
+                    <field name="violation_ids" readonly="1">
+                        <list decoration-danger="kind in ('late','safety_shortfall')" decoration-warning="kind in ('max_inventory_excess','early_production')">
+                            <field name="plan_date"/><field name="product_id"/><field name="kind"/><field name="severity"/>
+                            <field name="qty"/><field name="days"/><field name="detail"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="일별 사출기 순서" name="daily_sequence">
+                    <field name="line_ids" context="{'r135_daily_order': 1}">
+                        <list editable="bottom" create="0" delete="0" default_order="workcenter_id, start_date, daily_sequence"
+                              decoration-danger="is_late == True" decoration-muted="changeover_source == 'none_same_mold'">
+                            <field name="workcenter_id"/>
+                            <field name="start_date" string="작업일"/>
+                            <field name="daily_sequence" readonly="state != 'draft' or mo_id"/>
+                            <field name="state" column_invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="mold_id"/>
+                            <field name="changeover_source"/>
+                            <field name="mount_unknown"/>
+                            <field name="changeover_start_time"/>
+                            <field name="changeover_end_time"/>
+                            <field name="start_time" string="생산 시작"/>
+                            <field name="end_time" string="생산 종료"/>
+                            <field name="planned_qty" string="총수량"/>
+                            <field name="expected_good_qty"/>
+                            <field name="plan_date" string="필요일"/>
+                            <field name="projected_stock_end"/>
+                            <field name="is_late"/>
+                            <field name="mo_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- [R135] 라인 목록에 일별 순서·출처·예상 양품·예상 잔고 -->
+    <record id="view_planning_line_list_sequencing" model="ir.ui.view">
+        <field name="name">injection.planning.line.list.sequencing</field>
+        <field name="model">injection.planning.line</field>
+        <field name="inherit_id" ref="view_planning_line_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='workcenter_id']" position="after">
+                <field name="daily_sequence" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='planned_qty']" position="after">
+                <field name="expected_good_qty" optional="show"/>
+                <field name="projected_stock_end" optional="hide"/>
+                <field name="changeover_source" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- [R135 Q4] 금형: 교체시간 명시 확인 -->
+    <record id="view_injection_mold_form_changeover_confirm" model="ir.ui.view">
+        <field name="name">injection.mold.form.changeover.confirm</field>
+        <field name="model">injection.mold</field>
+        <field name="inherit_id" ref="view_injection_mold_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='changeover_hours']" position="after">
+                <field name="changeover_hours_confirmed"/>
+                <field name="changeover_confirmed_by" invisible="not changeover_hours_confirmed"/>
+                <field name="changeover_confirmed_at" invisible="not changeover_hours_confirmed"/>
+                <button name="action_confirm_changeover_hours" type="object" string="교체시간 확인" class="btn-secondary"
+                        invisible="changeover_hours_confirmed"/>
+            </xpath>
+        </field>
+    </record>
+    <!-- [R135 검토 #3] 조합 목록: 교체시간 override 표지 (조합은 편집 목록만 있다) -->
+    <record id="view_machine_mold_list_changeover" model="ir.ui.view">
+        <field name="name">injection.machine.mold.capability.list.changeover</field>
+        <field name="model">injection.machine.mold.capability</field>
+        <field name="inherit_id" ref="view_machine_mold_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='cycle_time']" position="after">
+                <field name="changeover_override" optional="show"/>
+                <field name="changeover_hours" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

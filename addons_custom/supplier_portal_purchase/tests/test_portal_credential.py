@@ -22,6 +22,7 @@ class TestPortalCredential(TransactionCase):
             "name": "TEST-계정협력사",
             "supplier_rank": 1,
             "is_supplier_portal": True,
+            "supplier_portal_company_ids": [(6, 0, cls.env.company.ids)],
         })
 
     def _wizard(self, partner=None, **vals):
@@ -174,7 +175,8 @@ class TestPortalCredentialLogin(HttpCase):
 
     def test_supplier_can_reach_portal_after_admin_sets_password(self):
         partner = self.env["res.partner"].create({
-            "name": "TEST-로그인협력사", "supplier_rank": 1, "is_supplier_portal": True})
+            "name": "TEST-로그인협력사", "supplier_rank": 1, "is_supplier_portal": True,
+            "supplier_portal_company_ids": [(6, 0, self.env.company.ids)]})
         Wiz = self.env["supplier.portal.credential.wizard"].with_context(
             active_id=partner.id, active_model="res.partner")
         wiz = Wiz.create(dict(Wiz.default_get(list(Wiz._fields)),

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cron_generate_ops_tasks" model="ir.cron">
+        <field name="name">운영 업무 자동 생성(주기)</field>
+        <field name="model_id" ref="model_ops_task_def"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_generate_tasks()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

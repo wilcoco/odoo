@@ -1,5 +1,9 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
+
+
+_RISK_ACTIVITY_TOKEN = object()
+_RISK_ACTIVITY_CONTEXT = '_nc_risk_activity_service'
 
 
 class IatfNonconformity(models.Model):
@@ -252,21 +256,55 @@ class IatfNonconformity(models.Model):
                 self.message_post(body=_("SCAR %s 자동 발행됨 (6개월 NC %d건)") % (scar.name, recent_nc_count))
 
     def _auto_update_risk(self):
-        """NC 발생 시 관련 리스크 등급 재평가 알림 (L2-17)"""
+        """Schedule an existing risk's review, without requiring the NC user's Risk ACL."""
+        self.ensure_one()
+        self.check_access('write')
+        if not self.exists() or not self.company_id or self.company_id not in self.env.companies:
+            raise AccessError(_('허용된 회사의 실제 부적합만 리스크 후속 처리할 수 있습니다.'))
+        if not self.product_id:
+            return
+        self.product_id.check_access('read')
+        if self.product_id.company_id and self.product_id.company_id != self.company_id:
+            raise UserError(_('부적합과 제품의 회사가 다릅니다.'))
         RiskReg = self.env.get("iatf.risk.register")
         if RiskReg is None:
             return
-        risks = RiskReg.search([
+        self._approval_lock_target()
+        # No source write/role elevation: the narrow service only reads matching
+        # existing risks and creates their review activity. Scores stay unchanged.
+        scoped_context = dict(self.env.context, allowed_company_ids=self.company_id.ids,
+                              **{_RISK_ACTIVITY_CONTEXT: _RISK_ACTIVITY_TOKEN})
+        risks = RiskReg.with_context(scoped_context).sudo().search([
             ("state", "not in", ("closed",)),
+            ("company_id", "=", self.company_id.id),
+            ("description", "like", self.product_id.name),
         ])
+        Activity = self.env['mail.activity'].with_context(scoped_context).sudo()
+        warning = self.env.ref('mail.mail_activity_data_warning')
+        needs_followup = False
         for risk in risks:
-            if self.product_id and hasattr(risk, "description") and risk.description:
-                if self.product_id.name in (risk.description or ""):
-                    risk.activity_schedule(
-                        "mail.mail_activity_data_warning",
-                        summary=_("관련 NC 발생으로 리스크 재평가 필요: %s") % self.name,
-                        user_id=risk.responsible_id.id if risk.responsible_id else self.env.user.id,
-                    )
+            # Preserve the original case-sensitive product-name match.
+            if self.product_id.name not in (risk.description or ''):
+                continue
+            responsible = risk.responsible_id or self.env.user
+            if (not responsible.active or responsible.share
+                    or self.company_id not in responsible.company_ids
+                    or (not risk.responsible_id and not RiskReg.has_access('read'))):
+                needs_followup = True
+                continue
+            if Activity.search_count([('res_model', '=', risk._name), ('res_id', '=', risk.id),
+                                      ('nc_risk_source_id', '=', self.id),
+                                      ('activity_type_id', '=', warning.id)], limit=1):
+                continue
+            risk.activity_schedule('mail.mail_activity_data_warning',
+                summary=_("관련 NC 발생으로 리스크 재평가 필요: %s") % self.name,
+                user_id=responsible.id, nc_risk_source_id=self.id)
+        if needs_followup and not Activity.search_count([
+                ('res_model', '=', self._name), ('res_id', '=', self.id),
+                ('nc_risk_source_id', '=', self.id), ('activity_type_id', '=', warning.id)], limit=1):
+            self.with_context(scoped_context).activity_schedule('mail.mail_activity_data_warning',
+                summary=_('리스크 재평가 담당자의 회사·활성 상태 확인 필요'),
+                user_id=self.env.uid, nc_risk_source_id=self.id)
 
     # ── Workflow actions ──
 
@@ -356,3 +394,26 @@ class IatfNonconformity(models.Model):
             "domain": [("nonconformity_id", "=", self.id)],
             "context": {"default_nonconformity_id": self.id},
         }
+
+
+class NcRiskActivity(models.Model):
+    _inherit = 'mail.activity'
+
+    nc_risk_source_id = fields.Many2one('iatf.nonconformity', readonly=True, copy=False,
+        index=True, ondelete='restrict', string='리스크 재평가 원천 부적합')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if self.env.context.get(_RISK_ACTIVITY_CONTEXT) is not _RISK_ACTIVITY_TOKEN:
+            if ('default_nc_risk_source_id' in self.env.context
+                    or any('nc_risk_source_id' in vals for vals in vals_list)):
+                raise UserError(_('리스크 알림의 부적합 원천은 검증된 자동 처리에서만 연결합니다.'))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if self.env.context.get(_RISK_ACTIVITY_CONTEXT) is not _RISK_ACTIVITY_TOKEN:
+            if ('nc_risk_source_id' in vals or
+                    ({'res_model', 'res_model_id', 'res_id'} & vals.keys()
+                     and any(self.mapped('nc_risk_source_id')))):
+                raise UserError(_('리스크 알림의 원천과 대상은 재연결할 수 없습니다.'))
+        return super().write(vals)

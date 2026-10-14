@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_company_form_kr_ncasset" model="ir.ui.view">
+        <field name="name">res.company.form.kr.ncasset</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="자산별 계정 기준" name="kr_ncasset_settings"
+                       groups="account.group_account_manager">
+                    <field name="kr_land_base_account_id"/>
+                    <field name="kr_land_down_account_id"/>
+                    <field name="kr_land_interim_account_id"/>
+                    <field name="kr_land_balance_account_id"/>
+                    <field name="kr_asset_reclass_journal_id"/>
+                    <div colspan="2" class="text-muted">
+                        자산별 계정 코드는 기준 계정 코드 뒤에 자산 일련번호를 붙여 만듭니다
+                        (예: 토지 기준 계정 800003 → 8000031, 8000032). 계정 유형과 태그를
+                        기준 계정에서 물려받아 재무제표·회계 통계에서 같은 성격으로 잡힙니다.
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

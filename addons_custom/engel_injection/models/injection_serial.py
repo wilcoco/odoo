@@ -115,9 +115,18 @@ class EngelInjectionSerial(models.Model):
     # ─────────────────────────────────────────────
     def _post_create_hooks(self):
         """시리얼 생성 후: 금형 샷카운트, 추적 기록, SPC 피드"""
-        self._update_mold_shots()
-        self._create_traceability_record()
-        self._auto_feed_spc()
+        service = self.env.get("iatf.passive.log")
+        passive = service is not None and service._enabled(self)
+        hooks = [
+            (self._update_mold_shots, "금형", "사출 시리얼 금형 샷카운트 갱신"),
+            (self._create_traceability_record, "추적성", "사출 시리얼 추적 기록 생성"),
+            (self._auto_feed_spc, "SPC", "사출 시리얼 중량 데이터 자동 투입"),
+        ]
+        for callback, area, description in hooks:
+            if passive:
+                service._run(self, callback, area, description, mode="auxiliary")
+            else:
+                callback()
 
     def _update_mold_shots(self):
         """금형 샷카운트 +1 (캐비티 1번이거나 단일 캐비티일 때만)"""
@@ -166,6 +175,9 @@ class EngelInjectionSerial(models.Model):
                 rec.name, self.barcode,
             )
         except Exception:
+            service = self.env.get("iatf.passive.log")
+            if service is not None and service._enabled(self):
+                raise
             _logger.exception(
                 "Failed to create traceability record for serial %s",
                 self.barcode,
@@ -212,6 +224,9 @@ class EngelInjectionSerial(models.Model):
                     "x1": self.weight,
                 })
         except Exception:
+            service = self.env.get("iatf.passive.log")
+            if service is not None and service._enabled(self):
+                raise
             _logger.exception(
                 "Failed to feed SPC for serial %s", self.barcode,
             )

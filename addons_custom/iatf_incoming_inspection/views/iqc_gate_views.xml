@@ -1,0 +1,36 @@
+<odoo>
+    <record id="view_iqc_gate_form" model="ir.ui.view">
+        <field name="name">incoming.inspection.receipt.scope</field>
+        <field name="model">iatf.incoming.inspection</field>
+        <field name="inherit_id" ref="view_incoming_inspection_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_prepare_release" type="object" string="합격 수량 이동 준비" groups="stock.group_stock_user" invisible="approval_state != 'approved' or state == 'closed'"/>
+                <button name="action_prepare_return" type="object" string="불합격 반품 준비" groups="stock.group_stock_user" invisible="approval_state != 'approved' or state == 'closed'"/>
+                <button name="action_reset_inspection" type="object" string="재검토 (이전 승인 보존)" groups="iatf_incoming_inspection.group_incoming_inspection_user" invisible="state == 'draft'"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="실제 입고 범위와 재고 처분">
+                    <field name="receipt_move_line_id"/>
+                    <field name="product_uom_id"/>
+                    <field name="company_id" readonly="1"/>
+                    <field name="quantity_released"/>
+                    <field name="quantity_returned"/>
+                    <field name="quantity_unresolved"/>
+                    <field name="quantity_pending"/>
+                    <field name="nonconformity_summary"/>
+                    <field name="nonconformity_history_ids" widget="many2many_tags" groups="iatf_nonconformity.group_nc_user"/>
+                </group>
+                <div class="alert alert-info">합격 판정·결재만으로 재고가 이동하지 않습니다. 물류 담당자가 해제·반품 전표를 실제 완료해야 합니다. 기존 입고 원천 미연결 자료, 검사 면제·특채 조건은 별도 확인이 필요합니다.</div>
+                <field name="movement_ids" readonly="1">
+                    <list create="0" delete="0"><field name="picking_id"/><field name="iqc_movement_kind"/><field name="product_uom_qty"/><field name="quantity"/><field name="product_uom"/><field name="state"/></list>
+                </field>
+            </xpath>
+            <xpath expr="//field[@name='nonconformity_id']" position="attributes"><attribute name="groups">iatf_nonconformity.group_nc_user</attribute></xpath>
+            <xpath expr="//field[@name='purchase_id']" position="attributes"><attribute name="groups">purchase.group_purchase_user</attribute></xpath>
+            <xpath expr="//field[@name='quantity_received']" position="attributes"><attribute name="readonly">1</attribute></xpath>
+            <xpath expr="//field[@name='inspector_id']" position="attributes"><attribute name="readonly">1</attribute></xpath>
+            <xpath expr="//field[@name='approved_by']" position="attributes"><attribute name="readonly">1</attribute></xpath>
+        </field>
+    </record>
+</odoo>

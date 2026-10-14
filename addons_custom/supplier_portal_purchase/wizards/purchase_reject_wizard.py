@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from ..models.purchase_response import _REVIEW_WRITE
 
 
 class PurchaseOrderRejectWizard(models.TransientModel):
@@ -27,7 +28,7 @@ class PurchaseOrderRejectWizard(models.TransientModel):
 
         # 최신 응답에 반려 사유 기록
         if po.latest_response_id:
-            po.latest_response_id.write({
+            po.latest_response_id.with_context(_scm_review_write=_REVIEW_WRITE).write({
                 "review_state": "rejected",
                 "reviewed_by": self.env.user.id,
                 "reviewed_date": fields.Datetime.now(),

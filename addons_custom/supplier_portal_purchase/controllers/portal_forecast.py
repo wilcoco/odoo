@@ -18,7 +18,7 @@ class SupplierPortalForecastController(http.Controller):
             return request.render(
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         lines = request.env["supplier.demand.forecast"].sudo().search(
-            [("partner_id", "=", partner.id)], order="product_id, date")
+            [("partner_id", "=", partner.id), ("company_id", "=", request.env.company.id)], order="product_id, date")
         by_product = defaultdict(list)
         for line in lines:
             by_product[line.product_id].append(line)
@@ -26,5 +26,6 @@ class SupplierPortalForecastController(http.Controller):
         return request.render("supplier_portal_purchase.portal_forecast", {
             "partner": partner, "token": token,
             "by_product": by_product, "snapshot_at": snapshot_at,
+            "refresh_required": lines._snapshot_needs_refresh(),
             "page_name": "forecast",
         })

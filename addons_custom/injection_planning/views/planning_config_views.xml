@@ -59,6 +59,15 @@
                             <field name="safety_stock_days"/>
                         </group>
                     </group>
+                    <group string="일정 배치">
+                        <field name="inventory_aware_scheduling"/>
+                        <div class="text-muted" colspan="2">
+                            켜면 <b>미래 필요분을 필요일보다 앞선 가동 구간으로 당기지
+                            않습니다.</b> 납기를 지키기 위해 불가피할 때만 당기고,
+                            그 수량·일자·사유를 계획 경고로 남깁니다.
+                            끄면 <b>기존 동작</b>(앞 가동 구간부터 채우기) 그대로입니다.
+                        </div>
+                    </group>
                     <group string="글로벌 기본값">
                         <group>
                             <field name="default_changeover"/>

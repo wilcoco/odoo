@@ -1,0 +1,12 @@
+<odoo>
+    <record id="approval_request_company_rule" model="ir.rule">
+        <field name="name">Approval requests: allowed companies</field>
+        <field name="model_id" ref="model_iatf_approval_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="approval_line_company_rule" model="ir.rule">
+        <field name="name">Approval lines: allowed companies</field>
+        <field name="model_id" ref="model_iatf_approval_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

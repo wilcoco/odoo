@@ -1,6 +1,6 @@
 {
     "name": "Engel 사출 생산 관리",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "summary": "Engel 사출기 연동 및 생산 데이터 관리 (Euromap 63 / Go Middleware)",
     "category": "Manufacturing",
     "license": "LGPL-3",

@@ -1,7 +1,7 @@
 {
     "name": "IATF Traceability",
     "summary": "IATF 16949 §8.5.2 — 로트/시리얼 추적성, 공정 이력, 리콜 시뮬레이션 + 분쇄·배합일지(SQ 1_10)",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.1.1",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",

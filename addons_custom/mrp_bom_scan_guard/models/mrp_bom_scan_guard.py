@@ -69,20 +69,35 @@ class MrpBomScanGuardWizard(models.TransientModel):
     def _find_product_by_scan_value(self, value):
         """Try product by barcode first, then by internal reference(default_code)."""
         Product = self.env["product.product"].sudo()
-        product = Product.search([("barcode", "=", value)], limit=1)
+        company = self.production_id.company_id or self.env.company
+        scope = ['|', ('company_id', '=', False), ('company_id', '=', company.id)]
+        product = Product.search(scope + [("barcode", "=", value)], limit=2)
         if not product:
-            product = Product.search([("default_code", "=", value)], limit=1)
-        return product
+            product = Product.search(scope + [("default_code", "=", value)], limit=2)
+        return product if len(product) == 1 else Product.browse()
 
     def _qty_done_of_move(self, move):
-        """Best-effort read of consumed qty on a raw move."""
-        qty = 0.0
-        # Odoo 18+ uses `quantity` on stock.move and stock.move.line
-        if hasattr(move, "quantity") and move.quantity:
-            qty = move.quantity
-        elif move.move_line_ids:
-            qty = sum(move.move_line_ids.mapped("quantity"))
-        return qty
+        """**실제로 투입된** 수량. 예약은 투입이 아니다.
+
+        [아스트라 20260912 01:26 #1] 「`_qty_done_of_move` 는 `move.quantity` 또는
+        `move_line.quantity` 를 **state/picked 구분 없이** 소비량으로 읽고
+        `scan_gate` 가 `over_consumed` 에 씁니다. 따라서 **예약을 실제소비로
+        오인**할 가능성이 있으며 …」
+
+        맞습니다. Odoo 18 의 `quantity` 에는 **예약분이 들어 있습니다.** 그래서
+        부품을 먼저 예약해 두면 아직 아무것도 넣지 않았는데 「계획 수량에 도달」로
+        정상 스캔이 차단됐습니다(개발 시험이 그것을 관측했습니다).
+
+        완료된 이동이거나 **실제로 집어든(`picked`) 상세행**만 센다.
+        """
+        if move.state == "done":
+            return move.quantity or sum(move.move_line_ids.mapped("quantity"))
+        lines = move.move_line_ids
+        if "picked" in lines._fields:
+            lines = lines.filtered("picked")
+        elif "picked" in move._fields and not move.picked:
+            lines = lines.browse()
+        return sum(lines.mapped("quantity"))
 
     # ----- logging + notification -----
 

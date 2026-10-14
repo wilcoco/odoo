@@ -9,6 +9,12 @@ _build/
 !.weblate.json
 !.dockerignore
 !.tx
+# Shared CAMS workflow skill only; other local agent files stay ignored.
+!/.agents/
+/.agents/*
+!/.agents/skills/
+/.agents/skills/*
+!/.agents/skills/cams-odoo-delivery/
 # compiled python files
 *.py[co]
 __pycache__/

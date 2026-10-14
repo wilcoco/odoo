@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 그룹웨어(gw.goescon.com/work/vacation) 휴가 유형 대응.
+             병가/무급휴가는 Odoo 기본 유형(holiday_status_sl / holiday_status_unpaid)을 그대로 쓴다. -->
+
+        <!-- 연차: 배정(allocation) 기반 — escon.annual.leave 크론이 입사일 기준으로 자동 배정.
+             반차 사용 가능(half_day). 승인: 휴가 승인자(1차) — 그룹웨어 '1차 결재자(필수)' 대응. -->
+        <record id="leave_type_annual" model="hr.leave.type">
+            <field name="name">연차</field>
+            <field name="sequence">1</field>
+            <field name="requires_allocation">yes</field>
+            <field name="employee_requests">no</field>
+            <field name="allocation_validation_type">hr</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">half_day</field>
+            <field name="color">5</field>
+        </record>
+
+        <!-- 경조사: 배정 불요, 승인자 승인 -->
+        <record id="leave_type_family_event" model="hr.leave.type">
+            <field name="name">경조사</field>
+            <field name="sequence">6</field>
+            <field name="requires_allocation">no</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">day</field>
+            <field name="color">2</field>
+        </record>
+
+        <!-- 공가: 배정 불요, 증빙 첨부 필수(그룹웨어 규정), 인사 담당 승인 -->
+        <record id="leave_type_official" model="hr.leave.type">
+            <field name="name">공가</field>
+            <field name="sequence">7</field>
+            <field name="requires_allocation">no</field>
+            <field name="leave_validation_type">hr</field>
+            <field name="request_unit">day</field>
+            <field name="support_document" eval="True"/>
+            <field name="color">4</field>
+        </record>
+
+        <!-- 대체휴무: 발생분을 인사에서 배정한 뒤 사용 (반차 가능) -->
+        <record id="leave_type_comp_off" model="hr.leave.type">
+            <field name="name">대체휴무</field>
+            <field name="sequence">8</field>
+            <field name="requires_allocation">yes</field>
+            <field name="employee_requests">no</field>
+            <field name="allocation_validation_type">hr</field>
+            <field name="leave_validation_type">manager</field>
+            <field name="request_unit">half_day</field>
+            <field name="color">10</field>
+        </record>
+    </data>
+</odoo>

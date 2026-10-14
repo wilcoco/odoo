@@ -2,7 +2,9 @@
 from datetime import timedelta
 
 from odoo import fields
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase, tagged
+from .bom_fixture import injection_bom
 
 
 @tagged("post_install", "-at_install")
@@ -16,7 +18,7 @@ class TestExplodeAndNet(TransactionCase):
         cls.inj = P.create({"name": "TP-사출품", "default_code": "TP-INJ",
                             "type": "consu", "is_storable": True})  # 재고차감 검증용
         cls.out = P.create({"name": "TP-외주부품", "default_code": "TP-OUT", "type": "consu"})
-        cls.bom = cls.env["mrp.bom"].create({
+        cls.bom = injection_bom(cls.env, {
             "product_tmpl_id": cls.fin.product_tmpl_id.id, "product_qty": 1.0,
             "bom_line_ids": [
                 (0, 0, {"product_id": cls.inj.id, "product_qty": 1.0}),
@@ -55,20 +57,21 @@ class TestExplodeAndNet(TransactionCase):
         self.assertAlmostEqual(qty, 100.0)
 
     def test_02_multi_active_bom_warning(self):
-        """[S4] 같은 품목에 활성 BOM 2개면 경고가 수집된다(임의 선택 가시화)."""
-        self.env["mrp.bom"].create({
+        """[S4] 같은 품목의 활성 BOM이 모호하면 임의 선택하지 않는다."""
+        injection_bom(self.env, {
             "product_tmpl_id": self.fin.product_tmpl_id.id, "product_qty": 1.0,
             "bom_line_ids": [(0, 0, {"product_id": self.inj.id, "product_qty": 2.0})],
         })
-        issues = []
-        self.plan_run.with_context(plan_issues=issues)._explode_bom()
-        self.assertTrue(any("다중 활성 BOM" in i for i in issues),
-                        "다중 활성 BOM 경고가 수집돼야 한다: %s" % issues)
+        with self.assertRaisesRegex(UserError, "활성 BOM"):
+            self.plan_run._explode_bom()
 
     def test_03_net_requirement_respects_stock(self):
         """순수요는 재고를 차감한다 — 재고 충분하면 생산 불필요."""
         # 사출품 재고를 수요보다 크게
-        loc = self.env["stock.location"].search([("usage", "=", "internal")], limit=1)
+        # Explicit usable company stock, not an arbitrary internal location (which
+        # may be the IQC pending location in the integrated database).
+        loc = self.env["stock.warehouse"].search([
+            ("company_id", "=", self.env.company.id)], limit=1).lot_stock_id
         self.env["stock.quant"]._update_available_quantity(self.inj, loc, 10000.0)
         pd = self.plan_run._explode_bom()
         net = self.plan_run._calculate_net_requirements(pd)

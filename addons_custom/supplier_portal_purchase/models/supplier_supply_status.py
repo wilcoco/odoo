@@ -126,12 +126,12 @@ class SupplierSupplyStatus(models.AbstractModel):
             return []
         Silo = self.env["injection.stock.silo"].sudo()
         # 이 협력사가 대는 원재료 사일로: 명시 지정 또는 품목 대표 공급사
-        silos = Silo.search([("product_id", "!=", False)])
+        silos = Silo.search([("product_id", "!=", False), ("warehouse_id.company_id", "=", self.env.company.id)])
         mine = silos.filtered(
             lambda s: (s.reorder_partner_id
                        and s.reorder_partner_id.commercial_partner_id == partner)
             or (not s.reorder_partner_id
-                and s.product_id.seller_ids[:1].partner_id.commercial_partner_id == partner))
+                and self.env["supplier.demand.forecast"]._primary_supplier(s.product_id) == partner))
         blocks = []
         for silo in mine:
             lines = silo.depletion_line_ids.sorted("plan_date")
@@ -215,7 +215,7 @@ class SupplierSupplyStatus(models.AbstractModel):
     @api.model
     def _part_blocks(self, partner):
         Forecast = self.env["supplier.demand.forecast"].sudo()
-        rows = Forecast.search([("partner_id", "=", partner.id)], order="product_id, date")
+        rows = Forecast.search([("partner_id", "=", partner.id), ("company_id", "=", self.env.company.id)], order="product_id, date")
         by_product = defaultdict(list)
         for r in rows:
             by_product[r.product_id].append(r)
@@ -227,11 +227,20 @@ class SupplierSupplyStatus(models.AbstractModel):
                 "label": l.date.strftime("%m/%d"),
                 "date": l.date,
                 # 부품의 '잔량' = 가용 − 누적소요. 0 아래로 내려가면 부족이다.
-                "stock": available - (l.cum_required or 0.0),
+                "stock": (l.qty_onhand or 0.0) + (l.qty_incoming or 0.0) - (l.cum_required or 0.0),
                 "required": l.qty_required or 0.0,
                 "refill": 0.0,
             } for l in lines]
             shortfall_lines = [l for l in lines if (l.qty_shortfall or 0.0) > 0]
+            forecast_rows = Forecast.browse([line.id for line in lines])
+            refresh_required = forecast_rows._snapshot_needs_refresh()
+            alert = self._part_alert(product, shortfall_lines)
+            if refresh_required and alert["level"] == "ok":
+                alert = dict(alert, level="warning", title=_("전망 갱신 확인 필요"),
+                             detail=_("계산 이후 원천 정보가 바뀌었거나 기준 시각이 없습니다. 갱신 후 납품 가능량을 확인하세요."))
+            Quant = self.env["stock.quant"].sudo()
+            pending = (Quant._iqc_pending_quantities(self.env.company.id, product_ids=product.ids)
+                       if hasattr(Quant, "_iqc_pending_quantities") else [])
             blocks.append({
                 "kind": "part",
                 "kind_label": _("부품"),
@@ -246,7 +255,10 @@ class SupplierSupplyStatus(models.AbstractModel):
                 "threshold_label": _("부족 기준선"),
                 "series": series,
                 "chart": self._build_chart(series, threshold=0.0),
-                "alert": self._part_alert(product, shortfall_lines),
+                "snapshot_at": min(forecast_rows.mapped("snapshot_at")) if all(forecast_rows.mapped("snapshot_at")) else False,
+                "refresh_required": refresh_required,
+                "iqc_pending_qty": sum(row["quantity"] for row in pending),
+                "alert": alert,
             })
         return blocks
 
@@ -314,6 +326,7 @@ class SupplierSupplyStatus(models.AbstractModel):
                     continue
                 product = b["product"]
                 existing = Notification.search([
+                    ("company_id", "=", self.env.company.id),
                     ("partner_id", "=", partner.id),
                     ("product_id", "=", product.id),
                     ("notification_type", "=", "replenish_request"),
@@ -322,6 +335,7 @@ class SupplierSupplyStatus(models.AbstractModel):
                 if existing:
                     continue
                 Notification.create({
+                    "company_id": self.env.company.id,
                     "partner_id": partner.id,
                     "product_id": product.id,
                     "notification_type": "replenish_request",

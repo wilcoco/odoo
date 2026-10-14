@@ -58,6 +58,7 @@
                             <field name="checker_id"/>
                             <field name="overall_result" readonly="1"/>
                             <field name="ng_count" readonly="1"/>
+                            <field name="snapshot_count" readonly="1"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
@@ -88,6 +89,40 @@
                                 측정값 0 은 '미기입' 으로 본다(불량 아님).
                                 여기 보이는 기준은 <b>점검 당시 복사된 값</b>이라, 나중에 시트를 개정해도 바뀌지 않는다.
                             </div>
+                        </page>
+                        <page string="완료 이력" name="snapshots"
+                              invisible="snapshot_count == 0">
+                            <div class="alert alert-info" role="alert">
+                                완료로 넘어갈 때마다 그 시점의 측정값 전문을 한 벌 남깁니다.
+                                되돌려 고친 뒤 다시 완료하면 차수가 올라가고, <b>앞선 차수의
+                                기록은 수정·삭제되지 않습니다.</b>
+                            </div>
+                            <field name="snapshot_ids" readonly="1">
+                                <list>
+                                    <field name="revision"/>
+                                    <field name="done_at"/>
+                                    <field name="done_by_id"/>
+                                    <field name="overall_result"/>
+                                    <field name="line_count"/>
+                                </list>
+                                <form>
+                                    <group>
+                                        <field name="revision"/>
+                                        <field name="done_at"/>
+                                        <field name="done_by_id"/>
+                                        <field name="overall_result"/>
+                                        <field name="line_count"/>
+                                        <field name="ng_count"/>
+                                        <field name="sheet_name"/>
+                                        <field name="sheet_revision"/>
+                                        <field name="check_date"/>
+                                        <field name="shift"/>
+                                        <field name="checker_name"/>
+                                        <field name="company_name"/>
+                                    </group>
+                                    <field name="content" widget="text" nolabel="1"/>
+                                </form>
+                            </field>
                         </page>
                         <page string="조치 / 비고">
                             <group>

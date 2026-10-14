@@ -8,6 +8,9 @@
             <list decoration-warning="changeover_needed == True">
                 <field name="planning_run_id"/>
                 <field name="plan_date"/>
+                <field name="start_date" optional="show"/>
+                <field name="finish_date" optional="show"/>
+                <field name="is_late" optional="show"/>
                 <field name="shift" optional="show"/>
                 <field name="workcenter_id"/>
                 <field name="mold_id"/>

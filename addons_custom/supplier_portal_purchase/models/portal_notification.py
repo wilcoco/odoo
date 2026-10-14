@@ -78,6 +78,7 @@ class SupplierPortalNotification(models.Model):
     def get_unread_count_for_partner(self, partner_id):
         """협력사의 미읽음 알림 개수"""
         return self.search_count([
+            ("company_id", "=", self.env.company.id),
             ("partner_id", "=", partner_id),
             ("is_read", "=", False),
         ])
@@ -94,6 +95,7 @@ class SupplierPortalNotification(models.Model):
     def get_notifications_for_partner(self, partner_id, limit=10):
         """협력사의 알림 목록"""
         notifications = self.search([
+            ("company_id", "=", self.env.company.id),
             ("partner_id", "=", partner_id),
         ], limit=limit, order="create_date desc")
 

@@ -17,6 +17,7 @@
                 <field name="spec_result" widget="badge"
                        decoration-success="spec_result == 'ok'"
                        decoration-danger="spec_result == 'ng'"/>
+                    <field name="current_spec_result" optional="hide"/>
                 <field name="shift" optional="hide"/>
                 <field name="measured_by_id" optional="hide"/>
                 <field name="production_id" optional="hide"/>

@@ -19,7 +19,7 @@ class SupplierSupplyStatusPortal(SupplierPortalController):
             partner = self._validate_portal_access(token)
         except AccessDenied as e:
             return request.render("supplier_portal_purchase.portal_access_denied",
-                                  {"error_message": str(e)})
+                                  {"error": str(e)})
 
         blocks = request.env["supplier.supply.status"].sudo().get_portal_status(partner)
         return request.render("supplier_portal_purchase.portal_supply_status", {

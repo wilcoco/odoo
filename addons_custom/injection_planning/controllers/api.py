@@ -22,10 +22,26 @@ class InjectionPlanningAPI(http.Controller):
             {"success": True, "data": data}, status=status,
         )
 
+    def _scoped(self, model, domain=None, **kwargs):
+        """토큰 사용자의 **권한과 회사 범위 안에서** 조회한다.
+
+        [275 계획 리뷰 (4)] 예전에는 bearer 인증만 통과하면 `sudo()` 로 전 회사의
+        금형·조합·계획을 그대로 내보냈다. 토큰이 곧 전권이 되는 셈이다. 토큰은 '누구인가'
+        만 말한다 — 무엇을 볼 수 있는지는 그 사용자의 ACL·회사 규칙이 정한다.
+        """
+        companies = request.env.companies or request.env.user.company_ids
+        scoped = request.env[model].with_context(
+            allowed_company_ids=companies.ids)
+        company_domain = []
+        if "company_id" in scoped._fields:
+            company_domain = ["|", ("company_id", "=", False),
+                              ("company_id", "in", companies.ids)]
+        return scoped.search(company_domain + (domain or []), **kwargs)
+
     # ── 금형 ──
     @http.route("/api/v1/planning/mold", auth="bearer", type="http", methods=["GET"], csrf=False)
     def list_molds(self, **kwargs):
-        molds = request.env["injection.mold"].sudo().search([("state", "=", "active")])
+        molds = self._scoped("injection.mold", [("state", "=", "active")])
         data = [{
             "id": m.id,
             "code": m.code,
@@ -40,7 +56,7 @@ class InjectionPlanningAPI(http.Controller):
     # ── 사출기-금형 조합 ──
     @http.route("/api/v1/planning/capability", auth="bearer", type="http", methods=["GET"], csrf=False)
     def list_capabilities(self, **kwargs):
-        caps = request.env["injection.machine.mold.capability"].sudo().search([("active", "=", True)])
+        caps = self._scoped("injection.machine.mold.capability", [("active", "=", True)])
         data = [{
             "id": c.id,
             "workcenter_id": c.workcenter_id.id,
@@ -58,7 +74,7 @@ class InjectionPlanningAPI(http.Controller):
     # ── 계획 실행 ──
     @http.route("/api/v1/planning/run", auth="bearer", type="http", methods=["GET"], csrf=False)
     def list_runs(self, **kwargs):
-        runs = request.env["injection.planning.run"].sudo().search([], limit=20, order="create_date desc")
+        runs = self._scoped("injection.planning.run", [], limit=20, order="create_date desc")
         data = [{
             "id": r.id,
             "name": r.name,

@@ -1,3 +1,5 @@
+import math
+
 from odoo import http, fields
 from odoo.exceptions import AccessDenied
 from odoo.http import request
@@ -13,10 +15,12 @@ class SupplierPortalAsnController(http.Controller):
 
     def _supplier_products(self, partner):
         """이 협력사가 납품하는 품목 = supplierinfo 매핑 기준."""
-        infos = request.env["product.supplierinfo"].sudo().search(
-            [("partner_id", "=", partner.id)])
-        products = infos.mapped("product_tmpl_id.product_variant_ids")
-        return products
+        return partner._scm_supply_products(request.env.company)
+
+    def _purchase_lines(self, partner):
+        return request.env["purchase.order.line"].sudo().search([
+            ("company_id", "=", request.env.company.id), ("order_id.partner_id", "=", partner.id),
+            ("order_id.state", "in", ("purchase", "done")), ("display_type", "=", False)])
 
     @http.route("/supplier/asn", type="http", auth="public", website=True)
     def asn_list(self, token=None, **kwargs):
@@ -26,10 +30,11 @@ class SupplierPortalAsnController(http.Controller):
             return request.render(
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         asns = request.env["supplier.asn"].sudo().search(
-            [("partner_id", "=", partner.id)], limit=50)
+            [("partner_id", "=", partner.id), ("company_id", "=", request.env.company.id)], limit=50)
         return request.render("supplier_portal_purchase.portal_asn_list", {
             "partner": partner, "token": token, "asns": asns,
             "products": self._supplier_products(partner),
+            "purchase_lines": self._purchase_lines(partner),
             "today": fields.Date.context_today(partner),
             "page_name": "asn",
         })
@@ -43,6 +48,7 @@ class SupplierPortalAsnController(http.Controller):
             return request.render(
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         allowed = {p.id for p in self._supplier_products(partner)}
+        allowed_lines = self._purchase_lines(partner)
         lines, bad_rows = [], []
         for i in range(1, 6):  # 폼 최대 5라인
             pid = post.get("product_%d" % i)
@@ -54,10 +60,19 @@ class SupplierPortalAsnController(http.Controller):
             except (TypeError, ValueError):
                 bad_rows.append(i)
                 continue
-            if pid not in allowed or qty <= 0:
+            if pid not in allowed or not math.isfinite(qty) or qty <= 0:
+                bad_rows.append(i)
+                continue
+            try:
+                purchase_line_id = int(post.get("po_line_%d" % i) or 0)
+            except (TypeError, ValueError):
+                purchase_line_id = 0
+            source = allowed_lines.filtered(lambda line: line.id == purchase_line_id and line.product_id.id == pid)
+            if not source:
                 bad_rows.append(i)
                 continue
             lines.append((0, 0, {"product_id": pid, "qty": qty,
+                                 "purchase_line_id": source.id,
                                  "lot_name": (post.get("lot_%d" % i) or "").strip()}))
         # 이상 행이 하나라도 있으면 전체 거부 — 일부만 조용히 등록되면
         # 협력사는 전부 접수된 줄 알게 된다 (부분 등록 금지)
@@ -89,7 +104,7 @@ class SupplierAsnQrController(http.Controller):
             return request.render(
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         asn = request.env["supplier.asn"].sudo().browse(asn_id).exists()
-        if not asn or asn.partner_id != partner:
+        if not asn or asn.partner_id != partner or asn.company_id != request.env.company:
             return request.render(
                 "supplier_portal_purchase.portal_access_denied",
                 {"error": "해당 납품 예정에 접근할 수 없습니다."})
@@ -104,7 +119,8 @@ class SupplierAsnQrController(http.Controller):
                 type="http", auth="user")
     def asn_scan(self, asn_id, qr_token, **kwargs):
         """사내 스캔 진입(입고 담당자, 로그인 필요) — QR 찍으면 전표까지 자동."""
-        asn = request.env["supplier.asn"].sudo().browse(asn_id).exists()
+        asn = request.env["supplier.asn"].browse(asn_id).exists()
+        asn.check_access("read")
         if not asn or not qr_token or asn.qr_token != qr_token:
             return request.not_found()
         if asn.state == "announced" and not asn.picking_id:

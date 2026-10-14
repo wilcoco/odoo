@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ops_system_check_form" model="ir.ui.view">
+        <field name="name">cams.ops.system.check.form</field>
+        <field name="model">cams.ops.system.check</field>
+        <field name="arch" type="xml">
+            <form string="시스템 점검" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_refresh" type="object" string="다시 점검" class="btn-primary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="ok,warning"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="checked_at"/>
+                            <field name="installed_custom_modules"/>
+                        </group>
+                        <group>
+                            <field name="disabled_crons"/>
+                            <field name="recent_errors"/>
+                        </group>
+                    </group>
+                    <group string="점검 상세">
+                        <field name="details_html" widget="html" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="system_check_main" model="cams.ops.system.check">
+        <field name="name">회사 운영 시스템 점검</field>
+    </record>
+
+    <record id="action_ops_system_check" model="ir.actions.act_window">
+        <field name="name">시스템 점검</field>
+        <field name="res_model">cams.ops.system.check</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_ops_system_check_form"/>
+        <field name="res_id" ref="system_check_main"/>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="menu_ops_system_check" parent="menu_ops_config_system"
+              name="시스템 점검" action="action_ops_system_check" sequence="10"
+              groups="cams_ops_process.group_ops_manager"/>
+    <menuitem id="menu_ops_system_log" parent="menu_ops_config_system"
+              name="시스템 로그" action="base.ir_logging_all_act" sequence="20"
+              groups="base.group_system"/>
+</odoo>

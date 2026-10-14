@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ops_role_user,ops.role user,model_ops_role,group_ops_user,1,0,0,0
+access_ops_role_mgr,ops.role mgr,model_ops_role,group_ops_manager,1,1,1,1
+access_ops_task_def_user,ops.task.def user,model_ops_task_def,group_ops_user,1,0,0,0
+access_ops_task_def_mgr,ops.task.def mgr,model_ops_task_def,group_ops_manager,1,1,1,1
+access_ops_task_user,ops.task user,model_ops_task,group_ops_user,1,1,1,0
+access_ops_task_mgr,ops.task mgr,model_ops_task,group_ops_manager,1,1,1,1
+access_ops_system_check_mgr,cams.ops.system.check mgr,model_cams_ops_system_check,group_ops_manager,1,0,0,0
+access_ops_employee_mgr,cams.ops.employee mgr,hr.model_hr_employee,group_ops_manager,1,1,1,0
+access_ops_department_mgr,cams.ops.department mgr,hr.model_hr_department,group_ops_manager,1,1,1,0
+access_ops_job_mgr,cams.ops.job mgr,hr.model_hr_job,group_ops_manager,1,1,1,0
+access_ops_grade_mgr,cams.ops.grade mgr,escon_hr_common.model_escon_job_grade,group_ops_manager,1,1,1,1
+access_ops_resource_mgr,cams.ops.resource mgr,resource.model_resource_resource,group_ops_manager,1,1,1,0

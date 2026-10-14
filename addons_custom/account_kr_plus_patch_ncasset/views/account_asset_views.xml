@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_asset_form_kr" model="ir.ui.view">
+        <field name="name">account.asset.form.kr</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" type="object" icon="fa-list-ul"
+                        name="action_kr_open_accounts" invisible="kr_account_count == 0">
+                    <field string="자산별 계정" name="kr_account_count" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <xpath expr="//field[@name='salvage_value']" position="before">
+                <field name="kr_non_depreciable" readonly="state not in ('draft', 'model')"/>
+            </xpath>
+
+            <xpath expr="//field[@name='asset_group_id']" position="after">
+                <field name="kr_asset_no"/>
+            </xpath>
+
+            <xpath expr="//page[@name='main_page']" position="after">
+                <page string="자산별 계정과목" name="kr_account_page" invisible="state == 'model'">
+                    <div class="oe_button_box">
+                        <button name="action_kr_create_accounts" type="object"
+                                class="btn btn-primary" string="자산별 계정 만들기"/>
+                        <button name="action_kr_create_asset_account" type="object"
+                                class="btn btn-secondary" string="취득원가 계정만 만들기"/>
+                        <button name="action_kr_open_reclass_wizard" type="object"
+                                class="btn btn-secondary" string="재분류 전표(초안)"
+                                invisible="kr_account_count == 0"/>
+                    </div>
+                    <p class="text-muted">
+                        기준 계정 코드 뒤에 자산 일련번호를 붙여 자산별 계정을 만듭니다
+                        (예: 기준 계정 800003, 일련번호 1 → 8000031). 계정 유형·태그를 기준 계정에서
+                        그대로 물려받으므로 재무제표와 회계 통계에서 같은 성격으로 잡힙니다.
+                        기준 계정은 회사 설정의 ‘자산별 계정 기준’에서 지정합니다.
+                    </p>
+                    <field name="kr_account_ids" readonly="1">
+                        <list>
+                            <field name="kind"/>
+                            <field name="base_account_id"/>
+                            <field name="account_id"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_account_asset_list_kr" model="ir.ui.view">
+        <field name="name">account.asset.list.kr</field>
+        <field name="model">account.asset</field>
+        <field name="inherit_id" ref="account_asset.view_account_asset_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='original_value']" position="after">
+                <field name="kr_non_depreciable" optional="show"/>
+                <field name="asset_group_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -11,3 +11,5 @@ access_mold_check_line_user,iatf.mold.check.line.user,model_iatf_mold_check_line
 access_mold_check_line_manager,iatf.mold.check.line.manager,model_iatf_mold_check_line,group_mold_manager,1,1,1,1
 access_mold_temp_log_user,iatf.mold.temp.log.user,model_iatf_mold_temp_log,group_mold_user,1,1,1,0
 access_mold_temp_log_manager,iatf.mold.temp.log.manager,model_iatf_mold_temp_log,group_mold_manager,1,1,1,1
+access_mold_check_snapshot_user,iatf.mold.check.snapshot.user,model_iatf_mold_check_snapshot,group_mold_user,1,0,0,0
+access_mold_check_snapshot_manager,iatf.mold.check.snapshot.manager,model_iatf_mold_check_snapshot,group_mold_manager,1,0,0,0

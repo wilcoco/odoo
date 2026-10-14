@@ -107,8 +107,8 @@
                     </group>
                     <group>
                         <group string="Approval">
-                            <field name="reviewer_id"/>
-                            <field name="approver_id"/>
+                            <field name="reviewer_id" readonly="state != 'draft'"/>
+                            <field name="approver_id" readonly="state != 'draft'"/>
                             <field name="review_date"/>
                             <field name="approval_date"/>
                         </group>

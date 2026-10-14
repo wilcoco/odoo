@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══ 업무 건 ═══ -->
+    <record id="view_ops_task_search" model="ir.ui.view">
+        <field name="name">ops.task.search</field>
+        <field name="model">ops.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="task_def_id"/>
+                <field name="role_id"/>
+                <field name="period_key"/>
+                <filter name="f_my" string="내 역할 업무" domain="[('role_id.user_ids','in',uid)]"/>
+                <filter name="f_todo" string="해야 함" domain="[('state','=','todo')]"/>
+                <filter name="f_overdue" string="⚠ 지연" domain="[('state','=','todo'),('due_date','&lt;',context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="f_wait_approve" string="승인 대기" domain="[('state','=','done')]"/>
+                <separator/>
+                <filter name="f_due_today" string="오늘까지" domain="[('scheduled_date','&lt;=',context_today().strftime('%Y-%m-%d')),('state','in',('todo','done'))]"/>
+                <group expand="0" string="그룹">
+                    <filter name="g_role" string="역할" context="{'group_by':'role_id'}"/>
+                    <filter name="g_state" string="상태" context="{'group_by':'state'}"/>
+                    <filter name="g_due" string="기한" context="{'group_by':'due_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_ops_task_kanban" model="ir.ui.view">
+        <field name="name">ops.task.kanban</field>
+        <field name="model">ops.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false">
+                <field name="is_overdue"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="p-2">
+                            <strong><field name="task_def_id"/></strong>
+                            <div><field name="role_id"/> · <field name="period_key"/></div>
+                            <div>기한 <field name="due_date"/>
+                                <span t-if="record.is_overdue.raw_value" class="badge text-bg-danger ms-1">지연</span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_ops_task_list" model="ir.ui.view">
+        <field name="name">ops.task.list</field>
+        <field name="model">ops.task</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_overdue" decoration-success="state == 'approved'" decoration-muted="state == 'cancel'">
+                <field name="role_id"/>
+                <field name="task_def_id"/>
+                <field name="period_key"/>
+                <field name="scheduled_date"/>
+                <field name="due_date"/>
+                <field name="is_overdue" string="지연"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'todo'"
+                       decoration-info="state == 'done'"
+                       decoration-success="state == 'approved'"/>
+                <field name="done_uid" optional="show"/>
+                <field name="approve_uid" optional="show"/>
+                <button name="action_mark_done" type="object" string="완료" icon="fa-check" invisible="state != 'todo'"/>
+                <button name="action_approve" type="object" string="승인" icon="fa-thumbs-up" invisible="state != 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ops_task_form" model="ir.ui.view">
+        <field name="name">ops.task.form</field>
+        <field name="model">ops.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_mark_done" type="object" string="완료 보고" class="btn-primary" invisible="state != 'todo'"/>
+                    <button name="action_approve" type="object" string="승인" class="btn-primary" invisible="state != 'done'"/>
+                    <button name="action_open_target" type="object" string="업무 화면 열기" invisible="state in ('approved','cancel')"/>
+                    <button name="action_reset_todo" type="object" string="재작업" invisible="state == 'todo'"/>
+                    <button name="action_skip" type="object" string="건너뜀" invisible="state in ('approved','cancel')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="todo,done,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="display_label" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="task_def_id" readonly="1"/>
+                            <field name="role_id"/>
+                            <field name="menu_path"/>
+                            <field name="scheduled_date"/>
+                            <field name="due_date"/>
+                            <field name="is_overdue"/>
+                        </group>
+                        <group>
+                            <field name="requires_approval"/>
+                            <field name="done_uid"/>
+                            <field name="done_date"/>
+                            <field name="approve_uid"/>
+                            <field name="approve_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="업무 매뉴얼(따라하기)">
+                            <field name="manual_html" readonly="1"/>
+                        </page>
+                        <page string="수행 메모/결과">
+                            <field name="done_note" placeholder="수행 결과·특이사항을 남기세요 (승인자가 봅니다)"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ops_task_today" model="ir.actions.act_window">
+        <field name="name">오늘의 업무</field>
+        <field name="res_model">ops.task</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_f_due_today': 1}</field>
+        <field name="domain">[('state', 'in', ('todo', 'done'))]</field>
+        <field name="help" type="html"><p>역할별로 오늘 해야 할 업무입니다. 완료 보고 → 승인으로 진행하세요.</p></field>
+    </record>
+
+    <record id="action_ops_task_all" model="ir.actions.act_window">
+        <field name="name">업무 현황(전체)</field>
+        <field name="res_model">ops.task</field>
+        <field name="view_mode">list,kanban,form</field>
+    </record>
+
+    <!-- ═══ 업무 정의 ═══ -->
+    <record id="view_ops_task_def_list" model="ir.ui.view">
+        <field name="name">ops.task.def.list</field>
+        <field name="model">ops.task.def</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="role_id"/>
+                <field name="name"/>
+                <field name="periodicity"/>
+                <field name="day_of_month" optional="show"/>
+                <field name="due_days"/>
+                <field name="requires_approval"/>
+                <field name="approver_role_id" optional="show"/>
+                <field name="open_count" string="미결"/>
+                <button name="action_generate_now" type="object" string="지금 생성" icon="fa-plus"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_ops_task_def_form" model="ir.ui.view">
+        <field name="name">ops.task.def.form</field>
+        <field name="model">ops.task.def</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_now" type="object" string="현재 기간 업무 생성" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="업무명"/></h1></div>
+                    <group>
+                        <group string="담당·주기">
+                            <field name="role_id"/>
+                            <field name="periodicity"/>
+                            <field name="weekday" invisible="periodicity != 'weekly'"/>
+                            <field name="day_of_month" invisible="periodicity not in ('monthly','quarterly','yearly')"/>
+                            <field name="due_days"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="승인·연결">
+                            <field name="requires_approval"/>
+                            <field name="approver_role_id" invisible="not requires_approval"/>
+                            <field name="menu_path"/>
+                            <field name="menu_action_id"/>
+                            <field name="doc_ref"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="업무 매뉴얼(초보자용 따라하기)">
+                            <field name="manual_html"/>
+                        </page>
+                        <page string="발생 업무 이력">
+                            <field name="task_ids" readonly="1">
+                                <list>
+                                    <field name="period_key"/>
+                                    <field name="due_date"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="done_uid"/>
+                                    <field name="approve_uid"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ops_task_def" model="ir.actions.act_window">
+        <field name="name">업무 정의(주기·매뉴얼)</field>
+        <field name="res_model">ops.task.def</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 역할별 매뉴얼 열람(읽기용) -->
+    <record id="action_ops_manual" model="ir.actions.act_window">
+        <field name="name">역할별 업무 매뉴얼</field>
+        <field name="res_model">ops.task.def</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_g_role': 1}</field>
+    </record>
+    <record id="view_ops_task_def_search" model="ir.ui.view">
+        <field name="name">ops.task.def.search</field>
+        <field name="model">ops.task.def</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="role_id"/>
+                <group expand="1" string="그룹">
+                    <filter name="g_role" string="역할" context="{'group_by':'role_id'}"/>
+                    <filter name="g_period" string="주기" context="{'group_by':'periodicity'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══ 역할 ═══ -->
+    <record id="view_ops_role_list" model="ir.ui.view">
+        <field name="name">ops.role.list</field>
+        <field name="model">ops.role</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="department_ids" widget="many2many_tags"/>
+                <field name="user_ids" widget="many2many_tags"/>
+                <field name="task_def_count" string="업무 수"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_ops_role_form" model="ir.ui.view">
+        <field name="name">ops.role.form</field>
+        <field name="model">ops.role</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="department_ids" widget="many2many_tags"/>
+                        <field name="user_ids" widget="many2many_tags"/>
+                        <field name="note"/>
+                    </group>
+                    <notebook>
+                        <page string="이 역할의 업무">
+                            <field name="task_def_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="periodicity"/>
+                                    <field name="due_days"/>
+                                    <field name="requires_approval"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_ops_role" model="ir.actions.act_window">
+        <field name="name">역할·담당자</field>
+        <field name="res_model">ops.role</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ═══ 메뉴 ═══ -->
+    <menuitem id="menu_ops_root"
+              name="회사 운영 센터"
+              sequence="5"
+              groups="base.group_user"
+              web_icon="cams_ops_process,static/description/icon.png"/>
+    <record id="menu_ops_root" model="ir.ui.menu">
+        <field name="active" eval="True"/>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user')])]"/>
+    </record>
+
+    <menuitem id="menu_ops_today" parent="menu_ops_root" action="action_ops_task_today" sequence="1"/>
+    <menuitem id="menu_ops_all" parent="menu_ops_root" action="action_ops_task_all" sequence="10"/>
+
+    <!-- 선택 기능 모듈이 같은 업무 허브에 메뉴를 기여한다. 자식이 없으면 자동으로 숨겨진다. -->
+    <menuitem id="menu_ops_settlement" parent="menu_ops_root" name="정산 관리"
+              sequence="30" active="False"/>
+    <menuitem id="menu_ops_facility" parent="menu_ops_root" name="시설 관리" sequence="40"/>
+
+    <menuitem id="menu_ops_config" parent="menu_ops_root" name="운영 설정" sequence="90"
+              groups="cams_ops_process.group_ops_manager"/>
+
+    <menuitem id="menu_ops_config_role" parent="menu_ops_config" name="역할 정의" sequence="10"/>
+    <menuitem id="menu_ops_manual" parent="menu_ops_config_role" action="action_ops_manual" sequence="10"/>
+    <menuitem id="menu_ops_def" parent="menu_ops_config_role" action="action_ops_task_def" sequence="20"/>
+    <menuitem id="menu_ops_role" parent="menu_ops_config_role" action="action_ops_role" sequence="30"/>
+
+    <menuitem id="menu_ops_config_employee" parent="menu_ops_config" name="직원 관리" sequence="20"/>
+
+    <menuitem id="menu_ops_config_reference" parent="menu_ops_config" name="기준정보" sequence="30"/>
+    <menuitem id="menu_ops_reference_code" parent="menu_ops_config_reference"
+              name="기준코드 관리" action="escon_code.action_escon_code" sequence="10"/>
+    <menuitem id="menu_ops_reference_barcode" parent="menu_ops_config_reference"
+              name="바코드 관리" action="escon_code.action_escon_barcode" sequence="20"/>
+    <menuitem id="menu_ops_reference_cams" parent="menu_ops_config_reference"
+              name="캠스코드" action="escon_code.action_cams_code" sequence="30"/>
+
+    <menuitem id="menu_ops_config_system" parent="menu_ops_config" name="시스템 관리" sequence="90"/>
+
+</odoo>

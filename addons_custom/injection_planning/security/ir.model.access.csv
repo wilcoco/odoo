@@ -25,3 +25,7 @@ access_material_req_user,injection.planning.material.requirement.user,model_inje
 access_material_req_manager,injection.planning.material.requirement.manager,model_injection_planning_material_requirement,group_planning_manager,1,1,1,1
 access_material_daily_user,injection.planning.material.daily.user,model_injection_planning_material_daily,group_planning_user,1,0,0,0
 access_material_daily_manager,injection.planning.material.daily.manager,model_injection_planning_material_daily,group_planning_manager,1,1,1,1
+access_unassigned_user,injection.planning.unassigned.user,model_injection_planning_unassigned,group_planning_user,1,0,0,0
+access_unassigned_manager,injection.planning.unassigned.manager,model_injection_planning_unassigned,group_planning_manager,1,1,1,1
+access_violation_user,injection.planning.violation.user,model_injection_planning_violation,group_planning_user,1,0,0,0
+access_violation_manager,injection.planning.violation.manager,model_injection_planning_violation,group_planning_manager,1,1,1,1

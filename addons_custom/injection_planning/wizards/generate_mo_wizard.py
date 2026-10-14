@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class GenerateMOWizard(models.TransientModel):
@@ -18,6 +18,7 @@ class GenerateMOWizard(models.TransientModel):
         string="금형 교체 횟수", compute="_compute_summary",
     )
 
+    @api.depends("planning_run_id", "planning_run_id.line_ids.state", "planning_run_id.line_ids.mo_id")
     def _compute_summary(self):
         for rec in self:
             lines = rec.planning_run_id.line_ids.filtered(

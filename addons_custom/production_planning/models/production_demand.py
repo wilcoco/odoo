@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class ProductionDemand(models.Model):
@@ -76,8 +77,21 @@ class ProductionDemand(models.Model):
             rec.name = f"{product} / {date_str}"
 
     def action_confirm(self):
-        """수요 확정"""
+        """수요 확정 — 수량이 0 이하인 수요는 확정하지 않는다(R144 정책 ①, 2026-09-15)."""
+        bad = self.filtered(lambda r: r.state == "draft" and r.quantity <= 0)
+        if bad:
+            raise UserError(_("수량이 0 이하인 수요는 확정할 수 없습니다: %s") % ", ".join(bad.mapped("display_name")))
         self.filtered(lambda r: r.state == "draft").write({"state": "confirmed"})
+
+    def write(self, vals):
+        """확정·완료된 수요의 수량·일자·제품은 잠근다 — 바꾸려면 '초안으로' 되돌린 뒤 수정(R144 정책 ①)."""
+        locked = {"quantity", "demand_date", "product_id"} & set(vals)
+        if locked and not self.env.context.get("demand_unlock"):
+            frozen = self.filtered(lambda r: r.state in ("confirmed", "done"))
+            if frozen:
+                raise UserError(_("확정/완료된 수요는 수량·일자·제품을 바꿀 수 없습니다. '초안으로' 되돌린 뒤 수정하십시오: %s")
+                                % ", ".join(frozen.mapped("display_name")))
+        return super().write(vals)
 
     def action_done(self):
         """완료 처리"""
@@ -88,5 +102,5 @@ class ProductionDemand(models.Model):
         self.filtered(lambda r: r.state != "done").write({"state": "cancelled"})
 
     def action_reset_draft(self):
-        """초안으로 되돌리기"""
-        self.filtered(lambda r: r.state == "cancelled").write({"state": "draft"})
+        """초안으로 — 취소·확정 수요를 되돌린다(확정 수요의 수정 경로, R144 정책 ①). 완료는 되돌리지 않는다."""
+        self.filtered(lambda r: r.state in ("cancelled", "confirmed")).write({"state": "draft"})

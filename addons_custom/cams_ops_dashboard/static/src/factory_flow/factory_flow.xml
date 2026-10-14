@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- 루트: 한 화면 · 한 breadcrumb · 4단 캐스케이드 -->
+    <t t-name="cams_ops_dashboard.FactoryFlow" owl="1">
+        <div class="o_action ff">
+            <div class="ff__shell">
+                <header class="ff-header">
+                    <div>
+                        <div class="ops-eyebrow">FACTORY FLOW</div>
+                        <h1>회사 운영 흐름</h1>
+                        <nav class="ff-crumbs" aria-label="경로">
+                            <t t-foreach="crumbs" t-as="c" t-key="c.level">
+                                <span t-if="c_index" class="ff-crumbs__sep">›</span>
+                                <button type="button" class="ff-crumb" t-att-class="{'ff-crumb--current': c.level === state.level}"
+                                        t-att-data-level="c.level" t-on-click="() => this.goCrumb(c.level)" t-esc="c.name"/>
+                            </t>
+                        </nav>
+                    </div>
+                    <div class="ff-header__actions">
+                        <label class="ff-filter">기간
+                            <input type="date" class="ops-select ff-date" t-att-value="state.filters.date_from" t-on-change="(ev) => this.onFilterChange('date_from', ev)"/>
+                            ~
+                            <input type="date" class="ops-select ff-date" t-att-value="state.filters.date_to" t-on-change="(ev) => this.onFilterChange('date_to', ev)"/>
+                        </label>
+                        <span class="ops-updated" t-if="companyLabel" t-esc="companyLabel"/>
+                        <span class="ops-updated" t-if="asOfLabel" t-esc="asOfLabel"/>
+                        <span class="ops-updated" t-if="lastUpdatedLabel">최근 갱신 <t t-esc="lastUpdatedLabel"/></span>
+                        <button t-if="state.level" type="button" class="ops-btn ff-up" t-on-click="up">↑ 한 단 위</button>
+                        <button type="button" class="ops-iconbtn" t-on-click="refresh" title="새로고침">
+                            <i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}"/>
+                        </button>
+                    </div>
+                </header>
+
+                <div t-if="state.error" class="ops-empty ops-empty--error ff-banner">
+                    <i class="fa fa-exclamation-triangle"/><span t-esc="state.error"/>
+                </div>
+                <div t-if="state.initialLoading" class="ops-empty ops-empty--page">회사 운영 흐름을 불러오는 중입니다.</div>
+
+                <t t-elif="map">
+                    <p class="ff-note">
+                        건수는 현재 필터·회사 범위의 문서 수이며 단위가 다른 수량을 합치지 않습니다. 상위 합계는 <em>단계별 건수 합(고유 사건 중복 제거 안 함)</em>입니다. 완료율은 만들지 않습니다.
+                    </p>
+                    <AreaRibbon areas="areas" selected="state.path[0]" onSelect.bind="selectArea"/>
+
+                    <section t-if="state.level >= 1" class="ff-stage">
+                        <h2 class="ff-stage__title"><t t-esc="crumbs[1].name"/> — 세부 프로세스</h2>
+                        <ProcessCards processes="processes" edges="map.edges" selected="state.path[1]" onSelect.bind="selectProcess"/>
+                    </section>
+
+                    <section t-if="state.level >= 2" class="ff-stage">
+                        <h2 class="ff-stage__title"><t t-esc="crumbs[2].name"/> — 세부 내역</h2>
+                        <NodeDetail detail="state.node || undefined" subtree="subtree" page="state.page"
+                                    onPage.bind="setPage" onOpen.bind="openDoc" onOpenList.bind="openList" onSelectChild.bind="selectChild"/>
+                    </section>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- L0: 8 영역 타일 리본(흐름 순서 = layout_order) -->
+    <t t-name="cams_ops_dashboard.FactoryFlow.AreaRibbon" owl="1">
+        <section class="ff-ribbon" aria-label="영역">
+            <t t-foreach="props.areas" t-as="area" t-key="area.process_id">
+                <button type="button" class="ff-area" t-att-class="{'ff-area--selected': area.process_id === props.selected}"
+                        t-att-data-pid="area.process_id" t-on-click="() => props.onSelect(area.process_id)">
+                    <div class="ff-area__name" t-esc="area.name"/>
+                    <div class="ff-counts">
+                        <span t-foreach="pairs(area)" t-as="c" t-key="c.key" class="ff-count" t-att-class="'ff-count--' + c.key">
+                            <small t-esc="c.label"/><strong t-esc="c.value"/>
+                        </span>
+                        <span t-if="area.status?.counts?.late" class="ops-badge ops-badge--danger ff-late">기한경과 <t t-esc="area.status.counts.late"/></span>
+                    </div>
+                    <div class="ff-links">
+                        <span t-foreach="badges(area)" t-as="b" t-key="b.key" class="ff-link" t-att-class="'ff-link--' + b.key">
+                            <t t-esc="b.label"/> <t t-esc="b.value"/>
+                        </span>
+                    </div>
+                    <div t-if="restrictedNote(area)" class="ff-restricted-note"><i class="fa fa-lock"/> <t t-esc="restrictedNote(area)"/></div>
+                </button>
+                <span t-if="!area_last" class="ff-ribbon__arrow" aria-hidden="true">→</span>
+            </t>
+        </section>
+    </t>
+
+    <!-- L1: 영역 안 프로세스 카드 + 맵 edge 만의 관계선 -->
+    <t t-name="cams_ops_dashboard.FactoryFlow.ProcessCards" owl="1">
+        <div class="ff-cards">
+            <t t-foreach="props.processes" t-as="p" t-key="p.process_id">
+                <button type="button" class="ff-process" t-att-class="{'ff-process--selected': p.process_id === props.selected, ['ff-process--' + link(p)]: true}"
+                        t-att-data-pid="p.process_id" t-on-click="() => props.onSelect(p.process_id)">
+                    <div class="ff-process__head">
+                        <strong t-esc="p.name"/>
+                        <span class="ff-link" t-att-class="'ff-link--' + link(p)">
+                            <i t-if="link(p) === 'restricted'" class="fa fa-lock"/>
+                            <t t-esc="linkLabel(p)"/>
+                        </span>
+                    </div>
+                    <!-- restricted: 숫자·제목 없음 / not_installed·not_wired: 건수 없음(0 으로 위장 금지) / linked: 서버 건수 -->
+                    <div t-if="link(p) === 'linked'" class="ff-counts">
+                        <span t-foreach="pairs(p)" t-as="c" t-key="c.key" class="ff-count" t-att-class="'ff-count--' + c.key">
+                            <small t-esc="c.label"/><strong t-esc="c.value"/>
+                        </span>
+                        <span t-if="p.status.counts?.late" class="ops-badge ops-badge--danger ff-late">기한경과 <t t-esc="p.status.counts.late"/></span>
+                        <small class="ff-total">총 <t t-esc="p.status.total"/><t t-if="p.status.truncated"> (상태 분류는 <t t-esc="p.status.scanned"/>건까지)</t></small>
+                    </div>
+                    <div t-elif="link(p) === 'not_installed'" class="ff-muted">모듈 없음 — <code t-esc="p.status.model"/> 미설치</div>
+                    <div t-elif="link(p) === 'restricted'" class="ff-muted"><i class="fa fa-lock"/> 권한 없음 — 건수·내용 비표시</div>
+                    <div t-else="" class="ff-muted">어댑터 없음 — 원본 연결 전(카탈로그 근거: <span t-esc="p.status?.note || p.evidence || '—'"/>)</div>
+                    <small t-if="p.status?.updated_at" class="ff-updated">원본 수정 <t t-esc="p.status.updated_at"/></small>
+                </button>
+            </t>
+        </div>
+        <div t-if="relations.length" class="ff-relations">
+            <div class="ff-relations__title">관계선(카탈로그 edge 만 — 실제 FK 없는 선은 그리지 않음)</div>
+            <span t-foreach="relations" t-as="r" t-key="r.from + '>' + r.to" class="ff-relation" t-att-title="r.kinds">
+                <t t-esc="nameOf(r.from)"/> → <t t-esc="nameOf(r.to)"/> <small>×<t t-esc="r.count"/></small>
+            </span>
+        </div>
+    </t>
+
+    <!-- L2: 왼쪽 하위 트리(L3/L4) · 오른쪽 세부 내역 표(서버 total, 페이지네이션) -->
+    <t t-name="cams_ops_dashboard.FactoryFlow.NodeDetail" owl="1">
+        <div class="ff-detail">
+            <aside class="ff-subtree">
+                <div class="ff-subtree__title">하위 업무 (카탈로그)</div>
+                <div t-if="!props.subtree.length" class="ff-muted">하위 업무 없음</div>
+                <button t-foreach="props.subtree" t-as="n" t-key="n.process_id" type="button" class="ff-subnode"
+                        t-att-class="'ff-subnode--l' + n.level + ' ff-subnode--' + childLink(n)" t-att-data-pid="n.process_id"
+                        t-on-click="() => props.onSelectChild(n)">
+                    <span class="ff-subnode__name" t-esc="n.name"/>
+                    <span class="ff-link" t-att-class="'ff-link--' + childLink(n)"><i t-if="childLink(n) === 'restricted'" class="fa fa-lock"/> <t t-esc="childLinkLabel(n)"/></span>
+                </button>
+            </aside>
+            <div class="ff-rows">
+                <div t-if="!props.detail" class="ops-empty">세부 내역을 불러오는 중입니다.</div>
+                <t t-else="">
+                    <div class="ff-rows__head">
+                        <span class="ff-link" t-att-class="'ff-link--' + link"><i t-if="link === 'restricted'" class="fa fa-lock"/> <t t-esc="linkLabel"/></span>
+                        <t t-if="link === 'linked'">
+                            <span class="ff-counts ff-counts--inline">
+                                <span t-foreach="pairs" t-as="c" t-key="c.key" class="ff-count" t-att-class="'ff-count--' + c.key"><small t-esc="c.label"/><strong t-esc="c.value"/></span>
+                                <span t-if="status.counts?.late" class="ops-badge ops-badge--danger ff-late">기한경과 <t t-esc="status.counts.late"/></span>
+                            </span>
+                            <span class="ff-total">총 <strong t-esc="total"/>건 <small t-esc="status.denominator"/></span>
+                            <button type="button" class="ops-link ff-open-list" t-on-click="props.onOpenList">목록 원본 열기</button>
+                        </t>
+                        <small t-if="status.updated_at" class="ff-updated">원본 수정 <t t-esc="status.updated_at"/></small>
+                    </div>
+                    <div t-if="link === 'restricted'" class="ops-empty"><i class="fa fa-lock"/> 권한 없음 — 이 업무의 문서·건수는 표시하지 않습니다.</div>
+                    <div t-elif="link === 'not_installed'" class="ops-empty">모듈 없음 — <code t-esc="status.model"/> 이(가) 설치되어 있지 않습니다.</div>
+                    <div t-elif="link !== 'linked'" class="ops-empty">어댑터 없음 — 이 업무는 아직 원본 원장에 연결되지 않았습니다.</div>
+                    <t t-else="">
+                        <div t-if="!props.detail.rows.length" class="ops-empty">현재 필터·회사 범위에 문서가 없습니다.</div>
+                        <table t-else="" class="ff-table">
+                            <thead><tr><th>표시명</th><th>상태</th><th>기한</th><th>수정일</th><th></th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="props.detail.rows" t-as="row" t-key="row.id" class="ff-row" t-att-data-res-id="row.id">
+                                    <td><button type="button" class="ops-link ff-row__name" t-on-click="() => props.onOpen(row)" t-esc="row.display_name"/></td>
+                                    <td><span class="ff-state" t-att-class="'ff-state--' + row.state" t-esc="stateLabel(row)"/></td>
+                                    <td><span t-if="row.late" class="ops-badge ops-badge--danger">기한경과</span></td>
+                                    <td class="ff-muted" t-esc="row.write_date || ''"/>
+                                    <td><button type="button" class="ops-btn ff-row__open" t-on-click="() => props.onOpen(row)">원본 열기</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="ff-pager">
+                            <button type="button" class="ops-btn" t-att-disabled="props.page &lt;= 0" t-on-click="() => props.onPage(props.page - 1)">이전</button>
+                            <span class="ff-muted"><t t-esc="props.page + 1"/> / <t t-esc="pageCount"/></span>
+                            <button type="button" class="ops-btn" t-att-disabled="props.page + 1 >= pageCount" t-on-click="() => props.onPage(props.page + 1)">다음</button>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

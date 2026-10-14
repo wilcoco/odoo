@@ -9,15 +9,39 @@ class TestPlanningAudit(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # [R135] 이 시험은 기존 풀 캐퍼 정책(14h×100=1400, 200 미배정)을 검증한다. 새 설치는
+        # post_init_hook 이 교체 인식 방식을 기본으로 두므로 여기서 명시적으로 기존 방식을 고정한다.
+        cls.env["injection.planning.run"]._get_config().write({"sequencing_mode": "legacy"})
         cls.kg = cls.env.ref("uom.product_uom_kgm")
         cls.g = cls.env.ref("uom.product_uom_gram")
         cls.unit = cls.env.ref("uom.product_uom_unit")
-        cls.wc = cls.env["mrp.workcenter"].create({"name": "T-사출기"})
+        # The 1400-piece assertion below requires two explicit 8-hour shifts.
+        # Creating another config does not replace an existing active company
+        # config, especially when this suite is run on a reused synthetic DB.
+        config = cls.env["injection.planning.run"]._get_config()
+        config.write({"day_shift_hours": 8.0, "night_shift_hours": 8.0,
+                      "day_shift_start": 8.0, "night_shift_start": 20.0})
+        # 설비 달력의 휴게·휴무를 섞지 않는다 — 이 시험은 UoM·중복 계획을 본다.
+        cal = cls.env["resource.calendar"].create({
+            "name": "T-연속가동", "tz": config.get_shift_timezone(),
+            "attendance_ids": [(5, 0, 0)] + [
+                (0, 0, {"name": "연속-%s" % day, "dayofweek": str(day),
+                        "hour_from": 0.0, "hour_to": 24.0}) for day in range(7)]})
+        cls.wc = cls.env["mrp.workcenter"].create({
+            "name": "T-사출기", "resource_calendar_id": cal.id})
         cls.resin = cls.env["product.product"].create({
             "name": "T-수지", "uom_id": cls.kg.id, "uom_po_id": cls.kg.id, "is_storable": True})
         cls.mb = cls.env["product.product"].create({
             "name": "T-마스터배치", "uom_id": cls.kg.id, "uom_po_id": cls.kg.id, "is_storable": True})
-        cls.env["injection.planning.config"].create({})
+        cls.injection_department = cls.env["hr.department"].create({
+            "name": "T-사출팀",
+        })
+        cls.injection_management_number = cls.env[
+            "escon.bom.management.number"
+        ].create({
+            "name": "TEST-INJECTION",
+            "department_id": cls.injection_department.id,
+        })
 
     def _make_inj(self, name, code):
         inj = self.env["product.product"].create({"name": name, "is_storable": True})
@@ -25,8 +49,14 @@ class TestPlanningAudit(TransactionCase):
         if "is_injection_part" in inj.product_tmpl_id._fields:
             inj.product_tmpl_id.is_injection_part = True
         # 원단위는 g 등록 관례 — kg(정밀도 2자리) 등록 시 0.784→0.78 로 저장되는 함정
-        self.env["mrp.bom"].create({
-            "product_tmpl_id": inj.product_tmpl_id.id, "product_qty": 1,
+        self.env["mrp.bom"].with_context(allow_managed_bom_create=True).create({
+            "product_tmpl_id": inj.product_tmpl_id.id,
+            "product_qty": 1,
+            "bom_purpose": "injection",
+            "source_type": "injection_process",
+            "management_number_id": self.injection_management_number.id,
+            "bom_state": "active",
+            "active": True,
             "bom_line_ids": [
                 (0, 0, {"product_id": self.resin.id, "product_qty": 784, "product_uom_id": self.g.id}),
                 (0, 0, {"product_id": self.mb.id, "product_qty": 8, "product_uom_id": self.g.id}),
@@ -56,14 +86,39 @@ class TestPlanningAudit(TransactionCase):
                                      "product_uom_id": self.unit.id})]})
         run = self._run(fin, 250)
         planned = sum(run.line_ids.mapped("planned_qty"))
-        self.assertEqual(planned, 1600, "풀캐퍼 정책: 100/h×16h")
+        # 풀캐퍼 정책은 100/h×16h=1600 을 요구하지만, 빈 호기에 금형을 **설치**하는
+        # 2시간(금형 기본값)이 가동시간에서 먼저 빠진다. 실제로 넣을 수 있는 것은
+        # 14h×100 = 1400 이고 나머지 200 은 미배정으로 드러난다. (독립검토 PR06)
+        # 예전에는 설치 시간을 0 으로 세어 1600 을 전량 배정한 것으로 계산했다.
+        self.assertEqual(planned, 1400, "설치 2h 제외 14h×100/h")
+        self.assertAlmostEqual(sum(run.unassigned_ids.mapped("qty")), 200.0, places=0,
+                               msg="조합에 적힌 초기불량 0 이 설정 기본값 20 으로 되살아났다")
         reqs = {r.material_id.id: r.required_qty for r in run.material_requirement_ids}
         self.assertAlmostEqual(reqs[self.resin.id], planned * 0.784, places=2,
                                msg="g→kg 원단위 정밀 (반올림 왜곡 금지)")
         self.assertAlmostEqual(reqs[self.mb.id], planned * 0.008, places=3,
                                msg="마스터배치 0.00 결함 회귀 방지")
+        details = []
+        for line in run.line_ids:
+            vals = run._get_mo_vals(line, self.env['mrp.bom']._bom_find(inj)[inj])
+            details.append({'line': line.read(['planned_qty', 'start_time', 'end_time',
+                'changeover_hours', 'changeover_in_span_hours']), 'mo_vals': vals})
+        class ProbeRollback(Exception):
+            pass
+        try:
+            with self.env.cr.savepoint():
+                line = run.line_ids[0]
+                vals = run._get_mo_vals(line, self.env['mrp.bom']._bom_find(inj)[inj])
+                probe = self.env['mrp.production'].create(vals)
+                probe.action_confirm()
+                details.append({'probe': probe.read(['product_qty', 'date_start', 'date_finished',
+                    'planning_hourly_capacity', 'planning_changeover_hours', 'workorder_ids']),
+                    'hook': probe._injection_plan_expected_finish(probe.date_start)})
+                raise ProbeRollback()
+        except ProbeRollback:
+            pass
         run.generate_manufacturing_orders()
-        self.assertEqual(len(run.mo_ids), len(run.line_ids))
+        self.assertEqual(len(run.mo_ids), len(run.line_ids), str(details))
         # 진행 MO 차감 — 같은 수요 재계획 시 이중 계획 0
         run2 = self._run(fin, 250)
         self.assertEqual(sum(run2.line_ids.mapped("planned_qty")), 0,

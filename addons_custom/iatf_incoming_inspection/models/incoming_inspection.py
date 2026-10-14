@@ -23,7 +23,7 @@ class IatfIncomingInspection(models.Model):
     part_number = fields.Char(string="부품 번호")
     lot_id = fields.Many2one("stock.lot", string="로트/시리얼")
     quantity_received = fields.Float(string="입고 수량", required=True)
-    quantity_inspected = fields.Float(string="검사 수량", required=True)
+    quantity_inspected = fields.Float(string="실제 검사(샘플) 수량", required=True)
     quantity_accepted = fields.Float(string="합격 수량")
     quantity_rejected = fields.Float(string="불합격 수량")
 
@@ -60,8 +60,8 @@ class IatfIncomingInspection(models.Model):
         help="자재 성적서(Mill Sheet) 확인 결과",
     )
     defect_rate = fields.Float(
-        string="불량률 (%)", compute="_compute_defect_rate", store=True,
-        digits=(5, 2), help="불합격 수량 / 검사 수량 × 100",
+        string="입고 불합격 비율 (%)", compute="_compute_defect_rate", store=True,
+        digits=(5, 2), help="불합격 처분 수량 / 실제 입고 수량 × 100 (샘플 불량률과 구별)",
     )
     supplier_cert_no = fields.Char(string="성적서 번호", help="협력사 시험성적서 번호")
 
@@ -70,6 +70,7 @@ class IatfIncomingInspection(models.Model):
         [
             ("pass", "합격"),
             ("conditional", "조건부 합격"),
+            ("partial", "부분 합격 (잔량 검사대기)"),
             ("fail", "불합격"),
         ],
         string="판정 결과", tracking=True,
@@ -87,7 +88,7 @@ class IatfIncomingInspection(models.Model):
 
     # ── 담당자 ──
     inspector_id = fields.Many2one("res.users", string="검사원",
-                                    default=lambda self: self.env.user, tracking=True)
+                                    tracking=True)
     approved_by = fields.Many2one("res.users", string="승인자")
 
     # ── 연결 ──
@@ -113,104 +114,49 @@ class IatfIncomingInspection(models.Model):
         for vals in vals_list:
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.incoming.inspection") or _("New")
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records._load_inspection_criteria()
+        return records
 
-    @api.depends("quantity_rejected", "quantity_inspected")
+    def _load_inspection_criteria(self):
+        """[R144 정책 #9/#12] 제품(·협력업체) 검사 기준 마스터를 **한 번 넣어 두면** 수입검사가
+        생성될 때 검사 항목·샘플링 기준·샘플 수량·Ac/Re 를 물려받는다. 이미 항목이 있으면 건드리지 않는다.
+        협력업체 전용 기준이 있으면 그것을, 없으면 공통(협력업체 미지정) 기준을 쓴다."""
+        Criteria = self.env["iatf.inspection.criteria"].sudo()
+        for rec in self:
+            if rec.line_ids or not rec.product_id:
+                continue
+            crit = Criteria.search([("product_id", "=", rec.product_id.id), ("active", "=", True),
+                                    ("supplier_id", "=", rec.supplier_id.id)], order="sequence, id")
+            if not crit:
+                crit = Criteria.search([("product_id", "=", rec.product_id.id), ("active", "=", True),
+                                        ("supplier_id", "=", False)], order="sequence, id")
+            if not crit:
+                continue
+            rec.line_ids = [(0, 0, {
+                "sequence": c.sequence, "characteristic_name": c.characteristic_name,
+                "characteristic_type": c.characteristic_type or "other",
+                "specification": c.specification, "measurement_method": c.measurement_method,
+            }) for c in crit]
+            head = crit.filtered("sampling_plan")[:1] or crit[:1]
+            vals = {}
+            if not rec.sampling_plan and head.sampling_plan:
+                vals["sampling_plan"] = head.sampling_plan
+            if not rec.sample_size and head.sample_size:
+                vals.update({"sample_size": head.sample_size, "accept_number": head.accept_number,
+                             "reject_number": head.reject_number})
+            if vals:
+                rec.write(vals)
+            rec.message_post(body=_("검사 기준 마스터에서 검사 항목 %d개를 적재했습니다.", len(crit)))
+
+    @api.depends("quantity_rejected", "quantity_received")
     def _compute_defect_rate(self):
         for rec in self:
             rec.defect_rate = (
-                rec.quantity_rejected / rec.quantity_inspected * 100.0
-                if rec.quantity_inspected else 0.0
+                rec.quantity_rejected / rec.quantity_received * 100.0
+                if rec.quantity_received else 0.0
             )
 
-    def action_start_inspection(self):
-        self.write({"state": "inspecting"})
-
-    def action_decide(self):
-        for rec in self:
-            if not rec.result:
-                raise UserError(_("판정 결과를 입력해 주세요."))
-            rec.write({"state": "decided"})
-            if rec.result in ("pass", "conditional"):
-                rec._release_quality_hold()
-            elif rec.result == "fail":
-                rec._auto_create_nc()
-                rec._auto_quarantine_lot()
-
-    def _release_quality_hold(self):
-        """IQC 합격 시 로트 품질 보류 해제 (L3-1)"""
-        if self.lot_id and self.lot_id.quality_hold:
-            self.lot_id.write({"quality_hold": False, "hold_reason": False})
-            self.message_post(body=_("로트 %s 품질 보류 해제됨 (IQC 합격)") % self.lot_id.name)
-
-    def _auto_create_nc(self):
-        """불합격 시 부적합 자동 생성"""
-        if self.nonconformity_id:
-            return
-        nc = self.env["iatf.nonconformity"].create({
-            "title": _("수입검사 불합격: %s - %s") % (self.name, self.product_id.name),
-            "nc_type": "supplier",
-            "severity": "major",
-            "problem_description": "<p>수입검사 %s 불합격 자동 생성<br/>제품: %s<br/>업체: %s<br/>수량: %s</p>" % (
-                self.name, self.product_id.name, self.supplier_id.name, self.quantity_rejected or self.quantity_received),
-            "product_id": self.product_id.id,
-            "lot_id": self.lot_id.id if self.lot_id else False,
-            "partner_id": self.supplier_id.id,
-            "quantity_affected": self.quantity_received,
-            "quantity_rejected": self.quantity_rejected or 0,
-        })
-        self.nonconformity_id = nc.id
-        self.message_post(body=_("부적합 %s 자동 생성됨") % nc.name)
-
-    def _auto_quarantine_lot(self):
-        """불합격 로트를 격리 위치로 이동"""
-        if not self.lot_id:
-            return
-        quarantine_loc = self.env.ref("stock.stock_location_scrapped", raise_if_not_found=False)
-        if not quarantine_loc:
-            return
-        quants = self.env["stock.quant"].search([
-            ("lot_id", "=", self.lot_id.id),
-            ("location_id.usage", "=", "internal"),
-            ("quantity", ">", 0),
-        ])
-        for quant in quants:
-            self.env["stock.move"].create({
-                "name": _("IQC 불합격 격리: %s") % self.name,
-                "product_id": quant.product_id.id,
-                "product_uom_qty": quant.quantity,
-                "product_uom": quant.product_id.uom_id.id,
-                "location_id": quant.location_id.id,
-                "location_dest_id": quarantine_loc.id,
-                "origin": self.name,
-            })._action_confirm()._action_done()
-        if quants:
-            self.message_post(body=_("로트 %s 격리 위치로 자동 이동됨") % self.lot_id.name)
-
-    def action_close(self):
-        self.write({"state": "closed"})
-
-    def action_cancel(self):
-        self.write({"state": "cancelled"})
-
-    def action_create_nc(self):
-        self.ensure_one()
-        nc = self.env["iatf.nonconformity"].create({
-            "title": _("수입검사 불합격: %s") % self.product_id.name,
-            "nc_type": "supplier",
-            "severity": "major",
-            "problem_description": "<p>%s</p>" % (self.notes or ""),
-            "product_id": self.product_id.id,
-            "partner_id": self.supplier_id.id,
-        })
-        self.nonconformity_id = nc.id
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "iatf.nonconformity",
-            "res_id": nc.id,
-            "view_mode": "form",
-            "target": "current",
-        }
 
 
 class IatfIncomingInspectionLine(models.Model):
@@ -233,6 +179,6 @@ class IatfIncomingInspectionLine(models.Model):
     measured_value = fields.Char(string="측정값")
     result = fields.Selection(
         [("pass", "합격"), ("fail", "불합격"), ("na", "해당없음")],
-        string="판정", default="pass",
+        string="판정",
     )
     notes = fields.Char(string="비고")

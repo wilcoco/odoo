@@ -15,6 +15,7 @@ class SupplierPortalReceiptController(http.Controller):
     def _partner_receipts(self, partner):
         return request.env["stock.picking"].sudo().search([
             ("partner_id", "=", partner.id),
+            ("company_id", "=", request.env.company.id),
             ("picking_type_code", "=", "incoming"),
             ("state", "=", "done"),
         ], order="date_done desc", limit=100)
@@ -43,7 +44,7 @@ class SupplierPortalReceiptController(http.Controller):
                 "supplier_portal_purchase.portal_access_denied", {"error": str(e)})
         picking = request.env["stock.picking"].sudo().browse(picking_id).exists()
         # 소유 검증: 본인(협력사) 납품의 완료된 입고 전표만
-        if (not picking or picking.partner_id != partner
+        if (not picking or picking.partner_id != partner or picking.company_id != request.env.company
                 or picking.picking_type_code != "incoming"
                 or picking.state != "done"):
             return request.render(

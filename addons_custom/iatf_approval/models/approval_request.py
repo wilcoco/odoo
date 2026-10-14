@@ -243,6 +243,7 @@ class IatfApprovalMixin(models.AbstractModel):
     approval_is_current_user = fields.Boolean(compute="_compute_approval_is_current_user")
 
     @api.depends("approval_current_approver_id")
+    @api.depends_context("uid")
     def _compute_approval_is_current_user(self):
         for record in self:
             record.approval_is_current_user = record.approval_current_approver_id == self.env.user
@@ -317,10 +318,8 @@ class IatfApprovalMixin(models.AbstractModel):
         return res
 
     def unlink(self):
-        requests = self.mapped("approval_request_id")
-        res = super().unlink()
-        requests.sudo().unlink()
-        return res
+        # Keep request history; the guard rejects deleting submitted documents.
+        return super().unlink()
 
     def _approval_amount(self):
         """템플릿 금액 조건용 문서 금액 — 필요한 모델은 오버라이드."""
@@ -383,7 +382,7 @@ class IatfApprovalMixin(models.AbstractModel):
         for record in self:
             if record.approval_state != "approved":
                 state_label = dict(
-                    record._fields["approval_state"].related_field.selection
+                    record._fields["approval_state"].selection
                 ).get(record.approval_state, record.approval_state or _("미상신"))
                 raise UserError(_(
                     "%(doc)s: 결재 승인 후에만 %(act)s 할 수 있습니다. (현재 상태: %(st)s)"

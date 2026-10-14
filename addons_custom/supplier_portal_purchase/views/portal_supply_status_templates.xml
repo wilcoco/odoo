@@ -51,6 +51,9 @@
                                     <div t-if="b['silo']" class="text-muted small mt-1">
                                         사일로 <t t-esc="b['silo'].name"/>
                                     </div>
+                                    <div t-if="b.get('snapshot_at')" class="text-muted small mt-1">전망 기준 시각: <t t-esc="b['snapshot_at']" t-options="{'widget': 'datetime'}"/></div>
+                                    <div t-if="b.get('refresh_required')" class="text-warning small">원천 변경 후 전망 갱신 확인이 필요합니다.</div>
+                                    <div t-if="b.get('iqc_pending_qty')" class="text-warning small">검사 대기 재고: <t t-esc="b['iqc_pending_qty']"/> <t t-esc="b['uom']"/> (사용 가능 재고에서 제외)</div>
                                 </div>
                                 <div class="text-end">
                                     <t t-if="alert['level'] == 'danger'">

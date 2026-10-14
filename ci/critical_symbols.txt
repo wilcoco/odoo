@@ -4,6 +4,10 @@ _approval_apply_default_template
 action_create_invoice
 pumui_approval_state
 kr_approval_number_uniq
+kr_approval_number_key
+_kr_find_by_approval_number
+kr_origin_number
+x_escon_tax_approval_no
 residual_mismatch
 _kr_residual_mismatch_partner_ids
 kr.lock.log

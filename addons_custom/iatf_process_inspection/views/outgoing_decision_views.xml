@@ -1,0 +1,46 @@
+<odoo>
+    <record id="process_outgoing_decision_form" model="ir.ui.view">
+        <field name="name">process.outgoing.decision.form</field>
+        <field name="model">iatf.process.inspection</field>
+        <field name="inherit_id" ref="iatf_process_inspection.view_process_inspection_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">state == 'cancelled' or (inspection_stage == 'oqc' and not outgoing_can_cancel) or (inspection_stage != 'oqc' and state == 'closed')</attribute>
+            </xpath>
+            <xpath expr="//field[@name='quantity_produced']" position="attributes">
+                <attribute name="invisible">inspection_stage == 'oqc'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='quantity_produced']" position="after">
+                <field name="quantity_produced" string="출고 대상 수량" invisible="inspection_stage != 'oqc'" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='quantity_inspected']" position="attributes">
+                <attribute name="string">실제 검사 수량</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+            <field name="outgoing_can_cancel" invisible="1"/>
+            <group string="출하 판정 기록" invisible="inspection_stage != 'oqc'">
+                <field name="outgoing_decided_by_id"/><field name="outgoing_decided_at"/>
+                <div class="text-muted">검사자가 판정 절차를 수행한 사용자와 시각입니다. 미기록 상태는 실제 판정이 확인되지 않은 것입니다. 수정할 측정 결과는 기존 검사를 취소하고 새 검사로 남기십시오.</div>
+                <field name="outgoing_decision_snapshot" readonly="1"/>
+                <div class="text-muted">출고 대상 수량은 검사 예정 범위입니다. 실제 검사 수량은 0에서 시작하며 검사자가 직접 보고합니다. 미출고 상태라면 종료한 검사도 취소 후 새 검사로 정정할 수 있습니다.</div>
+            </group>
+        </xpath></field>
+    </record>
+    <record id="shipping_outgoing_decision_form" model="ir.ui.view">
+        <field name="name">shipping.outgoing.decision.form</field>
+        <field name="model">iatf.shipping.inspection</field>
+        <field name="inherit_id" ref="iatf_shipping_inspection.view_shipping_inspection_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">state == 'cancelled' or (picking_id and not outgoing_can_cancel) or (not picking_id and state == 'closed')</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+            <field name="outgoing_can_cancel" invisible="1"/>
+            <group string="출하 판정 기록">
+                <field name="outgoing_decided_by_id"/><field name="outgoing_decided_at"/>
+                <div class="text-muted">실제 검사자의 판정 후 다른 결재자가 승인합니다. 자료 첨부는 결재 전에 보완할 수 있지만 판정한 제품·LOT·수량·결과는 새 검사로 정정합니다.</div>
+                <field name="outgoing_decision_snapshot" readonly="1"/>
+            </group>
+        </xpath></field>
+    </record>
+</odoo>
