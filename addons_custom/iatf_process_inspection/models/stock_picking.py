@@ -87,6 +87,8 @@ class StockPicking(models.Model):
                 raise UserError(_('미완료 고객 출고에서만 검사를 준비할 수 있습니다.'))
             if picking._is_iqc_supplier_return():
                 raise UserError(_('수입검사 반품은 해당 IQC의 불합격 처분과 승인으로 처리합니다.'))
+            if picking._is_supplier_receipt_return():
+                raise UserError(_('완료된 공급자 입고의 표준 반품은 출하검사 대상이 아닙니다.'))
             picking._lock_outgoing()
             requirements = picking._outgoing_requirements()
             for (product_id, lot_id, uom_id), quantity in requirements.items():
@@ -117,6 +119,26 @@ class StockPicking(models.Model):
             and move.origin_returned_move_id and move.location_dest_id.usage == 'supplier'
             for move in moves))
 
+    def _is_supplier_receipt_return(self):
+        """2026-09-27 사용자 결정 ⑤(v12 후보): **완료된 공급자 입고의 표준 반품**(원재료 반품).
+
+        공급사 위치가 도착지라는 것만으로는 출하 게이트를 우회할 수 없다(아래 주석 그대로). 여기서는
+        모든 이동이 (a) 완료된 공급자 입고 이동(origin_returned_move_id, 출발 usage supplier) 의 반품이고
+        (b) 도착지가 공급자 위치이며 (c) 전표 거래처가 원 입고 거래처와 같을 때만 '입고 반품' 으로 본다.
+        고객 출하를 공급자 위치로 돌려 보내는 위조는 (a)(c) 에서 걸린다."""
+        self.ensure_one()
+        moves = self.move_ids.filtered(lambda move: move.state != 'cancel')
+        if not moves or self.location_dest_id.usage != 'supplier':
+            return False
+        for move in moves:
+            origin = move.origin_returned_move_id
+            if not (origin and origin.state == 'done' and origin.location_id.usage == 'supplier'
+                    and origin.product_id == move.product_id and move.location_dest_id.usage == 'supplier'
+                    and origin.picking_id and origin.picking_id.partner_id
+                    and origin.picking_id.partner_id.commercial_partner_id == self.partner_id.commercial_partner_id):
+                return False
+        return True
+
     def _assert_outgoing_inspections(self, moves=None):
         for picking in self.filtered(lambda rec: rec.picking_type_code == 'outgoing'):
             # IQC rejection returns may share the warehouse's outgoing type.
@@ -125,6 +147,10 @@ class StockPicking(models.Model):
             if picking._is_iqc_supplier_return():
                 for move in picking.move_ids.filtered(lambda record: record.state != 'cancel'):
                     move.iqc_inspection_id._iqc_validate_movement(move)
+                continue
+            # 2026-09-27 결정 ⑤: 완료된 공급자 입고의 표준 반품(원재료 반품)은 고객 출하가 아니므로
+            # 출하검사·포장 검사 대상이 아니다(입고 검사 문서의 불합격 반품과 같은 취급).
+            if picking._is_supplier_receipt_return():
                 continue
             # Freeze every existing row used by the decision. A version update
             # also makes a concurrent editor retry its old REPEATABLE READ

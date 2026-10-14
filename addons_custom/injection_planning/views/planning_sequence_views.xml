@@ -5,8 +5,15 @@
         <field name="model">injection.planning.config</field>
         <field name="inherit_id" ref="view_planning_config_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='inventory_aware_scheduling']" position="before">
+            <xpath expr="//field[@name='early_limit_days']" position="before">
                 <field name="sequencing_mode"/>
+            </xpath>
+            <!-- [2026-10-04] 기존 방식 전용 설정은 교체 인식 방식에서 숨긴다(동작하지 않는 설정을 보이지 않게) -->
+            <xpath expr="//field[@name='inventory_aware_scheduling']" position="attributes">
+                <attribute name="invisible">sequencing_mode != 'legacy'</attribute>
+            </xpath>
+            <xpath expr="//div[@name='legacy_inventory_note']" position="attributes">
+                <attribute name="invisible">sequencing_mode != 'legacy'</attribute>
             </xpath>
         </field>
     </record>

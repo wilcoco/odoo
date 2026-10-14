@@ -1,0 +1,12 @@
+<odoo>
+    <record id="agreement_company_rule" model="ir.rule">
+        <field name="name">무발주 협약 회사 격리</field>
+        <field name="model_id" ref="model_scm_no_po_agreement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="notice_company_rule" model="ir.rule">
+        <field name="name">무발주 통보 회사 격리</field>
+        <field name="model_id" ref="model_scm_no_po_notice"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

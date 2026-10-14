@@ -1,0 +1,34 @@
+<odoo>
+    <template id="portal_notices" name="무발주 부품 수량통보">
+        <t t-call="supplier_portal_purchase.portal_layout">
+            <div class="container py-4">
+                <h3>부품 수량 요구통보</h3>
+                <p>발주서 없이 협약에 따라 납입할 부품 수량입니다. ASN은 납품 예정이며 입고·검사·매입 정산 완료를 의미하지 않습니다.</p>
+                <t t-foreach="notices" t-as="notice">
+                    <div class="card mb-3"><div class="card-body">
+                        <h5><t t-esc="notice.name"/> · <t t-esc="notice.product_id.display_name"/></h5>
+                        <p>필요일: <t t-esc="notice.need_date"/> · 요구: <t t-esc="notice.quantity"/> · ASN 예약: <t t-esc="notice.allocated_quantity"/> · 실입고: <t t-esc="notice.received_quantity"/> · 추가 가능: <t t-esc="notice.available_quantity"/> <t t-esc="notice.uom_id.name"/></p>
+                        <p class="text-muted"><t t-esc="notice.source_reference"/></p>
+                        <form t-if="notice.available_quantity &gt; 0" method="post" t-att-action="'/supplier/no-po/asn?' + query">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="notice_id" t-att-value="notice.id"/>
+                            <input type="hidden" name="request_key" t-att-value="request_keys[notice.id]"/>
+                            <div class="row g-2">
+                                <div class="col-md-3"><label>납품 예정 수량</label><input class="form-control" type="number" name="quantity" step="any" min="0" t-att-max="notice.available_quantity" required="required"/></div>
+                                <div class="col-md-3"><label>도착 예정일</label><input class="form-control" type="date" name="expected_date" t-att-value="notice.need_date" required="required"/></div>
+                                <div class="col-md-3"><label>공급사 LOT</label><input class="form-control" type="text" name="lot_name"/></div>
+                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary" type="submit">납품 예정 등록</button></div>
+                            </div>
+                        </form>
+                    </div></div>
+                </t>
+                <p t-if="not notices">발행된 무발주 통보가 없습니다.</p>
+            </div>
+        </t>
+    </template>
+    <template id="portal_no_po_link" inherit_id="supplier_portal_purchase.portal_asn_list">
+        <xpath expr="//form[@method='post']" position="before">
+            <p><a t-attf-href="/supplier/no-po?token=#{token or ''}">발주서 없는 부품 수량통보 및 납품 등록</a></p>
+        </xpath>
+    </template>
+</odoo>

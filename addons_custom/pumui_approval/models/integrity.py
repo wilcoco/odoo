@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError, ValidationError
+from .pumui import _INVOICE_LINK_TOKEN
 
 
 _INVOICE_LINK = object()
@@ -179,7 +180,12 @@ class PumuiLine(models.Model):
 
     def _link_invoice_line(self, line):
         self.ensure_one()
-        return self.with_context(_pumui_invoice_link=_INVOICE_LINK).write({'invoice_line_id': line.id})
+        # Both integrity and the UAT posted-evidence guard must recognize this
+        # internal link as bookkeeping, without resetting the approved revision.
+        return self.with_context(
+            _pumui_invoice_link=_INVOICE_LINK,
+            pumui_invoice_link=_INVOICE_LINK_TOKEN,
+        ).write({'invoice_line_id': line.id})
 
     @api.constrains('pumui_id', 'invoice_line_id')
     def _check_invoice_scope(self):

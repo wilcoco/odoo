@@ -30,7 +30,10 @@ class IatfApprovalTemplate(models.Model):
             "|", ("model_id", "=", False), ("model_id.model", "=", record._name),
             "|", ("department_id", "=", False),
             ("department_id", "=", department.id if department else False),
-            ("min_amount", "<=", amount),
+            # 2026-09-27 T7-b: 금액 하한 0 은 도움말대로 '금액 무관'이다. 환입·가감처럼 문서 금액이
+            # 음수인 경우 `0 <= 음수` 가 거짓이 되어 하한 0 템플릿까지 빠지던 결함을 고친다.
+            # 양수 하한은 그대로 문서 금액과 비교한다(음수 금액에 크기 기준을 적용할지는 정책 미정).
+            "|", ("min_amount", "=", 0.0), ("min_amount", "<=", amount),
         ]
         candidates = self.search(domain)
         candidates = candidates.filtered(lambda t: t.line_ids)

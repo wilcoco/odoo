@@ -187,10 +187,16 @@ class TestTaxInvoiceImport(TransactionCase):
         self.assertEqual(sum(move.line_ids.filtered("tax_line_id").mapped("balance")), 100000)
 
     def test_kr_price_included_tax_matches_file(self):
-        self.assertTrue(self.tax10.price_include, "한국 기본 내부포함 세목을 검증해야 한다")
+        # A restored company may use a tax-excluded default. Test the included
+        # case explicitly on a synthetic copy instead of assuming live settings.
+        included_tax = self.tax10.copy({
+            'name': 'SYNTHETIC KR included 10%',
+            'price_include_override': 'tax_included',
+        })
+        self.assertTrue(included_tax.price_include)
         approval = "20260901-50000003-50000003"
         Wizard = type(self.env["kr.tax.invoice.import"])
-        with patch.object(Wizard, "_pick_tax", return_value=self.tax10):
+        with patch.object(Wizard, "_pick_tax", return_value=included_tax):
             wiz = self._run(self._csv(self.HEADER, [self._row(approval)]))
         move = self._move(approval)
         self.assertEqual((move.amount_untaxed, move.amount_tax, move.amount_total),

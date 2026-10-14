@@ -12,3 +12,4 @@ from . import test_r135_safety_stock
 from . import test_setup_aware_sequencing
 from . import test_r144_policies
 from . import test_bom_a4_demo_admin_only
+from . import test_early_limit

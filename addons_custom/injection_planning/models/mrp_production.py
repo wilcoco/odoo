@@ -233,7 +233,27 @@ class MrpProductionPlanning(models.Model):
         expected = self._injection_plan_expected_finish(date_start)
         if expected is not None:
             return expected
-        return super()._calculate_expected_finished_date(date_start)
+        parent = getattr(super(), '_calculate_expected_finished_date', None)
+        return parent(date_start) if parent else False
+
+    @api.depends('company_id', 'date_start', 'is_planned', 'product_id',
+                 'workorder_ids.duration_expected', 'product_qty', 'product_uom_id',
+                 'planning_line_id', 'planning_hourly_capacity', 'planning_changeover_hours')
+    def _compute_date_finished(self):
+        super()._compute_date_finished()
+        # The deployed 18.0-20251008 core computes directly here and has no
+        # expected-finish hook. Preserve normal/routed MOs and use frozen plan
+        # capacity only for the same plan-linked MOs handled by the hook.
+        if getattr(super(), '_calculate_expected_finished_date', None):
+            return
+        for production in self:
+            if (not production.date_start or production.is_planned
+                    or production.state in ('done', 'cancel')
+                    or not production.planning_line_id):
+                continue
+            expected = production._injection_plan_expected_finish(production.date_start)
+            if expected is not None:
+                production.date_finished = expected
 
 class MrpWorkorderPlanningChangeover(models.Model):
     """[R144 결함 #3] 계획 연결 MO 의 **수동 라우팅 공정** 작업지시에 확정 교체시간을 더한다.

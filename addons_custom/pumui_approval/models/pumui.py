@@ -9,6 +9,9 @@ PAYMENT_STAGE = [
 ]
 
 
+_INVOICE_LINK_TOKEN = object()   # 청구서 생성 경로 전용 내부 표식. RPC context 로는 만들 수 없는 객체 identity 로만 비교한다.
+
+
 class PumuiRequest(models.Model):
     """품의서 — 지출/수금 내부 승인 문서. 결재 승인 후에만 청구서 생성·전기 가능.
 
@@ -113,6 +116,52 @@ class PumuiRequest(models.Model):
                 "감사 이력을 유지해 주세요."
             ))
         return super().unlink()
+
+    _POSTED_EVIDENCE_MESSAGE = "전기된 청구서가 있는 품의의 근거(거래처·회사·구분·청구된 항목·항목 추가/이동/삭제)는 수정할 수 없습니다. 미청구 잔여 항목만 정정할 수 있고, 그 외는 정정 절차(승인 가감·새 품의)를 사용하세요."
+
+    def _has_posted_invoice(self):
+        """전기된 청구서가 하나라도 연결된 품의(정산·일반 구분 없음, 보수적 기준 — 총괄 050 R3)."""
+        if not self:
+            return self.browse()
+        posted = self.env["account.move"].sudo().search([("pumui_id", "in", self.ids), ("state", "=", "posted")])
+        return posted.mapped("pumui_id") & self
+
+    def _settlement_shared(self):
+        """생산 정산 청구서(취소 제외)가 쓰는 품의. 정산 소비량은 청구서 라인↔예산으로 측정되며 라인의
+        invoice_line_id 는 비어 있으므로, 전기 정산이 있으면 **라인 전체를 소비 근거로 고정**한다(053)."""
+        Move = self.env["account.move"].sudo()
+        if not self or "vendor_settlement_bill" not in Move._fields:
+            return self.browse()
+        return Move.search([("pumui_id", "in", self.ids), ("vendor_settlement_bill", "=", True),
+                            ("state", "!=", "cancel")]).mapped("pumui_id") & self
+
+    @staticmethod
+    def _line_commands_touch_evidence(commands, lines, all_lines_locked=False):
+        """line_ids 명령 중 '미청구 잔여 항목의 값 갱신' 이외(추가·삭제·연결·교체, 청구된 항목 갱신)가 있는가."""
+        invoiced = {line.id for line in lines if line.invoice_line_id}
+        for command in commands or []:
+            op = command[0] if isinstance(command, (list, tuple)) else None
+            if op == 1 and command[1] not in invoiced and not all_lines_locked:
+                continue          # 미청구 항목 값 정정 → 결재 초기화·새 개정 경로로 허용
+            return True
+        return False
+
+    def write(self, vals):
+        # Child RPC edits must share this lock and the mixin's revision path.
+        # 전기된 청구가 있는 품의: 거래처·회사·구분과 항목 구조(추가/이동/삭제), 청구된 항목은 고정.
+        # 아직 청구되지 않은 잔여 항목의 값 정정만 기존 정책(결재 초기화·새 개정)으로 허용한다.
+        evidence_fields = {"line_ids", "partner_id", "company_id", "pumui_type"}
+        if evidence_fields.intersection(vals):
+            with self.env.cr.savepoint():
+                self.sorted("id")._approval_lock_target()
+                locked = self._has_posted_invoice()
+                if locked:
+                    shared = locked._settlement_shared()
+                    if {"partner_id", "company_id", "pumui_type"} & set(vals) or (
+                            "line_ids" in vals and self._line_commands_touch_evidence(vals["line_ids"], locked.line_ids, bool(shared))):
+                        raise UserError(_(self._POSTED_EVIDENCE_MESSAGE))
+                return super().write(vals)
+        return super().write(vals)
 
     # ── 결재 (리포트 #7: 반려 사유 필수, 승인 전 지급 차단) ──
     def action_reject_approval(self):
@@ -231,6 +280,53 @@ class PumuiRequestLine(models.Model):
     invoice_line_id = fields.Many2one("account.move.line", string="연결 청구 라인",
                                       readonly=True, copy=False)
     invoiced = fields.Boolean(string="청구됨", compute="_compute_invoiced", store=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        with self.env.cr.savepoint():
+            parent_ids = {vals.get("pumui_id", self.env.context.get("default_pumui_id"))
+                          for vals in vals_list}
+            parents = self.env["pumui.request"].browse(sorted(i for i in parent_ids if i))
+            if parents._has_posted_invoice():
+                raise UserError(_(self.env["pumui.request"]._POSTED_EVIDENCE_MESSAGE))
+            # An empty command list changes no rows but invokes the existing
+            # parent approval reset/new-revision path.
+            if parents:
+                parents.write({"line_ids": []})
+            return super().create(vals_list)
+
+    def write(self, vals):
+        evidence_fields = {"pumui_id", "product_id", "name", "payment_stage",
+                           "quantity", "price_unit", "tax_ids", "sequence",
+                           # 저장 계산 필드는 UI 에서만 읽기전용이다. RPC 로 직접 쓰면 예산 상한이 부풀므로 근거 변경으로 취급(D-1).
+                           "price_subtotal", "price_tax", "price_total"}
+        if "invoice_line_id" in vals and self.env.context.get("pumui_invoice_link") is not _INVOICE_LINK_TOKEN:
+            # 청구서 생성 경로(action_create_invoice)만 내부 객체 토큰으로 통과한다. RPC 가 넣는 True/문자열은 토큰이 아니므로
+            # 외부 해제/재연결은 재청구 후보를 만드는 근거 변경으로 취급한다(D-1, 총괄 040-1).
+            evidence_fields = evidence_fields | {"invoice_line_id"}
+        if not evidence_fields.intersection(vals):
+            # Invoice linking from the invoice action and other bookkeeping are not
+            # changes to the approved quantity/price/items.
+            return super().write(vals)
+        with self.env.cr.savepoint():
+            Request = self.env["pumui.request"]
+            parents = self.mapped("pumui_id")
+            if vals.get("pumui_id"):
+                parents |= Request.browse(vals["pumui_id"])
+            locked = parents._has_posted_invoice()
+            if locked and (vals.get("pumui_id") or any(line.invoice_line_id for line in self)
+                           or self.mapped("pumui_id") & locked._settlement_shared()):
+                # 전기 근거 있는 품의로/에서 항목 이동, 이미 청구된 항목 값 변경, 정산 공유 품의(라인 전체가 소비 근거) → 차단.
+                raise UserError(_(Request._POSTED_EVIDENCE_MESSAGE))
+            parents.sorted("id").write({"line_ids": []})
+            return super().write(vals)
+
+    def unlink(self):
+        with self.env.cr.savepoint():
+            if any(line.invoice_line_id for line in self) or self.mapped("pumui_id")._has_posted_invoice():
+                raise UserError(_(self.env["pumui.request"]._POSTED_EVIDENCE_MESSAGE))
+            self.mapped("pumui_id").sorted("id").write({"line_ids": []})
+            return super().unlink()
 
     @api.depends("quantity", "price_unit", "tax_ids")
     def _compute_price(self):

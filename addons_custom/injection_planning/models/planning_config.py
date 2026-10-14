@@ -35,7 +35,7 @@ class InjectionPlanningConfig(models.Model):
     inventory_aware_scheduling = fields.Boolean(
         string="재고를 고려한 일정 배치",
         default=False,
-        help="켜면 미래 필요분을 필요일보다 앞선 가동 구간으로 당기지 않는다. "
+        help="[기존 방식에서만 적용] 켜면 미래 필요분을 필요일보다 앞선 가동 구간으로 당기지 않는다. "
              "납기를 지키기 위해 불가피할 때만 당기고 그 사유를 남긴다. "
              "끄면 기존 동작(앞 윈도부터 채우기) 그대로다.",
     )
@@ -133,6 +133,12 @@ class InjectionPlanningConfig(models.Model):
              "저장한 값은 새 계산·초안 재계산에만 반영되고 확정 계획은 그대로다(계획이 적용값을 스냅샷).",
     )
 
+    early_limit_days = fields.Integer(
+        string="조기 생산 한도(일)", default=3,
+        help="[2026-10-04 사용자 결정] 필요일보다 얼마나 앞서 만들어도 되는지. 안전재고와 같은 기준으로 "
+             "'수요가 있는 날 N개' 앞까지만 허용한다(달력일 아님). 0 이면 필요일 당일 가동 구간부터만 배치한다. "
+             "납기를 지키려면 한도를 넘겨 당겨야 할 때만 넘기고, 그 사실을 계획 경고에 남긴다. "
+             "교체 인식 방식에서 적용된다. 기본값은 안전재고 일수와 같은 3일.")
     # ── MO 분할 ──
     mo_split_mode = fields.Selection(
         [
@@ -150,6 +156,12 @@ class InjectionPlanningConfig(models.Model):
     company_id = fields.Many2one(
         "res.company", default=lambda self: self.env.company,
     )
+
+    @api.constrains("early_limit_days")
+    def _check_early_limit_days(self):
+        for rec in self:
+            if (rec.early_limit_days or 0) < 0:
+                raise ValidationError(_("조기 생산 한도(일)는 0 이상이어야 합니다: %s") % rec.early_limit_days)
 
     @api.constrains("safety_stock_days")
     def _check_safety_stock_days(self):
