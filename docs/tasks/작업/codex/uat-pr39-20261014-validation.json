@@ -1,0 +1,576 @@
+{
+  "code_sha": "8dfc600b7722be5a5ee8d290cb7e9a9177e582c3",
+  "canonical_sha": "756b330f1869e77631f86940c6e775a007bf2fe9",
+  "summary": {
+    "runs": [
+      {
+        "run": "replica-tests-r1.log",
+        "odoo_summary": [
+          "14",
+          "47",
+          "1357"
+        ],
+        "statuses": {
+          "pass": 1273,
+          "error": 46,
+          "fail": 14,
+          "skip": 24
+        },
+        "setup_errors": [
+          "2026-10-14 04:25:29,281 1 ERROR codex_uat_pr39_20261014 odoo.tests.suite: ERROR: setUpClass (odoo.addons.injection_worksite.tests.test_plc_silo_sync.TestPlcSiloSync)"
+        ]
+      },
+      {
+        "run": "replica-tests-r2.log",
+        "odoo_summary": [
+          "0",
+          "1",
+          "854"
+        ],
+        "statuses": {
+          "pass": 829,
+          "skip": 24,
+          "error": 1
+        },
+        "setup_errors": []
+      },
+      {
+        "run": "replica-tests-r3.log",
+        "odoo_summary": [
+          "0",
+          "0",
+          "20"
+        ],
+        "statuses": {
+          "pass": 20
+        },
+        "setup_errors": []
+      }
+    ],
+    "latest_statuses": {
+      "pass": 1343,
+      "skip": 24
+    },
+    "original_28": [
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestChangeoverSpanPersistence.test_a_second_plan_cannot_rebook_the_changeover_window",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestChangeoverSpanPersistence.test_generated_mos_match_the_plan_without_re_adding_changeover",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestChangeoverSpanPersistence.test_two_precalculated_plans_cannot_both_confirm_the_changeover_window",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestPlanSourceRefusalIsExplicit.test_the_frozen_capability_cannot_be_rewritten",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestConfirmedDurationSurvivesARealWrite.test_a_real_date_start_write_does_not_re_price_the_duration",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_early_placement",
+        "test": "TestConfirmedDurationSurvivesARealWrite.test_the_quantity_still_moves_the_duration",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestNoDuplicateOrderingPP08.test_reset_to_draft_is_allowed_once_the_mos_are_cancelled",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestNoDuplicateOrderingPP08.test_reset_to_draft_is_refused_while_mos_are_alive",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestCreatedMoReconciliation.test_hook_is_a_no_op_when_everything_matches",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestCreatedMoReconciliation.test_only_the_mismatched_line_is_held_back",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestMoGenerationIsSerialised.test_a_repeat_request_finds_no_candidates",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestMoGenerationIsSerialised.test_generation_locks_before_creating_any_mo",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestCrossPlanConfirmation.test_cancelling_the_first_plan_frees_the_window",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestCrossPlanConfirmation.test_the_blocked_plan_works_again_after_recalculation",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pr_peer_review",
+        "test": "TestCompanyIsolationPR08.test_generated_mo_belongs_to_the_plan_company",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pr_peer_review",
+        "test": "TestConfirmTimeRevalidationPR01PR02.test_unchanged_master_still_confirms",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pr_peer_review",
+        "test": "TestMoGenerationAtomicityPR09PR10.test_lines_with_an_existing_mo_are_not_candidates",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_pr_peer_review",
+        "test": "TestMoGenerationAtomicityPR09PR10.test_pr10_retry_after_failure_creates_one_mo_per_line",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_setup_aware_sequencing",
+        "test": "TestCompanyIsolationPR08SetupAware.test_generated_mo_belongs_to_the_plan_company",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_setup_aware_sequencing",
+        "test": "TestCreatedMoReconciliationSetupAware.test_hook_is_a_no_op_when_everything_matches",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_planned_operation",
+        "test": "TestPlannedCostOperation.test_due_date_preview_also_requires_complete_pieces",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_planned_operation",
+        "test": "TestPlannedCostOperation.test_fractional_tail_after_setup_preserves_setup_and_whole_pieces",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_planned_operation",
+        "test": "TestPlannedCostOperation.test_fragmented_capacity_reports_one_unassigned_piece",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_planned_operation",
+        "test": "TestPlannedCostOperation.test_fragmented_capacity_uses_later_window_for_last_piece",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_planned_operation",
+        "test": "TestPlannedCostOperation.test_realistic_cycle_keeps_final_piece_duration",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_plc_quality_company",
+        "test": "TestPlcQualityCompanyScope.test_each_company_gets_its_own_quality_team",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_resin_po_settlement",
+        "test": "TestResinPOSettlement.test_tax_included_discount_and_kg_invoice_preserve_po_value",
+        "status": "pass",
+        "run": "replica-tests-r3.log"
+      },
+      {
+        "file": "injection_costing.tests.test_cost_reconciliation",
+        "test": "TestCostReconciliation.test_03_frozen_restated_retro",
+        "status": "pass",
+        "run": "replica-tests-r2.log"
+      }
+    ],
+    "original_28_statuses": {
+      "pass": 28
+    },
+    "unresolved": [],
+    "skipped": [
+      {
+        "file": "injection_planning.tests.test_pp07_pp08",
+        "test": "TestIqcPendingIsDisplayOnly.test_no_inspection_module_is_reported_as_unavailable",
+        "status": "skip",
+        "reason": "검사 모듈이 설치된 환경이다 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_planning.tests.test_setup_aware_sequencing",
+        "test": "TestCreatedMoReconciliationSetupAware.test_only_the_mismatched_line_is_held_back",
+        "status": "skip",
+        "reason": "이 고정물에서 라인이 하나뿐이다 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "account_kr_reports.tests.test_kr_reports",
+        "test": "TestKrReports.test_lock_log_directions",
+        "status": "skip",
+        "reason": "기존 마감 잠금일 보존 — 잠금 방향 테스트의 과거 초기값 적용 불가 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "account_kr_reports.tests.test_kr_tax_type",
+        "test": "TestKrTaxType.test_auto_estimation_still_works",
+        "status": "skip",
+        "reason": "한국 세목 미로드 환경 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "account_kr_reports.tests.test_kr_tax_type",
+        "test": "TestKrTaxType.test_exempt_replaces_taxes_and_sticks",
+        "status": "skip",
+        "reason": "한국 세목 미로드 환경 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "account_kr_reports.tests.test_kr_tax_type",
+        "test": "TestKrTaxType.test_manual_choice_survives_line_edit",
+        "status": "skip",
+        "reason": "한국 세목 미로드 환경 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_availability",
+        "test": "TestInjectionAvailability.test_batch_rechecks_hold_and_actual_completed_quantity_after_warm_read",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_availability",
+        "test": "TestInjectionAvailability.test_general_hold_planning_and_draft_purchase_use_only_released_stock",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_availability",
+        "test": "TestInjectionAvailability.test_mixed_lots_choose_later_good_stock_instead_of_earlier_pending",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_availability",
+        "test": "TestInjectionAvailability.test_pending_reservation_zero_then_actual_confirmation_allows_retry",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_delayed_quality_blocks_stock_consumption_and_delivery_then_confirms_once",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_disposal_approval_without_execution_does_not_close_the_period",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_disposal_with_corrupt_approval_or_remaining_stock_is_rejected",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_disposal_without_nc_does_not_close_the_period",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_disposed_ng_is_accounted_for_without_becoming_good",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_failed_first_specimen_needs_separate_review_before_retry",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_good_output_is_actual_stock_with_frozen_bom_and_two_raw_lots",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_pending_transit_stock_cannot_escape_production_or_delivery_gate",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_cannot_rewrite_limits_to_rescue_captured_source",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_rejects_missing_limits_despite_plc_ok",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_rejects_nonfinite_limits_despite_plc_ok",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_rejects_outside_range_despite_plc_ok",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_rejects_reversed_limits_despite_plc_ok",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      },
+      {
+        "file": "injection_worksite.tests.test_injection_good_source",
+        "test": "TestInjectionGoodSource.test_weight_proof_valid_source_is_idempotent_and_visible",
+        "status": "skip",
+        "reason": "iatf_quality_precedence 미설치 — 초물·단계별 품질 관문 시험은 그 설치에서만 ",
+        "run": "replica-tests-r2.log"
+      }
+    ]
+  },
+  "audit": {
+    "replica": {
+      "database": "codex_uat_pr39_20261014",
+      "active_cron": 0,
+      "active_mail_servers": 0,
+      "foreign_user_mappings": 0,
+      "product_price_digits": 0,
+      "module_pending": 0
+    },
+    "image": "sha256:59eff15ab7d5bb3cfb880b6c7153c6d35d39ea50bd2bc5a6c565fbab91675e2d",
+    "live_sha": "b3a0a992a28bab62aaa5ce67089273652df8b798",
+    "live_dirty": "",
+    "live_started_at": "2026-10-01T08:19:07.730429019Z",
+    "network_internal": "true",
+    "runtime_archive": {
+      "same_files": 1963,
+      "different": []
+    },
+    "evidence_sha256": {
+      "tests-r2.log": "c415a97b199ecc9836cb16f8974d6400405e665681cfb23eb6650ee7a5f77962",
+      "tests-r3.log": "d0490a7ebe1602d169e8c6fb6ca839cc628e413187456d69e091df61eb869adf",
+      "tests-r1.log": "0b0abad8c2c7f79ae7e2b417b1adc332fd2e3fe01e5b8ce6d7f0a3dbb8b66245"
+    },
+    "candidate_sha256": "7ba6dda18e72709cead021ba9ee2eb0bedc494c835c90b3583cc5712339a4c76",
+    "backup_sha256": {
+      "odoo18.dump": "53b95e2a22183d8a060cc65022f20b58ad6a3548952c80952f030fca1f3b5cc5",
+      "filestore.tgz": "a9cb5cb2b723ccd6b49d7b0d76855aeeb1ccf8aba3c333f37637a55ad7dd6bc5"
+    },
+    "modules": [
+      {
+        "name": "account_kr_plus_patch",
+        "state": "installed",
+        "latest_version": "18.0.2.5.8"
+      },
+      {
+        "name": "account_kr_plus_patch_loans",
+        "state": "installed",
+        "latest_version": "18.0.1.0.0"
+      },
+      {
+        "name": "account_kr_plus_patch_ncasset",
+        "state": "installed",
+        "latest_version": "18.0.1.0.0"
+      },
+      {
+        "name": "account_kr_reports",
+        "state": "installed",
+        "latest_version": "18.0.1.7.0"
+      },
+      {
+        "name": "erp_plan_sync",
+        "state": "installed",
+        "latest_version": "18.0.1.0.1"
+      },
+      {
+        "name": "escon_br_intake",
+        "state": "installed",
+        "latest_version": "18.0.1.0.1"
+      },
+      {
+        "name": "escon_product_batch",
+        "state": "installed",
+        "latest_version": "18.0.2.0.1"
+      },
+      {
+        "name": "gh_total_mes",
+        "state": "installed",
+        "latest_version": "18.0.1.50"
+      },
+      {
+        "name": "gh_vendor_settlement",
+        "state": "installed",
+        "latest_version": "18.0.4.2.1"
+      },
+      {
+        "name": "iatf_approval",
+        "state": "installed",
+        "latest_version": "18.0.1.2.4"
+      },
+      {
+        "name": "iatf_incoming_inspection",
+        "state": "installed",
+        "latest_version": "18.0.2.1.3"
+      },
+      {
+        "name": "iatf_process_inspection",
+        "state": "installed",
+        "latest_version": "18.0.1.0.16"
+      },
+      {
+        "name": "injection_costing",
+        "state": "installed",
+        "latest_version": "18.0.2.0.4"
+      },
+      {
+        "name": "injection_planning",
+        "state": "installed",
+        "latest_version": "18.0.1.26.1"
+      },
+      {
+        "name": "injection_worksite",
+        "state": "installed",
+        "latest_version": "18.0.8.13.2"
+      },
+      {
+        "name": "mrp_bom_scan_guard",
+        "state": "installed",
+        "latest_version": "18.0.1.0.5"
+      },
+      {
+        "name": "production_planning",
+        "state": "installed",
+        "latest_version": "18.0.1.1.2"
+      },
+      {
+        "name": "pumui_approval",
+        "state": "installed",
+        "latest_version": "18.0.2.4.3"
+      },
+      {
+        "name": "scm_no_po_supply",
+        "state": "installed",
+        "latest_version": "18.0.1.1.0"
+      }
+    ]
+  },
+  "legacy_data": {
+    "live_read_only": {
+      "database": "odoo18",
+      "duplicate_nonnull_accrual_groups": 2,
+      "duplicate_accrual_rows": 4,
+      "null_ej_uom_rows": 360,
+      "accrual_unique_exists": 0,
+      "ej_uom_not_null": false
+    },
+    "replica": {
+      "database": "codex_uat_pr39_20261014",
+      "duplicate_nonnull_accrual_groups": 2,
+      "duplicate_accrual_rows": 4,
+      "null_ej_uom_rows": 360,
+      "accrual_unique_exists": 0,
+      "ej_uom_not_null": false
+    }
+  },
+  "conditions": [
+    "R1/R2/R3 latest-per-test aggregation, not one full final run",
+    "Original resin positive conversion test requires 2 decimal price digits inside rolled-back test; 0-digit loss rejection also passed",
+    "No live deployment, main push, PR merge, device or browser acceptance"
+  ],
+  "static": {
+    "checked": {
+      "python": 122,
+      "xml": 18
+    },
+    "canonical_mismatch": [],
+    "modules": {
+      "iatf_plugins/account_kr_plus_patch": "18.0.2.5.8",
+      "iatf_plugins/account_kr_plus_patch_loans": "18.0.1.0.0",
+      "iatf_plugins/account_kr_plus_patch_ncasset": "18.0.1.0.0",
+      "iatf_plugins/account_kr_reports": "18.0.1.7.0",
+      "iatf_plugins/erp_plan_sync": "18.0.1.0.1",
+      "iatf_plugins/iatf_approval": "18.0.1.2.4",
+      "iatf_plugins/iatf_incoming_inspection": "18.0.2.1.3",
+      "iatf_plugins/iatf_process_inspection": "18.0.1.0.16",
+      "iatf_plugins/injection_planning": "18.0.1.26.1",
+      "iatf_plugins/mrp_bom_scan_guard": "18.0.1.0.5",
+      "iatf_plugins/production_planning": "18.0.1.1.2",
+      "iatf_plugins/pumui_approval": "18.0.2.4.3",
+      "iatf_plugins/scm_no_po_supply": "18.0.1.1.0",
+      "odoo_plugins/escon_br_intake": "18.0.1.0.1",
+      "odoo_plugins/escon_product_batch": "18.0.2.0.1",
+      "odoo_plugins/gh_total_mes": "18.0.1.50",
+      "odoo_plugins/gh_vendor_settlement": "18.0.4.2.1",
+      "odoo_plugins/injection_costing": "18.0.2.0.4",
+      "odoo_plugins/injection_worksite": "18.0.8.13.2"
+    }
+  }
+}
