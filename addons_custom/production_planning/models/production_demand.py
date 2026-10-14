@@ -14,7 +14,7 @@ class ProductionDemand(models.Model):
         store=True,
     )
     demand_date = fields.Date(
-        string="수요일",
+        string="수요 일자",
         required=True,
         index=True,
     )
@@ -27,6 +27,7 @@ class ProductionDemand(models.Model):
     quantity = fields.Float(
         string="수요량",
         required=True,
+        digits=(16, 0),   # 2026-10-01 공동 테스트: 완제품 개수라 소수점 없음
     )
     demand_type = fields.Selection(
         [

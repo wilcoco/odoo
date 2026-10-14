@@ -1,0 +1,49 @@
+<odoo>
+    <record id="agreement_list" model="ir.ui.view">
+        <field name="name">scm.no.po.agreement.list</field><field name="model">scm.no.po.agreement</field>
+        <field name="arch" type="xml"><list><field name="name"/><field name="active"/><field name="company_id"/><field name="partner_id"/><field name="product_id"/><field name="date_start"/><field name="date_end"/></list></field>
+    </record>
+    <record id="agreement_form" model="ir.ui.view">
+        <field name="name">scm.no.po.agreement.form</field><field name="model">scm.no.po.agreement</field>
+        <field name="arch" type="xml"><form><sheet><group>
+            <field name="name"/><field name="active"/><field name="company_id"/>
+            <field name="partner_id"/><field name="product_id"/><field name="picking_type_id" domain="[('company_id', '=', company_id), ('code', '=', 'incoming')]"/>
+            <field name="reference"/><field name="component_confirmed"/><field name="date_start"/><field name="date_end"/>
+        </group><div class="alert alert-info" role="status">부품 공급 협약입니다. 수지 발주·양품 BOM 정산 기준을 변경하지 않습니다. 활성화 전 공급사·품목·수동 정기 재고평가를 확인하세요.</div></sheet></form></field>
+    </record>
+    <record id="notice_list" model="ir.ui.view">
+        <field name="name">scm.no.po.notice.list</field><field name="model">scm.no.po.notice</field>
+        <field name="arch" type="xml"><list><field name="name"/><field name="state"/><field name="company_id"/><field name="partner_id"/><field name="product_id"/><field name="need_date"/><field name="quantity"/><field name="allocated_quantity"/><field name="received_quantity"/><field name="available_quantity"/></list></field>
+    </record>
+    <record id="notice_form" model="ir.ui.view">
+        <field name="name">scm.no.po.notice.form</field><field name="model">scm.no.po.notice</field>
+        <field name="arch" type="xml"><form><header>
+            <button name="action_issue" type="object" string="통보 발행" invisible="state != 'draft'" groups="purchase.group_purchase_user" class="btn-primary"/>
+            <button name="action_prepare_asn" type="object" string="ASN 작성" invisible="state != 'issued'"/>
+            <button name="action_close_remaining" type="object" string="미입고 잔량 종료" invisible="state != 'issued'" groups="purchase.group_purchase_user"/>
+            <button name="action_cancel" type="object" string="통보 취소" invisible="state in ('cancelled', 'closed')" groups="purchase.group_purchase_user"/>
+            <field name="state" widget="statusbar"/>
+        </header><sheet><group>
+            <field name="name" readonly="state != 'draft'"/><field name="agreement_id" readonly="state != 'draft'" domain="[('active', '=', True)]"/>
+            <field name="company_id"/><field name="partner_id"/><field name="product_id"/>
+            <field name="uom_id" readonly="state != 'draft'"/><field name="quantity" readonly="state != 'draft'"/>
+            <field name="need_date" readonly="state != 'draft'"/>
+            <field name="source_kind" readonly="state != 'draft'"/><field name="source_reference" readonly="state != 'draft'"/>
+            <field name="revision_of_id" readonly="state != 'draft'"/><field name="revision_reason" readonly="state != 'draft'"/>
+            <field name="issued_at"/><field name="issued_by"/>
+            <field name="allocated_quantity"/><field name="received_quantity"/><field name="available_quantity"/>
+        </group><notebook><page string="발행 원본"><field name="snapshot"/></page>
+        <page string="ASN 근거"><field name="asn_line_ids" readonly="1"><list><field name="asn_id"/><field name="product_id"/><field name="qty"/><field name="move_ids" widget="many2many_tags"/></list></field></page></notebook>
+        <div class="alert alert-info" role="status">요구통보·ASN·입고는 매입 마감 근거 수량을 자동 확정하지 않습니다. 정산은 확정 양품과 생산 당시 BOM 및 승인 가감 기준입니다.</div>
+        </sheet><chatter/></form></field>
+    </record>
+    <record id="agreement_action" model="ir.actions.act_window"><field name="name">무발주 공급 협약</field><field name="res_model">scm.no.po.agreement</field><field name="view_mode">list,form</field><field name="context">{'active_test': False}</field></record>
+    <record id="notice_action" model="ir.actions.act_window"><field name="name">부품 수량 요구통보</field><field name="res_model">scm.no.po.notice</field><field name="view_mode">list,form</field></record>
+    <menuitem id="agreement_menu" name="무발주 공급 협약" parent="purchase.menu_procurement_management" action="agreement_action" groups="purchase.group_purchase_user" sequence="30"/>
+    <menuitem id="notice_menu" name="부품 수량 요구통보" parent="purchase.menu_procurement_management" action="notice_action" groups="purchase.group_purchase_user,stock.group_stock_user" sequence="31"/>
+    <record id="asn_form_notice" model="ir.ui.view">
+        <field name="name">supplier.asn.no.po.form</field><field name="model">supplier.asn</field>
+        <field name="inherit_id" ref="supplier_portal_purchase.view_supplier_asn_form"/>
+        <field name="arch" type="xml"><xpath expr="//field[@name='line_ids']/list/field[@name='purchase_line_id']" position="after"><field name="no_po_notice_id" domain="[('company_id', '=', company_id), ('product_id', '=', product_id), ('state', '=', 'issued')]"/></xpath></field>
+    </record>
+</odoo>

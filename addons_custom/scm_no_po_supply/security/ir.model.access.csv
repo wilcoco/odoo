@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+agreement_purchase_read,agreement purchase read,model_scm_no_po_agreement,purchase.group_purchase_user,1,0,0,0
+agreement_stock_read,agreement stock read,model_scm_no_po_agreement,stock.group_stock_user,1,0,0,0
+agreement_manager,agreement manager,model_scm_no_po_agreement,purchase.group_purchase_manager,1,1,1,0
+notice_purchase,notice purchase,model_scm_no_po_notice,purchase.group_purchase_user,1,1,1,0
+notice_stock_read,notice stock read,model_scm_no_po_notice,stock.group_stock_user,1,0,0,0
+notice_manager,notice manager,model_scm_no_po_notice,purchase.group_purchase_manager,1,1,1,1

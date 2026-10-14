@@ -76,6 +76,8 @@ class TestOutgoingGate(PqcBasisMixin, TransactionCase):
                 'quantity_accepted': inspection.quantity_produced,
                 'line_ids': [Command.create({'characteristic_name': 'Visual check',
                     'measured_value': 'OK', 'result': 'pass'})]})
+            # 단계별 품질 관문(iatf_quality_precedence) 설치 시 승인 관리계획 항목이 자동 추가된다 — 항목마다 실측값이 필요
+            inspection.line_ids.filtered(lambda l: not (l.measured_value or '').strip()).write({'measured_value': 'OK', 'result': 'pass'})
             inspection.action_decide()
             self._approve(inspection)
         for inspection in picking.outgoing_shipping_inspection_ids.filtered(lambda row: row.state == 'draft').with_user(actor):

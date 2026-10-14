@@ -1,0 +1,9 @@
+{
+  "python_ast": "PASS",
+  "xml_parse": "PASS",
+  "manifest_data_files_exist": "PASS",
+  "access_csv_shape": "PASS",
+  "runtime": "PASS (120-module isolated auxiliary environment; 219-module UAT-equivalent not run)",
+  "tests": 26,
+  "inherited_view_xpath_targets": "PASS (stdlib target existence)"
+}

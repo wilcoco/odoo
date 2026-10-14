@@ -866,6 +866,10 @@ class PlanningRun(models.Model):
         start = self.plan_date_from
         for mo in MO.search(domain):
             pending = (mo.product_qty or 0.0) - (mo.qty_produced or 0.0)
+            if hasattr(mo, "_unit_output_for_planning") and getattr(mo, "is_injection_mo", False):
+                # 사출 계획 MO(부모)의 qty_produced 는 단위 실적을 반영하지 않는다. 확정 양품 산출
+                # (_planning_on_hand 가 재고로 세는 것과 같은 정의)을 빼서 이중 계상하지 않는다(2026-09-26 반례).
+                pending = min(pending, (mo.product_qty or 0.0) - mo._unit_output_for_planning())
             if pending <= 0:
                 continue
             due = mo.date_finished or mo.date_start
@@ -2098,6 +2102,7 @@ class PlanningRun(models.Model):
                         unassigned.append({"planning_run_id": self.id, "product_id": pid, "plan_date": job["date_str"],
                                            "qty": job["need"], "reason": reason, "detail": detail})
             cur_mold = dict(h["current_mold"])
+            early_limit = int(config.early_limit_days or 0)   # [2026-10-04] 조기 생산 한도(수요일 기준)
             machines = sorted({wc for wc in mold_machine.values()})
             seq_by_wc = defaultdict(lambda: 10)
             changeovers = 0
@@ -2123,22 +2128,56 @@ class PlanningRun(models.Model):
                         out.append((mid, pid))
                 return out
 
+            # [2026-10-04 조기 생산 한도] 작업의 '허용 시작 시각'(release). 한도 안 가동 구간이 납기까지 부족하면
+            # 그 작업만 한도를 풀고(limit_waived) 사유를 남긴다. 허용 전인 작업은 후보에서 빼고, 아무 후보도 없으면
+            # 사출기를 가장 이른 허용 시각까지 비워 둔다 — 그래야 배치가 시간 순서를 지켜 교체·현재 금형이 맞게 센다.
+            def release_of(pid, job):
+                if not demand_series:
+                    return None
+                lim = self._r135_early_limit_start(demand_series.get(pid, {}), job["date_str"], early_limit)
+                return datetime.combine(lim, datetime_time.min) if lim is not None else None
+            limit_waived = set()
+
             while any(pending.values()):
-                # 다음 자유 시각이 가장 이른 사출기부터(동률 id)
+                # 다음 자유 시각이 가장 이른 사출기부터(동률 id) — 허용 전 작업은 제외, 없으면 허용 시각까지 대기
                 choice = None
                 for wc in machines:
-                    if not mold_jobs(wc):
+                    cands_all = mold_jobs(wc)
+                    if not cands_all:
                         continue
                     nf = next_free(wc)
                     if nf is None:
                         continue
-                    if choice is None or (nf, wc) < choice[:2]:
-                        choice = (nf, wc)
+                    ready, earliest = [], None
+                    for mid, pid in cands_all:
+                        job = pending[pid][0]; key = (pid, job["date_str"])
+                        rel = None if key in limit_waived else release_of(pid, job)
+                        if rel is not None and rel > nf:
+                            need_h = self._r135_setup(cap_of[mid], Mold.browse(mid), cur_mold.get(wc))[0] + work_hours(wc, mid, job["need"], True)
+                            if h["free_hours"](wc, mid, since=rel, until=due_end_of(job["date_str"], wc)) + 1e-9 < need_h:
+                                limit_waived.add(key); rel = None
+                                issues.append("조기 생산 한도(%d 수요일) 초과 당김: %s 필요일 %s %.0f개 — 한도 안 가동 구간이 부족해 납기 준수를 위해 앞당김"
+                                              % (early_limit, products[pid].display_name, job["date_str"], job["need"]))
+                        if rel is None or rel <= nf:
+                            ready.append((mid, pid))
+                        elif earliest is None or rel < earliest:
+                            earliest = rel
+                    t = nf if ready else earliest
+                    if t is None:
+                        continue
+                    if choice is None or (t, wc) < choice[:2]:
+                        choice = (t, wc, nf)
                 if choice is None:
                     _logger.info("[R135 순서] 창 없음 — 남은 작업 %s", {p: [(j["date_str"], j["need"]) for j in js] for p, js in pending.items() if js})
                     break                                       # 남은 작업은 창이 없다
-                now, wc = choice
-                cands = mold_jobs(wc)
+                now, wc, nf0 = choice
+                idle_until = now if now > nf0 else None          # 허용 시각까지 비워 둠
+                cands = []
+                for mid, pid in mold_jobs(wc):
+                    job = pending[pid][0]
+                    rel = None if (pid, job["date_str"]) in limit_waived else release_of(pid, job)
+                    if rel is None or rel <= now:
+                        cands.append((mid, pid))
                 # ── 긴급 판정: 누적 여력 (검토 #2) — 같은 사출기의 납기순 미결 작업 합
                 scored = []
                 for mid, pid in cands:
@@ -2200,6 +2239,11 @@ class PlanningRun(models.Model):
                         nxt = pending[pid][0]
                         if nxt.get("split"):
                             break
+                        # [2026-10-04 조기 생산 한도] 후속분의 허용 시작일이 아직 안 왔으면 이어 붙이지 않는다(교체를 아끼려 미리 만들지 않음).
+                        if demand_series:
+                            lim_day = self._r135_early_limit_start(demand_series.get(pid, {}), nxt["date_str"], early_limit)
+                            if lim_day is not None and now.date() < lim_day:
+                                break
                         extra_h = work_hours(wc, mid, nxt["need"], False)
                         headroom = nxt["cap"]
                         if headroom is not None and need_good + sum(f["need"] for f in followups) + nxt["need"] > headroom + 1e-6:
@@ -2234,6 +2278,9 @@ class PlanningRun(models.Model):
                         day += timedelta(days=1)
                     if day > now.date():
                         not_before = datetime.combine(min(day, fields.Date.to_date(due_str)), datetime_time.min)
+                # [2026-10-04 조기 생산 한도] 허용 시각까지 비워 둔 경우 그 시각부터 놓는다(상한 not_before 와 큰 쪽).
+                if idle_until is not None and (not_before is None or idle_until > not_before):
+                    not_before = idle_until
                 segments, shortfall = h["take_job"](wc, qty, rate, setup_h, mid, not_before=not_before)
                 placeable = sum(q for _s, _e, _h, _co, q in segments)
                 _logger.info("[R135 배치] wc=%s mold=%s pid=%s due=%s qty=%.0f placed=%.0f setup=%.1f first=%s next_free_before=%s",
@@ -2333,6 +2380,20 @@ class PlanningRun(models.Model):
     # ─────────────────────────────────────────────
     # [R135] 일별 순서 · 최종 궤적 평가 · 수동 수정 재검증
     # ─────────────────────────────────────────────
+    @staticmethod
+    def _r135_early_limit_start(series, due_str, limit_days):
+        """[2026-10-04] 조기 생산 한도 — 필요일 due_str 보다 '수요가 있는 날' limit_days 개 앞까지만 허용.
+        돌려주는 값: 허용 시작일(date) 또는 None(한도 없음: 앞선 수요일이 한도보다 적어 기간 안에서 제한 없음).
+        안전재고(_safety_stock_target, basis=demand_dates)와 같은 날짜 기준이라 두 규칙이 한 축으로 맞는다."""
+        if limit_days is None or limit_days < 0 or not series:
+            return None
+        prior = [d for d in sorted(series) if d < due_str]
+        if limit_days == 0:
+            return fields.Date.to_date(due_str)
+        if len(prior) < limit_days:
+            return None
+        return fields.Date.to_date(prior[-limit_days])
+
     def _r135_due_end(self, config, wc_id, day):
         """필요일 D 의 납기 상한(현지 naive). D 에 시작하는 교대 창 중 마지막 창의 끝 — 야간이 자정을 넘어도
         그 날의 작업이다(첫 실행에서 자정 통과 야간을 '1일 지연' 으로 세던 것을 고침). 창이 없으면 23:59:59."""

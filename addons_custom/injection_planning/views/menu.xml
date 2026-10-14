@@ -6,50 +6,72 @@
               web_icon="injection_planning,static/description/icon.png"
               sequence="25"/>
 
-    <!-- ════════ 계획/운영 ════════ -->
+    <!-- 2026-10-01 공동 테스트 결정: 메뉴를 업무 순서(수요 → 계획 → 원재료 → 관제 → 기준정보 → 설정)로 재배치.
+         시험 입력(테스트 수요·샘플 데이터)은 설정 아래로 내려 운영 입력과 구분한다. -->
+
+    <!-- ════════ 1. 수요 (입력) ════════ -->
+    <menuitem id="menu_planning_demand_parent"
+              name="수요"
+              parent="menu_injection_planning_root"
+              sequence="10"/>
+
+    <menuitem id="menu_demand"
+              name="수요 데이터"
+              parent="menu_planning_demand_parent"
+              action="action_demand"
+              sequence="10"/>
+    <!-- ERP 계획 수신·품번 미매칭 보완 큐는 erp_plan_sync 가 이 parent 아래에 둔다 -->
+
+    <!-- ════════ 2. 계획 ════════ -->
+    <menuitem id="menu_planning_plan_parent"
+              name="계획"
+              parent="menu_injection_planning_root"
+              sequence="20"/>
+
     <menuitem id="menu_planning_run"
               name="계획 실행"
-              parent="menu_injection_planning_root"
+              parent="menu_planning_plan_parent"
               action="action_planning_run"
               sequence="10"/>
 
     <menuitem id="menu_machine_production_report"
               name="사출기 생산 계획"
-              parent="menu_injection_planning_root"
+              parent="menu_planning_plan_parent"
               action="action_machine_production_report"
-              sequence="12"/>
+              sequence="20"/>
 
     <menuitem id="menu_daily_summary"
               name="일별 분석"
-              parent="menu_injection_planning_root"
+              parent="menu_planning_plan_parent"
               action="action_daily_chart"
-              sequence="15"/>
+              sequence="30"/>
 
-    <menuitem id="menu_material_requirement"
-              name="원재료 소요/재고"
-              parent="menu_injection_planning_root"
-              action="action_material_requirement"
-              sequence="18"/>
-
-    <menuitem id="menu_material_daily"
-              name="원재료 일별 추이"
-              parent="menu_injection_planning_root"
-              action="action_material_daily"
-              sequence="19"/>
-
-    <menuitem id="menu_demand"
-              name="수요 데이터"
-              parent="menu_injection_planning_root"
-              action="action_demand"
-              sequence="20"/>
-
-    <!-- ════════ 마스터 데이터 (한 곳에 통합) ════════ -->
-    <menuitem id="menu_planning_master"
-              name="마스터 데이터"
+    <!-- ════════ 3. 원재료 ════════ -->
+    <menuitem id="menu_planning_material_parent"
+              name="원재료"
               parent="menu_injection_planning_root"
               sequence="30"/>
 
-    <!-- 제품/BOM (표준 모델, 사출 컨텍스트로 노출) -->
+    <menuitem id="menu_material_requirement"
+              name="원재료 소요/재고"
+              parent="menu_planning_material_parent"
+              action="action_material_requirement"
+              sequence="10"/>
+
+    <menuitem id="menu_material_daily"
+              name="원재료 일별 추이"
+              parent="menu_planning_material_parent"
+              action="action_material_daily"
+              sequence="20"/>
+
+    <!-- 4. 사출 계획 관제(조회 전용)는 injection_worksite 가 sequence 40 으로 둔다 -->
+
+    <!-- ════════ 5. 기준정보 ════════ -->
+    <menuitem id="menu_planning_master"
+              name="기준정보"
+              parent="menu_injection_planning_root"
+              sequence="50"/>
+
     <menuitem id="menu_master_product"
               name="사출 제품/부품"
               parent="menu_planning_master"
@@ -62,7 +84,6 @@
               action="action_injection_bom"
               sequence="20"/>
 
-    <!-- 사출기/금형/조합/가동일정 (모두 마스터 하위로 정렬) -->
     <menuitem id="menu_master_workcenter"
               name="사출기 (작업장)"
               parent="menu_planning_master"
@@ -86,8 +107,9 @@
               parent="menu_planning_master"
               action="action_machine_availability"
               sequence="60"/>
+    <!-- 단위 기준(escon_uom_standard)은 sequence 80 으로 이 아래에 붙는다 -->
 
-    <!-- ════════ 설정 ════════ -->
+    <!-- ════════ 6. 설정 ════════ -->
     <menuitem id="menu_planning_config_parent"
               name="설정"
               parent="menu_injection_planning_root"
@@ -99,15 +121,17 @@
               action="action_planning_config"
               sequence="10"/>
 
+    <!-- 시험용 입력은 설정 아래, 이름에 '(시험용)' 표기 -->
+    <menuitem id="menu_test_demand_wizard" name="테스트 수요 입력 (시험용)"
+              parent="menu_planning_config_parent"
+              action="production_planning.action_test_demand_wizard" sequence="80"/>
+
     <!-- 샘플 데이터 생성은 품목의 모든 BOM 을 지우고 다시 만든다(관리 BOM 포함).
          운영에서는 시스템 관리자에게만 보인다. (BOM 관리체계 점검 A4, 2026-09-18) -->
     <menuitem id="menu_generate_demo"
-              name="샘플 데이터 생성"
+              name="샘플 데이터 생성 (시험용)"
               parent="menu_planning_config_parent"
               action="action_generate_demo"
               groups="base.group_system"
               sequence="90"/>
-    <menuitem id="menu_test_demand_wizard" name="테스트 수요 입력"
-              parent="menu_injection_planning_root"
-              action="production_planning.action_test_demand_wizard" sequence="45"/>
 </odoo>

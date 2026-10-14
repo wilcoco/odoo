@@ -139,6 +139,19 @@ class StockMove(models.Model):
     iqc_approval_request_id = fields.Many2one('iatf.approval.request',readonly=True,copy=False)
     iqc_movement_kind = fields.Selection([('release','합격 재고 이동'),('return','불합격 반품')],readonly=True,copy=False)
 
+    def copy_data(self, default=None):
+        # 2026-09-27 사용자 결정 ⑤(v12 후보): 완료된 공급자 입고 이동을 표준 반품 위저드가 copy() 로 복제할 때
+        # iqc_release_location_id(copy=True) 가 반품 이동 vals 에 실려 아래 create 가드에 걸렸다 — 그래서
+        # 입고검사 합격으로 해제·적재된 재고의 공급사 반품 경로가 없었다(T3-c). 완료된 입고의 복제본은 IQC
+        # 원천 표시를 물려받지 않는다(반품은 일반 이동, 새 입고 복제는 _iqc_prepare_receipts 가 다시 잡는다).
+        # 미완료 이동의 분할·백오더(_split)는 그대로다.
+        vals_list = super().copy_data(default=default)
+        for move, vals in zip(self, vals_list):
+            if move.state == 'done' and move.location_id.usage == 'supplier' and 'iqc_release_location_id' in vals \
+                    and not (default or {}).get('iqc_release_location_id'):
+                vals.pop('iqc_release_location_id', None)
+        return vals_list
+
     @api.model_create_multi
     def create(self, vals_list):
         if not is_service(self.env):
