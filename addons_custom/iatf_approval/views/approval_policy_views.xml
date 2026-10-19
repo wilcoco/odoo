@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 전결 규정: 결재를 쓰는 모든 문서 × 결재 체계 -->
+    <record id="view_iatf_approval_policy_list" model="ir.ui.view">
+        <field name="name">iatf.approval.policy.list</field>
+        <field name="model">iatf.approval.policy</field>
+        <field name="arch" type="xml">
+            <list string="전결 규정" decoration-muted="rule_state == 'none'">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="model" optional="hide"/>
+                <field name="rule_state" widget="badge" decoration-warning="rule_state == 'none'" decoration-success="rule_state == 'set'"/>
+                <field name="template_count"/>
+                <field name="require_rule" widget="boolean_toggle"/>
+                <field name="lock_lines" widget="boolean_toggle"/>
+                <field name="note" optional="show"/>
+                <field name="request_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_approval_policy_form" model="ir.ui.view">
+        <field name="name">iatf.approval.policy.form</field>
+        <field name="model">iatf.approval.policy</field>
+        <field name="arch" type="xml">
+            <form string="전결 규정">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_requests" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="request_count" widget="statinfo" string="결재 건수"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="model_id" readonly="1"/>
+                            <field name="rule_state" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="require_rule" widget="boolean_toggle"/>
+                            <field name="lock_lines" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="전결 기준 설명 — 예: 500만 원 미만 팀장 전결, 500만 원 이상 대표 결재"/>
+                    <separator string="결재 체계 (부서·금액 조건별 결재선)"/>
+                    <p class="text-muted">
+                        상신 시 이 문서에 맞는 가장 구체적인 행(부서 일치 &gt; 금액 하한 큰 순)이 적용됩니다.
+                        결재자가 상신자 본인이면 그 단계는 빠지고, 남는 결재자가 없으면 상신할 수 없습니다(자기결재 금지).
+                    </p>
+                    <field name="template_ids" context="{'default_policy_id': id, 'default_name': name}">
+                        <list>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="department_id"/>
+                            <field name="min_amount"/>
+                            <field name="line_summary"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_iatf_approval_policy_search" model="ir.ui.view">
+        <field name="name">iatf.approval.policy.search</field>
+        <field name="model">iatf.approval.policy</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="model"/>
+                <filter name="required" string="규정 필수" domain="[('require_rule', '=', True)]"/>
+                <filter name="locked" string="결재선 고정" domain="[('lock_lines', '=', True)]"/>
+                <filter name="archived" string="보관" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_iatf_approval_policy" model="ir.actions.act_window">
+        <field name="name">전결 규정</field>
+        <field name="res_model">iatf.approval.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">결재를 쓰는 문서가 여기에 모두 나열됩니다</p>
+            <p>문서마다 부서·금액 조건별 결재선(전결 규정)을 입력하세요.</p>
+        </field>
+    </record>
+
+    <!-- 메뉴를 열 때마다 새로 설치된 결재 문서를 목록에 추가한다 -->
+    <record id="action_iatf_approval_policy_sync" model="ir.actions.server">
+        <field name="name">전결 규정</field>
+        <field name="model_id" ref="model_iatf_approval_policy"/>
+        <field name="state">code</field>
+        <field name="code">model._sync_documents()
+action = env['ir.actions.act_window']._for_xml_id('iatf_approval.action_iatf_approval_policy')</field>
+    </record>
+
+    <!-- 전결 규정표: 문서·조건·순서·결재자를 한 목록으로(인쇄·엑셀 내보내기용) -->
+    <record id="view_iatf_approval_rule_table_list" model="ir.ui.view">
+        <field name="name">iatf.approval.template.line.rule.table</field>
+        <field name="model">iatf.approval.template.line</field>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <list string="전결 규정표" create="0" edit="0" delete="0" default_order="rule_policy_id, template_id, sequence, id">
+                <field name="rule_policy_id"/>
+                <field name="rule_name"/>
+                <field name="rule_department_id"/>
+                <field name="rule_min_amount"/>
+                <field name="sequence"/>
+                <field name="approver_label"/>
+                <field name="rule_active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iatf_approval_rule_table_search" model="ir.ui.view">
+        <field name="name">iatf.approval.template.line.rule.table.search</field>
+        <field name="model">iatf.approval.template.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="rule_policy_id"/>
+                <field name="rule_department_id"/>
+                <group expand="1" string="묶기">
+                    <filter name="by_policy" string="결재 문서" context="{'group_by': 'rule_policy_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_iatf_approval_rule_table" model="ir.actions.act_window">
+        <field name="name">전결 규정표</field>
+        <field name="res_model">iatf.approval.template.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_iatf_approval_rule_table_list"/>
+        <field name="search_view_id" ref="view_iatf_approval_rule_table_search"/>
+        <field name="domain">[('rule_policy_id', '!=', False), ('rule_active', '=', True)]</field>
+        <field name="context">{'search_default_by_policy': 1}</field>
+    </record>
+
+    <menuitem id="menu_iatf_approval_policy" name="전결 규정"
+              parent="base.menu_custom" action="action_iatf_approval_policy_sync"
+              groups="base.group_system" sequence="58"/>
+    <menuitem id="menu_iatf_approval_rule_table" name="전결 규정표"
+              parent="base.menu_custom" action="action_iatf_approval_rule_table"
+              groups="base.group_system" sequence="59"/>
+</odoo>

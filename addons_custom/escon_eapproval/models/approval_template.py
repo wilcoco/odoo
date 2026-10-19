@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class IatfApprovalTemplateLine(models.Model):
@@ -59,3 +59,15 @@ class IatfApprovalTemplateLine(models.Model):
                 return manager.user_id
             return Users
         return super()._resolve_user(requester)
+
+    def _approver_label(self):
+        label = super()._approver_label()
+        if self.approver_mode == "job_grade" and self.job_grade_id:
+            return "%s(%s)" % (label, self.job_grade_id.name)
+        if self.approver_mode == "dept_manager" and self.department_id:
+            return "%s(%s)" % (label, self.department_id.name)
+        return label
+
+    @api.depends("approver_mode", "user_id", "job_grade_id", "department_id")
+    def _compute_approver_label(self):
+        return super()._compute_approver_label()

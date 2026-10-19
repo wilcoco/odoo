@@ -3,7 +3,7 @@ from collections import defaultdict
 from copy import deepcopy
 from lxml import etree
 
-from odoo import api, fields, models, _
+from odoo import SUPERUSER_ID, api, fields, models, _
 from odoo.exceptions import AccessError, MissingError, UserError
 from odoo.osv import expression
 from odoo.tools import SQL
@@ -136,13 +136,25 @@ class ApprovalRequest(models.Model):
         self._check_target()
         return record
 
-    def _validate_approvers(self):
+    def _validate_approvers(self, submitter=None):
         self.ensure_one()
         for line in self.line_ids:
             user = line.user_id
             if not user.active or user.share or self.company_id not in user.company_ids:
                 raise UserError(_('해당 회사의 활성 내부 사용자를 결재자로 지정하세요.'))
             self._get_target_record().with_user(user).check_access('write')
+        self._check_self_approval(submitter)
+
+    def _check_self_approval(self, submitter=None):
+        """자기결재 금지: 작성(요청)자와 상신자는 결재선에 들어갈 수 없다.
+
+        시스템 계정(OdooBot, 로그인 불가)의 자동 처리만 예외다."""
+        self.ensure_one()
+        approvers = self.line_ids.user_id
+        for person in (self.requester_id, submitter):
+            if person and person.id != SUPERUSER_ID and person in approvers:
+                raise UserError(_('자기결재는 할 수 없습니다: %s 님은 이 문서의 작성(상신)자라 결재자가 될 수 없습니다. '
+                                  '결재선에서 빼고 다른 결재자를 지정하세요.') % person.name)
 
     def action_submit(self):
         with self.env.cr.savepoint():
@@ -154,7 +166,7 @@ class ApprovalRequest(models.Model):
                     continue
                 if request.state != 'draft':
                     raise UserError(_('초안 결재만 상신할 수 있습니다.'))
-                request._validate_approvers()
+                request._validate_approvers(submitter=self.env.user)
                 super(ApprovalRequest, _internal(request)).action_submit()
         return True
 

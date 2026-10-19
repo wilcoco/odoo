@@ -32,9 +32,13 @@ def request_values(lot):
 
 
 def approve_and_release(env, lot, quality, production):
-    rec = env['iatf.lot.hold.release'].with_user(quality).create(request_values(lot))
+    # 자기결재 금지: 요청은 자재 담당(재고 사용자)이 올리고 품질·생산이 차례로 승인한다
+    requester = env['res.users'].search([('login', '=', 'hold_release_stock')], limit=1) or new_test_user(
+        env['res.users'].with_context(no_reset_password=True, mail_create_nosubscribe=True, mail_notrack=True).env,
+        login='hold_release_stock', groups='stock.group_stock_user', company_id=env.company.id, company_ids=[Command.set(env.company.ids)])
+    rec = env['iatf.lot.hold.release'].with_user(requester).create(request_values(lot))
     rec.action_submit_approval()
-    rec.action_approve_approval()
+    rec.with_user(quality).action_approve_approval()
     rec.with_user(production).action_approve_approval()
     rec.with_user(production).action_release_hold()
     return rec

@@ -152,6 +152,18 @@
     <menuitem id="menu_eapproval_config" name="설정" parent="menu_eapproval_root"
               groups="escon_eapproval.group_eapproval_manager" sequence="90"/>
 
+    <menuitem id="menu_eapproval_config_policy"
+              name="전결 규정"
+              parent="menu_eapproval_config"
+              action="iatf_approval.action_iatf_approval_policy_sync"
+              sequence="5"/>
+
+    <menuitem id="menu_eapproval_config_rule_table"
+              name="전결 규정표"
+              parent="menu_eapproval_config"
+              action="iatf_approval.action_iatf_approval_rule_table"
+              sequence="6"/>
+
     <menuitem id="menu_eapproval_config_template"
               name="결재선 템플릿"
               parent="menu_eapproval_config"

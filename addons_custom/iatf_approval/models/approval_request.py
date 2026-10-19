@@ -333,40 +333,71 @@ class IatfApprovalMixin(models.AbstractModel):
         return 0.0
 
     def _approval_apply_default_template(self):
-        """결재선이 비어 있으면 모델/부서/금액 매칭 템플릿으로 자동 구성."""
+        """전결 규정(템플릿)으로 결재선 구성.
+
+        - 결재선이 비어 있으면 모델/부서/금액 매칭 규정으로 자동 구성(기존 동작).
+        - 문서의 전결 규정이 '결재선 고정'이면 수동 결재선을 무시하고 규정으로 다시 구성.
+        - '규정 필수'·'결재선 고정' 문서는 맞는 규정이 없거나 결재자를 정할 수 없으면 상신 불가.
+        - 규정 결재자가 상신자 본인이면 그 단계는 빠진다(자기결재 금지). 남는 단계가 없으면 결정 불가.
+        """
         # 템플릿은 설정 데이터 — 일반 사용자는 ir.model 읽기 권한이 없어
         # model_id.model 도메인 탐색이 AccessError 가 되므로 sudo 로 조회한다.
         Template = self.env["iatf.approval.template"].sudo()
+        Policy = self.env["iatf.approval.policy"]
+        submitter = self.env.user
         for record in self:
-            if record.approval_line_ids:
+            policy = Policy._for_model(record._name)
+            lock = bool(policy.lock_lines)
+            required = bool(policy.require_rule) or lock
+            if record.approval_line_ids and not lock and not required:
                 continue
-            employee = self.env.user.employee_id
+            employee = submitter.employee_id
             department = employee.department_id if employee else self.env["hr.department"]
             template = Template._find_for(record, record._approval_amount(), department)
-            if not template:
-                continue
-            # 라인별 실제 결재자 결정(지정 사용자/작성자의 부서장). 하나라도 결정
-            # 불가면 잘못된 결재선으로 흐르지 않도록 템플릿을 적용하지 않고
-            # 수동 지정을 요구한다(조용한 부분 적용 금지).
-            resolved = []
-            unresolved = template.line_ids.browse()
+            if record.approval_line_ids and not lock:
+                if not template:
+                    raise UserError(_("%s: 이 문서는 전결 규정이 필수입니다. 해당하는 규정이 없어 상신할 수 없습니다. "
+                                      "전자결재 > 설정 > 전결 규정에서 결재 체계를 입력하세요.") % record.display_name)
+                continue  # 규정 필수(고정 아님): 규정이 있으면 작성자가 조정한 결재선을 쓴다
+            resolved, unresolved = [], template.line_ids.browse()
             for l in template.line_ids:
-                user = l._resolve_user(self.env.user)
-                if user:
-                    resolved.append((l.sequence, user))
-                else:
+                user = l._resolve_user(submitter)
+                if not user:
                     unresolved |= l
-            if unresolved:
-                record.message_post(body=(
-                    "⚠️ 결재선 템플릿 '%s' 적용 불가 — 결재자를 결정할 수 없는 "
-                    "단계가 있습니다(부서장 미지정 등). 결재선을 수동 지정해 주세요."
-                    % template.name))
+                elif user != submitter:
+                    resolved.append((l.sequence, user))
+            if template and not resolved:
+                unresolved |= template.line_ids
+            if not template or unresolved:
+                if required:
+                    raise UserError(_(
+                        "%(doc)s: 전결 규정에 맞는 결재선을 정할 수 없습니다(%(why)s). "
+                        "전자결재 > 설정 > 전결 규정에서 이 문서의 결재 체계를 입력하거나 부서장·직급을 확인하세요.") % {
+                        "doc": record.display_name,
+                        "why": _("해당 규정 없음") if not template else _("결재자 미결정 단계 있음 — '%s'") % template.name})
+                # 라인별 실제 결재자 결정(지정 사용자/작성자의 부서장). 하나라도 결정
+                # 불가면 잘못된 결재선으로 흐르지 않도록 템플릿을 적용하지 않고
+                # 수동 지정을 요구한다(조용한 부분 적용 금지).
+                if template:
+                    record.message_post(body=(
+                        "⚠️ 결재선 템플릿 '%s' 적용 불가 — 결재자를 결정할 수 없는 "
+                        "단계가 있습니다(부서장 미지정 등). 결재선을 수동 지정해 주세요."
+                        % template.name))
                 continue
-            record.approval_request_id.write({"line_ids": [
+            wanted = [(seq, user.id) for seq, user in resolved]
+            current = [(l.sequence, l.user_id.id) for l in record.approval_line_ids.sorted(lambda l: (l.sequence, l.id))]
+            if current == sorted(wanted, key=lambda x: x[0]):
+                continue
+            request = record.approval_request_id
+            if record.approval_line_ids:
+                if request.state != "draft":
+                    continue  # 반려 재상신은 새 결재가 이전 결재선을 복사한다(규정으로 구성된 결재선)
+                request.write({"line_ids": [(5, 0, 0)]})
+            request.write({"line_ids": [
                 (0, 0, {"sequence": seq, "user_id": user.id})
                 for seq, user in resolved]})
-            record.message_post(body="결재선 템플릿 '%s' 자동 적용 (%d단계)"
-                                     % (template.name, len(resolved)))
+            record.message_post(body="결재선 템플릿 '%s' 자동 적용 (%d단계)%s"
+                                     % (template.name, len(resolved), " — 전결 규정 고정" if lock else ""))
 
     def _approval_check_approved(self, action_label=None):
         """[공통 실행 차단 가드] 돈이 나가거나 불가역인 실행 지점(발행·확정·전기)

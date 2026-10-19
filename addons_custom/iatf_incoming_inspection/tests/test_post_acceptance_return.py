@@ -28,6 +28,10 @@ class TestPostAcceptanceReturn(TransactionCase):
                                   company_id=cls.company.id, company_ids=[Command.set(cls.company.ids)])
         cls.quality = new_test_user(users, login='par_quality', groups='iatf_incoming_inspection.group_incoming_inspection_user',
                                     company_id=cls.company.id, company_ids=[Command.set(cls.company.ids)])
+        # 자기결재 금지: 검사자(quality)와 별도 승인자
+        cls.quality_approver = new_test_user(users, login='par_quality_approver',
+                                             groups='iatf_incoming_inspection.group_incoming_inspection_user,iatf_document_control.group_document_user',
+                                             company_id=cls.company.id, company_ids=[Command.set(cls.company.ids)])
 
     def _qty(self, location, lot=None):
         domain = [('product_id', '=', self.tracked.id), ('location_id', '=', location.id)]

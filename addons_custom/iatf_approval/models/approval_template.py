@@ -22,6 +22,35 @@ class IatfApprovalTemplate(models.Model):
         help="문서 금액이 이 값 이상일 때 적용 (0 = 금액 무관). "
              "문서 금액은 amount_total/amount/total_amount 필드에서 자동 인식")
     line_ids = fields.One2many("iatf.approval.template.line", "template_id", string="결재선")
+    line_summary = fields.Char(string="결재 순서", compute="_compute_line_summary")
+    policy_id = fields.Many2one("iatf.approval.policy", string="전결 규정", ondelete="cascade", index=True,
+                                help="전결 규정(문서별 결재 체계) 화면에서 입력한 규정 행. 문서 모델은 규정의 문서로 고정됩니다.")
+
+    @api.depends("line_ids.sequence", "line_ids.approver_mode", "line_ids.user_id")
+    def _compute_line_summary(self):
+        for template in self:
+            template.line_summary = " → ".join(
+                "%d. %s" % (i, line._approver_label()) for i, line in enumerate(template.line_ids.sorted(lambda l: (l.sequence, l.id)), 1))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Policy = self.env["iatf.approval.policy"]
+        for vals in vals_list:
+            if vals.get("policy_id"):
+                vals["model_id"] = Policy.browse(vals["policy_id"]).model_id.id
+            elif vals.get("model_id"):
+                policy = Policy.sudo().search([("model_id", "=", vals["model_id"])], limit=1)
+                if policy:
+                    vals["policy_id"] = policy.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get("policy_id"):
+            vals = dict(vals, model_id=self.env["iatf.approval.policy"].browse(vals["policy_id"]).model_id.id)
+        elif "model_id" in vals:
+            policy = self.env["iatf.approval.policy"].sudo().search([("model_id", "=", vals["model_id"])], limit=1)                 if vals["model_id"] else self.env["iatf.approval.policy"]
+            vals = dict(vals, policy_id=policy.id or False)
+        return super().write(vals)
 
     @api.model
     def _find_for(self, record, amount, department):
@@ -53,11 +82,28 @@ class IatfApprovalTemplateLine(models.Model):
     sequence = fields.Integer(default=10)
     approver_mode = fields.Selection([
         ("user", "지정 사용자"),
-        ("manager", "작성자의 부서장"),
+        ("manager", "작성자의 부서장(본인이면 상위 부서장)"),
     ], string="결재자 방식", default="user", required=True,
         help="'작성자의 부서장'은 상신 시점에 상신자 소속 부서의 부서장으로 결정됩니다. "
              "부서장 미지정 등으로 결정할 수 없으면 템플릿을 적용하지 않고 수동 지정을 요구합니다.")
     user_id = fields.Many2one("res.users", string="결재자")
+    # 전결 규정표(한 화면 목록·엑셀 내보내기)용
+    rule_policy_id = fields.Many2one(related="template_id.policy_id", string="결재 문서", store=True, readonly=True)
+    rule_name = fields.Char(related="template_id.name", string="규정", readonly=True)
+    rule_department_id = fields.Many2one(related="template_id.department_id", string="상신자 부서", readonly=True)
+    rule_min_amount = fields.Float(related="template_id.min_amount", string="금액 하한", readonly=True)
+    rule_active = fields.Boolean(related="template_id.active", string="사용", readonly=True)
+    approver_label = fields.Char(string="결재자", compute="_compute_approver_label")
+
+    def _approver_label(self):
+        self.ensure_one()
+        mode = dict(self._fields["approver_mode"]._description_selection(self.env)).get(self.approver_mode, self.approver_mode)
+        return "%s(%s)" % (mode, self.user_id.name) if self.approver_mode == "user" and self.user_id else mode
+
+    @api.depends("approver_mode", "user_id")
+    def _compute_approver_label(self):
+        for line in self:
+            line.approver_label = line._approver_label()
 
     _sql_constraints = [
         ("user_required_when_fixed",
@@ -69,7 +115,15 @@ class IatfApprovalTemplateLine(models.Model):
         """상신자 기준으로 이 라인의 실제 결재자를 결정. 결정 불가 시 빈 recordset."""
         self.ensure_one()
         if self.approver_mode == "manager":
+            # 작성자 본인이 부서장이면 상위 부서의 부서장으로 올라간다(자기결재 금지).
             emp = requester.employee_id
-            mgr = emp.department_id.manager_id if emp and emp.department_id else False
-            return mgr.user_id if mgr and mgr.user_id else self.env["res.users"]
+            department = emp.department_id if emp else self.env["hr.department"]
+            seen = self.env["hr.department"]
+            while department and department not in seen:
+                seen |= department
+                manager_user = department.manager_id.user_id
+                if manager_user and manager_user != requester:
+                    return manager_user
+                department = department.parent_id
+            return self.env["res.users"]
         return self.user_id
