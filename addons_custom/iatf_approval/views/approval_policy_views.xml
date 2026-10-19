@@ -55,7 +55,7 @@
                             <field name="department_id"/>
                             <field name="min_amount"/>
                             <field name="line_summary"/>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" string="사용" widget="boolean_toggle"/>
                         </list>
                     </field>
                 </sheet>
@@ -107,7 +107,7 @@ action = env['ir.actions.act_window']._for_xml_id('iatf_approval.action_iatf_app
                 <field name="rule_name"/>
                 <field name="rule_department_id"/>
                 <field name="rule_min_amount"/>
-                <field name="sequence"/>
+                <field name="sequence" string="순서"/>
                 <field name="approver_label"/>
                 <field name="rule_active" optional="hide"/>
             </list>
