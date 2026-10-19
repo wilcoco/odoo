@@ -14,7 +14,7 @@ class TestMoldCheckLockR01R02(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
+        self.mold = self.env["injection.mold"].create({
             "name": "R-금형", "mold_type": "injection", "check_cycle_days": 7})
         self.Check = self.env["iatf.mold.check"]
         self.Line = self.env["iatf.mold.check.line"]
@@ -86,7 +86,7 @@ class TestMoldTempSnapshotR03(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
+        self.mold = self.env["injection.mold"].create({
             "name": "R-온도금형", "mold_type": "injection",
             "preheat_temp_min": 60.0, "preheat_temp_max": 90.0})
         self.Log = self.env["iatf.mold.temp.log"]
@@ -151,7 +151,7 @@ class TestMoldNaR04(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({"name": "R-NA금형", "mold_type": "injection"})
+        self.mold = self.env["injection.mold"].create({"name": "R-NA금형", "mold_type": "injection"})
         self.Check = self.env["iatf.mold.check"]
 
     def _check(self, **line):
@@ -191,7 +191,7 @@ class TestAstraReview2(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({"name": "A-금형", "mold_type": "injection"})
+        self.mold = self.env["injection.mold"].create({"name": "A-금형", "mold_type": "injection"})
         self.Check = self.env["iatf.mold.check"]
         self.manager = self.env["res.users"].create({
             "name": "A-관리자", "login": "a_mold_mgr",
@@ -243,7 +243,7 @@ class TestAstraRepro2MoldEvidence(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({"name": "A2-금형", "mold_type": "injection"})
+        self.mold = self.env["injection.mold"].create({"name": "A2-금형", "mold_type": "injection"})
         self.Check = self.env["iatf.mold.check"]
         self.Line = self.env["iatf.mold.check.line"]
         self.user = self.env["res.users"].create({
@@ -323,7 +323,7 @@ class TestCompletionSnapshotMold(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({"name": "S-금형", "mold_type": "injection"})
+        self.mold = self.env["injection.mold"].create({"name": "S-금형", "mold_type": "injection"})
         self.Check = self.env["iatf.mold.check"]
         self.user = self.env["res.users"].create({
             "name": "S-점검원", "login": "s_mold_user",
@@ -381,8 +381,8 @@ class TestSnapshotEvidenceIntegrity(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({"name": "E-금형", "mold_type": "injection"})
-        self.other_mold = self.env["iatf.mold"].create({"name": "E-금형2", "mold_type": "injection"})
+        self.mold = self.env["injection.mold"].create({"name": "E-금형", "mold_type": "injection"})
+        self.other_mold = self.env["injection.mold"].create({"name": "E-금형2", "mold_type": "injection"})
         self.Check = self.env["iatf.mold.check"]
         self.Snapshot = self.env["iatf.mold.check.snapshot"]
         self.user = self.env["res.users"].create({
@@ -519,7 +519,7 @@ class TestSnapshotCompanyIsolation(TransactionCase):
         super().setUp()
         self.company_b = self.env["res.company"].create({"name": "S-회사B"})
         self.env.user.company_ids = [(4, self.company_b.id)]
-        self.mold_b = self.env["iatf.mold"].with_context(
+        self.mold_b = self.env["injection.mold"].with_context(
             allowed_company_ids=[self.env.company.id, self.company_b.id]).create({
                 "name": "S-금형B", "mold_type": "injection",
                 "company_id": self.company_b.id})
@@ -550,7 +550,7 @@ class TestSnapshotCompanyIsolation(TransactionCase):
         """(3) 요약 숫자와 본문이 같은 근거에서 나온다."""
         import json
         chk = self.env["iatf.mold.check"].create({
-            "mold_id": self.env["iatf.mold"].create(
+            "mold_id": self.env["injection.mold"].create(
                 {"name": "S-금형A", "mold_type": "injection"}).id,
             "check_type": "daily",
             "line_ids": [

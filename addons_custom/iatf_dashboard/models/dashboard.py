@@ -262,9 +262,9 @@ class IatfDashboard(models.TransientModel):
                  ("is_pm_overdue", "=", True), ("state", "=", "active")])
 
             # Mold
-            rec.mold_active = sc("iatf.mold",
+            rec.mold_active = sc("injection.mold",
                 [("state", "=", "active")])
-            rec.mold_life_warning = sc("iatf.mold",
+            rec.mold_life_warning = sc("injection.mold",
                 [("life_percentage", ">=", 80), ("state", "=", "active")])
 
             # Customer Property
@@ -388,7 +388,7 @@ class IatfDashboard(models.TransientModel):
                            '|', ("state", "=", "breakdown"), ("is_pm_overdue", "=", True)]}
 
     def action_open_mold_warning(self):
-        return {"type": "ir.actions.act_window", "res_model": "iatf.mold",
+        return {"type": "ir.actions.act_window", "res_model": "injection.mold",
                 "view_mode": "list,form", "name": _("금형 수명 경고"),
                 "domain": [("life_percentage", ">=", 80), ("state", "=", "active")]}
 

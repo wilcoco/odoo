@@ -37,7 +37,8 @@ class EngelInjectionSerial(models.Model):
     )
 
     # ── 금형 ──
-    mold_id = fields.Many2one("iatf.mold", string="금형", tracking=True)
+    # 금형 마스터 단일화(iatf_mold 18.0.2.0.0): injection.mold 하나를 쓴다.
+    mold_id = fields.Many2one("injection.mold", string="금형", tracking=True)
     mold_cavity = fields.Integer(string="캐비티 번호")
 
     # ── 작업자 / 근무조 ──

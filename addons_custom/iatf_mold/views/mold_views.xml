@@ -1,266 +1,263 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_mold_list" model="ir.ui.view">
-        <field name="name">iatf.mold.list</field>
-        <field name="model">iatf.mold</field>
+    <!-- 금형 마스터 단일화(18.0.2.0.0): 별도 금형 대장 화면을 두지 않는다.
+         injection_planning 의 금형 목록·폼·검색을 상속해 IATF/SQ 금형관리 영역을 얹는다.
+         사출 현장 「금형 관리」와 IATF 「금형 대장」은 같은 액션·같은 화면·같은 레코드다. -->
+
+    <record id="view_injection_mold_list_iatf" model="ir.ui.view">
+        <field name="name">injection.mold.list.iatf</field>
+        <field name="model">injection.mold</field>
+        <field name="inherit_id" ref="injection_planning.view_injection_mold_list"/>
         <field name="arch" type="xml">
-            <list>
-                <field name="code"/>
-                <field name="name"/>
-                <field name="mold_type"/>
-                <field name="product_id"/>
-                <field name="ownership"/>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="mold_type" optional="show"/>
+                <field name="ownership" optional="hide"/>
                 <field name="grade" widget="badge" optional="show"/>
                 <field name="is_standard_ready" optional="show"/>
                 <field name="standard_missing" optional="hide"/>
-                <field name="current_shots"/>
-                <field name="guaranteed_shots"/>
-                <field name="life_percentage"/>
+            </xpath>
+            <xpath expr="//field[@name='guaranteed_shots']" position="after">
+                <field name="life_percentage" optional="show"/>
                 <field name="last_check_date" optional="hide"/>
                 <field name="next_check_due" optional="hide"/>
                 <field name="last_clean_date" optional="hide"/>
                 <field name="next_clean_due" optional="hide"/>
                 <field name="last_tryout_date" optional="hide"/>
                 <field name="is_tryout_missing" optional="show"/>
-                <field name="storage_location"/>
-                <field name="state" widget="badge"/>
-            </list>
+                <field name="storage_location" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="decoration-info">state == 'draft'</attribute>
+                <attribute name="decoration-muted">state == 'inactive'</attribute>
+            </xpath>
         </field>
     </record>
-    <record id="view_mold_form" model="ir.ui.view">
-        <field name="name">iatf.mold.form</field>
-        <field name="model">iatf.mold</field>
+
+    <record id="view_injection_mold_form_iatf" model="ir.ui.view">
+        <field name="name">injection.mold.form.iatf</field>
+        <field name="model">injection.mold</field>
+        <field name="inherit_id" ref="injection_planning.view_injection_mold_form"/>
         <field name="arch" type="xml">
-            <form>
-                <header>
-                    <button name="action_activate" string="사용" type="object" class="btn-success" invisible="state in ('active','disposed')"/>
-                    <button name="action_maintenance" string="보전" type="object" class="btn-warning" invisible="state != 'active'"/>
-                    <button name="action_inactive" string="비사용" type="object" invisible="state in ('disposed','draft')"/>
-                    <button name="action_dispose" string="폐기" type="object" invisible="state == 'disposed'"/>
-                    <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
-                            invisible="approval_state not in (False, 'draft', 'rejected')"/>
-                    <button name="action_approve_approval" string="승인" type="object" class="btn-success"
-                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
-                    <button name="action_reject_approval" string="반려" type="object"
-                            invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
-                    <field name="approval_is_current_user" invisible="1"/>
-                    <field name="approval_state" widget="badge"
-                           decoration-success="approval_state == 'approved'"
-                           decoration-danger="approval_state == 'rejected'"
-                           decoration-info="approval_state == 'in_progress'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
-                </header>
-                <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_view_tryouts" type="object" class="oe_stat_button"
-                                icon="fa-flask">
-                            <field name="tryout_count" widget="statinfo" string="시사출"/>
-                        </button>
-                        <button name="action_view_checks" type="object" class="oe_stat_button"
-                                icon="fa-check-square-o">
-                            <field name="check_count" widget="statinfo" string="점검"/>
-                        </button>
-                        <button name="action_view_temp_logs" type="object" class="oe_stat_button"
-                                icon="fa-thermometer-half">
-                            <field name="temp_log_count" widget="statinfo" string="온도측정"/>
-                        </button>
-                    </div>
-                    <field name="image" widget="image" class="oe_avatar"/>
-                    <div class="oe_title">
-                        <h1><field name="code" readonly="1"/> - <field name="name"/></h1>
-                    </div>
-                    <div class="alert alert-warning" role="alert" invisible="not is_tryout_missing">
-                        사용 중인데 <b>합격 판정된 시사출(T/O) 보고서가 없습니다.</b>
-                        SQ 4_5 의 대표 감점 사유입니다 — 시사출 보고서를 작성하십시오.
-                    </div>
-                    <div class="alert alert-warning" role="alert" invisible="not is_check_overdue">
-                        <b>일상점검 기한이 지났습니다.</b>
-                        차기 예정일: <field name="next_check_due" readonly="1" nolabel="1" class="oe_inline"/>
-                    </div>
-                    <div class="alert alert-info" role="alert" invisible="is_standard_ready">
-                        관리기준 미비: <field name="standard_missing" readonly="1" nolabel="1" class="oe_inline"/>
-                    </div>
+            <xpath expr="//header/field[@name='state']" position="before">
+                <button name="action_activate" string="사용" type="object" class="btn-success"
+                        invisible="state in ('active', 'retired')"/>
+                <button name="action_maintenance" string="보전" type="object" class="btn-warning"
+                        invisible="state != 'active'"/>
+                <button name="action_inactive" string="비사용" type="object"
+                        invisible="state in ('retired', 'draft', 'inactive')"/>
+                <button name="action_dispose" string="폐기" type="object"
+                        invisible="state == 'retired'"
+                        confirm="폐기하면 생산계획·사출 현장 금형 목록에서 빠집니다. 계속할까요?"/>
+                <button name="action_submit_approval" string="결재 상신" type="object" class="btn-primary"
+                        invisible="approval_state not in (False, 'draft', 'rejected')"/>
+                <button name="action_approve_approval" string="승인" type="object" class="btn-success"
+                        invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                <button name="action_reject_approval" string="반려" type="object"
+                        invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+                <field name="approval_is_current_user" invisible="1"/>
+                <field name="approval_state" widget="badge"
+                       decoration-success="approval_state == 'approved'"
+                       decoration-danger="approval_state == 'rejected'"
+                       decoration-info="approval_state == 'in_progress'"/>
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">draft,active,maintenance,retired</attribute>
+            </xpath>
+
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_tryouts" type="object" class="oe_stat_button" icon="fa-flask">
+                        <field name="tryout_count" widget="statinfo" string="시사출"/>
+                    </button>
+                    <button name="action_view_checks" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                        <field name="check_count" widget="statinfo" string="점검"/>
+                    </button>
+                    <button name="action_view_temp_logs" type="object" class="oe_stat_button" icon="fa-thermometer-half">
+                        <field name="temp_log_count" widget="statinfo" string="온도측정"/>
+                    </button>
+                </div>
+                <field name="image" widget="image" class="oe_avatar"/>
+                <div class="alert alert-warning" role="alert" invisible="not is_tryout_missing">
+                    사용 중인데 <b>합격 판정된 시사출(T/O) 보고서가 없습니다.</b>
+                    SQ 4_5 의 대표 감점 사유입니다 — 시사출 보고서를 작성하십시오.
+                </div>
+                <div class="alert alert-warning" role="alert" invisible="not is_check_overdue">
+                    <b>일상점검 기한이 지났습니다.</b>
+                    차기 예정일: <field name="next_check_due" readonly="1" nolabel="1" class="oe_inline"/>
+                </div>
+                <div class="alert alert-info" role="alert" invisible="is_standard_ready">
+                    관리기준 미비: <field name="standard_missing" readonly="1" nolabel="1" class="oe_inline"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="mold_type"/>
+                <field name="part_number"/>
+            </xpath>
+            <xpath expr="//field[@name='responsible_id']" position="after">
+                <field name="department_id"/>
+            </xpath>
+            <xpath expr="//field[@name='guaranteed_shots']" position="after">
+                <field name="remaining_shots"/>
+                <field name="life_percentage" widget="progressbar"/>
+                <field name="pm_cycle_shots"/>
+                <field name="last_pm_shots"/>
+                <field name="next_pm_shots"/>
+            </xpath>
+
+            <xpath expr="//sheet" position="inside">
+                <group string="사양 / 제작·소유">
                     <group>
-                        <group string="기본 정보">
-                            <field name="mold_type"/>
-                            <field name="product_id"/>
-                            <field name="part_number"/>
-                            <field name="cavity_count"/>
-                            <field name="material"/>
-                            <field name="weight_kg"/>
-                            <field name="dimensions"/>
-                        </group>
-                        <group string="제작/소유">
-                            <field name="manufacturer"/>
-                            <field name="manufacture_date"/>
-                            <field name="receive_date"/>
-                            <field name="cost"/>
-                            <field name="ownership"/>
-                            <field name="owner_id" invisible="ownership == 'company'"/>
-                            <field name="customer_mold_number" invisible="ownership != 'customer'"/>
-                        </group>
-                    </group>
-                    <group string="수명/보전">
-                        <group>
-                            <field name="guaranteed_shots"/>
-                            <field name="current_shots"/>
-                            <field name="remaining_shots"/>
-                            <field name="life_percentage" widget="progressbar"/>
-                        </group>
-                        <group>
-                            <field name="pm_cycle_shots"/>
-                            <field name="last_pm_shots"/>
-                            <field name="next_pm_shots"/>
-                        </group>
-                    </group>
-                    <group string="관리기준 (SQ 4_1·4_2·4_6·4_7)">
-                        <group string="등급·주기">
-                            <field name="grade"/>
-                            <field name="check_cycle_days"/>
-                            <field name="clean_cycle_days"/>
-                            <field name="is_standard_ready" readonly="1"/>
-                        </group>
-                        <group string="온도 기준(℃)"
-                               invisible="mold_type not in ('injection', 'die_casting')">
-                            <label for="preheat_temp_min" string="예열 하한/상한"/>
-                            <div class="o_row">
-                                <field name="preheat_temp_min"/> ~ <field name="preheat_temp_max"/>
-                            </div>
-                            <label for="mold_temp_min" string="금형온도 하한/상한"/>
-                            <div class="o_row">
-                                <field name="mold_temp_min"/> ~ <field name="mold_temp_max"/>
-                            </div>
-                        </group>
-                    </group>
-                    <group string="계획 대비 실적 (SQ 4_1·4_2·4_5)" col="3">
-                        <group string="일상점검">
-                            <field name="last_check_date"/>
-                            <field name="next_check_due"/>
-                            <field name="is_check_overdue"/>
-                        </group>
-                        <group string="세척">
-                            <field name="last_clean_date"/>
-                            <field name="next_clean_due"/>
-                            <field name="is_clean_overdue"/>
-                        </group>
-                        <group string="시사출">
-                            <field name="last_tryout_date"/>
-                            <field name="is_tryout_missing"/>
-                        </group>
+                        <field name="material"/>
+                        <field name="weight_kg"/>
+                        <field name="dimensions"/>
+                        <field name="storage_location"/>
+                        <field name="preservation_method"/>
                     </group>
                     <group>
-                        <group>
-                            <field name="storage_location"/>
-                            <field name="preservation_method"/>
-                        </group>
-                        <group>
-                            <field name="responsible_id"/>
-                            <field name="department_id"/>
-                        </group>
+                        <field name="manufacturer"/>
+                        <field name="manufacture_date"/>
+                        <field name="receive_date"/>
+                        <field name="cost"/>
+                        <field name="ownership"/>
+                        <field name="owner_id" invisible="ownership == 'company'"/>
+                        <field name="customer_mold_number" invisible="ownership != 'customer'"/>
                     </group>
-                    <notebook>
-                        <page string="점검 이력">
-                            <field name="check_ids" context="{'default_mold_id': id}">
-                                <list decoration-danger="overall_result == 'issue'"
-                                      decoration-warning="overall_result == 'pending'">
-                                    <field name="name"/>
-                                    <field name="check_type"/>
-                                    <field name="check_date"/>
-                                    <field name="shift"/>
-                                    <field name="checker_id"/>
-                                    <field name="ng_count"/>
-                                    <field name="overall_result" widget="badge"
-                                           decoration-success="overall_result == 'ok'"
-                                           decoration-danger="overall_result == 'issue'"/>
-                                    <field name="state" widget="badge"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="예열/온도 이력">
-                            <field name="temp_log_ids" context="{'default_mold_id': id}">
-                                <list decoration-danger="spec_result == 'ng'"
-                                      decoration-muted="spec_result == 'no_spec'">
-                                    <field name="measured_at"/>
-                                    <field name="log_type"/>
-                                    <field name="point"/>
-                                    <field name="method"/>
-                                    <field name="temperature"/>
-                                    <field name="spec_result" widget="badge"
-                                           decoration-success="spec_result == 'ok'"
-                                           decoration-danger="spec_result == 'ng'"/>
-                    <field name="current_spec_result" optional="hide"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="시사출(T/O) 이력">
-                            <field name="tryout_ids" context="{'default_mold_id': id}">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="tryout_no"/>
-                                    <field name="tryout_date"/>
-                                    <field name="reason"/>
-                                    <field name="shot_count"/>
-                                    <field name="ok_qty"/>
-                                    <field name="ng_qty"/>
-                                    <field name="defect_rate"/>
-                                    <field name="conclusion" widget="badge"
-                                           decoration-success="conclusion == 'pass'"
-                                           decoration-danger="conclusion == 'rework'"/>
-                                    <field name="state" widget="badge"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="보전/수리 이력">
-                            <field name="maintenance_ids">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="maintenance_type"/>
-                                    <field name="date"/>
-                                    <field name="shots_at_maintenance"/>
-                                    <field name="cost"/>
-                                    <field name="result"/>
-                                    <field name="state" widget="badge"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="결재선">
-                            <field name="approval_line_ids">
-                                <list editable="bottom">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="user_id"/>
-                                    <field name="state"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="문서/첨부">
-                            <group>
-                                <field name="document_ids" widget="many2many_tags"/>
-                                <field name="notes"/>
-                            </group>
-                            <field name="attachment_ids" widget="many2many_binary"/>
-                        </page>
-                    </notebook>
-                </sheet>
-                <chatter/>
-            </form>
+                </group>
+                <group string="관리기준 (SQ 4_1·4_2·4_6·4_7)">
+                    <group string="등급·주기">
+                        <field name="grade"/>
+                        <field name="check_cycle_days"/>
+                        <field name="clean_cycle_days"/>
+                        <field name="is_standard_ready" readonly="1"/>
+                    </group>
+                    <group string="온도 기준(℃)" invisible="mold_type not in ('injection', 'die_casting')">
+                        <label for="preheat_temp_min" string="예열 하한/상한"/>
+                        <div class="o_row">
+                            <field name="preheat_temp_min"/> ~ <field name="preheat_temp_max"/>
+                        </div>
+                        <label for="mold_temp_min" string="금형온도 하한/상한"/>
+                        <div class="o_row">
+                            <field name="mold_temp_min"/> ~ <field name="mold_temp_max"/>
+                        </div>
+                    </group>
+                </group>
+                <group string="계획 대비 실적 (SQ 4_1·4_2·4_5)" col="3">
+                    <group string="일상점검">
+                        <field name="last_check_date"/>
+                        <field name="next_check_due"/>
+                        <field name="is_check_overdue"/>
+                    </group>
+                    <group string="세척">
+                        <field name="last_clean_date"/>
+                        <field name="next_clean_due"/>
+                        <field name="is_clean_overdue"/>
+                    </group>
+                    <group string="시사출">
+                        <field name="last_tryout_date"/>
+                        <field name="is_tryout_missing"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="점검 이력" name="iatf_checks">
+                        <field name="check_ids" context="{'default_mold_id': id}">
+                            <list decoration-danger="overall_result == 'issue'"
+                                  decoration-warning="overall_result == 'pending'">
+                                <field name="name"/>
+                                <field name="check_type"/>
+                                <field name="check_date"/>
+                                <field name="shift"/>
+                                <field name="checker_id"/>
+                                <field name="ng_count"/>
+                                <field name="overall_result" widget="badge"
+                                       decoration-success="overall_result == 'ok'"
+                                       decoration-danger="overall_result == 'issue'"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="예열/온도 이력" name="iatf_temp_logs">
+                        <field name="temp_log_ids" context="{'default_mold_id': id}">
+                            <list decoration-danger="spec_result == 'ng'"
+                                  decoration-muted="spec_result == 'no_spec'">
+                                <field name="measured_at"/>
+                                <field name="log_type"/>
+                                <field name="point"/>
+                                <field name="method"/>
+                                <field name="temperature"/>
+                                <field name="spec_result" widget="badge"
+                                       decoration-success="spec_result == 'ok'"
+                                       decoration-danger="spec_result == 'ng'"/>
+                                <field name="current_spec_result" optional="hide"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="시사출(T/O) 이력" name="iatf_tryouts">
+                        <field name="tryout_ids" context="{'default_mold_id': id}">
+                            <list>
+                                <field name="name"/>
+                                <field name="tryout_no"/>
+                                <field name="tryout_date"/>
+                                <field name="reason"/>
+                                <field name="shot_count"/>
+                                <field name="ok_qty"/>
+                                <field name="ng_qty"/>
+                                <field name="defect_rate"/>
+                                <field name="conclusion" widget="badge"
+                                       decoration-success="conclusion == 'pass'"
+                                       decoration-danger="conclusion == 'rework'"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="보전/수리 이력" name="iatf_maintenance">
+                        <field name="maintenance_ids">
+                            <list>
+                                <field name="name"/>
+                                <field name="maintenance_type"/>
+                                <field name="date"/>
+                                <field name="shots_at_maintenance"/>
+                                <field name="cost"/>
+                                <field name="result"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="결재선" name="iatf_approval">
+                        <field name="approval_line_ids">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="user_id"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="문서/첨부" name="iatf_documents">
+                        <group>
+                            <field name="document_ids" widget="many2many_tags"/>
+                            <field name="notes"/>
+                        </group>
+                        <field name="attachment_ids" widget="many2many_binary"/>
+                    </page>
+                </notebook>
+            </xpath>
         </field>
     </record>
-    <record id="view_mold_search" model="ir.ui.view">
-        <field name="name">iatf.mold.search</field>
-        <field name="model">iatf.mold</field>
+
+    <record id="view_injection_mold_search_iatf" model="ir.ui.view">
+        <field name="name">injection.mold.search.iatf</field>
+        <field name="model">injection.mold</field>
+        <field name="inherit_id" ref="injection_planning.view_injection_mold_search"/>
         <field name="arch" type="xml">
-            <search>
-                <field name="name" string="금형"
-                       filter_domain="['|', '|', ('code', 'ilike', self), ('name', 'ilike', self), ('part_number', 'ilike', self)]"/>
-                <field name="product_id"/>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number"/>
                 <field name="responsible_id"/>
                 <field name="grade"/>
+            </xpath>
+            <xpath expr="//filter[@name='maintenance']" position="after">
+                <filter name="filter_draft" string="등록(T/O 전)" domain="[('state', '=', 'draft')]"/>
                 <separator/>
-                <filter name="filter_active" string="사용 중" domain="[('state', '=', 'active')]"/>
-                <separator/>
-                <!-- 아래 세 개가 SQ 의 '지속 모니터링' 증빙 화면이다.
-                     기준이 없는 금형 / 세척 예정일이 지난 금형 / T-O 보고서가 없는 금형을
-                     한 화면에서 세어 보여주는 것이 우수(100%)와 양호(80%)를 가른다. -->
+                <!-- SQ '지속 모니터링' 증빙 화면: 기준 없는 금형 / 기한 지난 금형 / T-O 없는 금형 -->
                 <filter name="filter_standard_missing" string="관리기준 미비"
                         domain="[('is_standard_ready', '=', False)]"/>
                 <filter name="filter_check_overdue" string="점검 기한 경과"
@@ -269,20 +266,12 @@
                         domain="[('is_clean_overdue', '=', True)]"/>
                 <filter name="filter_tryout_missing" string="시사출 누락"
                         domain="[('is_tryout_missing', '=', True)]"/>
-                <group expand="0" string="그룹">
-                    <filter name="group_grade" string="관리등급" context="{'group_by': 'grade'}"/>
-                    <filter name="group_type" string="유형" context="{'group_by': 'mold_type'}"/>
-                    <filter name="group_state" string="상태" context="{'group_by': 'state'}"/>
-                    <filter name="group_responsible" string="담당자" context="{'group_by': 'responsible_id'}"/>
-                </group>
-            </search>
+            </xpath>
+            <xpath expr="//filter[@name='group_state']" position="after">
+                <filter name="group_grade" string="관리등급" context="{'group_by': 'grade'}"/>
+                <filter name="group_type" string="유형" context="{'group_by': 'mold_type'}"/>
+                <filter name="group_responsible" string="담당자" context="{'group_by': 'responsible_id'}"/>
+            </xpath>
         </field>
-    </record>
-
-    <record id="action_mold" model="ir.actions.act_window">
-        <field name="name">금형/치공구 대장</field>
-        <field name="res_model">iatf.mold</field>
-        <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_mold_search"/>
     </record>
 </odoo>

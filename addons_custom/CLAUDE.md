@@ -25,11 +25,12 @@
 | 예비부품 분류체계(부문/공정/설비군/기종) | `iatf_equipment` (iatf.spare.category) | 레거시 SPMSRT 4자리 한 칸을 자리별 트리로 편 것. 새 분류 모델 만들지 말 것 |
 | 부품↔설비 적용(다대다) | `iatf_equipment` (iatf.spare.application) | 부품이 어느 설비에 들어가는지의 정본. `spare.equipment_id`(1:N)는 18.0.1.3.0 에서 제거됨 |
 | 자재 발주(원재료·외주) | `injection_planning` / `supplier_portal_purchase` | 예비부품 쪽에서 PO 를 직접 만들지 말 것. 발주 경로가 둘로 갈라지면 이중 발주가 된다 |
-| 금형 관리기준(등급·주기·온도 상하한) | `iatf_mold` (iatf.mold) | 점검·세척·온도 판정의 기준은 전부 여기. 온도 합·부 비교는 `judge_temp()` 하나만 쓴다(`check_temp_in_spec()` 은 현행 기준으로 그것을 부르는 편의 함수) — 판정 로직을 각 기록 모델에 복사하지 말 것 |
+| **금형 마스터(유일)** | `injection_planning` (injection.mold) + `iatf_mold` 확장 | 2026-10 단일화: 생산계획·사출 현장·PLC 샷·SQ 금형관리가 **같은 금형 레코드**를 쓴다. `iatf.mold` 는 폐지(18.0.2.0.0). 금형/치공구 대장 모델을 새로 만들지 말 것. 폐기 상태는 `retired`, T/O 전 신규·이관은 `draft` |
+| 금형 관리기준(등급·주기·온도 상하한) | `iatf_mold` (injection.mold 확장 필드) | 점검·세척·온도 판정의 기준은 전부 여기. 온도 합·부 비교는 `judge_temp()` 하나만 쓴다(`check_temp_in_spec()` 은 현행 기준으로 그것을 부르는 편의 함수) — 판정 로직을 각 기록 모델에 복사하지 말 것 |
 | 금형 세척 실적 | `iatf_mold` (iatf.mold.maintenance, type=`clean`) | 세척 전용 모델 만들지 말 것. 완료(done) 건만 실적으로 센다 |
-| 시사출(T/O) 보고서 | `iatf_mold` (iatf.mold.tryout) | 심사 증빙 문서라 `ondelete=restrict`. 금형은 삭제 말고 폐기(disposed) 로 |
-| 금형 일상/정기 점검 | `iatf_mold` (iatf.mold.check) | 설비 점검(`iatf.daily.check`) 과 별개 원장. **공구·구역·시설용 공통 점검 시트(`iatf.check.sheet`, 요청서 2항)로 금형을 덮지 말 것** — 금형은 마스터에 주기가 있고 누락 판정이 `iatf.mold` 위에 산다 |
-| 금형 예열/온도 측정 | `iatf_mold` (iatf.mold.temp.log) | 금형 온도의 **유일 원장**. 시사출·점검 기록에 온도 필드를 따로 두지 말 것. 기준 상·하한은 **측정 시점 스냅샷**(저장)이며 마스터 개정에 끌려가지 않는다. 합·부 비교는 `iatf.mold.judge_temp()` 하나만 쓴다(현행 기준 재평가는 `current_spec_result` 참고값) |
+| 시사출(T/O) 보고서 | `iatf_mold` (iatf.mold.tryout) | 심사 증빙 문서라 `ondelete=restrict`. 금형은 삭제 말고 폐기(retired) 로 |
+| 금형 일상/정기 점검 | `iatf_mold` (iatf.mold.check) | 설비 점검(`iatf.daily.check`) 과 별개 원장. **공구·구역·시설용 공통 점검 시트(`iatf.check.sheet`, 요청서 2항)로 금형을 덮지 말 것** — 금형은 마스터에 주기가 있고 누락 판정이 금형 마스터(`injection.mold`) 위에 산다 |
+| 금형 예열/온도 측정 | `iatf_mold` (iatf.mold.temp.log) | 금형 온도의 **유일 원장**. 시사출·점검 기록에 온도 필드를 따로 두지 말 것. 기준 상·하한은 **측정 시점 스냅샷**(저장)이며 마스터 개정에 끌려가지 않는다. 합·부 비교는 `injection.mold.judge_temp()` 하나만 쓴다(현행 기준 재평가는 `current_spec_result` 참고값) |
 | 범용 점검 일지(공구·검사마스터·설비/시설·구역) | `iatf_work_environment` (iatf.check.sheet / iatf.check.record) | 전동공구 토크·통전검사·바코드 마스터·건조기 필터·분쇄기·배합기·냉각수/작동유·소화기 = **전부 이 모델 하나**. 대상별 전용 모듈·모델 금지 |
 | 작업환경 실측(온습도·조도)·5S 점수 | `iatf_work_environment` (iatf.environment.check) | 구역 기준(`iatf.work.area`) 대비 실측·5S 5개 점수는 여기가 정본. 점검 시트로 옮기지 말 것 |
 | 산업안전 위험성평가 | `iatf_work_environment` (iatf.safety.assessment) | 작업별 유해위험요인 × 가능성/중대성 + 감소대책 이행. **`iatf.risk.register` 와 다른 원장** — 아래 경계 참조 |
@@ -40,7 +41,7 @@
 | 배합일지(투입 비율·합부) | `iatf_traceability` (iatf.blend.log + .line) | LOT별 신재/재생재/첨가제 투입과 상한 대비 판정. 재생재 줄은 분쇄일지를 가리켜야 완료된다 |
 
 ### 점검 원장 경계 (헷갈리기 쉬움)
-- **금형** → `iatf.mold.check` (주기가 금형 마스터에 있고 누락 판정이 `iatf.mold` 위에 산다)
+- **금형** → `iatf.mold.check` (주기가 금형 마스터 `injection.mold` 에 있고 누락 판정도 그 위에 산다)
 - **설비 대장에 등록된 설비의 일상점검** → `iatf.daily.check` (iatf_equipment)
 - **구역 환경 실측·5S 점수** → `iatf.environment.check`
 - **그 외 전부(공구·검사마스터·시설·소화기 등)** → `iatf.check.sheet` + `iatf.check.record`

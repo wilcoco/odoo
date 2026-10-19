@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 # 로그 유형 → 금형 마스터의 어느 온도 기준과 대조할지.
-# 판정 자체는 iatf.mold.check_temp_in_spec() 하나만 쓴다. 여기에 상·하한 비교를
+# 판정 자체는 injection.mold.check_temp_in_spec() 하나만 쓴다. 여기에 상·하한 비교를
 # 다시 구현하면 기준이 두 벌이 되고, 한쪽만 고쳐지는 순간 증빙이 어긋난다.
 SPEC_KIND_BY_LOG_TYPE = {"preheat": "preheat", "operating": "mold"}
 
@@ -22,7 +22,7 @@ class IatfMoldTempLog(models.Model):
     _rec_name = "display_name"
 
     mold_id = fields.Many2one(
-        "iatf.mold", string="금형", required=True, index=True, tracking=True,
+        "injection.mold", string="금형", required=True, index=True, tracking=True,
         ondelete="restrict",
     )
     log_type = fields.Selection(
@@ -103,7 +103,7 @@ class IatfMoldTempLog(models.Model):
 
         계산 필드로 두지 않는 이유는 필드 주석 참조 (R03).
         """
-        Mold = self.env["iatf.mold"]
+        Mold = self.env["injection.mold"]
         for vals in vals_list:
             mold = Mold.browse(vals.get("mold_id")) if vals.get("mold_id") else Mold
             kind = SPEC_KIND_BY_LOG_TYPE.get(vals.get("log_type", "preheat"))

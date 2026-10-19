@@ -16,7 +16,7 @@ class TestMoldStandard(TransactionCase):
     def _mold(self, **vals):
         base = {"name": "T-금형", "mold_type": "injection"}
         base.update(vals)
-        return self.env["iatf.mold"].create(base)
+        return self.env["injection.mold"].create(base)
 
     # ───────── ① 정상 기록 생성 ─────────
 
@@ -54,7 +54,7 @@ class TestMoldStandard(TransactionCase):
     # ───────── ② 기한 경과 판정 ─────────
 
     def test_clean_overdue(self):
-        today = fields.Date.context_today(self.env["iatf.mold"])
+        today = fields.Date.context_today(self.env["injection.mold"])
         mold = self._mold(clean_cycle_days=30)
 
         # 세척 실적이 없으면 예정일 자체가 없다 → 경과도 아니다(판정 불가)
@@ -72,7 +72,7 @@ class TestMoldStandard(TransactionCase):
         self.assertTrue(mold.is_clean_overdue)
 
         # 검색 필터도 같은 결과를 내야 한다 (화면의 '세척 기한 경과' 목록)
-        found = self.env["iatf.mold"].search([("is_clean_overdue", "=", True)])
+        found = self.env["injection.mold"].search([("is_clean_overdue", "=", True)])
         self.assertIn(mold, found)
 
         # 오늘 세척하면 해소된다
@@ -84,12 +84,12 @@ class TestMoldStandard(TransactionCase):
         self.assertEqual(mold.next_clean_due, today + relativedelta(days=30))
         self.assertFalse(mold.is_clean_overdue)
         self.assertNotIn(
-            mold, self.env["iatf.mold"].search([("is_clean_overdue", "=", True)])
+            mold, self.env["injection.mold"].search([("is_clean_overdue", "=", True)])
         )
 
     def test_clean_overdue_search_negation(self):
         """'!=' 검색도 정확해야 한다. 예정일이 없는 금형은 '경과 아님' 쪽에 든다."""
-        today = fields.Date.context_today(self.env["iatf.mold"])
+        today = fields.Date.context_today(self.env["injection.mold"])
         overdue = self._mold(clean_cycle_days=30)
         self.env["iatf.mold.maintenance"].create({
             "mold_id": overdue.id, "maintenance_type": "clean",
@@ -98,13 +98,13 @@ class TestMoldStandard(TransactionCase):
         never = self._mold(clean_cycle_days=30)  # 세척 실적 없음 → 예정일 없음
         overdue.invalidate_recordset()
 
-        not_overdue = self.env["iatf.mold"].search([("is_clean_overdue", "!=", True)])
+        not_overdue = self.env["injection.mold"].search([("is_clean_overdue", "!=", True)])
         self.assertIn(never, not_overdue)
         self.assertNotIn(overdue, not_overdue)
 
     def test_planned_clean_is_not_actual(self):
         """계획(planned) 상태의 세척은 실적이 아니다 — 없는 이행을 만들지 않는다."""
-        today = fields.Date.context_today(self.env["iatf.mold"])
+        today = fields.Date.context_today(self.env["injection.mold"])
         mold = self._mold(clean_cycle_days=30)
         self.env["iatf.mold.maintenance"].create({
             "mold_id": mold.id, "maintenance_type": "clean",
@@ -115,7 +115,7 @@ class TestMoldStandard(TransactionCase):
 
     def test_no_cycle_means_no_judgement(self):
         """주기 미설정(0)이면 기한 판정을 하지 않는다 — 매일 경과로 잡히면 안 된다."""
-        today = fields.Date.context_today(self.env["iatf.mold"])
+        today = fields.Date.context_today(self.env["injection.mold"])
         mold = self._mold(clean_cycle_days=0)
         self.env["iatf.mold.maintenance"].create({
             "mold_id": mold.id, "maintenance_type": "clean",

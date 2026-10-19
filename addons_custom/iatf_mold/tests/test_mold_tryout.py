@@ -16,8 +16,10 @@ class TestMoldTryout(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
-            "name": "T-이관금형", "mold_type": "injection",
+        # 금형 마스터 단일화 후 기본 상태는 생산계획 호환을 위해 '사용중(active)' 이다.
+        # 이관·신규 금형은 T/O 전 '등록(draft)' 으로 명시해 등록한다.
+        self.mold = self.env["injection.mold"].create({
+            "name": "T-이관금형", "mold_type": "injection", "state": "draft",
         })
         self.Tryout = self.env["iatf.mold.tryout"]
 
@@ -41,7 +43,7 @@ class TestMoldTryout(TransactionCase):
         to2 = self._tryout(reason="repair")
         self.assertEqual(to2.tryout_no, 2, "같은 금형의 다음 차수는 자동 증가")
 
-        other = self.env["iatf.mold"].create({"name": "T-다른금형"})
+        other = self.env["injection.mold"].create({"name": "T-다른금형"})
         to3 = self.Tryout.create({"mold_id": other.id, "reason": "new"})
         self.assertEqual(to3.tryout_no, 1, "차수는 금형별로 센다")
 
@@ -86,7 +88,7 @@ class TestMoldTryout(TransactionCase):
         self.mold.action_activate()
         self.assertTrue(self.mold.is_tryout_missing)
         self.assertIn(
-            self.mold, self.env["iatf.mold"].search([("is_tryout_missing", "=", True)])
+            self.mold, self.env["injection.mold"].search([("is_tryout_missing", "=", True)])
         )
         # 막지 않되 chatter 에 경고를 남긴다 (알고도 넣었다는 사실이 증빙에 남는다)
         self.assertTrue(
@@ -112,7 +114,7 @@ class TestMoldTryout(TransactionCase):
         self.mold.invalidate_recordset()
         self.assertFalse(self.mold.is_tryout_missing)
         self.assertNotIn(
-            self.mold, self.env["iatf.mold"].search([("is_tryout_missing", "=", True)])
+            self.mold, self.env["injection.mold"].search([("is_tryout_missing", "=", True)])
         )
 
     # ───────── ③ 상·하한 벗어난 값의 합부 판정 ─────────

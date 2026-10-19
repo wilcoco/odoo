@@ -16,7 +16,7 @@ class TestMoldCheck(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
+        self.mold = self.env["injection.mold"].create({
             "name": "T-점검금형", "mold_type": "injection", "check_cycle_days": 7,
         })
         self.Check = self.env["iatf.mold.check"]
@@ -106,7 +106,7 @@ class TestMoldCheck(TransactionCase):
         self.assertEqual(self.mold.next_check_due, today - relativedelta(days=3))
         self.assertTrue(self.mold.is_check_overdue)
         self.assertIn(
-            self.mold, self.env["iatf.mold"].search([("is_check_overdue", "=", True)])
+            self.mold, self.env["injection.mold"].search([("is_check_overdue", "=", True)])
         )
 
         # 오늘 점검하면 해소된다
@@ -117,7 +117,7 @@ class TestMoldCheck(TransactionCase):
         self.assertEqual(self.mold.next_check_due, today + relativedelta(days=7))
         self.assertFalse(self.mold.is_check_overdue)
         self.assertNotIn(
-            self.mold, self.env["iatf.mold"].search([("is_check_overdue", "=", True)])
+            self.mold, self.env["injection.mold"].search([("is_check_overdue", "=", True)])
         )
 
     def test_draft_check_is_not_actual(self):
@@ -154,10 +154,10 @@ class TestMoldCheck(TransactionCase):
         chk = self._check(check_date=today - relativedelta(days=30),
                           lines=[{"item_name": "형면 이물", "result": "ok"}])
         chk.action_done()
-        never = self.env["iatf.mold"].create({"name": "T-점검없음", "check_cycle_days": 7})
+        never = self.env["injection.mold"].create({"name": "T-점검없음", "check_cycle_days": 7})
         self.mold.invalidate_recordset()
 
-        not_overdue = self.env["iatf.mold"].search([("is_check_overdue", "!=", True)])
+        not_overdue = self.env["injection.mold"].search([("is_check_overdue", "!=", True)])
         self.assertIn(never, not_overdue)
         self.assertNotIn(self.mold, not_overdue)
 
@@ -257,7 +257,7 @@ class TestMoldCheckIntegrity(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
+        self.mold = self.env["injection.mold"].create({
             "name": "T-무결성금형", "mold_type": "injection", "check_cycle_days": 7})
         self.Check = self.env["iatf.mold.check"]
         self.today = fields.Date.context_today(self.Check)

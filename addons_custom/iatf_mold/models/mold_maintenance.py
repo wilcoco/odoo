@@ -11,7 +11,7 @@ class IatfMoldMaintenance(models.Model):
         string="번호", required=True, copy=False, readonly=True,
         default=lambda self: _("New"),
     )
-    mold_id = fields.Many2one("iatf.mold", string="금형", required=True, tracking=True)
+    mold_id = fields.Many2one("injection.mold", string="금형", required=True, tracking=True)
     maintenance_type = fields.Selection(
         [
             ("pm", "예방보전"),

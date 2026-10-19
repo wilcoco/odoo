@@ -1,7 +1,7 @@
 {
     "name": "IATF Quality Dashboard",
     "summary": "Central IATF 16949 dashboard with KPIs, cross-links, reports, and Excel import",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
