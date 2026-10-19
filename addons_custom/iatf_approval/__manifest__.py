@@ -1,7 +1,7 @@
 {
     "name": "IATF Approval Workflow",
     "summary": "Reusable sequential approval workflow with notifications",
-    "version": "18.0.1.2.4",
+    "version": "18.0.1.3.0",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
@@ -12,6 +12,7 @@
         "views/approval_evidence_views.xml",
         "data/approval_activity_type.xml",
         "views/approval_template_views.xml",
+        "views/approval_policy_views.xml",
     ],
     "installable": True,
     "application": False,

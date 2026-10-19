@@ -58,10 +58,10 @@ class TestOutgoingGate(PqcBasisMixin, TransactionCase):
                        'iatf_shipping_inspection.group_shipping_inspection_user',
                 company_id=self.env.company.id,
                 company_ids=[Command.set(self.env.company.ids)])
-        inspection = inspection.with_user(self.approver)
+        # 자기결재 금지: 상신은 검사 담당(현재 사용자), 승인은 별도 승인자
         inspection.approval_line_ids = [Command.create({'user_id': self.approver.id})]
         inspection.action_submit_approval()
-        inspection.action_approve_approval()
+        inspection.with_user(self.approver).action_approve_approval()
         self.assertEqual(inspection.approval_state, 'approved')
         self.assertTrue(inspection.outgoing_approval_snapshot)
 
@@ -397,9 +397,9 @@ class TestOutgoingGate(PqcBasisMixin, TransactionCase):
             'datas': base64.b64encode(b'ORIGINAL SHIPPING EVIDENCE'),
             'res_model': inspection._name, 'res_id': inspection.id})
         inspection.write({'attachment_ids': [Command.link(attachment.id)]})
-        inspection = inspection.with_user(self.approver)
         inspection.approval_line_ids = [Command.clear(), Command.create({'user_id': self.approver.id})]
         inspection.action_submit_approval()
+        inspection = inspection.with_user(self.approver)
         if approve:
             inspection.action_approve_approval()
         return inspection, attachment

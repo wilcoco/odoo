@@ -1,5 +1,6 @@
 from . import approval_request
 from . import approval_template
+from . import approval_policy
 from . import approval_guard
 
 from . import integrity
