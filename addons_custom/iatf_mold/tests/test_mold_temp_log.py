@@ -15,7 +15,7 @@ class TestMoldTempLog(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.mold = self.env["iatf.mold"].create({
+        self.mold = self.env["injection.mold"].create({
             "name": "T-온도금형", "mold_type": "injection",
             "preheat_temp_min": 60.0, "preheat_temp_max": 90.0,
             "mold_temp_min": 40.0, "mold_temp_max": 70.0,
@@ -56,7 +56,7 @@ class TestMoldTempLog(TransactionCase):
 
     def test_no_spec_is_not_pass_and_not_fail(self):
         """기준이 없으면 '기준 없음'. 0℃ 상하한으로 읽어 전부 부적합으로 만들지 않는다."""
-        bare = self.env["iatf.mold"].create({"name": "T-기준없음", "mold_type": "injection"})
+        bare = self.env["injection.mold"].create({"name": "T-기준없음", "mold_type": "injection"})
         log = self._log(mold_id=bare.id, temperature=75.0)
         self.assertEqual(log.spec_result, "no_spec")
         self.assertEqual(log.spec_min, 0.0)
@@ -128,7 +128,7 @@ class TestMoldTempLog(TransactionCase):
 
     def test_one_sided_spec(self):
         """하한만 있는 금형 — 상한 0 을 '0℃ 초과 금지' 로 읽지 않는다."""
-        one = self.env["iatf.mold"].create({
+        one = self.env["injection.mold"].create({
             "name": "T-하한만", "mold_type": "injection", "preheat_temp_min": 60.0,
         })
         self.assertEqual(self._log(mold_id=one.id, temperature=1000.0).spec_result, "ok")

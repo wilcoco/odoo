@@ -27,9 +27,9 @@ class IatfMoldCheck(models.Model):
         default=lambda self: _("New"),
     )
     mold_id = fields.Many2one(
-        "iatf.mold", string="금형", required=True, index=True, tracking=True,
+        "injection.mold", string="금형", required=True, index=True, tracking=True,
         # 점검 기록은 심사 증빙이다. 금형 삭제로 조용히 사라지면 "그 기간에
-        # 점검을 했는가" 를 아무도 답할 수 없다. 금형은 폐기(disposed) 로 둔다.
+        # 점검을 했는가" 를 아무도 답할 수 없다. 금형은 폐기(retired) 로 둔다.
         ondelete="restrict",
     )
     check_type = fields.Selection(
@@ -544,7 +544,7 @@ class IatfMoldCheckSnapshot(models.Model):
     # ── 완료 당시의 원본 식별 정보 (동결) ──
     # 되돌려 금형·날짜·생산지시를 고치고 재완료하면, 항목 전문만으로는 '그때 무엇을
     # 점검했는지' 를 복원할 수 없었다. 현재 값을 따라가는 related 로 두면 같은 문제다.
-    mold_id = fields.Many2one("iatf.mold", string="그때의 금형", readonly=True)
+    mold_id = fields.Many2one("injection.mold", string="그때의 금형", readonly=True)
     mold_name = fields.Char(string="그때의 금형(문자)", readonly=True)
     check_type = fields.Char(string="그때의 점검 구분", readonly=True)
     check_date = fields.Date(string="그때의 점검일", readonly=True)

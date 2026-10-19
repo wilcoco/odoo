@@ -21,11 +21,11 @@ class IatfMoldTryout(models.Model):
         default=lambda self: _("New"),
     )
     mold_id = fields.Many2one(
-        "iatf.mold", string="금형", required=True, index=True, tracking=True,
+        "injection.mold", string="금형", required=True, index=True, tracking=True,
         # cascade 가 아니라 restrict 다. 시사출 보고서는 금형에 딸린 명세 줄이 아니라
         # 그 자체가 심사 증빙 문서다. 금형을 지우면서 증빙이 조용히 같이 사라지면
         # 나중에 "그때 T/O 를 했는가" 를 아무도 답할 수 없다. 금형은 지우지 말고
-        # 폐기(disposed) 상태로 두는 것이 정상 경로다.
+        # 폐기(retired) 상태로 두는 것이 정상 경로다.
         ondelete="restrict",
     )
     tryout_date = fields.Date(

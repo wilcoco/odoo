@@ -9,17 +9,32 @@ from odoo.exceptions import ValidationError
 TEMP_SPEC_TYPES = ("injection", "die_casting")
 
 
-class IatfMold(models.Model):
-    _name = "iatf.mold"
-    _description = "금형/치공구 대장 (IATF 16949 §8.5.1.6)"
-    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
-    _order = "code"
+class InjectionMold(models.Model):
+    """금형 마스터는 `injection.mold` 하나다 (2026-10 단일화).
 
-    code = fields.Char(
-        string="금형 코드", required=True, copy=False, readonly=True,
-        default=lambda self: _("New"),
+    생산계획·사출 현장·PLC 샷카운트가 쓰는 `injection.mold` 에 IATF/SQ 금형관리
+    (대장 사양·소유권·수명·관리기준·점검·세척·예열/온도·시사출·보전·결재)를 얹는다.
+    예전 `iatf.mold` 는 운영 데이터 0건 상태에서 폐지했다(18.0.2.0.0). 현장은 생산하면서,
+    품질은 SQ 증빙을 남기면서 **같은 금형 레코드**를 본다 — 두 대장에 이중 입력하지 않는다.
+
+    `injection_planning` 이 정의한 필드(code·name·product_id·cavity_count·
+    current_shots·guaranteed_shots·responsible_id·company_id·state·active)는
+    그대로 쓰고 다시 선언하지 않는다. 금형 코드는 사람이 정하는 고유 코드이며,
+    코드 없이 ORM 으로 만들 때만 예전처럼 `MD-` 시퀀스로 채운다.
+    """
+
+    _name = "injection.mold"
+    # 순서 주의: 결재 믹스인을 앞에 둔다. injection.mold 는 이미 mail.thread 를 상속하고,
+    # 결재 믹스인도 mail.thread 를 상속하므로 뒤에 붙이면 MRO 를 만들 수 없다(레지스트리 로드 실패).
+    _inherit = ["iatf.approval.mixin", "injection.mold"]
+
+    # 등록(draft): 이관·신규 금형이 시사출(T/O) 전인 상태. 비사용(inactive): 보관 중.
+    # 폐기는 injection_planning 의 retired(폐기) 를 쓴다(예전 iatf.mold 의 disposed).
+    # 기본값은 생산계획·현장 호환을 위해 injection_planning 의 active 를 유지한다.
+    state = fields.Selection(
+        selection_add=[("draft", "등록"), ("inactive", "비사용")],
+        ondelete={"draft": "set default", "inactive": "set default"},
     )
-    name = fields.Char(string="금형명", required=True, tracking=True)
     mold_type = fields.Selection(
         [
             ("injection", "사출 금형"),
@@ -34,10 +49,8 @@ class IatfMold(models.Model):
         string="유형", required=True, default="injection", tracking=True,
     )
 
-    # ── 사양 ──
-    product_id = fields.Many2one("product.product", string="생산 제품", tracking=True)
+    # ── 사양 (생산 제품·캐비티 수는 injection_planning 필드) ──
     part_number = fields.Char(string="부품 번호")
-    cavity_count = fields.Integer(string="캐비티 수", default=1)
     material = fields.Char(string="금형 재질")
     weight_kg = fields.Float(string="중량 (kg)")
     dimensions = fields.Char(string="치수 (LxWxH)")
@@ -54,11 +67,12 @@ class IatfMold(models.Model):
     owner_id = fields.Many2one("res.partner", string="소유자 (고객/협력업체)")
     customer_mold_number = fields.Char(string="고객 금형 번호")
 
-    # ── 수명 관리 ──
-    guaranteed_shots = fields.Integer(string="보증 타수 (샷)")
-    current_shots = fields.Integer(string="현재 타수", tracking=True)
-    remaining_shots = fields.Integer(string="잔여 타수", compute="_compute_remaining", store=True)
-    life_percentage = fields.Float(string="수명 사용률 (%)", compute="_compute_remaining", store=True)
+    # ── 수명 관리 (보증·현재 샷수는 injection_planning 필드 — 현장 PLC 가 누적한다) ──
+    # 저장하지 않는다. 사출 현장은 샷마다 current_shots 를 SQL 로 직접 올리므로(ORM 우회)
+    # 저장 계산 필드는 다시 계산되지 않고 굳는다 — 그러면 수명 경고(80%)가 영영 안 뜬다.
+    remaining_shots = fields.Integer(string="잔여 타수", compute="_compute_remaining")
+    life_percentage = fields.Float(
+        string="수명 사용률 (%)", compute="_compute_remaining", search="_search_life_percentage")
     pm_cycle_shots = fields.Integer(string="PM 주기 (타수)", default=50000)
     last_pm_shots = fields.Integer(string="최근 PM 타수")
     next_pm_shots = fields.Integer(string="다음 PM 타수", compute="_compute_next_pm", store=True)
@@ -147,8 +161,7 @@ class IatfMold(models.Model):
     storage_location = fields.Char(string="보관 위치")
     preservation_method = fields.Char(string="보존 방법", help="예: 방청유 도포, 건조 보관")
 
-    # ── 담당 ──
-    responsible_id = fields.Many2one("res.users", string="담당자", tracking=True)
+    # ── 담당 (담당자 responsible_id 는 injection_planning 필드) ──
     department_id = fields.Many2one("hr.department", string="관리 부서")
 
     # ── 관련 기록 ──
@@ -160,17 +173,19 @@ class IatfMold(models.Model):
     image = fields.Binary(string="금형 사진")
     notes = fields.Text(string="비고")
 
-    state = fields.Selection(
-        [
-            ("draft", "등록"),
-            ("active", "사용 중"),
-            ("maintenance", "보전 중"),
-            ("inactive", "비사용"),
-            ("disposed", "폐기"),
-        ],
-        string="상태", default="draft", tracking=True,
-    )
-    company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+    # 생산이 자동으로 바꾸는 값은 금형 대장 결재를 초기화하지 않는다.
+    # 승인 대상은 대장 사양·관리기준이다. 이 값들까지 초기화 사유로 보면
+    # 사출 한 샷·계획 확정 한 번마다 승인이 풀려 결재 기록이 의미를 잃는다.
+    _MOLD_OPERATIONAL_FIELDS = {
+        "current_shots",                 # PLC·MO 완료 샷 누적
+        "x_planning_reservation_seq",    # 생산계획 확정 직렬화
+        "state",                         # 사용·보전·비사용 운영 전환(이력은 tracking)
+        "last_pm_shots",                 # 보전 실시 결과
+        "changeover_hours_confirmed", "changeover_confirmed_by", "changeover_confirmed_at",
+    }
+
+    def _approval_reset_ignored_fields(self):
+        return super()._approval_reset_ignored_fields() | self._MOLD_OPERATIONAL_FIELDS
 
     @api.depends("guaranteed_shots", "current_shots")
     def _compute_remaining(self):
@@ -181,6 +196,26 @@ class IatfMold(models.Model):
             else:
                 rec.remaining_shots = 0
                 rec.life_percentage = 0.0
+
+    _LIFE_OPERATORS = {">=": ">=", ">": ">", "<=": "<=", "<": "<", "=": "="}
+
+    def _search_life_percentage(self, operator, value):
+        """현재 샷/보증 샷 비율로 검색한다(저장 컬럼 없이 SQL 로 계산).
+
+        보증 샷이 없는 금형의 사용률은 0 으로 본다(계산 필드와 같은 규칙).
+        """
+        sql_op = self._LIFE_OPERATORS.get(operator)
+        if not sql_op:
+            raise ValidationError(_("수명 사용률은 >=, >, <=, <, = 로만 검색할 수 있습니다."))
+        self.env["injection.mold"].flush_model(["current_shots", "guaranteed_shots"])
+        self.env.cr.execute(
+            "SELECT id FROM injection_mold WHERE "
+            "(CASE WHEN COALESCE(guaranteed_shots, 0) > 0 "
+            "      THEN COALESCE(current_shots, 0) * 100.0 / guaranteed_shots ELSE 0 END) "
+            + sql_op + " %s",
+            [float(value or 0.0)],
+        )
+        return [("id", "in", [row[0] for row in self.env.cr.fetchall()])]
 
     @api.depends("last_pm_shots", "pm_cycle_shots")
     def _compute_next_pm(self):
@@ -400,8 +435,10 @@ class IatfMold(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        # 금형 코드는 사람이 정하는 고유 코드(injection_planning 필수 필드)다.
+        # 비어 있거나 'New' 로 들어온 경우에만 예전 IATF 대장 채번(MD-xxxx)으로 채운다.
         for vals in vals_list:
-            if vals.get("code", _("New")) == _("New"):
+            if vals.get("code", _("New")) in (False, "", _("New")):
                 vals["code"] = self.env["ir.sequence"].next_by_code("iatf.mold") or _("New")
         return super().create(vals_list)
 
@@ -427,7 +464,8 @@ class IatfMold(models.Model):
         self.write({"state": "inactive"})
 
     def action_dispose(self):
-        self.write({"state": "disposed"})
+        # 폐기 = injection_planning 의 retired. 생산계획·현장 금형 목록(state=active)에서 빠진다.
+        self.write({"state": "retired"})
 
     def action_add_shots(self):
         """타수 추가 위저드 대신 간단히 처리"""

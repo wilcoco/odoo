@@ -39,7 +39,7 @@ if not production.mold_id or production.mold_id.mold_type != "injection":
     continue
 ```
 
-판별 기준은 `mold_id`(→ `iatf.mold`, `iatf_mold` 모듈)의 `mold_type` 필드다. `iatf.mold.mold_type`은 `injection`(사출 금형) 외에도 `press`, `die_casting`, `jig`, `fixture` 등을 가지므로, **사출 금형이 지정된 MO만** 이 모듈의 LOT 자동 생성 대상이 된다.
+판별 기준은 `mold_id`(→ `injection.mold`, 유형 필드는 `iatf_mold` 모듈이 추가)의 `mold_type` 필드다. 금형 마스터는 2026-10 `injection.mold` 하나로 단일화됐다(예전 `iatf.mold` 폐지). `mold_type`은 `injection`(사출 금형) 외에도 `press`, `die_casting`, `jig`, `fixture` 등을 가지므로, **사출 금형이 지정된 MO만** 이 모듈의 LOT 자동 생성 대상이 된다.
 
 - `mold_id` 없음 (조립 등 일반 MO) → 건너뜀
 - `mold_id`는 있으나 사출 금형이 아님 (프레스·지그 등) → 건너뜀
