@@ -45,13 +45,13 @@
 
 ## 정본·미러 대응
 
-- 정본 커밋 및 경로: (커밋 후 기입) — `addons_custom/{iatf_approval,escon_eapproval,iatf_incoming_inspection/tests,iatf_process_inspection/tests}`
+- 정본 커밋 및 경로: `10a350bbe374` — `addons_custom/{iatf_approval,escon_eapproval,iatf_incoming_inspection/tests,iatf_process_inspection/tests}`
 - 미러 커밋 및 경로: 미반영. 병합 후 `escon-odoo/odoo_gh/iatf_plugins/` 동기화 대상. 미러 전용 `gh_vendor_settlement` 시험 fixture(작성자=결재자)는 미러 브랜치 `fix/approval-self-check-tests` 에서 함께 고친다.
 - 의도적 차이 또는 역반영 판정: 없음.
 
 ## 검증 증거
 
-- 코드 커밋: (커밋 후 기입)
+- 코드 커밋: `10a350bbe374`(구현·시험·fixture), 이 문서 갱신 커밋
 - DB/환경: 운영 서버 10.10.21.20 격리 시험 스택, DB `odoo18_auth_test`(2026-10-19 운영 덤프 복원·중립화), 실행 코드 = 운영 `27eee63` 런타임 + 이 브랜치 모듈 오버레이(`refresh-20261020/runtime-auth`), 운영 컨테이너 무변경
 - 실행 명령(서버 `claude_auth_test.py`):
   - 1차: `-u iatf_approval,escon_eapproval --test-enable --test-tags /iatf_approval,/escon_eapproval` → `auth-tests1.log` **54건 실패 0·오류 0**(신규 9 포함)
@@ -59,7 +59,9 @@
 - 결과 및 로그/산출물(서버 `/db/codex-testdb/odoo18-test-20261015/refresh-20261020/`):
   - 운영 코드 기준 `auth-regression-base.log`: 805건 중 오류 8(`TestRetroSettlement` — 대사 규칙 이전 시험, 이번 변경과 무관)
   - 1차 회귀 `auth-regression-branch.log`: 814건 중 오류 98 — 90건이 **시험 fixture 의 자기결재**(IQC 18, 출하 게이트 26, 정산 대사·가감·품의 43 등)에서 새 금지에 걸린 것. 제품 결함 아님 → fixture 를 "작성자≠결재자"로 수정
-  - 2차 회귀 `auth-regression-branch2.log`: (기입)
+  - 2차 회귀 `auth-regression-branch2.log`: 814건 중 오류 11 — 기존 8 + fixture 잔여 3(검사 승인자의 관리문서 읽기 권한, 반품 시험의 승인자 미정의) → fixture 보완
+  - 3차 `auth-tests2.log`(검사·결재 170건): **실패 0·오류 0**
+  - 최종 회귀 `auth-regression-branch3.log`: **814건 중 오류 8 = 운영 코드와 같은 `TestRetroSettlement` 8건** → 새로 생긴 실패 0, 신규 시험 9건 통과
 - 미실행 검증과 이유: 화면(브라우저) 조작, 실사용자 부서장·직급 연결(운영 계정 3개뿐).
 
 ## 배포·롤백
