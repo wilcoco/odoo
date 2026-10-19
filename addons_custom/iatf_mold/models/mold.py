@@ -24,7 +24,9 @@ class InjectionMold(models.Model):
     """
 
     _name = "injection.mold"
-    _inherit = ["injection.mold", "iatf.approval.mixin"]
+    # 순서 주의: 결재 믹스인을 앞에 둔다. injection.mold 는 이미 mail.thread 를 상속하고,
+    # 결재 믹스인도 mail.thread 를 상속하므로 뒤에 붙이면 MRO 를 만들 수 없다(레지스트리 로드 실패).
+    _inherit = ["iatf.approval.mixin", "injection.mold"]
 
     # 등록(draft): 이관·신규 금형이 시사출(T/O) 전인 상태. 비사용(inactive): 보관 중.
     # 폐기는 injection_planning 의 retired(폐기) 를 쓴다(예전 iatf.mold 의 disposed).
