@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- 사출 생산 관리 루트 메뉴 -->
+    <!-- 사출 생산 관리 루트 메뉴 — 2026-10-19 사용자 결정: 모듈·API 는 두되 메뉴는 노출하지 않는다(현장은 injection_worksite 경로 사용, 이 경로 데이터 0건) -->
     <menuitem id="menu_engel_injection_root"
               name="사출 생산 관리"
               parent="iatf_document_control.menu_iatf_root"
-              sequence="22"/>
+              sequence="22"
+              active="False"/>
 
     <!-- 하위 메뉴 -->
     <menuitem id="menu_injection_serial"
               name="시리얼 레코드"
               parent="menu_engel_injection_root"
               action="action_injection_serial"
-              sequence="10"/>
+              sequence="10"
+              active="False"/>
 
     <menuitem id="menu_car_model"
               name="차종 관리"
               parent="menu_engel_injection_root"
               action="action_car_model"
-              sequence="15"/>
+              sequence="15"
+              active="False"/>
 
     <menuitem id="menu_defect_type"
               name="불량 유형"
               parent="menu_engel_injection_root"
               action="action_defect_type"
-              sequence="20"/>
+              sequence="20"
+              active="False"/>
 
     <menuitem id="menu_machine_status"
               name="설비 상태"
               parent="menu_engel_injection_root"
               action="action_machine_status"
-              sequence="30"/>
+              sequence="30"
+              active="False"/>
 
 
 </odoo>
