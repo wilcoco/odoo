@@ -1,76 +1,11 @@
-from odoo import api, fields, models, _
-from odoo.exceptions import UserError
-import logging
-
-_logger = logging.getLogger(__name__)
+from odoo import fields, models
 
 
 class MrpBom(models.Model):
     _inherit = "mrp.bom"
 
-    change_locked = fields.Boolean(string="변경 잠금", default=False,
-                                    help="미승인 CR 존재 시 True")
-
-    def write(self, vals):
-        """BOM 변경 시 자동으로 변경요청(CR) 생성 + 미승인 CR 존재 시 차단 (L3-4)"""
-        change_fields = {"bom_line_ids", "product_tmpl_id", "product_qty",
-                         "routing_id", "operation_ids", "type"}
-        trigger_fields = set(vals.keys()) & change_fields
-
-        self._check_pending_change_requests(vals)
-        old_values = {}
-        if trigger_fields:
-            for rec in self:
-                old_values[rec.id] = {
-                    "product": rec.product_tmpl_id.name,
-                    "qty": rec.product_qty,
-                    "lines": len(rec.bom_line_ids),
-                }
-
-        res = super().write(vals)
-        self._create_bom_change_requests(vals, old_values)
-        return res
-
-    def _check_pending_change_requests(self, vals):
-        """BOM 자체 저장과 분리된 IATF 변경요청 사전 확인."""
-        change_fields = {"bom_line_ids", "product_tmpl_id", "product_qty",
-                         "routing_id", "operation_ids", "type"}
-        trigger_fields = set(vals.keys()) & change_fields
-
-        # 미승인 CR 존재 시 BOM 변경 차단
-        if trigger_fields and "change_locked" not in vals:
-            CR = self.env.get("iatf.change.request")
-            if CR is not None:
-                for rec in self:
-                    pending_crs = CR.search([
-                        ("affected_product_ids", "in", rec.product_tmpl_id.product_variant_ids.ids),
-                        ("state", "not in", ("approved", "closed", "cancelled")),
-                    ])
-                    if pending_crs:
-                        raise UserError(_(
-                            "미승인 변경요청(CR)이 존재하여 BOM을 수정할 수 없습니다.\n"
-                            "CR 승인 후 BOM을 수정하세요.\n"
-                            "관련 CR: %s") % ", ".join(pending_crs.mapped("name")))
-
-    def _create_bom_change_requests(self, vals, old_values):
-        """BOM 저장 후 변경요청 자동 생성을 별도 경계로 유지한다."""
-        change_fields = {"bom_line_ids", "product_tmpl_id", "product_qty",
-                         "routing_id", "operation_ids", "type"}
-        trigger_fields = set(vals.keys()) & change_fields
-        if trigger_fields:
-            for rec in self:
-                old = old_values.get(rec.id, {})
-                changed_desc = ", ".join(trigger_fields)
-                self.env["iatf.change.request"].create({
-                    "title": _("BOM 변경: %s") % rec.product_tmpl_id.name,
-                    "change_type": "method",
-                    "change_category": "planned",
-                    "change_source": "engineering",
-                    "description": "<p>BOM 자동 변경 감지<br/>제품: %s<br/>변경 필드: %s</p>" % (
-                        rec.product_tmpl_id.name, changed_desc),
-                    "reason": "<p>BOM 수정에 의한 자동 생성</p>",
-                    "affected_product_ids": [(6, 0, rec.product_tmpl_id.product_variant_ids.ids)],
-                    "before_state": "<p>%s</p>" % str(old) if old else False,
-                    "risk_level": "medium",
-                })
-                _logger.info("Change Request auto-created for BOM %s change", rec.display_name)
+    # [2026-09-18 확정 BOM 보호] BOM 저장 시 변경요청(CR)을 자동 생성하고 미승인 CR 로 잠그던 훅은
+    # 제거했다. BOM 변경 통제·이력·결재는 escon_bom_util(활성 잠금 + 개정 결재 + 불변 이력)이 맡는다.
+    # 이미 생성된 자동 CR 은 데이터로 남긴다. 필드는 기존 뷰 호환을 위해 유지한다.
+    change_locked = fields.Boolean(string="변경 잠금(구)", default=False,
+                                   help="구 자동 변경요청 훅의 흔적. 더 이상 잠금에 쓰지 않는다.")
