@@ -138,8 +138,10 @@ v1(테스트 초안 078) + 개발 검토(079) 반영. 상위 문서: handoff `00
 
 ## ④ pre-commit 가드 (AgentShield 대신) — railway-uat·odoo_gh(문서 브랜치 포함) 양쪽 동일 훅
 - 차단 패턴: `enterprise/` 경로, `*.secret`(`uat-password.secret`, `prod-test-accounts.secret` 포함), `.env`,
-  `*.dump`/`*.sql`, `sk-`/`Bearer `/`opstest` 토큰 류.
-- 도구는 `pre-commit` + 자체 셸 훅. 제3자 스캐너 불필요.
+  `*.dump`/`*.sql`, 내용 중 `sk-…`/`Bearer …`/`supplier_portal_token|approval_token|qr_token|api_key|password` 뒤 16자 이상 **토큰 값**
+  (`opstest` 문자열 자체는 막지 않는다 — handoff 13·14 문서의 OPSTEST 레코드명 때문. **opstest 토큰 값** 패턴으로 대신).
+- 도구는 `pre-commit` + 자체 셸 훅(`scripts/hooks/pre-commit-secrets.sh`). 제3자 스캐너 불필요.
+- 훅 자체 시험: `zz-test.secret` 스테이징 → `BLOCK(비밀·덤프 파일)`, exit 1 (개발 081 실측).
 
 ## ⑤ 정리
 - `AGENTS.md` → "CLAUDE.md 를 본다" 한 줄로 축소.
@@ -152,3 +154,19 @@ v1(테스트 초안 078) + 개발 검토(079) 반영. 상위 문서: handoff `00
 - **claude-development(총괄)**: ② `railway-uat/CLAUDE.md`·④ pre-commit·⑤ 적용. railway-uat push 는
   **다음 기능 배포와 묶어 1회**(재배포 + 사용자 비활성 재적용 유발), 큐 선통지. 지금 예정 배포 없음 → v2 확정 후 날을 잡는다.
 - 적용 결과 SHA 를 큐로 교환.
+
+---
+
+## 적용 결과 (2026-10-22, 078→081 — 닫음)
+
+| 항목 | 담당 | 저장소/브랜치 | SHA / 상태 |
+|---|---|---|---|
+| ① `CLAUDE.md` 개발 규약 절 | claude-test | `~/cams-odoo`(사용자 로컬, 커밋은 사용자 판단) | 로컬 적용 완료 07:06 |
+| ⑤ `AGENTS.md` 한 줄 축소 | claude-test | `~/cams-odoo` | 로컬 적용 완료 |
+| ③ 스킬 3종 `.claude/skills/{uat-precheck,clone-verify,queue-reply}` | claude-test (개발 081 검토 반영) | `~/cams-odoo` | 로컬 적용 완료 |
+| 합의본 게시 | claude-test | wilcoco/odoo `handoff` `docs/tasks/20261022-01_…` | v2 `40ccd41d1ba` → 적용결과 포함 재게시 |
+| ② `railway-uat/CLAUDE.md` + ④ `scripts/hooks/pre-commit-secrets.sh`·`.pre-commit-config.yaml` | claude-development | work/railway-uat `main`(origin wilcoco/odoo-uat) | **`12dbb73` 로컬 커밋·미push(ahead 1)** — 다음 기능 배포와 묶어 push, 선통지. `.git/hooks/pre-commit` 설치 완료 |
+| ④ 같은 훅·설정 사본 | claude-development | escon-odoo/odoo_gh `docs/handoff-claude-20261015` → `docs/tasks/handoff-claude-20261015/tools/` | **`4cc74d4`** (`git ls-remote` 원격 확인) |
+| ECC 통째 설치 | — | — | 보류(합의) |
+
+GitHub 통신 브랜치는 역할별로 다르다: 테스트 = wilcoco/odoo `handoff`, 총괄 = escon-odoo/odoo_gh `docs/handoff-claude-20261015`.
