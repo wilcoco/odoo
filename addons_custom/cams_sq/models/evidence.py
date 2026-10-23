@@ -73,6 +73,8 @@ class SqEvidenceRule(models.Model):
             if target._name == 'iatf.audit':
                 # A self-assessment must not become its own proof of an IATF audit.
                 domain = expression.AND([domain, [('audit_type', '!=', 'sq'), ('state', '!=', 'cancelled')]])
+            if target._name == 'iatf.document':
+                domain = expression.AND([domain, [('quality_evidence_current', '=', True)]])
         except (ValueError, TypeError):
             raise UserError(_('조건은 JSON 도메인 목록이어야 합니다.'))
         # A company-wide checklist count cannot establish any particular SQ item.

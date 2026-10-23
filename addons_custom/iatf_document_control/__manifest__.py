@@ -1,7 +1,7 @@
 {
     "name": "IATF Document Control",
     "summary": "IATF 16949 §7.5 — Document & Record Control with approval workflow, revision history, and distribution management",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.1.0",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
@@ -12,6 +12,7 @@
         "data/sequence.xml",
         "views/document_category_views.xml",
         "views/document_views.xml",
+        "views/quality_evidence_views.xml",
         "views/product_template_views.xml",
         "views/document_revision_views.xml",
         "views/res_config_settings_views.xml",

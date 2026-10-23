@@ -25,7 +25,8 @@ class SqDailyItem(models.Model):
         documents = self.env['iatf.document'].browse(self._bound_source_ids('iatf.document')).exists()
         documents.check_access('read')
         today = fields.Date.context_today(self)
-        due = documents.filtered(lambda d: d.next_review_date and d.next_review_date < today)
+        due = documents.filtered(lambda d: (d.next_review_date and d.next_review_date < today)
+                                 or (d.state == 'approved' and not d.quality_evidence_current))
         unapproved = documents.filtered(lambda d: d.state != 'approved')
         return dict(total=len(documents), due=len(due), unapproved=len(unapproved),
             status='연결 문서 없음' if not documents else '문서 검토 필요' if due or unapproved else '연결 문서 상태 확인 · 내용 적합 판정 아님')
