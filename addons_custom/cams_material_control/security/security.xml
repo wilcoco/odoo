@@ -1,0 +1,12 @@
+<odoo>
+<record id="group_material_user" model="res.groups"><field name="name">건조·자재 점검 담당</field><field name="implied_ids" eval="[(4,ref('cams_evidence_core.group_evidence_user')),(4,ref('iatf_traceability.group_traceability_user'))]"/></record>
+<record id="group_material_manager" model="res.groups"><field name="name">건조·자재 점검 책임자</field><field name="implied_ids" eval="[(4,ref('group_material_user')),(4,ref('cams_evidence_core.group_evidence_manager'))]"/></record>
+<record id="rule_dryer_check_company" model="ir.rule"><field name="name">건조장치 일상·수분 점검 회사 격리</field><field name="model_id" ref="model_cams_dryer_check"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="rule_dryer_filter_log_company" model="ir.rule"><field name="name">건조기 필터 청소·교환 회사 격리</field><field name="model_id" ref="model_cams_dryer_filter_log"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="rule_grind_sample_company" model="ir.rule"><field name="name">분쇄재 월간 입자 점검 회사 격리</field><field name="model_id" ref="model_cams_grind_sample"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="rule_grinder_check_company" model="ir.rule"><field name="name">분쇄기 점검 일지 회사 격리</field><field name="model_id" ref="model_cams_grinder_check"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="iatf_traceability.group_traceability_user" model="res.groups"><field name="implied_ids" eval="[(4,ref('cams_evidence_core.group_evidence_user'))]"/></record>
+<record id="rule_regrind_company" model="ir.rule"><field name="name">분쇄 장부 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_regrind_log"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="rule_blend_company" model="ir.rule"><field name="name">배합 장부 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_blend_log"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+<record id="rule_blend_line_company" model="ir.rule"><field name="name">배합 투입 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_blend_log_line"/><field name="domain_force">[('blend_id.company_id','in',company_ids)]</field></record>
+</odoo>

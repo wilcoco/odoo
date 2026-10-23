@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_material_equipment,material equipment reference,iatf_equipment.model_iatf_equipment,group_material_user,1,0,0,0
+access_dryer_check_user,cams.dryer.check user,model_cams_dryer_check,group_material_user,1,1,1,0
+access_dryer_check_manager,cams.dryer.check manager,model_cams_dryer_check,group_material_manager,1,1,1,1
+access_dryer_filter_log_user,cams.dryer.filter.log user,model_cams_dryer_filter_log,group_material_user,1,1,1,0
+access_dryer_filter_log_manager,cams.dryer.filter.log manager,model_cams_dryer_filter_log,group_material_manager,1,1,1,1
+access_grind_sample_user,cams.grind.sample user,model_cams_grind_sample,group_material_user,1,1,1,0
+access_grind_sample_manager,cams.grind.sample manager,model_cams_grind_sample,group_material_manager,1,1,1,1
+access_grinder_check_user,cams.grinder.check user,model_cams_grinder_check,group_material_user,1,1,1,0
+access_grinder_check_manager,cams.grinder.check manager,model_cams_grinder_check,group_material_manager,1,1,1,1
+access_material_move,material completed move reference,stock.model_stock_move,group_material_user,1,0,0,0
+access_material_move_line,material completed move line reference,stock.model_stock_move_line,group_material_user,1,0,0,0

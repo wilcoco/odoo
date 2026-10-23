@@ -28,6 +28,15 @@ class QualityEvidence(models.Model):
     quality_reward_reference = fields.Char(string='포상·참여 근거 문서번호', tracking=True)
     quality_evidence_current = fields.Boolean(string='현재 유효한 승인 기준', compute='_compute_quality_current', search='_search_quality_current')
 
+    def _quality_evidence_fields(self):
+        return _QUALITY_FIELDS
+
+    def _quality_evidence_snapshot(self):
+        self.ensure_one()
+        return {name:self[name].ids if self._fields[name].relational else str(self[name])
+            if self._fields[name].type in ('date','datetime') and self[name] else self[name]
+            for name in sorted(self._quality_evidence_fields())}
+
     @api.depends('state', 'active', 'quality_valid_from', 'quality_valid_until')
     def _compute_quality_current(self):
         today = fields.Date.context_today(self)
@@ -58,7 +67,7 @@ class QualityEvidence(models.Model):
                 raise ValidationError(_('다른 회사의 품번을 연결할 수 없습니다.'))
 
     def write(self, vals):
-        if _QUALITY_FIELDS & vals.keys() and self.env.context.get(_WORKFLOW_CONTEXT) is not _WORKFLOW_TOKEN:
+        if self._quality_evidence_fields() & vals.keys() and self.env.context.get(_WORKFLOW_CONTEXT) is not _WORKFLOW_TOKEN:
             self._lock_document()
             if any(doc.state != 'draft' for doc in self):
                 raise UserError(_('승인 기준·견본 정보는 새 개정 또는 회수 후 변경하십시오.'))
@@ -75,7 +84,7 @@ class QualityEvidence(models.Model):
 
     def action_new_revision(self):
         self.ensure_one()
-        metadata = {name: self[name].ids if self._fields[name].relational else str(self[name]) if self._fields[name].type == 'date' and self[name] else self[name] for name in sorted(_QUALITY_FIELDS)}
+        metadata = self._quality_evidence_snapshot()
         result = super().action_new_revision()
         self.revision_ids.sorted('id')[-1:].with_context(**{_WORKFLOW_CONTEXT: _WORKFLOW_TOKEN}).write({'quality_metadata': metadata})
         return result

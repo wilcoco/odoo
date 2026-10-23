@@ -1,5 +1,5 @@
 {'name': 'IATF 도면관리',
- 'version': '18.0.1.1.0',
+ 'version': '18.0.1.2.0',
  'summary': '도면관리, 기술사양변경 내역서, 도면 불출대장, 변경관리대장',
  'category': 'Quality',
  'license': 'LGPL-3',
@@ -9,6 +9,7 @@
              'hr',
              'iatf_document_control',
              'iatf_approval',
+             'cams_evidence_core',
              'iatf_menu',
              'iatf_change_management'],
  'data': ['security/security.xml',
@@ -21,6 +22,7 @@
           'views/drawing_change_register_views.xml',
           'views/drawing_config_views.xml',
           'views/change_readonly.xml',
-          'views/menu.xml'],
+          'views/menu.xml',
+          'views/agreement.xml'],
  'installable': True,
  'application': False}

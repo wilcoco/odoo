@@ -9,9 +9,10 @@ from odoo.tests.common import new_test_user
 @tagged('post_install', '-at_install')
 class TestTemplateScope(TransactionCase):
     def test_company_and_document_subtype_select_independently(self):
-        approver = new_test_user(self.env, login='scope_approver', groups='base.group_user')
+        approver = new_test_user(self.env, login='scope_approver', groups='base.group_user,base.group_partner_manager')
         model = self.env['ir.model']._get('res.partner')
         company2 = self.env['res.company'].create({'name': 'SYNTHETIC template company'})
+        approver.write({'company_ids': [Command.link(company2.id)]})
         templates = self.env['iatf.approval.template']
         base = {'model_id': model.id, 'line_ids': [Command.create({'user_id': approver.id})]}
         ordinary = templates.create(dict(base, name='SYNTHETIC generic company rule'))
@@ -41,8 +42,15 @@ class TestTemplateScope(TransactionCase):
     def test_configuration_warning_does_not_elevate_approver(self):
         user = new_test_user(self.env, login='scope_readonly_approver', groups='base.group_user')
         before = user.groups_id
-        template = self.env['iatf.approval.template'].create({
+        values = {
             'name': 'SYNTHETIC missing write role', 'model_id': self.env['ir.model']._get_id('ir.module.module'),
-            'line_ids': [Command.create({'user_id': user.id})]})
-        self.assertIn('쓰기 권한', template.configuration_note)
+            'line_ids': [Command.create({'user_id': user.id})]}
+        templates = self.env['iatf.approval.template']
+        if 'cams.ops.policy' in self.env:
+            # P0 intentionally tightened the prior warning to a save guard.
+            with self.assertRaises(ValidationError), self.cr.savepoint():
+                templates.create(values)
+        else:
+            template = templates.create(values)
+            self.assertIn('쓰기 권한', template.configuration_note)
         self.assertEqual(user.groups_id, before)
