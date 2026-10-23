@@ -1,7 +1,7 @@
 {
     'name': 'SQ',
     'summary': '사출·전기조립 SQ 기준, 준비 현황, 증빙 조회 및 자체 평가',
-    'version': '18.0.1.4.0',
+    'version': '18.0.1.4.1',
     'license': 'LGPL-3',
     'author': 'ESCON',
     'category': 'Quality',

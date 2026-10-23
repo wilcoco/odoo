@@ -1,0 +1,540 @@
+{
+  "handoff_sha": "1f8f794c8e389fc96e5753471acce24eb9b0f678",
+  "canonical_base": "4754c436e1b8ad9aa43ae2ffaf9617a4df5b30d2",
+  "mirror_base": "47db7e69908bb8afead69de6e7241dae5c415b32",
+  "versions": {
+    "cams_sq": "18.0.1.4.1",
+    "cams_sq_outputs": "18.0.1.0.0"
+  },
+  "counts": {
+    "report": 244,
+    "upload": 207,
+    "external": 7,
+    "export": 9
+  },
+  "source_adapters": [
+    "cams.container.clean",
+    "cams.dryer.check",
+    "cams.dryer.filter.log",
+    "cams.grind.sample",
+    "cams.grinder.check",
+    "cams.limit.sample.check",
+    "cams.periodic.test",
+    "cams.quality.activity",
+    "iatf.audit",
+    "iatf.blend.log",
+    "iatf.blend.standard",
+    "iatf.calibration.record",
+    "iatf.change.request",
+    "iatf.check.record",
+    "iatf.competence.matrix",
+    "iatf.control.plan",
+    "iatf.daily.check",
+    "iatf.document",
+    "iatf.drawing.conformity.check",
+    "iatf.environment.check",
+    "iatf.equipment",
+    "iatf.fmea",
+    "iatf.incoming.inspection",
+    "iatf.jig",
+    "iatf.jig.record",
+    "iatf.measurement.equipment",
+    "iatf.mold.check",
+    "iatf.mold.maintenance",
+    "iatf.mold.temp.log",
+    "iatf.mold.tryout",
+    "iatf.msa.study",
+    "iatf.nonconformity",
+    "iatf.packaging.spec",
+    "iatf.process.inspection",
+    "iatf.qualification.preassessment",
+    "iatf.regrind.log",
+    "iatf.safety.assessment",
+    "iatf.shipping.inspection",
+    "iatf.training.record",
+    "injection.mold",
+    "mrp.production"
+  ],
+  "regression": {
+    "database": "odoo18_sq_p1_rehearsal_20261023",
+    "log": "/db/codex-testdb/sq-followup-20261023/outputs-1792749630220311743.log",
+    "tests": 67,
+    "passed": true,
+    "source_hashes": {
+      "cams_sq/__init__.py": "291b087ddc99dd8b1b64d27ffd14064fd32cf6dd928bff243914d6a8a605d6a4",
+      "cams_sq/__manifest__.py": "9415b0e8632864bcec67b2aeff5f69f54d56f1ffb99a61a842dec602e68d771d",
+      "cams_sq/data/catalog.json": "8cdaf15a6e9650037d6aaa434819d36a651d6afb97092f642159fa619b60e0c6",
+      "cams_sq/data/evidence.json": "1dfbc8dc0d788bd6b05c2d1a05eeb954ad32f3777e30f48492bb63ef384d7bae",
+      "cams_sq/data/evidence_before_review.json": "2c4f0c9772d5798bdb4d34e2b7677d16d9a505440e2c05c6fded10be7065480f",
+      "cams_sq/data/union_20261023.json": "a9314e9e3571767d5dfcc948316ac1fe3b8ee5725b99bb6ae568471071342c47",
+      "cams_sq/migrations/18.0.1.2.0/post-migrate.py": "016ae7d0f61ed51e08f1112f9c0bfc107a2d66116f6f8d192734c6cb6292fe4d",
+      "cams_sq/models/__init__.py": "d4e5b762795c100d95ba97b04282a83f558654e57d95d65c1c769f62a64a26e3",
+      "cams_sq/models/approval.py": "32bdfeaa3f15bdc55826e705f4e7152ee4c3b2aeffbecc3bf6c89eb088daea1b",
+      "cams_sq/models/assessment.py": "6343f09ecedf91a2613832725eece9a82eefddc447352bd577a5545f6e44815a",
+      "cams_sq/models/binding.py": "fc75d377d18a760f4e6533412d2249aee3b9a469383c9d9ac46384f932c5d9b9",
+      "cams_sq/models/catalog.py": "08e66411fcdb2eae746e06a3ca8a4c8d07e9b1e8cda2ff50885f6d0c46915974",
+      "cams_sq/models/evidence.py": "399188369be83db89ceb3605f293413781751a3c5dc0faeffedf33180cc11ec2",
+      "cams_sq/models/metrics.py": "cf546094dbbfb96b696ec63187426bbcd24b03b2677973527aab367320f86d96",
+      "cams_sq/models/package.py": "877fac457d416037eaccbf8c81829a7f35e966e3bd8993a1cdd9d64e8511d69f",
+      "cams_sq/models/union.py": "edac498dd8b0c8dd99a070fe2e08663c88eeabca78035016911510ee1b9514b0",
+      "cams_sq/security/ir.model.access.csv": "955c920792abce0a790bc641ed6c012f2f238073bca4ef7f4f84ec0a323d1427",
+      "cams_sq/security/security.xml": "282d45daa05bda91f19d3f9dbe61c042a20090379a3d795c403be634eaf2f608",
+      "cams_sq/static/description/icon.svg": "1c9ef36629c86b589c725a1ecba4ad663744d5011cf888852f00d59a742a12c4",
+      "cams_sq/tests/__init__.py": "a7d79ce637dc89f8d69fb6d25b8af4e43efab88ef093e346f8baf7ec56b428bf",
+      "cams_sq/tests/test_approval.py": "112dbd6e6231641e590c1e31a1891e8bc797efec48fe0a44fa6db2f9063206db",
+      "cams_sq/tests/test_evidence_review.py": "e3a96fc5b66ea27518b6231733a41d57f5057806d7761717fd013b98de178e8e",
+      "cams_sq/tests/test_quality_evidence.py": "2104a98994744d324ba3a7f7d48c3183abc2bbf78666cc6cb868853284d75b42",
+      "cams_sq/tests/test_sq.py": "d5ccdf0c09397ce73f75aa5e2d17723811e196565035d528890bd7d9ed1c4b66",
+      "cams_sq/tests/test_union.py": "6fc4b9cf0f0a95626d0e90b0b59095cb00b51e258c04a149be4da23aa9659fa9",
+      "cams_sq/views/sq_approval_views.xml": "d66836de211c033dce148e9ca6b502c5c337d4715d44f6c313f2ba18068315b4",
+      "cams_sq/views/sq_views.xml": "228a72e836b3351e24b4ab030da814fcdfdcbff3823a8485d5978eee92e340cd",
+      "cams_sq/views/union_views.xml": "2edb3d33877851acbf4ed544550c24de76be735bcca070a938dca191658a411a",
+      "cams_sq_outputs/__init__.py": "5fd10918e1361ad65b4b41bcd8fb525e659267f47c8c4334ae52530e58908e9e",
+      "cams_sq_outputs/__manifest__.py": "28ef54648fb14eff34d77a14f48a2c08f7bf085379154fe72728dbef43bc17e8",
+      "cams_sq_outputs/data/outputs.json": "6058289924a3eeb798f234a8aa43edb47c16032073ef5df31d7ebaf45cf717cf",
+      "cams_sq_outputs/models/__init__.py": "a1670d45ba452f54755b9a2a5892df5bb4d8d1b39975026477eb967cb892d0b8",
+      "cams_sq_outputs/models/catalog.py": "ecd360164a83c4875b97197a8fe85ac7b60a724025d9df2b2d735546a7aa21e2",
+      "cams_sq_outputs/models/check_scale.py": "cb2a96e9e109545fddab710c6823babaa6b1df6d723ee5820367485a71b45194",
+      "cams_sq_outputs/models/coverage.py": "b130db74e1df40c75e56a04ab9fc885dbf2374e90934d2193691e6b91f461984",
+      "cams_sq_outputs/models/output.py": "7a196a147536e22cdd5ad4c4c6f17172ac7191e79479390d18822014657a3633",
+      "cams_sq_outputs/models/package.py": "126a8a87257b949a2ac2320cfd9bcc740b22f26bf60b8c710d5ffe3a02c07c62",
+      "cams_sq_outputs/models/specs.py": "d5b34b70e29d2097f5a3dd1b70a33afd8a7b6204f867482a8e9d1b16068ffca7",
+      "cams_sq_outputs/models/upload.py": "b304c85c5ea65fc4f98e57811ec18a8d07ce9dd905dacddb4daab8f150966b20",
+      "cams_sq_outputs/reports/output.xml": "4b0c379377704f59016d32aa20eee29c43cc48d44ed173ce813b41745aa1c3f3",
+      "cams_sq_outputs/security/ir.model.access.csv": "53cc3dc48945b9df57205cba8e47d910090eb1a287783d9c8db36c425fc5ebc7",
+      "cams_sq_outputs/security/security.xml": "53d54b74a7f58f8307bb2a2da712a42913d362b5737a220d587ef73337226207",
+      "cams_sq_outputs/tests/__init__.py": "738f51212103b2a2ec0aef96eeee1225a002c25ff35251435a843539acc22697",
+      "cams_sq_outputs/tests/test_outputs.py": "dabaebdc4f91159808b3225e4bcfe40db818b07894ce5a41c73e277693389c59",
+      "cams_sq_outputs/views/output.xml": "b3f2f2971bfe59bd81521012f91423c5d9b32a50b09866b4c3b601c049cccd44"
+    },
+    "backup": "/db/codex-testdb/sq-followup-20261023/pre-outputs-rehearsal.dump",
+    "backup_sha256": "e360ea7c0f781bfde484fd70afae2938f68af229de79fb5058ed8c87e211bead"
+  },
+  "roles": {
+    "database": "odoo18_sq_p1_rehearsal_20261023",
+    "passed": 7,
+    "cases": [
+      "OUT-R01 t3.sqmgr 적재·재적재",
+      "OUT-R02 t3.sq 원천 정의 변경 차단",
+      "OUT-R03 t3.sq 미연결 출력·엑셀 안내",
+      "OUT-R04 실제 역할 폼 조회·결합 뷰 로드 (브라우저 미검증)",
+      "OUT-R05 SQ 기준 관리자에 문서 생성 권한 자동 부여 없음",
+      "OUT-R06 t3.document 전담 역할 가정 업로드 초안·멱등",
+      "OUT-R07 t3.document 원본 문서 확인"
+    ],
+    "rollback": true,
+    "groups_change_rolled_back": true,
+    "proposed_assignment": {
+      "t3.document": "cams_sq_outputs.group_sq_uploader"
+    },
+    "log": "/db/codex-testdb/sq-followup-20261023/outputs-role-1792749519935914568.log"
+  },
+  "preservation": {
+    "mrp_production": {
+      "rows_before": 829,
+      "rows_after": 829,
+      "same": true,
+      "columns": "id,backorder_sequence,product_id,product_uom_id,lot_producing_id,picking_type_id,location_src_id,location_dest_id,location_final_id,bom_id,user_id,company_id,procurement_group_id,orderpoint_id,production_location_id,create_uid,write_uid,name,priority,origin,state,reservation_state,product_description_variants,consumption,product_qty,qty_producing,propagate_cancel,is_locked,is_planned,allow_workorder_dependencies,is_outdated_bom,date_deadline,date_start,date_finished,create_date,write_date,product_uom_qty,log_note,project_id,extra_cost,sale_line_id,csrt,br,qc_id,shipping_alert_id,siljy,line_state,prdid,qc_result,is_jr,rejor,repair,forced,is_fr,workcenter_id,mo_num_seq,is_test,settlement_created,planning_run_id,parent_planning_mo_id,actual_mold_id,qty_defects_worksite,inj_machine_no,car_model_id,inj_serial_full,plc_request_id,workcenter_code,inj_shift,inj_alc,inj_chasu,inj_fr,inj_csrt_val,inj_bodyfull,note,is_injection_mo,is_ip_unit_mo,is_ip_mt_mo,total_produced_qty_worksite,qty_good_worksite,mold_id,injection_serial_count,injection_ok_count,injection_ng_count,injection_defect_rate,control_plan_id,ppap_submission_id,legacy_partner__inj_worker_id,inj_worker_id,bom_management_number_id,bom_management_revision_no,bom_purpose,settlement_source_mo_id,settlement_snapshot_hash,settlement_status,settlement_bom_snapshot,settlement_events,settlement_hold_reason,planning_line_id,mes_bom_snapshot,mes_ej_exception,mes_ej_exception_note,mes_completion_qc_note,planning_hourly_capacity,mes_good_confirmed_at,planning_changeover_hours,mes_confirmed_good_qty,injection_execution_snapshot,injection_inventory_snapshot,injection_good_snapshot,injection_source_candidate,br_rework_of_id,br_requirement_snapshot,planning_close_reason,planning_close_good_qty,planning_cancelled_qty",
+      "before_sha256": "acefafe95baba03c401fdae6850845c97359cd5e7767c92c23d870a646ea5cd8",
+      "after_sha256": "acefafe95baba03c401fdae6850845c97359cd5e7767c92c23d870a646ea5cd8"
+    },
+    "mrp_bom": {
+      "rows_before": 6055,
+      "rows_after": 6055,
+      "same": true,
+      "columns": "id,product_tmpl_id,product_id,product_uom_id,sequence,picking_type_id,company_id,produce_delay,days_to_prepare_mo,create_uid,write_uid,code,type,ready_to_produce,consumption,product_qty,active,allow_operation_dependencies,create_date,write_date,project_id,alc,bom_version_id,version_no,bom_state,is_escon_managed,change_locked,management_number_id,management_department_id,management_revision_no,bom_purpose,source_type,approval_request_id,approval_current_approver_id,approval_state,mfg_eo_request_id",
+      "before_sha256": "87068894173b84d476190677e3f6cd882fb4de66e4110569a59be0b3b0fd4b52",
+      "after_sha256": "87068894173b84d476190677e3f6cd882fb4de66e4110569a59be0b3b0fd4b52"
+    },
+    "mrp_bom_line": {
+      "rows_before": 118485,
+      "rows_after": 118485,
+      "same": true,
+      "columns": "id,product_id,product_tmpl_id,company_id,product_uom_id,sequence,bom_id,operation_id,create_uid,write_uid,product_qty,manual_consumption,create_date,write_date,cost_share,cm_maker,cm_image,cm_note,settlement_internal_component",
+      "before_sha256": "0a3f94865f8df68c31fa1a3becfdb7e3a259e8d071023a959c08ecd1ea3f7820",
+      "after_sha256": "0a3f94865f8df68c31fa1a3becfdb7e3a259e8d071023a959c08ecd1ea3f7820"
+    },
+    "escon_br_work": {
+      "rows_before": 96,
+      "rows_after": 96,
+      "same": true,
+      "columns": "id,mo_id,create_uid,write_uid,work_type,item_code,br_rcvdate,commitno,workdate,bodyno,bodyfull,orderno,hanglepart,m1,ocolor,icolor,drivetype,rcvdate,regionname,line,brserver,printed,create_date,write_date,csrt_id,product_id,is_test,alc_frt,alc_rr,company_id,mo_error",
+      "before_sha256": "d874bd2e4f8d14dbd55e50a12e928e52a38a550451ea273272a7c17c743a4982",
+      "after_sha256": "d874bd2e4f8d14dbd55e50a12e928e52a38a550451ea273272a7c17c743a4982"
+    },
+    "ej_check_model": {
+      "rows_before": 81,
+      "rows_after": 81,
+      "same": true,
+      "columns": "id,wo_id,mo_id,workcenter_id,worker_id,create_uid,write_uid,state,create_date,write_date,ej_ok,note",
+      "before_sha256": "efd4e83970cca4320b49a33c709fd7db643aa364285ac61e729c8f3fd272c8c4",
+      "after_sha256": "efd4e83970cca4320b49a33c709fd7db643aa364285ac61e729c8f3fd272c8c4"
+    },
+    "stock_quant": {
+      "rows_before": 961,
+      "rows_after": 961,
+      "same": true,
+      "columns": "id,product_id,company_id,location_id,storage_category_id,lot_id,package_id,owner_id,user_id,create_uid,write_uid,inventory_date,quantity,reserved_quantity,inventory_quantity,inventory_diff_quantity,inventory_quantity_set,in_date,create_date,write_date,accounting_date",
+      "before_sha256": "e7e13b5866b774c61dc28e1cf49b98efe68963ce1ca6c79014c197bd708bdc6a",
+      "after_sha256": "e7e13b5866b774c61dc28e1cf49b98efe68963ce1ca6c79014c197bd708bdc6a"
+    },
+    "stock_move": {
+      "rows_before": 3800,
+      "rows_after": 3800,
+      "same": true,
+      "columns": "id,sequence,company_id,product_id,product_uom,location_id,location_dest_id,location_final_id,partner_id,picking_id,scrap_id,group_id,rule_id,picking_type_id,origin_returned_move_id,restrict_partner_id,warehouse_id,package_level_id,next_serial_count,orderpoint_id,product_packaging_id,create_uid,write_uid,name,priority,state,origin,procure_method,reference,next_serial,reservation_date,description_picking,product_qty,product_uom_qty,quantity,picked,scrapped,propagate_cancel,is_inventory,additional,date,date_deadline,delay_alert_date,create_date,write_date,price_unit,is_done,unit_factor,manual_consumption,created_production_id,production_id,raw_material_production_id,unbuild_id,consume_unbuild_id,operation_id,workorder_id,bom_line_id,byproduct_id,order_finished_lot_id,cost_share,to_refund,purchase_line_id,sale_line_id,repair_id,repair_line_type,supplier_asn_line_id,iqc_release_location_id,iqc_inspection_id,iqc_approval_request_id,iqc_movement_kind",
+      "before_sha256": "c635db9fefc6e232112a1e2e5cc85006d1fd2af2658c274f415c4cab019ecea2",
+      "after_sha256": "c635db9fefc6e232112a1e2e5cc85006d1fd2af2658c274f415c4cab019ecea2"
+    },
+    "stock_move_line": {
+      "rows_before": 2160,
+      "rows_after": 2160,
+      "same": true,
+      "columns": "id,picking_id,move_id,company_id,product_id,product_uom_id,package_id,package_level_id,lot_id,result_package_id,owner_id,location_id,location_dest_id,create_uid,write_uid,lot_name,state,reference,description_picking,quantity,quantity_product_uom,picked,date,create_date,write_date,workorder_id,production_id,location_processed,iqc_release_location_id,iqc_receipt_managed,injection_actual_production_id",
+      "before_sha256": "e7d46153e88ecfbb227e3a4ba806003e8633a9f2d29179df90f5956d546c94e8",
+      "after_sha256": "e7d46153e88ecfbb227e3a4ba806003e8633a9f2d29179df90f5956d546c94e8"
+    },
+    "stock_lot": {
+      "rows_before": 613,
+      "rows_after": 613,
+      "same": true,
+      "columns": "id,product_id,product_uom_id,company_id,location_id,create_uid,write_uid,name,ref,lot_properties,note,create_date,write_date,standard_price,x_is_ip_mt_record,virtual_for_mo_id,replaced_by_lot_id,is_virtual,replaced_at,injection_serial_state,injection_serial_source,injection_temp_barcode,is_injection_product_serial,injection_production_record_id,hold_reason,quality_hold,hold_revision,hkmc_rule_id,hkmc_production_id,hkmc_supplier_code,hkmc_part_number,hkmc_manufacture_date,hkmc_code_4m_1,hkmc_code_4m_2,hkmc_code_4m_3,hkmc_code_4m_4,hkmc_sequence_code,hkmc_lot_management_code,hkmc_trace_number,hkmc_tracking_code,hold_source_data,hkmc_is_sequenced,hkmc_xml_payload_mode,hkmc_vehicle_key",
+      "before_sha256": "46418a8288628f780fc4a558a3d813efd4105a5e63cee3b572cc9e6b03d251ed",
+      "after_sha256": "46418a8288628f780fc4a558a3d813efd4105a5e63cee3b572cc9e6b03d251ed"
+    },
+    "account_move": {
+      "rows_before": 2239,
+      "rows_after": 2239,
+      "same": true,
+      "columns": "id,sequence_number,message_main_attachment_id,journal_id,company_id,origin_payment_id,statement_line_id,tax_cash_basis_rec_id,tax_cash_basis_origin_move_id,auto_post_origin_id,secure_sequence_number,invoice_payment_term_id,partner_id,commercial_partner_id,partner_shipping_id,partner_bank_id,fiscal_position_id,preferred_payment_method_line_id,currency_id,reversed_entry_id,invoice_user_id,invoice_incoterm_id,invoice_cash_rounding_id,create_uid,write_uid,sequence_prefix,access_token,name,ref,state,move_type,auto_post,inalterable_hash,payment_reference,qr_code_method,payment_state,invoice_source_email,invoice_partner_display_name,invoice_origin,incoterm_location,date,auto_post_until,invoice_date,invoice_date_due,delivery_date,sending_data,narration,invoice_currency_rate,amount_untaxed,amount_tax,amount_total,amount_residual,amount_untaxed_signed,amount_untaxed_in_currency_signed,amount_tax_signed,amount_total_signed,amount_total_in_currency_signed,amount_residual_signed,quick_edit_total_amount,is_storno,always_tax_exigible,checked,posted_before,made_sequence_gap,is_manually_modified,is_move_sent,create_date,write_date,signing_user,payment_state_before_switch,stock_move_id,transfer_model_id,extract_attachment_id,extract_detected_layout,extract_state,extract_status,extract_document_uuid,extract_partner_name,extract_prefill_data,is_in_extractable_state,extract_state_processed,tax_closing_report_id,asset_id,asset_number_days,asset_move_type,asset_depreciation_beginning_date,depreciation_value,asset_value_change,generating_loan_line_id,is_loan_payment_move,x_escon_proof_type,x_escon_tax_category,x_escon_tax_approval_no,x_escon_item_name,campaign_id,source_id,medium_id,team_id,x_is_manual_tax_invoice,raw_settlement_id,pumui_id,pumui_approval_state,kr_tax_type,kr_doc_type,kr_approval_number,kr_origin_number,kr_is_correction,raw_ton_retro_price_id,kr_tax_type_manual,kr_product_names,kr_move_type_display,kr_primary_partner_id,kr_approval_number_key,kr_primary_reference,vendor_settlement_bill,resin_po_ever_posted,br_intake_id",
+      "before_sha256": "8fee179ac74d9785ab8bfef52fc4c6460d9affc772c6ac3a4be8b73d2c5c5ba0",
+      "after_sha256": "8fee179ac74d9785ab8bfef52fc4c6460d9affc772c6ac3a4be8b73d2c5c5ba0"
+    },
+    "account_move_line": {
+      "rows_before": 5752,
+      "rows_after": 5752,
+      "same": true,
+      "columns": "id,move_id,journal_id,company_id,company_currency_id,sequence,account_id,currency_id,partner_id,reconcile_model_id,payment_id,statement_line_id,statement_id,group_tax_id,tax_line_id,tax_group_id,tax_repartition_line_id,full_reconcile_id,product_id,product_uom_id,create_uid,write_uid,move_name,parent_state,ref,name,matching_number,display_type,date,invoice_date,date_maturity,discount_date,analytic_distribution,debit,credit,balance,amount_currency,tax_base_amount,amount_residual,amount_residual_currency,quantity,price_unit,price_subtotal,price_total,discount,discount_amount_currency,discount_balance,is_imported,tax_tag_invert,reconciled,create_date,write_date,deferred_start_date,deferred_end_date,cogs_origin_id,exclude_bank_lines,followup_line_id,purchase_line_id,is_downpayment,prov_retro_bill_id,kr_bank_journal_id,kr_bank_account_id,vendor_accrual_id",
+      "before_sha256": "e9de17c6f2d3e8731d836ff0e0256f508e257a4fefb1e1ed773a3c11161b7f80",
+      "after_sha256": "e9de17c6f2d3e8731d836ff0e0256f508e257a4fefb1e1ed773a3c11161b7f80"
+    },
+    "iatf_approval_request": {
+      "rows_before": 251,
+      "rows_after": 251,
+      "same": true,
+      "columns": "id,res_id,requester_id,current_line_id,current_approver_id,create_uid,write_uid,res_model,state,approved_date,rejected_date,create_date,write_date,company_id,guard_version,previous_request_id,iqc_scope_snapshot,snapshot",
+      "before_sha256": "939d3e881935a5b575da639548af811f307f67ff4722a1e2f29bccd88e4a08c6",
+      "after_sha256": "939d3e881935a5b575da639548af811f307f67ff4722a1e2f29bccd88e4a08c6"
+    },
+    "iatf_approval_line": {
+      "rows_before": 132,
+      "rows_after": 132,
+      "same": true,
+      "columns": "id,request_id,sequence,user_id,create_uid,write_uid,state,note,action_date,create_date,write_date,company_id",
+      "before_sha256": "415aa0bb1e059224e3b865f2ab44a8906597957d275e8bffaeb5e16464f1e972",
+      "after_sha256": "415aa0bb1e059224e3b865f2ab44a8906597957d275e8bffaeb5e16464f1e972"
+    },
+    "hr_employee": {
+      "rows_before": 102,
+      "rows_after": 102,
+      "same": true,
+      "columns": "id,resource_id,company_id,resource_calendar_id,message_main_attachment_id,color,department_id,job_id,address_id,work_contact_id,work_location_id,user_id,parent_id,coach_id,private_state_id,private_country_id,country_id,children,country_of_birth,bank_account_id,distance_home_work,km_home_work,departure_reason_id,create_uid,write_uid,name,job_title,work_phone,mobile_phone,work_email,private_street,private_street2,private_city,private_zip,private_phone,private_email,lang,gender,marital,spouse_complete_name,place_of_birth,ssnid,sinid,identification_id,passport_id,permit_no,visa_no,certificate,study_field,study_school,emergency_contact,emergency_phone,distance_home_work_unit,employee_type,barcode,pin,private_car_plate,spouse_birthdate,birthday,visa_expire,work_permit_expiration_date,departure_date,employee_properties,additional_note,notes,departure_description,active,is_flexible,is_fully_flexible,work_permit_scheduled_activity,create_date,write_date,contract_id,legal_name,vehicle,first_contract_date,contract_warning,registration_number,is_non_resident,disabled,leave_manager_id,hourly_cost,x_dependents,x_np_exempt,x_ei_exempt,gjcode_id,gjcode,attendance_manager_id,last_attendance_id,last_check_in,last_check_out,job_grade_id,eap_hire_date,manual_legacy_partner_id,inj_employee_id,is_injection_worker,is_assembly_worker",
+      "before_sha256": "a69334fe117dd1fedc2133e2df5d2d505bbac02b323a48d8b581d3403e621ce2",
+      "after_sha256": "a69334fe117dd1fedc2133e2df5d2d505bbac02b323a48d8b581d3403e621ce2"
+    },
+    "hr_leave": {
+      "rows_before": 3,
+      "rows_after": 3,
+      "same": true,
+      "columns": "id,message_main_attachment_id,user_id,manager_id,holiday_status_id,employee_id,employee_company_id,company_id,department_id,resource_calendar_id,meeting_id,first_approver_id,second_approver_id,create_uid,write_uid,private_name,state,duration_display,request_date_from_period,request_date_from,request_date_to,notes,request_unit_half,request_unit_hours,date_from,date_to,create_date,write_date,number_of_days,number_of_hours,request_hour_from,request_hour_to,payslip_state,overtime_id",
+      "before_sha256": "a7ed1244dd6b0734fb9c4693f6125822cef2b2c366520e9a6f6e3550abca7c09",
+      "after_sha256": "a7ed1244dd6b0734fb9c4693f6125822cef2b2c366520e9a6f6e3550abca7c09"
+    },
+    "injection_production_record": {
+      "rows_before": 369,
+      "rows_after": 369,
+      "same": true,
+      "columns": "id,mo_id,workcenter_id,mold_id,product_id,workorder_id,lot_id,raw_material_id,raw_material_lot_id,sensor_check_id,worker_log_id,qc_check_id,unit_mo_id,car_model_id,inj_machine_no,create_uid,write_uid,priority,inj_shift,inj_alc,inj_chasu,inj_fr,inj_csrt_val,temp_barcode,raw_data,is_ip_mt_mo,\"timestamp\",production_date,scheduled_date,create_date,write_date,measured_weight,weight_is_measured,plc_weight_pending,plc_weight_last_attempt_at,plc_source_row_id,legacy_partner__plc_worker_id,plc_serial_full,plc_work_order_no,plc_machine_no,plc_product_code,plc_operator,plc_weight_upper,plc_weight_lower,plc_discharge_serial,plc_request_id,plc_mold_result,plc_mold_time,plc_gate_result,plc_gate_time,plc_jig_result,plc_jig_time,plc_weight_result,plc_weight_ng_code,plc_weight_time,plc_label_result,plc_label_time,plc_flame_result,plc_flame_start_time,plc_flame_end_time,plc_attach_result,plc_attach_ng_code,plc_attach_time,plc_read_result,plc_barcode_value,plc_read_time,plc_final_result,plc_discharge_time,plc_issue_date,plc_quality_pending,plc_quality_synced,plc_issued_at,plc_source_updated_at,plc_worker_id,company_id,injection_manual_approved_by,injection_quality_source_key,injection_quality_source,injection_pending_quality_source,injection_manual_source,injection_last_quality_updated_at,injection_manual_approved_at",
+      "before_sha256": "1f1eb944b8b9946ba676f72ad42a688119afad6ffd8ee4541db2a51abe868fb9",
+      "after_sha256": "1f1eb944b8b9946ba676f72ad42a688119afad6ffd8ee4541db2a51abe868fb9"
+    },
+    "escon_qc_log": {
+      "rows_before": 20,
+      "rows_after": 20,
+      "same": true,
+      "columns": "id,create_uid,write_uid,cmd,code,rt_code,create_date,write_date,mo_id,workcenter_id,worker_id,product_id,csrt,final_lot_id,bodyfull,note,inspection_datetime,br_id,cmno,quality_check_id",
+      "before_sha256": "3491ad3c163662713782a4544be5002ddb5b379378643f6cff796cc47d3e5553",
+      "after_sha256": "3491ad3c163662713782a4544be5002ddb5b379378643f6cff796cc47d3e5553"
+    },
+    "iatf_audit": {
+      "rows_before": 17,
+      "rows_after": 17,
+      "same": true,
+      "columns": "id,approval_request_id,approval_current_approver_id,department_id,lead_auditor_id,finding_count,nc_major_count,nc_minor_count,observation_count,company_id,create_uid,write_uid,approval_state,name,title,audit_type,process_name,standard_reference,vda_grade,state,planned_date,actual_date,audit_report,vda_score,create_date,write_date,sq_standard_id,sq_date_from,sq_date_to,sq_ratios,sq_revision_of_id",
+      "before_sha256": "b9a5168f147dd85f8e0231170d87431a15c95d60e8fb90f05a4bbd69b6daf91e",
+      "after_sha256": "b9a5168f147dd85f8e0231170d87431a15c95d60e8fb90f05a4bbd69b6daf91e"
+    },
+    "sq_assessment_line": {
+      "rows_before": 660,
+      "rows_after": 660,
+      "same": true,
+      "columns": "id,audit_id,company_id,item_id,create_uid,write_uid,rating,proposed_rating,evidence_snapshot,requirement_snapshot,reason,finding,action,proposed_reason,create_date,write_date,points,score",
+      "before_sha256": "f611a90d234b03d9261510c1c4b4c5865bd8d024acb8185b6a9b067296a422f8",
+      "after_sha256": "f611a90d234b03d9261510c1c4b4c5865bd8d024acb8185b6a9b067296a422f8"
+    },
+    "sq_standard": {
+      "rows_before": 2,
+      "rows_after": 2,
+      "same": true,
+      "columns": "id,company_id,create_uid,write_uid,name,sector,revision,ratio_source,source_commit,create_date,write_date,good_ratio,partial_ratio,poor_ratio,import_note",
+      "before_sha256": "710758917bd8f4b60cd8a1ed35ab12accf8cb5e7af8c00c01831567c42322c80",
+      "after_sha256": "710758917bd8f4b60cd8a1ed35ab12accf8cb5e7af8c00c01831567c42322c80"
+    },
+    "sq_item": {
+      "rows_before": 84,
+      "rows_after": 84,
+      "same": true,
+      "columns": "id,standard_id,area_id,company_id,responsible_id,create_uid,write_uid,name,code,number,source,source_owner,applicability_note,requirement,create_date,write_date,points,internal_only",
+      "before_sha256": "76a9e42734cad53a719dc1d8c808b702195666b3f4bd16002d9d7355b119172d",
+      "after_sha256": "76a9e42734cad53a719dc1d8c808b702195666b3f4bd16002d9d7355b119172d"
+    },
+    "sq_doc_requirement": {
+      "rows_before": 467,
+      "rows_after": 467,
+      "same": true,
+      "columns": "id,company_id,responsible_id,create_uid,write_uid,name,source_key,source,source_status,source_owner,source_quantity,kind,state,note,create_date,write_date",
+      "before_sha256": "90c70050413c02c2ecb97ed858afbb9c0e505801eb80ee8a86b6a59edb9b8755",
+      "after_sha256": "90c70050413c02c2ecb97ed858afbb9c0e505801eb80ee8a86b6a59edb9b8755"
+    },
+    "iatf_document": {
+      "rows_before": 3,
+      "rows_after": 3,
+      "same": true,
+      "columns": "id,category_id,owner_id,department_id,company_id,reviewer_id,approver_id,retention_years,create_uid,write_uid,doc_number,name,doc_type,current_revision,state,external_origin,revision_date,review_date,approval_date,next_review_date,retention_expiry,description,active,create_date,write_date,quality_participant_count,quality_evidence_kind,physical_reference,storage_location,quality_cycle_note,quality_reward_reference,quality_valid_from,quality_valid_until",
+      "before_sha256": "2e6d26cb834f9d29227b4c5327fd4d842a16088c8bb8cff4bf2d95f2f14340ea",
+      "after_sha256": "2e6d26cb834f9d29227b4c5327fd4d842a16088c8bb8cff4bf2d95f2f14340ea"
+    },
+    "iatf_change_request": {
+      "rows_before": 30,
+      "rows_after": 30,
+      "same": true,
+      "columns": "id,requested_by,reviewed_by,approved_by,implemented_by,customer_id,verified_by,company_id,create_uid,write_uid,name,title,change_type,change_category,change_source,affected_process,risk_level,customer_approval,effective,state,request_date,review_date,approval_date,planned_date,actual_date,customer_approval_date,verification_date,description,reason,before_state,after_state,risk_assessment,verification_method,verification_result,notes,customer_notification_required,fmea_updated,control_plan_updated,work_instruction_updated,ppap_required,create_date,write_date,approval_request_id,approval_current_approver_id,reviewer_id,verification_owner_id,approval_state,mfg_source_bom_id,mfg_revision_bom_id,mfg_verification_mo_id,mfg_eo_number,mfg_source_digest,mfg_approved_digest,mfg_old_stock_plan,mfg_eo,mfg_material_ready,mfg_production_ready,mfg_quality_ready,mfg_applied_at",
+      "before_sha256": "c345b771bc17edb1c50e7a3612d1aa69042c3eb738ffa5d4bb4f9e858ed2eeaa",
+      "after_sha256": "c345b771bc17edb1c50e7a3612d1aa69042c3eb738ffa5d4bb4f9e858ed2eeaa"
+    },
+    "escon_bom_version_log": {
+      "rows_before": 4521,
+      "rows_after": 4521,
+      "same": true,
+      "columns": "id,version_id,user_id,create_uid,write_uid,log_type,source,message,create_date,write_date,bom_id",
+      "before_sha256": "8c21b30d9ec547ac1c4bf2fdb1cf5bdede29534a99ce2a5d99971085c3418625",
+      "after_sha256": "8c21b30d9ec547ac1c4bf2fdb1cf5bdede29534a99ce2a5d99971085c3418625"
+    },
+    "iatf_blend_log": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,equipment_id,product_id,production_id,lot_id,operator_id,standard_id,company_id,create_uid,write_uid,name,shift,ratio_basis,result,state,blend_date,ng_action,note,virgin_qty,regrind_qty,additive_qty,resin_qty,total_qty,limit_ratio,limit_additive_ratio,regrind_ratio,additive_ratio,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_blend_log_line": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,blend_id,sequence,product_id,lot_id,regrind_log_id,create_uid,write_uid,material_type,note,qty,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_regrind_log": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,equipment_id,source_product_id,output_lot_id,operator_id,company_id,create_uid,write_uid,name,shift,source_type,output_lot_name,foreign_check,storage_location,state,regrind_date,foreign_action,note,input_qty,output_qty,loss_qty,yield_ratio,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_blend_standard": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,product_id,material_id,company_id,create_uid,write_uid,name,ratio_basis,approval_ref,effective_date,approval_date,ms_spec_note,note,max_regrind_ratio,max_additive_ratio,active,customer_approved,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_packaging_spec": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,product_id,customer_id,inner_quantity,outer_quantity,boxes_per_pallet,pallet_stack,total_per_pallet,shelf_life_days,responsible_id,company_id,create_uid,write_uid,name,part_number,revision,inner_packaging_type,inner_material,inner_dimension,outer_packaging_type,outer_material,outer_dimension,pallet_type,label_type,storage_condition,temperature_range,humidity_range,anticorrosion_method,approval_reference,state,effective_date,approval_date,label_info,special_instruction,notes,label_required,customer_approved,create_date,write_date,gross_weight",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_jig": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,approval_request_id,approval_current_approver_id,product_id,company_id,create_uid,write_uid,approval_state,code,name,jig_type,process_name,state,notes,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_jig_record": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,approval_request_id,approval_current_approver_id,jig_id,performer_id,company_id,create_uid,write_uid,approval_state,name,record_type,status,record_date,measured_values,remarks,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_incoming_inspection": {
+      "rows_before": 17,
+      "rows_after": 17,
+      "same": true,
+      "columns": "id,approval_request_id,approval_current_approver_id,picking_id,purchase_id,supplier_id,product_id,lot_id,sample_size,accept_number,reject_number,inspector_id,approved_by,nonconformity_id,company_id,create_uid,write_uid,approval_state,name,part_number,inspection_type,sampling_plan,visual_result,dimension_result,material_result,supplier_cert_no,result,disposition,state,inspection_date,notes,defect_rate,create_date,write_date,quantity_received,quantity_inspected,quantity_accepted,quantity_rejected,receipt_move_line_id,product_uom_id,receipt_snapshot,nonconformity_snapshot",
+      "before_sha256": "bf83ec4c5e30757b026b80346800528d1ea3fb891e6b2159a09d52a21a411c7e",
+      "after_sha256": "bf83ec4c5e30757b026b80346800528d1ea3fb891e6b2159a09d52a21a411c7e"
+    },
+    "iatf_incoming_inspection_line": {
+      "rows_before": 15,
+      "rows_after": 15,
+      "same": true,
+      "columns": "id,inspection_id,sequence,create_uid,write_uid,characteristic_name,characteristic_type,specification,measurement_method,measured_value,result,notes,create_date,write_date",
+      "before_sha256": "463323f25a93681f64afe2f48312c10394809b4bda2b4b97d3d1eb55c24bc119",
+      "after_sha256": "463323f25a93681f64afe2f48312c10394809b4bda2b4b97d3d1eb55c24bc119"
+    },
+    "iatf_process_inspection": {
+      "rows_before": 154,
+      "rows_after": 154,
+      "same": true,
+      "columns": "id,production_id,picking_id,workorder_id,workcenter_id,product_id,lot_id,sample_size,accept_number,inspector_id,approved_by,nonconformity_id,control_plan_id,company_id,create_uid,write_uid,name,inspection_stage,part_number,inspection_type,sampling_plan,result,disposition,state,notes,inspection_date,create_date,write_date,quantity_produced,quantity_inspected,quantity_accepted,quantity_rejected,defect_rate,approval_request_id,approval_current_approver_id,approval_state,article_stage,shift,visual_result,dimension_result,function_result,production_date,correction_of_id,quantity_uom_id,run_unit_mo_ids,auto_evidence_snapshot,outgoing_approval_snapshot,outgoing_decision_snapshot,correction_reason,run_scope_frozen",
+      "before_sha256": "5145a8f214dfc4d48707cb29eef9414d42c5e671673de3781a556644401795b7",
+      "after_sha256": "5145a8f214dfc4d48707cb29eef9414d42c5e671673de3781a556644401795b7"
+    },
+    "iatf_process_inspection_line": {
+      "rows_before": 55,
+      "rows_after": 55,
+      "same": true,
+      "columns": "id,inspection_id,sequence,create_uid,write_uid,characteristic_name,characteristic_type,special_characteristic,specification,measurement_method,measured_value,result,notes,create_date,write_date",
+      "before_sha256": "b8bccf4198f1bab3c54bb7842e71910e0687cf468d705b3d07b6e3e7b61bd12a",
+      "after_sha256": "b8bccf4198f1bab3c54bb7842e71910e0687cf468d705b3d07b6e3e7b61bd12a"
+    },
+    "injection_mold": {
+      "rows_before": 26,
+      "rows_after": 26,
+      "same": true,
+      "columns": "id,product_id,cavity_count,current_shots,guaranteed_shots,responsible_id,company_id,create_uid,write_uid,name,code,display_name,state,active,create_date,write_date,changeover_hours,required_clamping_ton,temp_product_key,temp_std_u1,temp_std_u2,temp_std_u3,temp_std_u4,temp_std_u5,temp_std_u6,temp_std_u7,temp_std_u8,temp_std_u9,temp_std_u10,temp_std_l1,temp_std_l2,temp_std_l3,temp_std_l4,temp_std_l5,temp_std_l6,temp_std_l7,temp_std_l8,temp_std_l9,temp_std_l10,temp_tolerance,temp_publish,changeover_confirmed_by,x_planning_reservation_seq,changeover_hours_confirmed,changeover_confirmed_at,approval_request_id,approval_current_approver_id,owner_id,pm_cycle_shots,last_pm_shots,next_pm_shots,check_cycle_days,clean_cycle_days,department_id,approval_state,mold_type,part_number,material,dimensions,manufacturer,ownership,customer_mold_number,grade,standard_missing,storage_location,preservation_method,manufacture_date,receive_date,last_clean_date,next_clean_due,last_check_date,next_check_due,last_tryout_date,notes,is_standard_ready,is_tryout_missing,weight_kg,cost,preheat_temp_min,preheat_temp_max,mold_temp_min,mold_temp_max",
+      "before_sha256": "6b652f4e7f09018ede156a78f59b147fa7010bbf446ee4b3bce9f5be917847eb",
+      "after_sha256": "6b652f4e7f09018ede156a78f59b147fa7010bbf446ee4b3bce9f5be917847eb"
+    },
+    "iatf_mold_tryout": {
+      "rows_before": 1,
+      "rows_after": 1,
+      "same": true,
+      "columns": "id,mold_id,tryout_no,shot_count,ok_qty,ng_qty,inspection_id,responsible_id,company_id,create_uid,write_uid,name,reason,conclusion,state,tryout_date,notes,defect_rate,create_date,write_date",
+      "before_sha256": "7a3c3ecdbadbcbf65af003f3c43521d0f9c63d25a06e9ccbcf81d64e9fd22bd5",
+      "after_sha256": "7a3c3ecdbadbcbf65af003f3c43521d0f9c63d25a06e9ccbcf81d64e9fd22bd5"
+    },
+    "iatf_mold_maintenance": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,mold_id,shots_at_maintenance,responsible_id,create_uid,write_uid,name,maintenance_type,vendor,result,state,date,work_description,parts_replaced,notes,create_date,write_date,cost,duration_hours",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_mold_temp_log": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,mold_id,production_id,measured_by_id,company_id,create_uid,write_uid,log_type,shift,method,point,spec_result,notes,temperature,measured_at,create_date,write_date,spec_min,spec_max",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ops_task": {
+      "rows_before": 359,
+      "rows_after": 359,
+      "same": true,
+      "columns": "id,task_def_id,role_id,done_uid,approve_uid,create_uid,write_uid,periodicity,period_key,display_label,state,scheduled_date,due_date,done_note,done_date,approve_date,create_date,write_date,sq_item_id,sq_company_id,sq_finding_id,sq_result,sq_performed_date,sq_execution_snapshot,sq_nonconformity_id",
+      "before_sha256": "7d9d236d852bc125915cf67f5fb2ce0913e6705d052822d238ed8ab77aa23967",
+      "after_sha256": "7d9d236d852bc125915cf67f5fb2ce0913e6705d052822d238ed8ab77aa23967"
+    },
+    "ops_task_def": {
+      "rows_before": 19,
+      "rows_after": 19,
+      "same": true,
+      "columns": "id,role_id,sequence,day_of_month,due_days,approver_role_id,menu_action_id,create_uid,write_uid,name,periodicity,weekday,menu_path,doc_ref,manual_html,active,requires_approval,create_date,write_date,sq_item_id,sq_company_id,sq_start_date,sq_end_date,sq_shift",
+      "before_sha256": "fc1c9f96774d17740b064ccb6cf8a6b477107c88a7844e8c01ccad9182ea8eed",
+      "after_sha256": "fc1c9f96774d17740b064ccb6cf8a6b477107c88a7844e8c01ccad9182ea8eed"
+    },
+    "iatf_environment_check": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,work_area_id,checker_id,score_seiri,score_seiton,score_seiso,score_seiketsu,score_shitsuke,\"fiveS_total\",create_uid,write_uid,name,check_type,dust,result,state,corrective_action,notes,check_date,create_date,write_date,temperature,humidity,lighting,noise",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "iatf_check_sheet": {
+      "rows_before": 13,
+      "rows_after": 13,
+      "same": true,
+      "columns": "id,equipment_id,workcenter_id,work_area_id,responsible_id,department_id,revision,company_id,create_uid,write_uid,name,code,target_type,location_name,cycle,start_date,last_record_date,next_due,notes,is_safety,active,create_date,write_date",
+      "before_sha256": "2a6edaa816899ff2df6f7c6fa5ec9fdad1a8ebe8d294fee449920d2c1f66482c",
+      "after_sha256": "2a6edaa816899ff2df6f7c6fa5ec9fdad1a8ebe8d294fee449920d2c1f66482c"
+    },
+    "iatf_check_record": {
+      "rows_before": 25,
+      "rows_after": 25,
+      "same": true,
+      "columns": "id,sheet_id,sheet_revision,checker_id,ng_count,company_id,create_uid,write_uid,name,target_type,cycle,shift,overall_result,state,check_date,corrective_action,notes,create_date,write_date,snapshot_count,na_count,was_done",
+      "before_sha256": "1d96c91f4099de51e78960392cc26e3cc4021e695b809c8b53f3455c2994ddb5",
+      "after_sha256": "1d96c91f4099de51e78960392cc26e3cc4021e695b809c8b53f3455c2994ddb5"
+    },
+    "iatf_training_record": {
+      "rows_before": 1,
+      "rows_after": 1,
+      "same": true,
+      "columns": "id,approval_request_id,approval_current_approver_id,trainer_id,department_id,company_id,create_uid,write_uid,approval_state,name,title,training_type,trainer_external,iatf_clause,process_name,evaluation_method,pass_criteria,state,training_date,topics,effectiveness_notes,effectiveness_verified,create_date,write_date,duration_hours",
+      "before_sha256": "f3dd46d22911c0d200094dd0037b22a94fa9b8cbe31c3ba8a210c0b6bdfdaa2c",
+      "after_sha256": "f3dd46d22911c0d200094dd0037b22a94fa9b8cbe31c3ba8a210c0b6bdfdaa2c"
+    },
+    "iatf_competence_matrix": {
+      "rows_before": 0,
+      "rows_after": 0,
+      "same": true,
+      "columns": "id,employee_id,department_id,job_id,create_uid,write_uid,skill_name,skill_category,required_level,current_level,certification,display_name,last_training_date,next_retraining_date,expiry_date,notes,gap,create_date,write_date",
+      "before_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "uninstall": {
+    "database": "odoo18_sq_outputs_remove_20261023",
+    "passed": true,
+    "source_database_unchanged": "odoo18_sq_p1_rehearsal_20261023",
+    "business_tables_unchanged": 47,
+    "module_xmlids_left": 0,
+    "own_tables_left": 0,
+    "log": "/db/codex-testdb/sq-followup-20261023/outputs-uninstall-1792749827443687762.log",
+    "backup": "/db/codex-testdb/sq-followup-20261023/outputs-uninstall-input.dump",
+    "backup_sha256": "604d7cfd1f069b509228ba3161c52860ee786fde2611d708d5233f47feb0ec0a",
+    "rehearsal_note": "The first iterative-upgrade removal left the recently added uploader group; it was removed with ORM in this disposable DB, then clean install/uninstall was tested.",
+    "limitation": "No new uploaded business documents in this copy; uninstall does not delete uploaded original documents or restore edited source record fields. Exact rollback needs preceding backup."
+  },
+  "pdf": {
+    "sha256": "34722b90add4d752a8fa02752c8f6f510d8ece9dda5c9e04b7281081bafc35b0",
+    "bytes": 51951,
+    "pages": 2,
+    "rendered": "wkhtmltopdf 0.12.6.1",
+    "visual_checked": true,
+    "synthetic_fixture_rollback": true
+  },
+  "shared_8070_applied": false,
+  "production_applied": false,
+  "browser_test": false,
+  "limits": [
+    "224 new report requirements are fulfilled by common/adapted source exports, not 224 independently accepted templates.",
+    "Source bindings and real criteria must be selected by responsible staff; no invented records or auto-pass.",
+    "D-24 and D-38 pending: proposal switches remain OFF.",
+    "D-01 production t2est activation intent remains unconfirmed."
+  ]
+}

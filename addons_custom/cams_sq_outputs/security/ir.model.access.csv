@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+binding_user,SQ output binding read,model_sq_output_binding,cams_sq.group_sq_user,1,0,0,0
+binding_manager,SQ output binding manager,model_sq_output_binding,cams_sq.group_sq_manager,1,1,1,1
+wizard_user,SQ output wizard,model_sq_output_wizard,cams_sq.group_sq_user,1,1,1,1
+upload_user,SQ upload wizard,model_sq_output_upload,group_sq_uploader,1,1,1,1

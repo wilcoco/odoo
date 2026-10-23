@@ -20,6 +20,11 @@ class TestControlledQualityEvidence(TransactionCase):
             company_id=self.env.company.id, quality_evidence_kind='limit_sample',
             quality_product_ids=[Command.set(self.product.ids)], physical_reference='SYN-SAMPLE-1',
             storage_location='시험 보관 위치', quality_valid_until=fields.Date.today()+timedelta(days=1))
+        # The optional P1 inspection module adds approval requirements. Keep the
+        # fixture valid under that integration; the production guard stays intact.
+        if 'quality_sample_type' in self.env['iatf.document']._fields:
+            vals.update(quality_sample_type='boundary', quality_characteristic='격리 시험 외관 특성',
+                quality_customer_id=self.env.company.partner_id.id)
         vals.update(values)
         return self.env['iatf.document'].create(vals)
 
