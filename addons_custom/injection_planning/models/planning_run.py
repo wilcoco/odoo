@@ -3298,22 +3298,9 @@ class PlanningRun(models.Model):
             consume_date = line.start_date or line.plan_date
             if not consume_date:
                 continue
-            bom = self.env["mrp.bom"].find_for_purpose(
-                line.product_id, "injection")
-            if not bom or not bom.bom_line_ids:
-                continue
-            bom_qty_base = bom.product_uom_id._compute_quantity(
-                bom.product_qty, bom.product_tmpl_id.uom_id, round=False) or 1.0
-            for bline in bom.bom_line_ids:
-                # 라인 수량을 자재 기준 UoM 으로 변환 — g 등록·kg 자재 혼용 시
-                # 숫자 나눗셈만 하면 소요가 뻥튀기/0.00 이 되는 결함(시연 이슈) 수정.
-                # round=False: UoM 정밀도 반올림(kg=0.01)이 원단위를 뭉개지 않게
-                line_qty = bline.product_uom_id._compute_quantity(
-                    bline.product_qty, bline.product_id.uom_id, round=False)
-                qty_per = line_qty / bom_qty_base
-                material_date_need[bline.product_id.id][consume_date] += (
-                    line.planned_qty * qty_per
-                )
+            # Share the displayed basis and preserve an issued MO's BOM revision.
+            for basis in line._material_basis():
+                material_date_need[basis['material_id']][consume_date] += line.planned_qty * basis['unit_qty']
 
         if not material_date_need:
             return
