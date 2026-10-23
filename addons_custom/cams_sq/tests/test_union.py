@@ -11,7 +11,10 @@ class TestSqUnion(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env['sq.standard'].action_load_catalog()
-        cls.manager = new_test_user(cls.env, login='union.manager', groups='cams_sq.group_sq_manager,iatf_document_control.group_document_user')
+        groups = 'cams_sq.group_sq_manager,iatf_document_control.group_document_user'
+        if cls.env.ref('iatf_work_environment.group_work_environment_user', raise_if_not_found=False):
+            groups += ',iatf_work_environment.group_work_environment_user'
+        cls.manager = new_test_user(cls.env, login='union.manager', groups=groups)
         cls.reader = new_test_user(cls.env, login='union.reader', groups='cams_sq.group_sq_user')
 
     def load(self):
