@@ -90,8 +90,8 @@ for x in ver51:
         'area_name': AREA[x['code'][0]], 'name': nm, 'requirement': x['req'],
         'points_ver51': x['points'], 'points_ours': po,
         'points_union': ('%g' % pu) + ('' if str(po) == x['points'] or not po else ' (max)'),
-        'in_ver51': 'Y', 'in_ours': 'Y' if o else 'N', 'in_prep_list': '',
-        'note': '' if o else 'Ver5.1 전용 — 우리 마스터에 없음',
+        'in_ver4': 'Y', 'in_ver51': 'Y', 'in_ours': 'Y' if o else 'N', 'in_prep_list': '',
+        'note': ('' if o else 'Ver4·Ver5.1 공통 — 우리 마스터에만 없음'),
     })
 for i, x in enumerate(ours_only, 1):
     code = '6_X%d' % i
@@ -99,8 +99,8 @@ for i, x in enumerate(ours_only, 1):
         'union_code': code, 'industry': 'INJ', 'area_no': '6', 'area_name': AREA['6'],
         'name': x['name'][:80], 'requirement': x['req'],
         'points_ver51': '', 'points_ours': x['points'], 'points_union': '%g' % x['points'],
-        'in_ver51': 'N', 'in_ours': 'Y', 'in_prep_list': '',
-        'note': '사내 추가(우리 %s) — Ver5.1 에 없음' % x['code'],
+        'in_ver4': 'N', 'in_ver51': 'N', 'in_ours': 'Y', 'in_prep_list': '',
+        'note': '사내 추가(우리 %s) — Ver4·Ver5.1 모두 없음' % x['code'],
     })
 
 # ── 3. 조립: SW 조립장 준비 LIST 34항목
@@ -116,12 +116,12 @@ for x in asm:
         'union_code': x['code'], 'industry': 'ASM', 'area_no': x['code'][0],
         'area_name': AREA_A.get(x['code'][0], ''), 'name': nm, 'requirement': x['req'],
         'points_ver51': '', 'points_ours': '', 'points_union': '',
-        'in_ver51': '', 'in_ours': '미확인', 'in_prep_list': 'Y',
+        'in_ver4': '', 'in_ver51': '', 'in_ours': '미확인', 'in_prep_list': 'Y',
         'note': '배점 미기재(준비 LIST 에 없음). 우리 36항목과의 대응은 8070 sq.item 접근 거부로 미확인',
     })
 
 hdr = ['union_code', 'industry', 'area_no', 'area_name', 'name', 'requirement',
-       'points_ver51', 'points_ours', 'points_union', 'in_ver51', 'in_ours',
+       'points_ver51', 'points_ours', 'points_union', 'in_ver4', 'in_ver51', 'in_ours',
        'in_prep_list', 'note']
 with open(OUT + '/union_items.csv', 'w', newline='') as fh:
     w = csv.DictWriter(fh, fieldnames=hdr)
@@ -381,3 +381,48 @@ with open(OUT + '/standard_values.csv', 'w', newline='') as fh:
     w.writerow(hdr4)
     w.writerows(SV)
 print('standard_values.csv %d행 (확정 필요 %d)' % (len(SV), sum(1 for x in SV if x[7] == 'Y')))
+
+# ───────────────────────── 도장(PNT) 판 — 크레아 지적 도장 구간에서 관측된 항목만
+# 도장 평가서 **전체 항목표는 자료에 없다**. 지적을 받은 번호만 확인된다.
+PNT_OBS = [
+    ('1_1', 'FMEA·관리계획서 공정번호/순서 일치'), ('1_2', '가동중단 시간별·상황별 조치'),
+    ('1_4', '주말/휴일 특근 관리기준'), ('1_8', '제전 후 정전압 측정'),
+    ('1_10', '도료 배합 중량 기록·사용 유효시간'), ('1_11', '배합 잔량 도료 폐기기준'),
+    ('2_1', '도료 입고 시 유효기간(잔여) 기준'), ('2_2', '수입검사 대장 LOT ↔ 밀시트 LOT'),
+    ('2_7', '도막두께 X-R 관리도 관리한계'), ('2_8', '완제품 도장검사 시점·층별 두께'),
+    ('3_1', '제전공정 에어압력 일상점검'), ('3_2', '도장부스 온습도 F/P 모니터링'),
+    ('3_4', '건조로 온도 기록·타점기록계 이력'), ('3_5', '건조오븐 온도프로파일 C/V 속도'),
+    ('3_6', '지그 누적사용량별 등급·점검주기'), ('3_7', '컨베어 속도 관리'),
+    ('4_2', '도료 보관창고 레이아웃'), ('4_3', '도료 유효기간(제조일 기준) 관리'),
+    ('5_5', '자격인증(검사원) 평가기준'), ('5_7', '품질현황 ↔ 출하검사 기록 정합'),
+    ('5_12', '정성품질 프로세스·포상·전파교육 이력'),
+]
+pnt_rows = []
+for code, nm in PNT_OBS:
+    pnt_rows.append({
+        'union_code': code, 'industry': 'PNT', 'area_no': code[0], 'area_name': '(도장 평가서 영역)',
+        'name': nm, 'requirement': '(도장 평가서 원문 미확보 — 지적 원문은 external_findings 참조)',
+        'points_ver51': '', 'points_ours': '', 'points_union': '',
+        'in_ver4': '', 'in_ver51': '', 'in_ours': 'N', 'in_prep_list': '',
+        'note': '도장 업종 판 — 크레아 지적(2026-02-03)에서만 관측. 전체 항목표 미확보. 사출/조립과 번호 체계가 다르다',
+    })
+with open(OUT + '/union_items.csv', 'a', newline='') as fh:
+    w = csv.DictWriter(fh, fieldnames=hdr)
+    w.writerows(pnt_rows)
+for code, nm in PNT_OBS:
+    A(code, 'CREA-PAINT-2026', code, nm, '추정(지적 번호)')
+with open(OUT + '/item_alias.csv', 'w', newline='') as fh:
+    w = csv.DictWriter(fh, fieldnames=hdr2)
+    w.writeheader()
+    w.writerows(alias)
+print('도장(PNT) 관측 항목 %d행 추가 | item_alias %d행' % (len(pnt_rows), len(alias)))
+
+# ───────────────────────── HKMC Ver4(2025판) 별칭 — handoff 12 로 확인: Ver5.1 과 번호·명칭 동일
+for x in ver51:
+    nm = re.sub(r'^▣\s*', '', x['req']).split(' - ')[0][:70]
+    A(x['code'], 'HKMC-Ver4', x['code'], nm, '동일문구')
+with open(OUT + '/item_alias.csv', 'w', newline='') as fh:
+    w = csv.DictWriter(fh, fieldnames=hdr2)
+    w.writeheader()
+    w.writerows(alias)
+print('Ver4 별칭 47행 추가 → item_alias %d행' % len(alias))
