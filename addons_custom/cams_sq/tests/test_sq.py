@@ -16,6 +16,9 @@ class TestSq(TransactionCase):
         super().setUpClass()
         cls.env['sq.standard'].action_load_catalog()
         cls.standard = cls.env['sq.standard'].search([('sector', '=', 'INJ'), ('company_id', '=', cls.env.company.id)], limit=1)
+        # These negative tests require unbound rules. Isolate only within the
+        # rolled-back TransactionCase; user bindings in the source DB stay intact.
+        cls.env['sq.evidence.binding'].search([('company_id', '=', cls.env.company.id)]).write({'active': False})
 
     def assessment(self):
         audit = self.env['iatf.audit'].create({'title': 'SQ 시험 평가', 'audit_type': 'sq',

@@ -8,6 +8,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="model_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="department_id"/>
                 <field name="min_amount"/>
             </list>
@@ -29,10 +30,13 @@
                         </group>
                         <group>
                             <field name="department_id"/>
+                            <field name="company_id"/>
+                            <field name="match_domain"/>
                             <field name="min_amount"/>
                             <field name="sequence"/>
                         </group>
                     </group>
+                    <group string="사전 점검"><field name="configuration_note" readonly="1" nolabel="1"/></group>
                     <field name="line_ids">
                         <list editable="bottom">
                             <field name="sequence" widget="handle"/>

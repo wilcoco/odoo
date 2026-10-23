@@ -11,6 +11,7 @@ class TestEvidenceReview(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.env['sq.standard'].action_load_catalog()
+        cls.env['sq.evidence.binding'].search([('company_id', '=', cls.env.company.id)]).write({'active': False})
         cls.item = cls.env['sq.item'].search([('code', '=', 'INJ.3_1'), ('company_id', '=', cls.env.company.id)], limit=1)
 
     def rule(self, code, model):
