@@ -16,3 +16,7 @@ access_sq_assessment_line_manager,SQ assessment.line manager,model_sq_assessment
 access_sq_package_user,SQ package,model_sq_package,group_sq_user,1,1,1,1
 access_sq_binding_user,SQ evidence binding reader,model_sq_evidence_binding,group_sq_user,1,0,0,0
 access_sq_binding_manager,SQ evidence binding manager,model_sq_evidence_binding,group_sq_manager,1,1,1,1
+access_sq_finding_user,SQ external finding,model_sq_external_finding,group_sq_user,1,1,0,0
+access_sq_finding_manager,SQ external finding manager,model_sq_external_finding,group_sq_manager,1,1,1,0
+access_sq_value_user,SQ standard value,model_sq_standard_value,group_sq_user,1,0,0,0
+access_sq_value_manager,SQ standard value manager,model_sq_standard_value,group_sq_manager,1,0,1,0

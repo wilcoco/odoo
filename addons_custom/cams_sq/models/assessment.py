@@ -90,11 +90,12 @@ class SqAudit(models.Model):
             raise UserError(_('평가 항목이 이미 생성되어 있습니다.'))
         standard = self.sq_standard_id
         standard.check_access('read')
-        if standard.total_points != 1000:
-            raise UserError(_('총 1000점인 기준만 평가할 수 있습니다.'))
+        if standard.scored_points <= 0:
+            raise UserError(_('평가 대상 배점이 있는 기준만 평가할 수 있습니다.'))
         self.with_context(_sq_init=_TOKEN).write({'sq_ratios': {key: standard[key + '_ratio'] for key in ('good', 'partial', 'poor')}})
         self.env['sq.assessment.line'].with_context(_sq_init=_TOKEN).create([{'audit_id': self.id, 'item_id': item.id,
-            'points': item.points, 'requirement_snapshot': item.requirement} for item in standard.item_ids])
+            'points': 0 if item.internal_only else item.points,
+            'requirement_snapshot': item.requirement} for item in standard.item_ids])
 
     def _sq_validate_complete(self):
         self.ensure_one()
