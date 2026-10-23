@@ -286,6 +286,9 @@
 <record id="iatf_training.menu_iatf_training_root" model="ir.ui.menu">
 <field name="active" eval="False"/>
 </record>
+<record id="iatf_training.menu_preassessment" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_hr"/>
+</record>
 <record id="iatf_work_environment.menu_iatf_check_overdue" model="ir.ui.menu">
 <field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
 </record>

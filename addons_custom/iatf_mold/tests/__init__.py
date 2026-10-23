@@ -4,3 +4,4 @@ from . import test_mold_temp_log
 from . import test_mold_tryout
 from . import test_r_regressions
 from . import test_mold_unification
+from . import test_quality_evidence

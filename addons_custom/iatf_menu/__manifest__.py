@@ -1,7 +1,7 @@
 {'name': 'IATF Integrated Menu',
  'summary': 'IATF 16949 통합 메뉴 — 8개 업무 묶음, 원천 입력 중복 정리',
  'description': 'IATF 업무 메뉴 나무 B를 유지하고 모듈별 나무 A를 숨깁니다. 기존 액션과 기록은 보존합니다.',
- 'version': '18.0.1.2.0',
+ 'version': '18.0.1.2.1',
  'category': 'Quality',
  'license': 'LGPL-3',
  'author': 'DevSanx',

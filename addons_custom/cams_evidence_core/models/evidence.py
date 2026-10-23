@@ -4,6 +4,7 @@ import math
 import uuid
 from odoo import api, fields, models, Command, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 from odoo.addons.iatf_document_control.models.inspection_evidence import (
     validate_inspection_links, inspection_documents_snapshot)
 
@@ -51,6 +52,10 @@ class Evidence(models.AbstractModel):
 
     def _evidence_calculated_fields(self):
         return set()
+
+    @api.model
+    def _evidence_attachment_lock_domain(self):
+        return ['|',('evidence_state','=','done'),('approval_state','in',['in_progress','approved'])]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -119,7 +124,7 @@ class Evidence(models.AbstractModel):
             if field.type=='binary':
                 data[name]={'sha256':hashlib.sha256(value.encode() if isinstance(value,str) else value).hexdigest()} if value else False
             else:
-                data[name]=value.ids if field.relational else fields.Date.to_string(value) if field.type=='date' else fields.Datetime.to_string(value) if field.type=='datetime' else value
+                data[name]=sorted(value.ids) if field.relational else fields.Date.to_string(value) if field.type=='date' else fields.Datetime.to_string(value) if field.type=='datetime' else value
         references = inspection_documents_snapshot(self)
         # The base document fingerprint intentionally excludes optional business
         # extensions. Capture their actual controlled values for this workflow.
@@ -188,6 +193,10 @@ class EvidenceLedger(models.AbstractModel):
     _description='기존 업무 장부의 승인·완료·정정'
     _ledger_initial_state='draft'
 
+    @api.model
+    def _evidence_attachment_lock_domain(self):
+        return expression.OR([super()._evidence_attachment_lock_domain(),[('state','=','done')]])
+
     @api.model_create_multi
     def create(self,vals_list):
         if not self._evidence_internal() and any(values.get('state',self.env.context.get('default_state',self._ledger_initial_state))!=self._ledger_initial_state for values in vals_list):
@@ -242,8 +251,8 @@ class Attachment(models.Model):
 
     def _check_cams_evidence_change(self):
         for model in self._cams_evidence_models():
-            records = self.env[model].sudo().search([('attachment_ids','in',self.ids),
-                '|',('evidence_state','=','done'),('approval_state','in',['in_progress','approved'])])
+            source=self.env[model].sudo().with_context(active_test=False)
+            records = source.search(expression.AND([[('attachment_ids','in',self.ids)],source._evidence_attachment_lock_domain()]))
             if records:
                 records._approval_lock()
                 raise UserError(_('상신·완료 증빙의 첨부는 바꾸거나 삭제할 수 없습니다. 새 개정에 새 파일을 연결하십시오.'))

@@ -2,6 +2,7 @@
 from odoo import api,fields,models,Command,_
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
+from odoo.osv import expression
 from odoo.addons.iatf_document_control.models.inspection_evidence import _lock
 import math
 
@@ -48,6 +49,10 @@ class MaterialLedger(models.AbstractModel):
     _name='cams.material.ledger.mixin'
     _inherit=['cams.evidence.mixin']
     _description='기존 자재 장부 완료·개정 보호'
+
+    @api.model
+    def _evidence_attachment_lock_domain(self):
+        return expression.OR([super()._evidence_attachment_lock_domain(),[('state','=','done')]])
 
     @api.model_create_multi
     def create(self,vals_list):

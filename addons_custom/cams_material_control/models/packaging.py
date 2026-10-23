@@ -1,5 +1,6 @@
 from odoo import api,fields,models,_
 from odoo.exceptions import AccessError,UserError
+from odoo.osv import expression
 from odoo.addons.cams_evidence_core.models.evidence import _CTX,_TOKEN
 from odoo.addons.iatf_document_control.models.inspection_evidence import _lock
 
@@ -15,6 +16,9 @@ _CHOICES=[('ok','정상'),('ng','이상')]
 class PackagingSpec(models.Model):
     _name='iatf.packaging.spec'
     _inherit=['cams.evidence.mixin','iatf.packaging.spec']
+    @api.model
+    def _evidence_attachment_lock_domain(self):
+        return expression.OR([super()._evidence_attachment_lock_domain(),[('state','in',['active','obsolete'])]])
     flow_direction=fields.Selection([('customer','원청 납입'),('internal','사내 공정'),('return','회수·공용')],string='용기 흐름',tracking=True)
     automated=fields.Boolean('자동화 대응 용기',tracking=True)
     t1_date=fields.Date('T1 일정',tracking=True)

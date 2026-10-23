@@ -33,7 +33,7 @@ class QualityEvidence(models.Model):
 
     def _quality_evidence_snapshot(self):
         self.ensure_one()
-        return {name:self[name].ids if self._fields[name].relational else str(self[name])
+        return {name:sorted(self[name].ids) if self._fields[name].relational else str(self[name])
             if self._fields[name].type in ('date','datetime') and self[name] else self[name]
             for name in sorted(self._quality_evidence_fields())}
 
