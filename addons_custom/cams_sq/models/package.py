@@ -17,6 +17,10 @@ def csv_value(value):
 class SqAuditPackage(models.Model):
     _inherit = 'iatf.audit'
 
+    def _sq_package_outputs(self, archive, remaining_bytes):
+        """Optional report-module hook; source ACLs and the package cap still apply."""
+        return None
+
     def action_sq_package(self):
         self.ensure_one()
         self.check_access('read')
@@ -117,6 +121,7 @@ class SqAuditPackage(models.Model):
                     manifest.append({'assessment': self.id, 'status': '평가서 연결 문서 조회 권한 제한'})
             for attachment in self.attachment_ids:
                 add_attachment(archive, attachment, {'assessment': self.id})
+            self._sq_package_outputs(archive, 100 * 1024**2 - total_bytes)
             archive.writestr('assessment.csv', text.getvalue().encode('utf-8-sig'))
             # Preserve the approved historical judgment separately from current
             # source exports. Never represent today's attachments as old evidence.
