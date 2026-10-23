@@ -1,0 +1,18 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sq_standard_user,SQ standard,model_sq_standard,group_sq_user,1,0,0,0
+access_sq_standard_manager,SQ standard manager,model_sq_standard,group_sq_manager,1,1,1,1
+access_sq_area_user,SQ area,model_sq_area,group_sq_user,1,0,0,0
+access_sq_area_manager,SQ area manager,model_sq_area,group_sq_manager,1,1,1,1
+access_sq_item_user,SQ item,model_sq_item,group_sq_user,1,0,0,0
+access_sq_item_manager,SQ item manager,model_sq_item,group_sq_manager,1,1,1,1
+access_sq_item_alias_user,SQ item.alias,model_sq_item_alias,group_sq_user,1,0,0,0
+access_sq_item_alias_manager,SQ item.alias manager,model_sq_item_alias,group_sq_manager,1,1,1,1
+access_sq_doc_requirement_user,SQ doc.requirement,model_sq_doc_requirement,group_sq_user,1,1,0,0
+access_sq_doc_requirement_manager,SQ doc.requirement manager,model_sq_doc_requirement,group_sq_manager,1,1,1,1
+access_sq_evidence_rule_user,SQ evidence.rule,model_sq_evidence_rule,group_sq_user,1,0,0,0
+access_sq_evidence_rule_manager,SQ evidence.rule manager,model_sq_evidence_rule,group_sq_manager,1,1,1,1
+access_sq_assessment_line_user,SQ assessment.line,model_sq_assessment_line,group_sq_user,1,1,1,0
+access_sq_assessment_line_manager,SQ assessment.line manager,model_sq_assessment_line,group_sq_manager,1,1,1,1
+access_sq_package_user,SQ package,model_sq_package,group_sq_user,1,1,1,1
+access_sq_binding_user,SQ evidence binding reader,model_sq_evidence_binding,group_sq_user,1,0,0,0
+access_sq_binding_manager,SQ evidence binding manager,model_sq_evidence_binding,group_sq_manager,1,1,1,1

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_jig_root" name="지그/공정"
-              parent="iatf_document_control.menu_iatf_root" sequence="40"/>
+              parent="iatf_menu.menu_iatf_equipment" sequence="40"/>
     <menuitem id="menu_iatf_jig" name="지그 대장"
               parent="menu_iatf_jig_root" action="action_jig" sequence="10"/>
     <menuitem id="menu_iatf_jig_record" name="지그 점검 기록"

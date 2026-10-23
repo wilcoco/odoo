@@ -2,14 +2,14 @@
 <odoo>
     <menuitem id="menu_iatf_drawing_root"
               name="도면관리"
-              parent="iatf_document_control.menu_iatf_root"
+              parent="iatf_menu.menu_iatf_production"
               sequence="15"
               groups="iatf_drawing_management.group_drawing_user"/>
 
     <menuitem id="menu_iatf_drawing_spec_change"
               name="기술사양변경 내역서"
               parent="menu_iatf_drawing_root"
-              action="action_drawing_spec_change"
+              action="action_sq_change_readonly"
               sequence="10"/>
 
     <menuitem id="menu_iatf_drawing_procedure"
@@ -36,4 +36,5 @@
               action="action_drawing_config"
               sequence="90"
               groups="iatf_drawing_management.group_drawing_manager"/>
+<record id="menu_iatf_drawing_change_register" model="ir.ui.menu"><field name="active" eval="False"/></record>
 </odoo>

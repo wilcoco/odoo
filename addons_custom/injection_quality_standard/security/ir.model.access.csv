@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_condition_limit_user,condition_limit,model_injection_condition_limit,base.group_user,1,0,0,0
+access_condition_limit_manager,condition_limit manager,model_injection_condition_limit,quality.group_quality_manager,1,1,1,0
+access_startup_standard_user,startup_standard,model_injection_startup_standard,base.group_user,1,0,0,0
+access_startup_standard_manager,startup_standard manager,model_injection_startup_standard,quality.group_quality_manager,1,1,1,0
