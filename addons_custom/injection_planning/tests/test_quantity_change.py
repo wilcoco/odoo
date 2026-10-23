@@ -61,3 +61,22 @@ class TestPlanQuantityChange(PlanningCase):
         self.assertAlmostEqual(basis['unit_qty'], 0.5)
         self.assertAlmostEqual(self.line.planned_qty * basis['unit_qty'], 490)
         self.assertIn('490', self.line.calculation_detail)
+
+    def test_calculation_snapshot_cannot_be_forged_or_rewritten(self):
+        self.assertIn('스냅샷이 없습니다', self.line.calculation_detail)
+        with self.assertRaises(UserError):
+            self.line.write({'calculation_policy_snapshot':{'min_lot_size':1}})
+        values = {'planning_run_id':self.line.planning_run_id.id,
+            'plan_date':self.day, 'workcenter_id':self.line.workcenter_id.id,
+            'mold_id':self.line.mold_id.id, 'product_id':self.inj.id, 'planned_qty':100}
+        with self.assertRaises(UserError), self.cr.savepoint():
+            self.env['injection.planning.line'].with_user(self.planner).with_context(
+                default_calculation_policy_snapshot={'min_lot_size':1}).create(values)
+        rows = [values]
+        config = self.env['injection.planning.config']._get_active_shift_config()
+        self.line.planning_run_id._add_calculation_policy_snapshot(rows, config)
+        row = self.env['injection.planning.line'].create(rows)
+        before = dict(row.calculation_policy_snapshot)
+        self.assertIn('계산 당시 최소 로트', row.calculation_detail)
+        config.write({'default_min_lot_size':config.default_min_lot_size + 100})
+        self.assertEqual(row.calculation_policy_snapshot, before)

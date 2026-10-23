@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ops_policy_admin,ops policy admin,model_cams_ops_policy,base.group_system,1,1,1,0
+access_inspection_cp,inspection cp read,iatf_control_plan.model_iatf_control_plan,group_inspection_reference,1,0,0,0
+access_inspection_cp_line,inspection cp line read,iatf_control_plan.model_iatf_control_plan_line,group_inspection_reference,1,0,0,0
+access_inspection_fmea,inspection fmea read,iatf_fmea.model_iatf_fmea,group_inspection_reference,1,0,0,0
+access_inspection_fmea_line,inspection fmea line read,iatf_fmea.model_iatf_fmea_line,group_inspection_reference,1,0,0,0

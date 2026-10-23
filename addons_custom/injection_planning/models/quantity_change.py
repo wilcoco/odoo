@@ -7,6 +7,21 @@ from odoo.tools import float_compare
 _QUANTITY_CHANGE = object()
 
 
+class PlanningCalculationPolicy(models.Model):
+    _inherit = 'injection.planning.run'
+
+    def _add_calculation_policy_snapshot(self, rows, config):
+        for row in rows:
+            product = self.env['product.product'].browse(row['product_id'])
+            row['calculation_policy_snapshot'] = {
+                'min_lot_size': product.min_lot_size or config.default_min_lot_size,
+                'safety_stock_days': config.safety_stock_days,
+                'safety_stock_basis': config._safety_stock_basis(),
+                'early_limit_days': config.early_limit_days,
+                'captured_at': fields.Datetime.to_string(fields.Datetime.now()),
+            }
+
+
 class PlanningQuantity(models.Model):
     _inherit = 'injection.planning.line'
 
@@ -28,13 +43,20 @@ class PlanningQuantity(models.Model):
         } for line in bom.bom_line_ids if not line._skip_bom_line(self.product_id)]
 
     @api.depends('planned_qty', 'demand_qty', 'defect_rate', 'initial_scrap', 'current_stock',
-                 'mold_id', 'mo_id.bom_id', 'product_id')
+                 'mold_id', 'mo_id.bom_id', 'product_id', 'calculation_policy_snapshot')
     def _compute_calculation_detail(self):
         for line in self:
             texts = [_('순수요 %(d)g / 계산 당시 가용재고 %(s)g / 불량률 %(r)g%% / 시업 불량 %(i)g / 확정 계획 %(p)g') % {
                 'd': line.demand_qty, 's': line.current_stock, 'r': line.defect_rate,
                 'i': line.initial_scrap, 'p': line.planned_qty}]
-            texts.append(_('순수요에는 실행 시점의 안전재고·진행 물량 정책이 반영됩니다. 아래는 현재 연결 BOM 기준이며 실측 소비량이 아닙니다.'))
+            snapshot = line.calculation_policy_snapshot
+            if snapshot:
+                texts.append(_('계산 당시 최소 로트 %(lot)g / 안전재고 %(days)g %(basis)s / 조기생산 한도 %(early)g 수요 발생일. 초기 불량은 금형 교체 시 적용됩니다.') % {
+                    'lot': snapshot['min_lot_size'], 'days': snapshot['safety_stock_days'], 'early': snapshot['early_limit_days'],
+                    'basis': _('수요 발생일') if snapshot['safety_stock_basis'] == 'demand_dates' else _('달력일')})
+            else:
+                texts.append(_('이전 계획에는 최소 로트·조기생산 정책 스냅샷이 없습니다. 현재 설정을 과거 값으로 표시하지 않습니다.'))
+            texts.append(_('순수요에는 실행 시점의 안전재고·진행 물량 정책이 반영됩니다. 분할 배치된 행은 그룹 전체 최소 로트와 다를 수 있습니다. 아래는 현재 연결 BOM 기준이며 실측 소비량이 아닙니다.'))
             for basis in line._material_basis():
                 texts.append(_('%(bom)s: 기준 %(bom_qty)g %(bom_uom)s / %(material)s %(line_qty)g %(line_uom)s → 개당 %(unit_qty)g %(unit)s × 계획 %(planned)g = %(total)g %(unit)s') % dict(
                     basis, planned=line.planned_qty, total=line.planned_qty * basis['unit_qty']))
@@ -112,6 +134,6 @@ class QuantityChange(models.TransientModel):
                 'mo_id': mo.id, 'product_qty': self.quantity})
             wizard.change_prod_qty()
             line.with_context(_planning_quantity_change=_QUANTITY_CHANGE).write({'planned_qty': self.quantity})
-            mo.message_post(body=_('계획 수량 감축: %(old)g → %(new)g. 사유: %(reason)s. 계획 파생 결과는 재검증이 필요합니다.') % {
+            mo._message_log(body=_('계획 수량 감축: %(old)g → %(new)g. 사유: %(reason)s. 계획 파생 결과는 재검증이 필요합니다.') % {
                 'old': old, 'new': self.quantity, 'reason': self.reason})
         return {'type': 'ir.actions.act_window_close'}

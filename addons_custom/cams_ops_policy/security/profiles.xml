@@ -1,0 +1,11 @@
+<odoo>
+  <record id="group_inspection_reference" model="res.groups"><field name="name">검사 담당: 관리계획서·FMEA 조회</field><field name="implied_ids" eval="[(4,ref('base.group_user'))]"/></record>
+  <record id="inspection_cp_company" model="ir.rule"><field name="name">검사 참고 관리계획서 회사</field><field name="model_id" ref="iatf_control_plan.model_iatf_control_plan"/><field name="groups" eval="[(4,ref('group_inspection_reference'))]"/><field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field></record>
+  <record id="inspection_cp_line_company" model="ir.rule"><field name="name">검사 참고 관리계획서 항목 회사</field><field name="model_id" ref="iatf_control_plan.model_iatf_control_plan_line"/><field name="groups" eval="[(4,ref('group_inspection_reference'))]"/><field name="domain_force">['|',('control_plan_id.company_id','=',False),('control_plan_id.company_id','in',company_ids)]</field></record>
+  <record id="inspection_fmea_company" model="ir.rule"><field name="name">검사 참고 FMEA 회사</field><field name="model_id" ref="iatf_fmea.model_iatf_fmea"/><field name="groups" eval="[(4,ref('group_inspection_reference'))]"/><field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field></record>
+  <record id="inspection_fmea_line_company" model="ir.rule"><field name="name">검사 참고 FMEA 항목 회사</field><field name="model_id" ref="iatf_fmea.model_iatf_fmea_line"/><field name="groups" eval="[(4,ref('group_inspection_reference'))]"/><field name="domain_force">['|',('fmea_id.company_id','=',False),('fmea_id.company_id','in',company_ids)]</field></record>
+  <record id="group_approver_quality" model="res.groups"><field name="name">승인자 프로파일: 품질</field><field name="implied_ids" eval="[(4,ref('base.group_user'))]"/></record>
+  <record id="group_approver_settlement" model="res.groups"><field name="name">승인자 프로파일: 정산</field><field name="implied_ids" eval="[(4,ref('base.group_user'))]"/></record>
+  <record id="group_approver_executive" model="res.groups"><field name="name">승인자 프로파일: 경영</field><field name="implied_ids" eval="[(4,ref('base.group_user'))]"/></record>
+  <function model="cams.ops.policy" name="_sync_approver_profiles"/>
+</odoo>

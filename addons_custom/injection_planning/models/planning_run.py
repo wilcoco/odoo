@@ -274,7 +274,7 @@ class PlanningRun(models.Model):
         demands = Demand.search(domain)
 
         self.demand_ids = [(6, 0, demands.ids)]
-        self.message_post(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
+        self._message_log(body=_("수요 데이터 %d건 로드 (소스: %s)") % (
             len(demands),
             dict(self._fields["demand_source_filter"].selection).get(
                 self.demand_source_filter, "전체")))
@@ -293,7 +293,7 @@ class PlanningRun(models.Model):
             sync.action_fetch()
             sync.action_push_demands()
             self.action_load_demands()
-            self.message_post(body=_(
+            self._message_log(body=_(
                 "ERP 수요 수신을 erp_plan_sync 원장에 위임 — 배치 %(name)s "
                 "(수요 생성 %(c)d·갱신 %(u)d, 품번 미매칭 %(m)d)") % {
                     "name": sync.name, "c": sync.demand_created,
@@ -346,16 +346,16 @@ class PlanningRun(models.Model):
             self.demand_ids = [(6, 0, new_demands.ids)]
             daily_cnt = len(merged)
             hourly_cnt = len(hourly_merged)
-            self.message_post(
+            self._message_log(
                 body=f"Oracle에서 수요 데이터를 가져왔습니다. "
                      f"(일별 {daily_cnt}건, 시간별 {hourly_cnt}건, "
                      f"총 {sum(d['quantity'] for d in create_vals):.0f}개)"
             )
         else:
-            self.message_post(body="Oracle에서 가져온 수요 데이터가 없습니다.")
+            self._message_log(body="Oracle에서 가져온 수요 데이터가 없습니다.")
         # [안전망 S1] 품목 미매핑으로 조용히 제외된 품번을 채터에 보고
         if unmapped:
-            self.message_post(body=Markup(
+            self._message_log(body=Markup(
                 "<b>⚠ 품목 미매핑으로 제외된 수요 품번 %d종</b> — 품목 마스터 등록 필요:<br/>"
                 % len(unmapped)
                 + ", ".join("%s(%d행)" % (k, v) for k, v in sorted(unmapped.items())[:30])))
@@ -422,7 +422,7 @@ class PlanningRun(models.Model):
                     created += 1
             current += timedelta(days=1)
 
-        self.message_post(
+        self._message_log(
             body=f"가동 일정 {created}건 생성 완료 "
                  f"({len(workcenters)}대 x {(self.plan_date_to - self.plan_date_from).days + 1}일)"
         )
@@ -666,7 +666,7 @@ class PlanningRun(models.Model):
 
         def _post_issues():
             if plan_issues:
-                self.message_post(body=Markup(
+                self._message_log(body=Markup(
                     "<b>⚠ 계획 계산 경고 %d건</b><br/>" % len(plan_issues)
                     + "<br/>".join("· " + i for i in plan_issues)))
 
@@ -678,7 +678,7 @@ class PlanningRun(models.Model):
             self._calculate_material_requirements()
             self._clear_derived_stale()
             self.state = "review"
-            self.message_post(body="BOM 전개 결과 사출 부품 수요가 없습니다.")
+            self._message_log(body="BOM 전개 결과 사출 부품 수요가 없습니다.")
             _post_issues()
             return
 
@@ -691,7 +691,7 @@ class PlanningRun(models.Model):
             self._calculate_material_requirements()
             self._clear_derived_stale()
             self.state = "review"
-            self.message_post(body="현재 가용재고와 확인된 예정입고로 수요 충족 예정. 추가 생산 불필요.")
+            self._message_log(body="현재 가용재고와 확인된 예정입고로 수요 충족 예정. 추가 생산 불필요.")
             _post_issues()
             return
 
@@ -705,15 +705,16 @@ class PlanningRun(models.Model):
         if unassigned:
             self._planning_ledger(("calculating",)).env[
                 "injection.planning.unassigned"].create(unassigned)
-            self.message_post(body=Markup(
+            self._message_log(body=Markup(
                 "<b>⚠ 미배정 수요 %d건</b> — 설비·금형 제약으로 배정하지 못했습니다."
                 % len(unassigned)))
 
         # 4단계: 계획 라인 생성
         if lines_data:
+            self._add_calculation_policy_snapshot(lines_data, config)
             self._planning_ledger(("calculating",)).env[
                 "injection.planning.line"].create(lines_data)
-            self.message_post(
+            self._message_log(
                 body=f"계획 계산 완료: {len(lines_data)}건 라인, "
                      f"총 {sum(d['planned_qty'] for d in lines_data):.0f}개 생산 예정"
             )
@@ -2581,6 +2582,7 @@ class PlanningRun(models.Model):
         ledger.unassigned_ids.unlink()
         draft.with_env(ledger.env).unlink()
         if lines_data:
+            self._add_calculation_policy_snapshot(lines_data, config)
             ledger.env["injection.planning.line"].create(lines_data)
         scoped._assign_daily_sequence()
         scoped._calculate_material_requirements()
@@ -2588,7 +2590,7 @@ class PlanningRun(models.Model):
         scoped._generate_daily_summary(part_demands, config)
         violations = scoped._evaluate_plan(part_demands, config)
         self._clear_derived_stale()
-        self.message_post(body=Markup("<b>수동 순서 재배치</b> — 초안 라인 %d→%d, 위반 %d건, 경고 %d건<br/>"
+        self._message_log(body=Markup("<b>수동 순서 재배치</b> — 초안 라인 %d→%d, 위반 %d건, 경고 %d건<br/>"
                                       % (len(draft), len(lines_data), len(violations), len(issues))
                                       + "<br/>".join("· " + i for i in issues)))
         return True
@@ -2620,7 +2622,7 @@ class PlanningRun(models.Model):
                             label, prev.display_name, prev.start_time, prev.end_time, cur.display_name, cur_from))
         part_demands = self._explode_bom()
         violations = self._evaluate_plan(part_demands, config)
-        self.message_post(body=Markup("<b>순서 재검증</b> — 위반 %d건, 경고 %d건<br/>" % (len(violations), len(issues))
+        self._message_log(body=Markup("<b>순서 재검증</b> — 위반 %d건, 경고 %d건<br/>" % (len(violations), len(issues))
                                       + "<br/>".join("· " + i for i in issues)))
         return True
 
@@ -2686,7 +2688,7 @@ class PlanningRun(models.Model):
         if self.violation_ids.filtered(lambda v: v.severity == "hard"):
             raise UserError(_("하드 위반은 확인으로 넘길 수 없습니다. 계획을 고치십시오."))
         super(PlanningRun, self.sudo()).write({"violations_acknowledged": True, "violations_acknowledged_by": self.env.user.id})
-        self.message_post(body=_("정책 위반 %d건을 %s 이(가) 확인했습니다.") % (
+        self._message_log(body=_("정책 위반 %d건을 %s 이(가) 확인했습니다.") % (
             len(self.violation_ids.filtered(lambda v: v.severity == "policy")), self.env.user.name))
         return True
 
@@ -3111,7 +3113,7 @@ class PlanningRun(models.Model):
 
         if not created_mos:
             # 성공 0 — 상태를 옮기지 않는다. 실패 사실을 남기고 그대로 알린다.
-            self.message_post(body=Markup(
+            self._message_log(body=Markup(
                 "<b>⚠ MO 생성 실패 %d건</b> — 생성된 MO 가 없어 계획을 확정하지 "
                 "않았습니다.<br/>%s" % (len(failed), "<br/>".join(failed))))
             raise UserError(_(
@@ -3124,7 +3126,7 @@ class PlanningRun(models.Model):
             # 조용한 실패 금지 — 생성 실패분을 채터에 각인해 계획 유실을 가시화
             body += "<br/>⚠️ 생성 실패 %d건(고아 MO 없음, 재시도 가능):<br/>%s" % (
                 len(failed), "<br/>".join(failed))
-        self.message_post(body=Markup(body) if failed else body)
+        self._message_log(body=Markup(body) if failed else body)
         return created_mos
 
     def action_cancel(self):
@@ -3372,7 +3374,7 @@ class PlanningRun(models.Model):
         body = _("계획 변경분을 반영해 일별 요약과 원재료 소요를 다시 계산했습니다.")
         if issues:
             body += "<br/>" + "<br/>".join("· " + i for i in issues)
-        self.message_post(body=Markup(body))
+        self._message_log(body=Markup(body))
         return True
 
     def _assert_derived_fresh(self, action):
@@ -3698,7 +3700,7 @@ class PlanningRun(models.Model):
                 f"\n⚠ 공급업체 미등록으로 발주 제외: "
                 f"{', '.join(no_vendor.mapped('display_name'))}"
             )
-        self.message_post(body=msg)
+        self._message_log(body=msg)
 
         return self.action_view_material_pos()
 
