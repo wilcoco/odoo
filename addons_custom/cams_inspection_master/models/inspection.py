@@ -1,4 +1,5 @@
 from odoo import api, fields, models, _
+from markupsafe import Markup
 from odoo.exceptions import UserError, ValidationError
 
 _SAMPLE_FIELDS = {'quality_sample_type','quality_characteristic','quality_criticality','quality_customer_id',
@@ -15,6 +16,25 @@ class Document(models.Model):
     quality_plan_year = fields.Integer('시험 계획 연도',tracking=True)
     quality_test_kind = fields.Char('시험 종류',tracking=True)
     quality_plan_months = fields.Char('계획 월',help='예: 1,4,7,10. 실제 확정 주기대로 입력하며 타사 참고 주기를 자동 적용하지 않습니다.',tracking=True)
+    quality_test_ids = fields.One2many('cams.periodic.test','plan_document_id',string='시험 실적',groups='cams_inspection_master.group_inspection_user')
+    quality_test_calendar = fields.Html('연간 계획 대비 실적',compute='_compute_test_calendar',groups='cams_inspection_master.group_inspection_user')
+
+    @api.depends('quality_plan_year','quality_plan_months','quality_test_ids.planned_date','quality_test_ids.evidence_state','quality_test_ids.result')
+    def _compute_test_calendar(self):
+        for document in self:
+            planned={int(value.strip()) for value in (document.quality_plan_months or '').split(',') if value.strip().isdigit()}
+            rows=document.quality_test_ids.filtered(lambda r:r.planned_date.year==document.quality_plan_year)
+            cells=[]
+            for month in range(1,13):
+                current=rows.filtered(lambda r:r.planned_date.month==month)
+                latest={}
+                for row in current.filtered(lambda r:r.evidence_state=='done'):
+                    if row.evidence_key not in latest or latest[row.evidence_key].evidence_revision<row.evidence_revision:
+                        latest[row.evidence_key]=row
+                cells.append(Markup('<tr><th>%s월</th><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>') %
+                    (month,_('계획') if month in planned else _('계획 없음'),len(current.filtered(lambda r:r.evidence_state=='draft')),
+                     sum(r.result=='pass' for r in latest.values()),sum(r.result=='fail' for r in latest.values())))
+            document.quality_test_calendar=Markup('<table class="table table-sm"><thead><tr><th>월</th><th>승인 계획</th><th>작성 중</th><th>완료 적합</th><th>완료 부적합</th></tr></thead><tbody>%s</tbody></table>') % Markup('').join(cells)
 
     def _quality_evidence_fields(self):
         return super()._quality_evidence_fields() | _SAMPLE_FIELDS
@@ -98,7 +118,7 @@ class PeriodicTest(models.Model):
         super()._evidence_validate()
         for record in self:
             document=record.plan_document_id
-            if document.state!='approved' or document.quality_evidence_kind!='reliability_plan':
+            if document.state!='approved' or document.quality_evidence_kind!='reliability_plan' or not document.quality_evidence_current:
                 raise UserError(_('승인 시험 계획을 선택하십시오.'))
             months={int(value.strip()) for value in (document.quality_plan_months or '').split(',') if value.strip()}
             if record.planned_date.year!=document.quality_plan_year or record.planned_date.month not in months:

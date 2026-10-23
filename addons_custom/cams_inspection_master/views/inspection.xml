@@ -65,5 +65,6 @@
     <field name="quality_plan_year" invisible="quality_evidence_kind != 'reliability_plan'"/>
     <field name="quality_test_kind" invisible="quality_evidence_kind != 'reliability_plan'"/>
     <field name="quality_plan_months" invisible="quality_evidence_kind != 'reliability_plan'"/>
+    <field name="quality_test_calendar" readonly="1" invisible="quality_evidence_kind != 'reliability_plan'" groups="cams_inspection_master.group_inspection_user"/>
   </field>
 </field></record></odoo>

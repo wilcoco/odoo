@@ -3,6 +3,45 @@ from odoo import api,fields,models,Command,_
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 from odoo.addons.iatf_document_control.models.inspection_evidence import _lock
+import math
+
+
+class BlendStandard(models.Model):
+    _name='iatf.blend.standard'
+    _inherit=['cams.evidence.mixin','iatf.blend.standard']
+    company_id=fields.Many2one(required=False)
+    _sql_constraints=[('uniq_product_date','unique(product_id,material_id,effective_date,company_id,evidence_key,evidence_revision)',
+                       '같은 배합 기준 개정은 중복될 수 없습니다.')]
+
+    def _evidence_fields(self):
+        return super()._evidence_fields() | {'material_id','max_regrind_ratio','ratio_basis','max_additive_ratio',
+            'effective_date','customer_approved','approval_ref','approval_date','ms_spec_note','active'}
+
+    @api.constrains('company_id','responsible_id','lot_id','product_id','document_ids','attachment_ids')
+    def _check_evidence_scope(self):
+        # Preserve historical company-neutral draft criteria. New completion
+        # requires an explicit company; no legacy record is silently assigned.
+        return super(BlendStandard,self.filtered('company_id'))._check_evidence_scope()
+
+    def _approval_ensure_request(self):
+        return super(BlendStandard,self.filtered('company_id'))._approval_ensure_request()
+
+    def _evidence_validate(self):
+        super()._evidence_validate()
+        for record in self:
+            if not record.company_id or not record.product_id or not record.effective_date or not record.ms_spec_note:
+                raise UserError(_('적용 회사·품번·적용일과 물성 확인 근거를 입력하십시오.'))
+            if any(not math.isfinite(value) or not 0<=value<=100 for value in (record.max_regrind_ratio,record.max_additive_ratio)):
+                raise UserError(_('배합 비율은 유한한 0~100%여야 합니다.'))
+            if record.customer_approved and not (record.approval_ref and record.approval_date):
+                raise UserError(_('고객 승인 표시에는 문서번호와 승인일을 모두 기록하십시오.'))
+            # Distinct criteria with the same scope/date must not win by id.
+            _lock(record.product_id)
+            duplicate=record.with_context(active_test=False).search([
+                ('product_id','=',record.product_id.id),('material_id','=',record.material_id.id),
+                ('company_id','=',record.company_id.id),('effective_date','=',record.effective_date),
+                ('evidence_state','=','done'),('evidence_key','!=',record.evidence_key)],limit=1)
+            if duplicate:raise UserError(_('같은 적용일·품번·수지의 승인 기준이 있습니다. 기존 기준의 새 개정으로 작성하십시오.'))
 
 
 class MaterialLedger(models.AbstractModel):
@@ -138,6 +177,8 @@ class BlendLog(models.Model):
                 raise UserError(_('LOT·설비·배합 기준·투입 내역·이상 조치를 확인하십시오.'))
             if record.standard_id.company_id and record.standard_id.company_id!=record.company_id:
                 raise UserError(_('다른 회사의 배합 기준입니다.'))
+            if record.standard_id.evidence_state!='done':
+                raise UserError(_('배합 기준을 먼저 검토·승인·검증 완료하십시오. 과거 장부의 계산 근거는 유지됩니다.'))
             for line in record.line_ids:
                 if (not line.lot_id or line.lot_id.product_id!=line.product_id
                     or line.lot_id.company_id!=record.company_id):
@@ -199,4 +240,4 @@ class Attachment(models.Model):
     _inherit='ir.attachment'
     @api.model
     def _cams_evidence_models(self):
-        return super()._cams_evidence_models()+('iatf.regrind.log','iatf.blend.log')
+        return super()._cams_evidence_models()+('iatf.regrind.log','iatf.blend.log','iatf.blend.standard')

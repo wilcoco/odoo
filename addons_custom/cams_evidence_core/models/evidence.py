@@ -182,6 +182,56 @@ class Evidence(models.AbstractModel):
         return {'type':'ir.actions.act_window','res_model':self._name,'res_id':new.id,'view_mode':'form','target':'current'}
 
 
+class EvidenceLedger(models.AbstractModel):
+    _name='cams.evidence.ledger.mixin'
+    _inherit=['cams.evidence.mixin']
+    _description='기존 업무 장부의 승인·완료·정정'
+    _ledger_initial_state='draft'
+
+    @api.model_create_multi
+    def create(self,vals_list):
+        if not self._evidence_internal() and any(values.get('state',self.env.context.get('default_state',self._ledger_initial_state))!=self._ledger_initial_state for values in vals_list):
+            raise UserError(_('업무 기록은 작성 상태에서 시작하고 검증 완료하십시오.'))
+        return super().create(vals_list)
+
+    def write(self,values):
+        if not self._evidence_internal():
+            if 'state' in values:raise UserError(_('장부 상태는 업무 처리 버튼으로 변경하십시오.'))
+            if self._evidence_fields() & values.keys() and any(row.state=='done' for row in self):
+                raise UserError(_('과거 완료 기록도 수정하지 않습니다. 정정 개정을 작성하십시오.'))
+        return super().write(values)
+
+    def unlink(self):
+        if any(row.state=='done' for row in self):raise UserError(_('완료된 업무 기록은 삭제하지 않습니다.'))
+        return super().unlink()
+
+    def _approval_reset_ignored_fields(self):return super()._approval_reset_ignored_fields() | {'state'}
+    def _evidence_completion_values(self):return dict(super()._evidence_completion_values(),state='done')
+    def _evidence_revision_values(self):return dict(super()._evidence_revision_values(),state=self._ledger_initial_state)
+    def _evidence_validate(self):
+        super()._evidence_validate()
+        if any(row.state!=self._ledger_initial_state for row in self):
+            raise UserError(_('과거 완료 자료는 보존하며 새 정정 개정에서 검토합니다.'))
+    def action_done(self):return self.action_complete_evidence()
+    def action_draft(self):raise UserError(_('완료 이력은 초안으로 되돌리지 않습니다. 새 개정을 작성하십시오.'))
+    def action_cancel(self):
+        if any(row.state=='done' or row.approval_state in ('in_progress','approved') for row in self):
+            raise UserError(_('상신·완료 기록은 반려 또는 새 개정으로 정정하십시오.'))
+        return self.with_context(**{_CTX:_TOKEN}).write({'state':'cancelled'})
+    def action_new_evidence_revision(self):
+        self.ensure_one()
+        if self.evidence_state=='done':return super().action_new_evidence_revision()
+        self._approval_lock()
+        if self.state!='done':raise UserError(_('완료 기록에서 정정 개정을 시작하십시오.'))
+        latest=self.search([('evidence_key','=',self.evidence_key)],order='evidence_revision desc',limit=1)
+        if latest!=self:raise UserError(_('최신 개정에서 작업하십시오.'))
+        values=self._evidence_revision_values()
+        values.update(evidence_key=self.evidence_key,evidence_revision=self.evidence_revision+1,
+            previous_evidence_id=self.id,evidence_state='draft')
+        new=self.with_context(**{_CTX:_TOKEN}).copy(values)
+        return {'type':'ir.actions.act_window','res_model':self._name,'res_id':new.id,'view_mode':'form','target':'current'}
+
+
 class Attachment(models.Model):
     _inherit = 'ir.attachment'
 

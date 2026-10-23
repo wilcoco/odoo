@@ -176,7 +176,13 @@ class TestMaterialEvidence(TransactionCase):
 
     def test_blend_lot_provenance_limits_and_child_mutation(self):
         source=self._regrind();self._complete(source)
-        self.env['iatf.blend.standard'].create({'product_id':self.product.id,'max_regrind_ratio':30,'effective_date':self.today})
+        standard=self.env['iatf.blend.standard'].with_user(self.author).create({
+            'product_id':self.product.id,'max_regrind_ratio':30,'effective_date':self.today,
+            'ms_spec_note':'SYNTHETIC material qualification report',
+            'trace_exception':'SYNTHETIC product master criterion, no production LOT or machine',
+            'approval_line_ids':[Command.create({'user_id':self.reviewer.id})]})
+        self._complete(standard)
+        with self.assertRaises(UserError):standard.max_regrind_ratio=90
         values={'product_id':self.product.id,'lot_id':self.lot.id,'equipment_id':self.equipment.id,
             'workcenter_id':self.workcenter.id,'approval_line_ids':[Command.create({'user_id':self.reviewer.id})],
             'line_ids':[Command.create({'material_type':'virgin','product_id':self.product.id,'lot_id':self.lot.id,'qty':7}),
@@ -194,3 +200,9 @@ class TestMaterialEvidence(TransactionCase):
         new.line_ids[0].qty=8
         self.assertEqual(record.line_ids[0].qty,7)
         with self.assertRaises(UserError):record.write({'limit_ratio':100})
+        criterion=self.env[standard._name].with_user(self.author).browse(standard.action_new_evidence_revision()['res_id'])
+        criterion.max_regrind_ratio=20
+        self._complete(criterion)
+        self.assertEqual(criterion.evidence_revision,2)
+        self.assertEqual(standard.max_regrind_ratio,30)
+        self.assertEqual(record.completion_snapshot['ratio']['limit_ratio'],30)

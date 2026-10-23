@@ -139,6 +139,9 @@ class TestInspectionEvidence(TransactionCase):
         record.write({'planned_date':self.today})
         self._complete(record)
         self.assertEqual(record.completion_snapshot['values']['result'],'pass')
+        calendar=str(record.plan_document_id.quality_test_calendar)
+        self.assertEqual(calendar.count('<tr>'),13)
+        self.assertIn('<th>%s월</th><td>계획</td><td>0</td><td>1</td><td>0</td>' % self.today.month,calendar)
 
     def test_attachment_bytes_cannot_change_after_submission_or_completion(self):
         record=self._record(periodic=True)

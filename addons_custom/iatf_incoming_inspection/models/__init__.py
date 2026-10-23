@@ -4,3 +4,4 @@ from . import stock_picking
 from . import stock_gate
 from . import iqc_evidence
 from . import lot_hold_release
+from . import certificate

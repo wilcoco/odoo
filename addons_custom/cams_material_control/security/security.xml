@@ -9,4 +9,5 @@
 <record id="rule_regrind_company" model="ir.rule"><field name="name">분쇄 장부 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_regrind_log"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
 <record id="rule_blend_company" model="ir.rule"><field name="name">배합 장부 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_blend_log"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
 <record id="rule_blend_line_company" model="ir.rule"><field name="name">배합 투입 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_blend_log_line"/><field name="domain_force">[('blend_id.company_id','in',company_ids)]</field></record>
+<record id="rule_blend_standard_company" model="ir.rule"><field name="name">배합 기준 회사 격리</field><field name="model_id" ref="iatf_traceability.model_iatf_blend_standard"/><field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field></record>
 </odoo>
