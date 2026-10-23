@@ -13,6 +13,7 @@ import json
 import openpyxl
 
 SRC = os.path.expanduser('~/Downloads/OneDrive_2_10-19-2026')
+W2A = '/private/tmp/claude-501/-Users-jhungsoohong-cams-odoo/e09056bf-6214-4b5d-bf3d-6ec964b77580/scratchpad/sq2'
 OUT = os.path.dirname(os.path.abspath(__file__)) + '/sq-union'
 os.makedirs(OUT, exist_ok=True)
 
@@ -103,21 +104,41 @@ for i, x in enumerate(ours_only, 1):
         'note': '사내 추가(우리 %s) — Ver4·Ver5.1 모두 없음' % x['code'],
     })
 
-# ── 3. 조립: SW 조립장 준비 LIST 34항목
+# ── 3. 조립: 우리 36(8070 sq.item standard_id=2) ∪ SW 조립장 준비 LIST 34
 AREA_A = {'1': '생산조건관리', '2': '검사시험', '3': '설비관리', '4': '자재관리', '5': '품질경영체제'}
 asm = []
 for r in cells('SQ평가서 참고본/SW 조립장 SQ 준비 LIST_250912(샘플).xlsx', '종합'):
     if re.fullmatch(r'\d_\d+', r[0]):
         asm.append({'code': r[0], 'req': anon(r[1]), 'finding1': anon(r[2]),
                     'pre': anon(r[3]), 'prep': anon(r[4])})
-for x in asm:
-    nm = re.sub(r'^▣\s*', '', x['req']).split(' - ')[0][:80]
+prep_codes = {x['code'] for x in asm}
+prep_by = {x['code']: x for x in asm}
+# 8070 에서 읽은 우리 조립 36항목 (t3.sq, 읽기 전용)
+ASM36 = json.load(open(W2A + '/sq_item_8070.json'))
+asm36 = [{'code': x['code'].replace('ASM.', ''), 'name': x['name'], 'points': x['points']}
+         for x in ASM36 if x.get('standard_id') and x['standard_id'][0] == 2]
+asm36.sort(key=lambda z: (z['code'][0], int(z['code'].split('_')[1])))
+for x in asm36:
+    p = prep_by.get(x['code'])
     rows.append({
         'union_code': x['code'], 'industry': 'ASM', 'area_no': x['code'][0],
-        'area_name': AREA_A.get(x['code'][0], ''), 'name': nm, 'requirement': x['req'],
-        'points_ver51': '', 'points_ours': '', 'points_union': '',
-        'in_ver4': '', 'in_ver51': '', 'in_ours': '미확인', 'in_prep_list': 'Y',
-        'note': '배점 미기재(준비 LIST 에 없음). 우리 36항목과의 대응은 8070 sq.item 접근 거부로 미확인',
+        'area_name': AREA_A.get(x['code'][0], ''), 'name': x['name'][:80],
+        'requirement': (p['req'] if p else '(준비 LIST 에 없음 — 8070 항목명만)'),
+        'points_ver51': '', 'points_ours': x['points'],
+        'points_union': '%g' % x['points'],
+        'in_ver4': '', 'in_ver51': '', 'in_ours': 'Y',
+        'in_prep_list': 'Y' if p else 'N',
+        'note': '' if p else '우리 36 에만 있음(준비 LIST 34 에 없음)',
+    })
+only_prep = sorted(prep_codes - {x['code'] for x in asm36})
+for c in only_prep:
+    p = prep_by[c]
+    rows.append({
+        'union_code': c, 'industry': 'ASM', 'area_no': c[0],
+        'area_name': AREA_A.get(c[0], ''), 'name': re.sub(r'^▣\s*', '', p['req']).split(' - ')[0][:80],
+        'requirement': p['req'], 'points_ver51': '', 'points_ours': '', 'points_union': '',
+        'in_ver4': '', 'in_ver51': '', 'in_ours': 'N', 'in_prep_list': 'Y',
+        'note': '준비 LIST 에만 있음(우리 36 에 없음)',
     })
 
 hdr = ['union_code', 'industry', 'area_no', 'area_name', 'name', 'requirement',
@@ -148,6 +169,8 @@ for i, x in enumerate(ours_only, 1):
 for x in asm:
     nm = re.sub(r'^▣\s*', '', x['req']).split(' - ')[0][:70]
     A(x['code'], 'SW-PREP-250912', x['code'], nm, '동일문구')
+for x in asm36:
+    A(x['code'], 'OURS-36', 'ASM.' + x['code'], x['name'][:70], '동일문구')
 # 금강 폴더 번호(= Ver5.1 체계) — 관측된 폴더만
 GUM = [('1_1', '1. 생산조건관리'), ('2_1', '2. 검사시험'), ('3_2', '3-2. 설비 정기점검 업무절차 수립 및 준수여부'),
        ('3_3', '3-3. 원소재 건조장치 관리기준 설정 및 준수상태'), ('3_4', '3-4. 배합기, 분쇄기 관리기준'),
