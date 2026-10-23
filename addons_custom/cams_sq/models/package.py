@@ -118,6 +118,15 @@ class SqAuditPackage(models.Model):
             for attachment in self.attachment_ids:
                 add_attachment(archive, attachment, {'assessment': self.id})
             archive.writestr('assessment.csv', text.getvalue().encode('utf-8-sig'))
+            # Preserve the approved historical judgment separately from current
+            # source exports. Never represent today's attachments as old evidence.
+            request = self.approval_request_id
+            if request:
+                request.check_access('read')
+                archive.writestr('approval-snapshot.json', json.dumps({
+                    'request_id': request.id, 'state': request.state,
+                    'snapshot': request.snapshot,
+                }, ensure_ascii=False, indent=2, default=str))
             archive.writestr('evidence.json', json.dumps(manifest, ensure_ascii=False, indent=2, default=str))
             archive.writestr('summary.json', json.dumps({'assessment': self.name, 'company': company.name,
                 'standard': self.sq_standard_id.name, 'state': self.state, 'raw_score': self.sq_raw_score,

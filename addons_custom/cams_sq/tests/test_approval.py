@@ -1,3 +1,4 @@
+import base64
 from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests import tagged
@@ -50,6 +51,18 @@ class TestSqApproval(TransactionCase):
         self.assertEqual(request.snapshot, snapshot)
         with self.assertRaises(UserError):
             audit.action_reset_approval()
+
+    def test_attachment_change_after_submission_requires_resubmission(self):
+        audit = self.assessment()
+        attachment = self.env['ir.attachment'].with_user(self.author).create({
+            'name': 'SYNTHETIC-evidence.txt', 'datas': base64.b64encode(b'before'),
+            'res_model': 'iatf.audit', 'res_id': audit.id})
+        audit.attachment_ids = attachment
+        audit.action_submit_approval()
+        attachment.write({'datas': base64.b64encode(b'after')})
+        with self.assertRaises(UserError):
+            audit.with_user(self.approver).action_approve_approval()
+        self.assertEqual(audit.approval_state, 'in_progress')
 
     def test_publish_requires_approval_and_no_forged_state(self):
         audit = self.assessment()

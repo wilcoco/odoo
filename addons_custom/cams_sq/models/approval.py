@@ -3,7 +3,7 @@ import hashlib
 import json
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 from .assessment import LOCKED
 
@@ -24,6 +24,14 @@ class SqAudit(models.Model):
 
     sq_revision_of_id = fields.Many2one(
         'iatf.audit', string='이전 SQ 평가서', readonly=True, copy=False, ondelete='restrict')
+
+    @api.constrains('sq_revision_of_id', 'company_id', 'audit_type')
+    def _sq_revision_company(self):
+        for audit in self.filtered('sq_revision_of_id'):
+            previous = audit.sq_revision_of_id
+            previous.check_access('read')
+            if audit.audit_type != 'sq' or previous.audit_type != 'sq' or previous.company_id != audit.company_id or previous == audit:
+                raise ValidationError(_('같은 회사의 다른 SQ 평가서만 이전 평가로 연결할 수 있습니다.'))
 
     def _sq_content(self):
         self.ensure_one()
@@ -82,6 +90,12 @@ class SqAudit(models.Model):
             saved = (audit.approval_request_id.snapshot or {}).get('sq', {})
             if saved.get('version') != 1 or saved.get('digest') != audit._sq_content_digest():
                 raise UserError(_('상신한 SQ 평가 내용과 현재 내용이 다릅니다. 새 결재로 다시 상신하십시오.'))
+            if audit.state in ('planned', 'in_progress'):
+                attachments = {row['id']: row['checksum'] for row in saved.get('attachments', [])}
+                documents = {row['id']: row['write_date'] for row in saved.get('documents', [])}
+                if any(attachments.get(a.id) != a.checksum for a in audit.attachment_ids) or any(
+                        documents.get(d.id) != str(d.write_date) for d in audit.document_ids):
+                    raise UserError(_('상신 이후 연결 문서 또는 첨부가 변경됐습니다. 근거를 재확인하고 다시 상신하십시오.'))
 
     def _approval_should_reset(self, vals):
         if self.env.context.get('_sq_transition') is _TRANSITION and set(vals) == {'state'}:
