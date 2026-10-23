@@ -12,7 +12,7 @@ class TestControlledQualityEvidence(TransactionCase):
         self.manager = new_test_user(self.env, login='quality_evidence_manager', email='quality-proof@example.invalid',
             groups='iatf_document_control.group_document_manager,iatf_change_management.group_change_management_user')
         self.product = self.env['product.product'].create({'name': 'SYNTHETIC sample product'})
-        self.category = self.env['iatf.document.category'].create({'name': 'SYNTHETIC evidence'})
+        self.category = self.env['iatf.document.category'].create({'name': 'SYNTHETIC evidence', 'code': 'SYNQE'})
 
     def document(self, **values):
         vals = dict(name='SYNTHETIC controlled sample', category_id=self.category.id,

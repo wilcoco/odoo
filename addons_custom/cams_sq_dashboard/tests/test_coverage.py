@@ -126,6 +126,7 @@ class TestSqRequiredDocuments(TransactionCase):
         super().setUpClass()
         cls.env['sq.standard'].action_load_catalog()
         cls.item = cls.env['sq.item'].search([('code', '=', 'INJ.2_3'), ('company_id', '=', cls.env.company.id)], limit=1)
+        cls.item = cls.item.copy({'code': 'TEST.DOCUMENTS', 'name': '[TEST] required documents'})
         cls.today = fields.Date.context_today(cls.env.user)
         cls.role = cls.env['ops.role'].create({'name': '[TEST] master review'})
         cls.doc_approver = new_test_user(cls.env, login='sq.required.documents',

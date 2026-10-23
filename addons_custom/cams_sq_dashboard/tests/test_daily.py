@@ -12,6 +12,9 @@ class TestSqDaily(TransactionCase):
         super().setUpClass()
         cls.env['sq.standard'].action_load_catalog()
         cls.item = cls.env['sq.item'].search([('code', '=', 'INJ.3_1'), ('company_id', '=', cls.env.company.id)], limit=1)
+        # An upgraded customer clone already has plans and bindings. Isolate the
+        # fixture without removing or changing those existing business records.
+        cls.item = cls.item.copy({'code': 'TEST.DAILY', 'name': '[TEST] daily item'})
         cls.today = fields.Date.context_today(cls.env.user)
         cls.role = cls.env['ops.role'].create({'name': '[TEST] SQ daily'})
         cls.sheet = cls.env['iatf.check.sheet'].create({'name': '[TEST] daily direct',
