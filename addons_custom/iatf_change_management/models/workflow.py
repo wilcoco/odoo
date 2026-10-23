@@ -31,6 +31,9 @@ class ChangeWorkflow(models.Model):
     def _change_history_fields(self):
         return _HISTORY
 
+    def _change_followup_fields(self):
+        return _FOLLOWUP
+
     def _change_write(self, values):
         return self.with_context(_change_workflow=_WORKFLOW).write(values)
 
@@ -101,7 +104,7 @@ class ChangeWorkflow(models.Model):
     def _approval_should_reset(self, vals):
         if self._change_internal() and set(vals) <= self._change_history_fields():
             return False
-        if set(vals) <= _FOLLOWUP and all(r.state == 'verification' for r in self):
+        if set(vals) <= self._change_followup_fields() and all(r.state == 'verification' for r in self):
             return False
         return super()._approval_should_reset(vals)
 
@@ -126,7 +129,7 @@ class ChangeWorkflow(models.Model):
                 raise UserError(_('변경 상태와 검토·승인·실행 이력은 단계별 버튼으로만 기록합니다.'))
             operational = self._approval_reset_ignored_fields() | {'approval_line_ids'}
             for record in self:
-                allowed = operational | (_FOLLOWUP if record.state == 'verification' else set())
+                allowed = operational | (self._change_followup_fields() if record.state == 'verification' else set())
                 if record.state not in ('draft', 'rejected') and set(vals) - allowed:
                     raise UserError(_('제출한 변경 내용은 잠깁니다. 반려·초안 복귀 후 수정하십시오.'))
         return super().write(vals)
