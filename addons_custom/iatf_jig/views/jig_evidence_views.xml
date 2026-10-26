@@ -3,7 +3,7 @@
   <record id="jig_company_scope" model="ir.rule"><field name="name">지그 회사 격리</field><field name="model_id" ref="model_iatf_jig"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
   <record id="jig_record_company_scope" model="ir.rule"><field name="name">지그 점검 회사 격리</field><field name="model_id" ref="model_iatf_jig_record"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
   <record id="view_jig_disposition" model="ir.ui.view"><field name="name">iatf.jig.disposition</field><field name="model">iatf.jig</field><field name="inherit_id" ref="view_jig_form"/><field name="arch" type="xml">
-    <xpath expr="//header" position="inside"><button name="action_release_verified" type="object" string="재검증 확인·사용 금지 해제" groups="group_jig_manager" invisible="not use_blocked"/></xpath>
+    <xpath expr="//header" position="inside"><button name="action_release_verified" type="object" string="재검증 확인·사용 금지 해제" groups="iatf_jig.group_jig_manager" invisible="not use_blocked"/></xpath>
     <xpath expr="//sheet" position="inside"><group string="이상·재사용 근거"><field name="use_blocked"/><field name="blocked_record_id"/><field name="blocked_at"/><field name="release_candidate_id" invisible="not use_blocked"/><field name="released_record_id"/></group></xpath>
   </field></record>
   <record id="view_jig_record_evidence" model="ir.ui.view"><field name="name">iatf.jig.record.evidence</field><field name="model">iatf.jig.record</field><field name="inherit_id" ref="view_jig_record_form"/><field name="arch" type="xml">

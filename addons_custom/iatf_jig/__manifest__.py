@@ -1,5 +1,5 @@
 {'name': 'IATF 지그/공정 마스터',
- 'version': '18.0.1.2.0',
+ 'version': '18.0.1.2.1',
  'summary': '지그(Jig) 대장·점검 기록 + 공정(Process) 마스터 (IATF 16949)',
  'category': 'Quality',
  'license': 'LGPL-3',
