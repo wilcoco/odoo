@@ -8,6 +8,7 @@ DEFAULTS = {
     'silo_reorder_po_state': 'draft', 'silo_setting_editor': 'worksite_manager',
     'scrap_requires_approval': True, 'leave_hr_skip_manager': False,
     'portal_token_mode': 'coexist', 'statement_link_days': 30,
+    'supplier_inventory_mail': False,
 }
 
 
@@ -32,6 +33,9 @@ class OpsPolicy(models.Model):
     leave_hr_skip_manager = fields.Boolean('휴가 관리자 1차 승인 생략 허용',default=False,tracking=True)
     portal_token_mode = fields.Selection([('coexist','로그인·토큰 공존'),('login','로그인 전용')],default='coexist',required=True,tracking=True)
     statement_link_days = fields.Integer('거래명세서 승인 링크 유효일',default=30,tracking=True)
+    supplier_inventory_mail = fields.Boolean('협력사 재고 갱신 요청 메일 발송', default=False, tracking=True,
+        help='협력사 신고 재고가 납품 입고로 차감되어 미입고 요구량보다 적어지면 포털 알림은 항상 남기고, '
+             '이 값이 켜진 회사만 협력사에게 메일을 보낸다. 배포 후 시험 협력사 1건으로 확인한 뒤 켠다(2026-10-27 총괄 결정).')
     _sql_constraints = [('company_unique','unique(company_id)','회사당 운영 정책은 한 건입니다.')]
 
     @api.model

@@ -75,7 +75,8 @@ class TestSupplierInventorySync(TransactionCase):
         self.assertEqual(notes.product_id, self.part)
         self.assertIn("재고 갱신 요청", notes.message)
         self.assertTrue(inv.update_requested_at)
-        self.assertEqual(self.env["mail.mail"].search_count([("model", "=", "supplier.inventory"), ("res_id", "=", inv.id)]), mails_before + 1)
+        # 메일 발송은 기본 OFF(운영 정책 supplier_inventory_mail) — 포털 알림만 남는다
+        self.assertEqual(self.env["mail.mail"].search_count([("model", "=", "supplier.inventory"), ("res_id", "=", inv.id)]), mails_before)
         # 안 읽은 요청이 남아 있으면 다음 차감에서 중복 발송하지 않는다
         self._receive(po, 1)
         self.assertEqual(self.Notification.search_count([("partner_id", "=", self.vendor.id), ("notification_type", "=", "inventory_update")]), 1)
@@ -83,6 +84,28 @@ class TestSupplierInventorySync(TransactionCase):
         inv.write({"quantity": 20})
         inv.invalidate_recordset()
         self.assertFalse(inv.needs_update)
+
+    def _enable_inventory_mail(self):
+        if "cams.ops.policy" in self.env:
+            policy = self.env["cams.ops.policy"].sudo().search([("company_id", "=", self.company.id)], limit=1)
+            vals = {"supplier_inventory_mail": True, "change_reason": "시험: 협력사 재고 메일 발송 확인"}
+            policy.write(vals) if policy else self.env["cams.ops.policy"].sudo().create(dict(vals, company_id=self.company.id))
+        else:
+            self.env["ir.config_parameter"].sudo().set_param("supplier_portal_purchase.inventory_update_mail", "True")
+
+    def test_update_mail_sent_only_when_enabled(self):
+        """회사 정책(또는 매개변수)으로 켠 회사만 협력사에게 갱신 요청 메일을 보낸다."""
+        self._enable_inventory_mail()
+        inv = self._inventory(5)
+        po = self._po(6)
+        mails_before = self.env["mail.mail"].search_count([("model", "=", "supplier.inventory")])
+        self._receive(po, 3)
+        inv.invalidate_recordset()
+        self.assertTrue(inv.needs_update)
+        mails = self.env["mail.mail"].search([("model", "=", "supplier.inventory"), ("res_id", "=", inv.id)])
+        self.assertEqual(len(mails), 1)
+        self.assertEqual(self.env["mail.mail"].search_count([("model", "=", "supplier.inventory")]), mails_before + 1)
+        self.assertIn(self.vendor.email, mails.email_to)
 
     def test_floor_at_zero_and_non_portal_vendor_untouched(self):
         inv = self._inventory(1)

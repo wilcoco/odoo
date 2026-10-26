@@ -90,6 +90,16 @@ class SupplierInventory(models.Model):
         inv._notify_update_needed(move)
         return inv
 
+    def _inventory_mail_enabled(self):
+        """메일 발송 여부(기본 OFF). 운영 정책 모듈이 있으면 회사 정책값, 없으면 시스템 매개변수."""
+        self.ensure_one()
+        if "cams.ops.policy" in self.env:
+            try:
+                return bool(self.env["cams.ops.policy"]._value(self.company_id, "supplier_inventory_mail"))
+            except ValueError:  # 정책 모듈 구버전(키 없음) → 꺼짐
+                return False
+        return self.env["ir.config_parameter"].sudo().get_param("supplier_portal_purchase.inventory_update_mail") == "True"
+
     def _notify_update_needed(self, move=None):
         """부족하면 포털 알림 + 메일. 같은 품목의 안 읽은 요청이 남아 있으면 다시 보내지 않는다."""
         Notification = self.env["supplier.portal.notification"].sudo()
@@ -113,7 +123,7 @@ class SupplierInventory(models.Model):
                     "product": rec.product_id.display_name, "qty": _fmt(rec.quantity), "need": _fmt(rec.outstanding_qty),
                     "short": _fmt(rec.shortage_qty), "ref": (move.picking_id.name if move is not None and move.picking_id else _("납품"))},
             })
-            if template and (rec.partner_id.portal_notify_email or rec.partner_id.email):
+            if template and rec._inventory_mail_enabled() and (rec.partner_id.portal_notify_email or rec.partner_id.email):
                 template.sudo().send_mail(rec.id, force_send=False)
             rec.write({"update_requested_at": fields.Datetime.now()})
             sent |= rec
