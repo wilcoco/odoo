@@ -28,4 +28,5 @@ class HrEmployee(models.Model):
 
     job_grade_id = fields.Many2one(
         "escon.job.grade", string="직급", tracking=True,
+        groups="hr.group_hr_user",
         help="전자결재 결재선의 '부서 내 직급자' 방식이 이 값으로 결재자를 찾습니다.")
