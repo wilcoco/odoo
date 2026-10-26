@@ -58,7 +58,8 @@ class TestOpsPolicy(TransactionCase):
     def test_email_required_and_approval_template_write_role(self):
         admin = new_test_user(self.env,login='ops_admin',email='admin@example.invalid',groups='base.group_system,base.group_partner_manager')
         with self.assertRaises(ValidationError), self.cr.savepoint():
-            self.worker.with_user(admin).write({'email':False})
+            # 자동 시험 실행에서는 Odoo 표준 회계 시험 기반 때문에 제약을 건너뛰므로, 정책 시험만 명시로 켠다.
+            self.worker.with_user(admin).with_context(_ops_email_enforce=True).write({'email':False})
         with self.assertRaises(ValidationError), self.cr.savepoint():
             self.env['iatf.approval.template'].create({'name':'SYNTHETIC invalid approver',
                 'model_id':self.env['ir.model']._get_id('cams.ops.policy'),

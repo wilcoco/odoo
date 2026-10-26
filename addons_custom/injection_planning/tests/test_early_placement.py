@@ -1087,10 +1087,15 @@ class TestConfirmedDurationSurvivesARealWrite(PlanningCase):
         """
         mo = self._generated_mo(qty=3.0)
         before = (mo.date_finished - mo.date_start).total_seconds()
-        mo.write({"product_qty": 24.0})
+        # 계획 연결 제조지시의 수량은 직접 쓰지 못한다(증량은 재계획). 정식 경로인 '수량 감축'으로 반으로 줄인다.
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            mo.write({"product_qty": 24.0})
+        self.env["injection.plan.quantity.change"].create({
+            "line_id": mo.planning_line_id.id, "expected_qty": mo.product_qty,
+            "quantity": mo.product_qty / 2.0, "reason": "시험: 수량 감축"}).action_apply()
         mo.invalidate_recordset()
         after = (mo.date_finished - mo.date_start).total_seconds()
-        self.assertGreater(
-            after, before * 1.5,
-            "수량을 2배로 올렸는데 소요가 따라오지 않았다 (%.2fh → %.2fh)"
+        self.assertLess(
+            after * 1.5, before,
+            "수량을 반으로 줄였는데 소요가 따라오지 않았다 (%.2fh → %.2fh)"
             % (before / 3600.0, after / 3600.0))

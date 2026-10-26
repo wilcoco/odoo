@@ -3150,7 +3150,8 @@ class PlanningRun(models.Model):
                 count=len(live), names=", ".join(live.mapped("name")[:5])))
         # 계획 라인 삭제도 담당자에게 직접 준 권한이 아니다(PP03). 같은 검사를 거친다.
         ledger = self._planning_ledger(self._LEDGER_STATES + ("confirmed",))
-        ledger.line_ids.unlink()
+        from .quantity_change import _LINE_RESET
+        ledger.line_ids.with_context(_planning_line_reset=_LINE_RESET).unlink()  # 위에서 살아 있는 MO 없음을 확인했다
         ledger.unassigned_ids.unlink()
         ledger.violation_ids.unlink()
         self.demand_ids.write({"state": "draft"})

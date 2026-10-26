@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
 _QUANTITY_CHANGE = object()
+_LINE_RESET = object()  # planning_run.action_reset_draft 전용: 취소된 MO 에 연결된 행 정리
 
 
 class PlanningCalculationPolicy(models.Model):
@@ -69,7 +70,11 @@ class PlanningQuantity(models.Model):
         return super().write(values)
 
     def unlink(self):
-        if any(line.mo_id for line in self):
+        linked = self.filtered('mo_id')
+        # 발행·완료된 제조지시의 계획 행은 이력으로 남긴다. 계획을 '초안으로' 되돌릴 때(모든 MO 취소 확인 뒤)만
+        # 취소된 MO 에 연결된 행을 정리한다 — 취소 MO 자체가 이력으로 남는다.
+        if linked and not (self.env.context.get('_planning_line_reset') is _LINE_RESET
+                           and all(line.mo_id.state == 'cancel' for line in linked)):
             raise UserError(_('제조지시가 연결된 계획 행은 이력으로 보존합니다.'))
         return super().unlink()
 
