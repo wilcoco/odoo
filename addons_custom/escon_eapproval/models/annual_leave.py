@@ -160,4 +160,5 @@ class HrEmployeeHire(models.Model):
 
     eap_hire_date = fields.Date(
         string="입사일", tracking=True,
+        groups="hr.group_hr_user",
         help="연차 자동 발생 기준일. 비워 두면 첫 계약 시작일을 사용합니다.")
