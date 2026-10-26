@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_supplier_inventory_update" model="mail.template">
+            <field name="name">협력사 재고 갱신 요청</field>
+            <field name="model_id" ref="supplier_portal_purchase.model_supplier_inventory"/>
+            <field name="subject">[재고 갱신 요청] {{ object.product_id.display_name }}</field>
+            <field name="email_from">{{ (object.company_id.email or user.email or '') }}</field>
+            <field name="email_to">{{ object.partner_id.portal_notify_email or object.partner_id.email }}</field>
+            <field name="lang">{{ object.partner_id.lang }}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p>안녕하세요, <t t-out="object.partner_id.name"/> 담당자님.</p>
+                    <p><strong><t t-out="object.product_id.display_name"/></strong> 품목의 신고 재고가 당사 미입고 요구량보다 적습니다.</p>
+                    <ul>
+                        <li>신고 재고: <t t-out="'%g' % object.quantity"/></li>
+                        <li>당사 미입고 요구량: <t t-out="'%g' % object.outstanding_qty"/></li>
+                        <li>부족: <t t-out="'%g' % object.shortage_qty"/></li>
+                    </ul>
+                    <p>납품이 입고될 때마다 신고 재고에서 자동 차감됩니다. 생산 후 아래 화면에서 재고 수량을 다시 입력해 주세요.</p>
+                    <p><a t-att-href="object.portal_inventory_url" style="padding:8px 16px;background:#875A7B;color:#fff;text-decoration:none;border-radius:4px;">내 재고 관리 열기</a></p>
+                    <p>감사합니다.</p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

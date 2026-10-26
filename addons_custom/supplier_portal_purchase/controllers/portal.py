@@ -126,10 +126,15 @@ class SupplierPortalController(http.Controller):
             ("date_planned", "<=", week_later),
         ] + [("company_id", "=", request.env.company.id)], order="date_planned asc", limit=5)
 
+        inventory_alerts = request.env["supplier.inventory"].sudo().search([
+            ("partner_id.commercial_partner_id", "=", partner.commercial_partner_id.id),
+            ("company_id", "=", request.env.company.id)]).filtered("needs_update")
+
         return request.render("supplier_portal_purchase.portal_dashboard", {
             "partner": partner,
             "token": token,
             "po_stats": po_stats,
+            "inventory_alerts": inventory_alerts,
             "notifications": notifications,
             "unread_count": unread_count,
             "upcoming_pos": upcoming_pos,
@@ -911,6 +916,7 @@ class SupplierPortalController(http.Controller):
             "partner": partner,
             "token": token,
             "inventory_items": inventory_items,
+            "inventory_alerts": inventory_items.filtered("needs_update"),
         })
 
     @http.route("/supplier/my-inventory/update", type="http", auth="public",
