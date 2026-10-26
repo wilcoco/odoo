@@ -1,0 +1,70 @@
+<odoo>
+<record id="view_limit_sample_check_list" model="ir.ui.view"><field name="name">cams.limit.sample.check.list</field><field name="model">cams.limit.sample.check</field><field name="arch" type="xml"><list>
+      <field name="name"/><field name="record_date"/><field name="product_id"/><field name="lot_id"/><field name="result"/><field name="responsible_id"/><field name="evidence_revision"/><field name="approval_state" widget="badge"/><field name="evidence_state" widget="badge"/>
+    </list></field></record>
+    <record id="view_limit_sample_check_form" model="ir.ui.view"><field name="name">cams.limit.sample.check.form</field><field name="model">cams.limit.sample.check</field><field name="arch" type="xml"><form>
+      <header>
+        <button name="action_submit_approval" type="object" string="검토 상신" class="btn-primary" invisible="evidence_state == 'done' or approval_state not in ('draft','rejected',False)"/>
+        <button name="action_approve_approval" type="object" string="승인" class="btn-success" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+        <button name="action_reject_approval" type="object" string="반려" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+        <button name="action_complete_evidence" type="object" string="검증 완료" class="btn-primary" invisible="approval_state != 'approved' or evidence_state == 'done'"/>
+        <button name="action_new_evidence_revision" type="object" string="새 개정 작성" invisible="evidence_state != 'done'"/>
+        <field name="approval_is_current_user" invisible="1"/><field name="approval_state" widget="badge"/><field name="evidence_state" widget="statusbar"/>
+      </header>
+      <sheet>
+        <div class="oe_title"><h1><field name="name" readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'"/></h1></div>
+        <group readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'">
+          <group><field name="company_id" groups="base.group_multi_company"/><field name="record_date"/><field name="responsible_id"/><field name="product_id"/><field name="lot_id" domain="[('product_id','=',product_id)]"/><field name="workcenter_id"/></group>
+          <group><field name="sample_document_id"/><field name="result"/><field name="check_detail"/><field name="action_note"/></group>
+          <field name="trace_exception"/><field name="note"/><field name="attachment_ids" widget="many2many_binary"/>
+        </group>
+        <notebook>
+          <page string="결재선"><field name="approval_line_ids" readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="user_id"/><field name="state" readonly="1"/><field name="action_date" readonly="1"/></list></field></page>
+          <page string="완료·개정 근거"><group><field name="evidence_key"/><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completed_by_id"/><field name="completed_at"/></group><field name="completion_snapshot" readonly="1"/></page>
+        </notebook>
+      </sheet><chatter/>
+    </form></field></record>
+    <record id="action_limit_sample_check" model="ir.actions.act_window"><field name="name">한도견본 점검</field><field name="res_model">cams.limit.sample.check</field><field name="view_mode">list,form</field></record>
+    <menuitem id="menu_limit_sample_check" name="한도견본 점검" parent="iatf_menu.menu_iatf_inspection" action="action_limit_sample_check" groups="group_inspection_user" sequence="65"/>
+
+<record id="view_periodic_test_list" model="ir.ui.view"><field name="name">cams.periodic.test.list</field><field name="model">cams.periodic.test</field><field name="arch" type="xml"><list>
+      <field name="name"/><field name="record_date"/><field name="product_id"/><field name="lot_id"/><field name="result"/><field name="responsible_id"/><field name="evidence_revision"/><field name="approval_state" widget="badge"/><field name="evidence_state" widget="badge"/>
+    </list></field></record>
+    <record id="view_periodic_test_form" model="ir.ui.view"><field name="name">cams.periodic.test.form</field><field name="model">cams.periodic.test</field><field name="arch" type="xml"><form>
+      <header>
+        <button name="action_submit_approval" type="object" string="검토 상신" class="btn-primary" invisible="evidence_state == 'done' or approval_state not in ('draft','rejected',False)"/>
+        <button name="action_approve_approval" type="object" string="승인" class="btn-success" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+        <button name="action_reject_approval" type="object" string="반려" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+        <button name="action_complete_evidence" type="object" string="검증 완료" class="btn-primary" invisible="approval_state != 'approved' or evidence_state == 'done'"/>
+        <button name="action_new_evidence_revision" type="object" string="새 개정 작성" invisible="evidence_state != 'done'"/>
+        <field name="approval_is_current_user" invisible="1"/><field name="approval_state" widget="badge"/><field name="evidence_state" widget="statusbar"/>
+      </header>
+      <sheet>
+        <div class="oe_title"><h1><field name="name" readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'"/></h1></div>
+        <group readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'">
+          <group><field name="company_id" groups="base.group_multi_company"/><field name="record_date"/><field name="responsible_id"/><field name="product_id"/><field name="lot_id" domain="[('product_id','=',product_id)]"/><field name="workcenter_id"/></group>
+          <group><field name="plan_document_id"/><field name="planned_date"/><field name="actual_date"/><field name="sample_count"/><field name="result"/><field name="result_note"/></group>
+          <field name="trace_exception"/><field name="note"/><field name="attachment_ids" widget="many2many_binary"/>
+        </group>
+        <notebook>
+          <page string="결재선"><field name="approval_line_ids" readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="user_id"/><field name="state" readonly="1"/><field name="action_date" readonly="1"/></list></field></page>
+          <page string="완료·개정 근거"><group><field name="evidence_key"/><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completed_by_id"/><field name="completed_at"/></group><field name="completion_snapshot" readonly="1"/></page>
+        </notebook>
+      </sheet><chatter/>
+    </form></field></record>
+    <record id="action_periodic_test" model="ir.actions.act_window"><field name="name">정기·신뢰성 시험</field><field name="res_model">cams.periodic.test</field><field name="view_mode">list,form</field></record>
+    <menuitem id="menu_periodic_test" name="정기·신뢰성 시험" parent="iatf_menu.menu_iatf_inspection" action="action_periodic_test" groups="group_inspection_user" sequence="65"/>
+
+<record id="view_document_sample_test" model="ir.ui.view"><field name="name">iatf.document.sample.test</field><field name="model">iatf.document</field><field name="inherit_id" ref="iatf_document_control.view_document_quality_evidence"/><field name="arch" type="xml">
+  <field name="quality_cycle_note" position="after">
+    <field name="quality_sample_type" invisible="quality_evidence_kind != 'limit_sample'"/>
+    <field name="quality_characteristic" invisible="quality_evidence_kind != 'limit_sample'"/>
+    <field name="quality_criticality" invisible="quality_evidence_kind != 'limit_sample'"/>
+    <field name="quality_customer_id" invisible="quality_evidence_kind not in ('limit_sample','reliability_plan')"/>
+    <field name="quality_vehicle" invisible="quality_evidence_kind not in ('limit_sample','reliability_plan')"/>
+    <field name="quality_plan_year" invisible="quality_evidence_kind != 'reliability_plan'"/>
+    <field name="quality_test_kind" invisible="quality_evidence_kind != 'reliability_plan'"/>
+    <field name="quality_plan_months" invisible="quality_evidence_kind != 'reliability_plan'"/>
+    <field name="quality_test_calendar" readonly="1" invisible="quality_evidence_kind != 'reliability_plan'" groups="cams_inspection_master.group_inspection_user"/>
+  </field>
+</field></record></odoo>

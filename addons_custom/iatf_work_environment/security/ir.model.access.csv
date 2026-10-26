@@ -1,4 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_workenv_lot_source_read,workenv.lot.source.read,stock.model_stock_lot,group_work_environment_user,1,0,0,0
+access_workenv_workcenter_source_read,workenv.workcenter.source.read,mrp.model_mrp_workcenter,group_work_environment_user,1,0,0,0
+access_workenv_mo_source_read,workenv.mo.source.read,mrp.model_mrp_production,group_work_environment_user,1,0,0,0
+access_workenv_document_source_read,workenv.document.source.read,iatf_document_control.model_iatf_document,group_work_environment_user,1,0,0,0
 access_work_area_user,iatf.work.area.user,model_iatf_work_area,group_work_environment_user,1,1,1,0
 access_work_area_manager,iatf.work.area.manager,model_iatf_work_area,group_work_environment_manager,1,1,1,1
 access_env_check_user,iatf.environment.check.user,model_iatf_environment_check,group_work_environment_user,1,1,1,0

@@ -1,0 +1,5 @@
+<odoo>
+  <record id="group_sq_uploader" model="res.groups"><field name="name">SQ 서류 업로드 담당</field><field name="implied_ids" eval="[(4,ref('cams_sq.group_sq_user')),(4,ref('iatf_document_control.group_document_user'))]"/></record>
+  <record id="binding_company" model="ir.rule"><field name="name">SQ 출력 연결 회사</field><field name="model_id" ref="model_sq_output_binding"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+  <record id="upload_company" model="ir.rule"><field name="name">SQ 업로드 회사</field><field name="model_id" ref="model_sq_output_upload"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+</odoo>

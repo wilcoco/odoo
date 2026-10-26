@@ -1,0 +1,13 @@
+.o_action_manager:has(.cams_sq_dashboard),
+.o_action:has(.cams_sq_dashboard),
+.o_content:has(.cams_sq_dashboard),
+.o_action.cams_sq_dashboard {
+    overflow: auto !important;
+    overflow-y: auto !important;
+}
+.cams_sq_dashboard {
+    min-height: 100%;
+    overflow: auto !important;
+    overflow-y: auto !important;
+    .card { border-top: 3px solid #175e57; }
+}

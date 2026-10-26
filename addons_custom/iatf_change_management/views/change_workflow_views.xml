@@ -1,0 +1,35 @@
+<odoo>
+    <record id="view_change_workflow_guard" model="ir.ui.view">
+        <field name="name">iatf.change.request.approval.guard</field>
+        <field name="model">iatf.change.request</field>
+        <field name="inherit_id" ref="view_change_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_submit_approval" string="결재 상신" type="object"
+                        invisible="state != 'review' or approval_state not in ('draft','rejected')"/>
+                <button name="action_approve_approval" string="내 결재 승인" type="object"
+                        invisible="state != 'review' or not approval_is_current_user or approval_state != 'in_progress'"/>
+                <button name="action_reject_approval" string="내 결재 반려" type="object"
+                        invisible="state != 'review' or not approval_is_current_user or approval_state != 'in_progress'"/>
+                <button name="action_change_reset_draft" string="보완 초안" type="object" invisible="state != 'rejected'"/>
+                <field name="approval_is_current_user" invisible="1"/>
+            </xpath>
+            <xpath expr="//button[@name='action_approve']" position="attributes">
+                <attribute name="string">승인 확정</attribute>
+                <attribute name="invisible">state != 'review' or approval_state != 'approved'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='requested_by']" position="after">
+                <field name="reviewer_id" readonly="state not in ('draft','rejected')"/>
+                <field name="verification_owner_id" readonly="state not in ('draft','rejected')"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="결재 근거">
+                    <group><field name="approval_state"/><field name="approval_request_id" readonly="1"/></group>
+                    <field name="approval_line_ids" readonly="approval_state not in ('draft',False)">
+                        <list editable="bottom"><field name="sequence"/><field name="user_id"/><field name="state" readonly="1"/><field name="action_date" readonly="1"/></list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

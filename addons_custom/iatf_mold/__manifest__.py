@@ -1,6 +1,6 @@
 {
     "name": "IATF 금형/치공구 관리",
-    "version": "18.0.2.0.0",
+    "version": "18.0.2.1.0",
     "summary": "금형 마스터(injection.mold) 단일화 위의 IATF/SQ 금형관리 — 관리기준·점검·온도·시사출(T/O)·보전 (IATF 16949 §8.5.1.6)",
     "category": "Quality",
     "license": "LGPL-3",
@@ -10,7 +10,7 @@
     "depends": [
         "base", "mail", "mrp",
         "iatf_document_control", "iatf_approval", "iatf_process_inspection",
-        "injection_planning",
+        "injection_planning", "cams_evidence_core",
     ],
     "data": [
         "security/security.xml",
@@ -23,6 +23,7 @@
         "views/mold_maintenance_views.xml",
         "views/mrp_production_views.xml",
         "views/menu.xml",
+        "views/quality_evidence.xml",
     ],
     "installable": True,
     "application": False,

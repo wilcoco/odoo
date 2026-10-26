@@ -80,6 +80,12 @@ class ApprovalRequest(models.Model):
                 reason=target._approval_rejection_reason(reason))
         return True
 
+    def _approve_user(self, user):
+        with self.env.cr.savepoint():
+            target = self._lock_workflow()
+            target._approval_validate_step()
+            return super()._approve_user(user)
+
 
 class ApprovalMixin(models.AbstractModel):
     _inherit = 'iatf.approval.mixin'
@@ -89,6 +95,10 @@ class ApprovalMixin(models.AbstractModel):
         self.invalidate_recordset()
 
     def _approval_validate_submit(self):
+        self.check_access('write')
+
+    def _approval_validate_step(self):
+        """A document can bind each approval to its submitted content snapshot."""
         self.check_access('write')
 
     def _approval_rejection_reason(self, reason):

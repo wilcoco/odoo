@@ -5,3 +5,4 @@ from . import attachment_guard
 from . import document_distribution
 from . import product_template
 from . import res_config_settings
+from . import quality_evidence

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_iatf_coating_root" name="도장 특화 시험"
-              parent="iatf_document_control.menu_iatf_root" sequence="35"/>
+              parent="iatf_menu.menu_iatf_production" sequence="35"/>
     <menuitem id="menu_iatf_reliability_test" name="신뢰성 시험"
               parent="menu_iatf_coating_root" action="action_reliability_test" sequence="10"/>
     <menuitem id="menu_iatf_adhesion_test" name="밀착성 시험"

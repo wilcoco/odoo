@@ -55,6 +55,9 @@ class SupplierPortalController(http.Controller):
                 return self._activate_portal_scope(partner)
             # 로그인은 됐으나 협력사 계정이 아니면(내부/타 포탈) 토큰으로 재시도
         # 2) 토큰 방식 (기존) — 빈 값·데모·짧은 토큰 거부
+        if ('cams.ops.policy' in request.env and request.env['cams.ops.policy']._value(
+                request.env.company, 'portal_token_mode') == 'login'):
+            raise AccessDenied(_('회사 정책에 따라 협력사 계정으로 로그인하십시오.'))
         if not token or token.startswith("demo_token_") or len(token) < 20:
             raise AccessDenied(_("접근 토큰이 필요하거나, 협력사 계정으로 로그인해 주세요."))
 

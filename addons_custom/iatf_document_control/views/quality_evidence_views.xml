@@ -1,0 +1,22 @@
+<odoo><record id="view_document_quality_evidence" model="ir.ui.view">
+    <field name="name">iatf.document.quality.evidence</field><field name="model">iatf.document</field>
+    <field name="inherit_id" ref="view_iatf_document_form"/>
+    <field name="arch" type="xml"><xpath expr="//notebook" position="inside">
+        <page string="품질 증빙 기준">
+            <group><group>
+                <field name="quality_evidence_kind" readonly="state != 'draft'"/>
+                <field name="quality_product_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                <field name="physical_reference" readonly="state != 'draft'"/>
+                <field name="storage_location" readonly="state != 'draft'"/>
+                <field name="quality_cycle_note" readonly="state != 'draft'"/>
+            </group><group>
+                <field name="quality_valid_from" readonly="state != 'draft'"/>
+                <field name="quality_valid_until" readonly="state != 'draft'"/>
+                <field name="quality_evidence_current"/>
+                <field name="quality_participant_count" readonly="state != 'draft'"/>
+                <field name="quality_reward_reference" readonly="state != 'draft'"/>
+            </group></group>
+            <p>실제 기준과 실물 상태는 담당자가 확인합니다. 승인 문서가 있다는 이유만으로 SQ 적합 판정하지 않습니다. 주기 업무는 기존 운영 센터의 정의에 이 문서를 연결하십시오.</p>
+        </page>
+    </xpath></field>
+</record></odoo>

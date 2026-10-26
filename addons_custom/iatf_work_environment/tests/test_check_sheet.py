@@ -5,6 +5,7 @@ import psycopg2
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -264,6 +265,7 @@ class TestCheckSheet(TransactionCase):
         with self.assertRaises(UserError):
             rec.action_done()
 
+    @mute_logger('odoo.sql_db')
     def test_sheet_delete_blocked_while_record_exists(self):
         rec = self.Record.create({"sheet_id": self.sheet.id})
         self.assertTrue(rec)
@@ -271,6 +273,7 @@ class TestCheckSheet(TransactionCase):
             with self.env.cr.savepoint():
                 self.sheet.unlink()
 
+    @mute_logger('odoo.sql_db')
     def test_duplicate_code_rejected(self):
         with self.assertRaises(psycopg2.IntegrityError):  # unique(code) 위반
             with self.env.cr.savepoint():

@@ -1,4 +1,8 @@
-from odoo import api, fields, models
+import json
+
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
+from odoo.osv import expression
 
 
 class IatfApprovalTemplate(models.Model):
@@ -10,6 +14,11 @@ class IatfApprovalTemplate(models.Model):
 
     name = fields.Char(string="템플릿명", required=True)
     active = fields.Boolean(default=True)
+    # Existing unscoped rules remain unchanged until an explicit data review.
+    company_id = fields.Many2one('res.company', string='적용 회사', index=True)
+    match_domain = fields.Text(string='추가 문서 조건 (JSON)', default='[]',
+        help='예: [["audit_type", "=", "sq"]]. 빈 배열이면 문서 종류를 추가 제한하지 않습니다.')
+    configuration_note = fields.Text(string='결재선 사전 점검', compute='_compute_configuration_note')
     sequence = fields.Integer(default=10)
     model_id = fields.Many2one(
         "ir.model", string="적용 모델", ondelete="cascade",
@@ -34,8 +43,10 @@ class IatfApprovalTemplate(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
         Policy = self.env["iatf.approval.policy"]
         for vals in vals_list:
+            vals.setdefault('company_id', self.env.company.id)
             if vals.get("policy_id"):
                 vals["model_id"] = Policy.browse(vals["policy_id"]).model_id.id
             elif vals.get("model_id"):
@@ -52,10 +63,70 @@ class IatfApprovalTemplate(models.Model):
             vals = dict(vals, policy_id=policy.id or False)
         return super().write(vals)
 
+    def _parsed_match_domain(self):
+        self.ensure_one()
+        try:
+            domain = json.loads(self.match_domain or '[]')
+            if not isinstance(domain, list):
+                raise ValueError('Expected list')
+            expression.normalize_domain(domain)
+            if domain and not self.model_id:
+                raise ValueError('Model required')
+            for leaf in domain:
+                if isinstance(leaf, str) and leaf in ('&', '|', '!'):
+                    continue
+                if not isinstance(leaf, list) or len(leaf) != 3:
+                    raise ValueError('Invalid leaf')
+                if leaf[1] not in expression.TERM_OPERATORS:
+                    raise ValueError('Invalid operator')
+                if leaf[0] in (0, 1):
+                    continue
+                model = self.env[self.model_id.model]
+                for name in leaf[0].split('.'):
+                    field = model._fields.get(name)
+                    if not field:
+                        raise ValueError('Unknown field')
+                    model = self.env[field.comodel_name] if field.relational else model
+            return domain
+        except (ValueError, TypeError, KeyError, AttributeError, AssertionError) as error:
+            raise ValidationError(_('추가 문서 조건은 적용 모델의 실제 필드를 사용하는 JSON 도메인이어야 합니다.')) from error
+
+    @api.constrains('match_domain', 'model_id', 'company_id', 'department_id')
+    def _check_template_scope(self):
+        for template in self:
+            template._parsed_match_domain()
+            if template.company_id and template.department_id.company_id != template.company_id and template.department_id:
+                raise ValidationError(_('결재선 적용 회사와 상신자 부서 회사가 다릅니다.'))
+
+    @api.depends('line_ids.user_id', 'line_ids.approver_mode', 'model_id', 'company_id', 'department_id')
+    def _compute_configuration_note(self):
+        for template in self:
+            notes = []
+            if not template.company_id:
+                notes.append(_('회사 미지정: 기존 공통 규칙의 적용 범위를 확인하십시오.'))
+            if not template.department_id:
+                notes.append(_('부서 미지정: 모든 부서에 적용될 수 있습니다.'))
+            if not template.line_ids:
+                notes.append(_('결재 단계가 없습니다.'))
+            for line in template.line_ids:
+                if line.approver_mode != 'user':
+                    notes.append(_('부서장 단계는 상신 문서와 사용자 기준으로 다시 점검합니다.'))
+                    continue
+                user = line.user_id
+                if not user.active or user.share:
+                    notes.append(_('%s: 활성 내부 사용자가 아닙니다.') % user.display_name)
+                if template.company_id and template.company_id not in user.company_ids:
+                    notes.append(_('%s: 적용 회사 권한이 없습니다.') % user.display_name)
+                if template.model_id and not self.env[template.model_id.model].with_user(user).check_access_rights('write', raise_exception=False):
+                    notes.append(_('%s: 대상 문서 쓰기 권한이 없습니다. 해당 업무 승인 역할을 지정하십시오.') % user.display_name)
+            template.configuration_note = '\n'.join(notes) or _('기본 권한 점검 통과. 실제 문서·회사·자기결재·순서는 상신 시 다시 검증합니다.')
+
     @api.model
     def _find_for(self, record, amount, department):
         """가장 구체적인 템플릿 1개: 모델일치 > 부서일치 > 금액하한 큰 순 > sequence."""
+        company = (record.company_id if 'company_id' in record._fields else False) or self.env.company
         domain = [
+            '|', ('company_id', '=', False), ('company_id', '=', company.id),
             "|", ("model_id", "=", False), ("model_id.model", "=", record._name),
             "|", ("department_id", "=", False),
             ("department_id", "=", department.id if department else False),
@@ -65,11 +136,11 @@ class IatfApprovalTemplate(models.Model):
             "|", ("min_amount", "=", 0.0), ("min_amount", "<=", amount),
         ]
         candidates = self.search(domain)
-        candidates = candidates.filtered(lambda t: t.line_ids)
+        candidates = candidates.filtered(lambda t: t.line_ids and record.filtered_domain(t._parsed_match_domain()))
         if not candidates:
             return self.browse()
         return candidates.sorted(
-            key=lambda t: (bool(t.model_id), bool(t.department_id), t.min_amount, -t.sequence),
+            key=lambda t: (bool(t.model_id), bool(t.company_id), bool(t.department_id), bool(t._parsed_match_domain()), t.min_amount, -t.sequence),
             reverse=True)[0]
 
 

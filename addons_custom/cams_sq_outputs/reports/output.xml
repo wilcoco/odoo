@@ -1,0 +1,67 @@
+<odoo>
+  <record id="paper_output" model="report.paperformat">
+    <field name="name">SQ 서류 A4</field><field name="format">A4</field><field name="orientation">Landscape</field>
+    <field name="margin_top">20</field><field name="margin_bottom">16</field><field name="margin_left">10</field><field name="margin_right">10</field>
+  </record>
+  <record id="report_output" model="ir.actions.report">
+    <field name="name">SQ 서류 출력</field><field name="model">sq.output.wizard</field>
+    <field name="report_type">qweb-pdf</field><field name="report_name">cams_sq_outputs.document</field>
+    <field name="paperformat_id" ref="paper_output"/>
+  </record>
+  <template id="signatures">
+    <table class="table table-bordered" style="width:60%;font-size:10pt;page-break-inside:avoid">
+      <tr><th>작성</th><th>검토</th><th>승인</th></tr>
+      <tr><td t-foreach="signature_values" t-as="signature"><span t-out="signature"/></td></tr>
+    </table>
+  </template>
+  <!-- The only checklist layout; all existing source adapters share it. -->
+  <template id="check_grid">
+    <h4><span t-out="grid['target']"/> · <span t-out="grid['month']"/> · 개정 <span t-out="grid['revision']"/></h4>
+    <p style="font-size:9pt">점수 척도: 5~1점. 점수별 의미와 가동중지 점수는 당시 입력된 실제 기준을 적용합니다. 원천에 없는 점수는 환산하지 않습니다.</p>
+    <table class="table table-bordered" style="width:100%;table-layout:fixed;font-size:9pt">
+      <thead><tr><th style="width:17%">점검 항목</th><th style="width:16%">당시 기준·설정</th><th t-foreach="grid['days']" t-as="day"><span t-out="day"/>일</th></tr></thead>
+      <tbody><tr t-foreach="grid['rows']" t-as="line" style="page-break-inside:avoid">
+        <td t-out="line['name']"/><td t-out="line['standard']"/>
+        <td t-foreach="line['values']" t-as="value" style="white-space:pre-wrap;overflow-wrap:anywhere" t-out="value"/>
+      </tr></tbody>
+    </table>
+    <p style="font-size:9pt">빈 날짜는 미기록이며 휴무·해당없음으로 자동 처리하지 않습니다. 실측값·원래 합부·조치는 원천 기록을 그대로 출력합니다.</p>
+  </template>
+  <template id="document">
+    <t t-call="web.html_container">
+      <t t-foreach="payloads" t-as="payload">
+        <t t-call="web.external_layout">
+          <div class="page" style="font-family:'Noto Sans CJK KR','NanumGothic',sans-serif;font-size:10pt">
+            <h2 t-out="payload['title']"/>
+            <p><span t-out="payload['company']"/> · <span t-out="payload['key']"/> · <span t-out="payload['period']"/></p>
+            <p t-if="payload['current_master']">현재 기준/마스터 조회입니다. 과거 시점의 승인본을 대체하지 않습니다.</p>
+            <p>출력 시점에 조회 가능한 원천입니다. 출력물 존재가 승인·심사 합격을 의미하지 않습니다.</p>
+            <p t-if="payload['warning']" style="border:2px solid #a33;padding:8px" t-out="payload['warning']"/>
+            <t t-if="not payload['rows']"><t t-set="signature_values" t-value="['작성 근거 없음','검토 서명 없음','승인 서명 없음']"/><t t-call="cams_sq_outputs.signatures"/></t>
+            <table t-if="payload['documents']" class="table table-bordered"><tr><th>문서번호</th><th>문서</th><th>원천 상태</th></tr><tr t-foreach="payload['documents']" t-as="document"><td t-out="document['number']"/><td t-out="document['name']"/><td t-out="document['state']"/></tr></table>
+            <t t-foreach="payload['grids']" t-as="grid"><t t-call="cams_sq_outputs.check_grid"/></t>
+            <div t-foreach="payload['rows']" t-as="source" t-att-style="'page-break-inside:avoid' if payload['grids'] and not payload['include_details'] else ''">
+              <h4><span t-out="source['name']"/> · <span t-out="source['state']"/></h4>
+              <p t-if="source['trace']" style="font-size:9pt" t-out="source['trace']"/>
+              <t t-set="signature_values" t-value="source['signatures']"/><t t-call="cams_sq_outputs.signatures"/>
+              <table t-if="not payload['grids'] or payload['include_details']" class="table table-bordered" style="width:100%;table-layout:fixed">
+                <tr t-foreach="source['pairs']" t-as="pair" style="page-break-inside:avoid"><th style="width:25%" t-out="pair[0]"/><td style="white-space:pre-wrap;overflow-wrap:anywhere" t-out="pair[1]"/></tr>
+              </table>
+              <table t-foreach="source['details'] if not payload['grids'] or payload['include_details'] else []" t-as="block" class="table table-bordered" style="table-layout:fixed;width:100%;font-size:9pt">
+                <thead><tr><th t-foreach="block['headers']" t-as="heading" t-out="heading"/></tr></thead>
+                <tbody><tr t-foreach="block['rows']" t-as="line" style="page-break-inside:avoid"><td t-foreach="line" t-as="value" style="white-space:pre-wrap;overflow-wrap:anywhere" t-out="value"/></tr></tbody>
+              </table>
+              <p style="font-size:8pt">원천: <span t-out="source['model']"/> #<span t-out="source['id']"/>. 완료 개정·원본 첨부와 함께 확인하십시오.</p>
+              <p t-if="source['snapshot_sha256']" style="font-size:8pt">완료 스냅샷 지문: <span t-out="source['snapshot_sha256']"/></p>
+              <p t-if="source['revisions']">완료 개정 이력: <span t-out="'; '.join(source['revisions'])"/></p>
+              <div t-if="payload['grids']" style="border:1px solid #999;min-height:24mm;padding:3mm;page-break-inside:avoid">
+                <strong>점검 약도</strong><p t-if="not source['layouts']">승인된 약도 이미지 미첨부. 원천 도면을 연결하여 확인하십시오.</p>
+                <div t-foreach="source['layouts']" t-as="layout"><p t-out="layout['name']"/><img t-att-src="layout['uri']" style="max-width:240mm;max-height:120mm"/></div>
+              </div>
+            </div>
+          </div>
+        </t>
+      </t>
+    </t>
+  </template>
+</odoo>

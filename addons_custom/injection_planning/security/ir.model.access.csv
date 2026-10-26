@@ -29,3 +29,4 @@ access_unassigned_user,injection.planning.unassigned.user,model_injection_planni
 access_unassigned_manager,injection.planning.unassigned.manager,model_injection_planning_unassigned,group_planning_manager,1,1,1,1
 access_violation_user,injection.planning.violation.user,model_injection_planning_violation,group_planning_user,1,0,0,0
 access_violation_manager,injection.planning.violation.manager,model_injection_planning_violation,group_planning_manager,1,1,1,1
+access_plan_quantity_change_manager,발행 계획 수량 감축,model_injection_plan_quantity_change,group_planning_manager,1,1,1,1

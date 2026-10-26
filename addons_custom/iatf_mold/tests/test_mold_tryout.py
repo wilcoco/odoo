@@ -3,6 +3,8 @@ from dateutil.relativedelta import relativedelta
 from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
+from odoo.addons.cams_evidence_core.models.evidence import _CTX,_TOKEN
 
 
 @tagged("post_install", "-at_install")
@@ -27,6 +29,11 @@ class TestMoldTryout(TransactionCase):
         base = {"mold_id": self.mold.id, "reason": "transfer"}
         base.update(vals)
         return self.Tryout.create(base)
+
+    def _historical_done(self,record):
+        # Legacy report visibility is preserved without fabricating an approval.
+        with self.assertRaises(UserError):record.action_done()
+        record.with_context(**{_CTX:_TOKEN}).write({'state':'done'})
 
     # ───────── ① 정상 기록 생성 ─────────
 
@@ -57,14 +64,14 @@ class TestMoldTryout(TransactionCase):
         with self.assertRaises(UserError, msg="판정 없이 완료 불가"):
             old.action_done()
         old.conclusion = "hold"
-        old.action_done()
+        self._historical_done(old)
         self.assertEqual(old.state, "done")
         new.unlink()
 
     def test_mold_delete_blocked_while_evidence_exists(self):
         """증빙이 달린 금형은 지워지지 않는다 — 보고서가 조용히 사라지면 안 된다."""
         to = self._tryout(conclusion="pass")
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception),mute_logger('odoo.sql_db'):
             with self.env.cr.savepoint():
                 self.mold.unlink()
         to.unlink()
@@ -73,7 +80,7 @@ class TestMoldTryout(TransactionCase):
     def test_duplicate_tryout_no_rejected(self):
         """같은 금형 같은 차수는 둘일 수 없다 — 증빙 번호가 겹치면 설명이 안 된다."""
         self._tryout(tryout_no=1)
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception),mute_logger('odoo.sql_db'):
             with self.env.cr.savepoint():
                 self._tryout(tryout_no=1)
 
@@ -103,14 +110,15 @@ class TestMoldTryout(TransactionCase):
 
         # 재수정 판정으로 완료해도 해소되지 않는다
         to.conclusion = "rework"
-        to.action_done()
+        self._historical_done(to)
         self.mold.invalidate_recordset()
         self.assertTrue(self.mold.is_tryout_missing, "재수정은 합격이 아니다")
 
         # 합격 + 완료라야 해소
-        to.action_draft()
+        with self.assertRaises(UserError):to.action_draft()
+        to=self.Tryout.browse(to.action_new_evidence_revision()['res_id'])
         to.conclusion = "pass"
-        to.action_done()
+        self._historical_done(to)
         self.mold.invalidate_recordset()
         self.assertFalse(self.mold.is_tryout_missing)
         self.assertNotIn(

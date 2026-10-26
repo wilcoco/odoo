@@ -1,0 +1,21 @@
+<odoo>
+  <record id="group_jig_user" model="res.groups"><field name="implied_ids" eval="[(4,ref('cams_evidence_core.group_evidence_user'))]"/></record>
+  <record id="jig_company_scope" model="ir.rule"><field name="name">지그 회사 격리</field><field name="model_id" ref="model_iatf_jig"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+  <record id="jig_record_company_scope" model="ir.rule"><field name="name">지그 점검 회사 격리</field><field name="model_id" ref="model_iatf_jig_record"/><field name="domain_force">[('company_id','in',company_ids)]</field></record>
+  <record id="view_jig_disposition" model="ir.ui.view"><field name="name">iatf.jig.disposition</field><field name="model">iatf.jig</field><field name="inherit_id" ref="view_jig_form"/><field name="arch" type="xml">
+    <xpath expr="//header" position="inside"><button name="action_release_verified" type="object" string="재검증 확인·사용 금지 해제" groups="group_jig_manager" invisible="not use_blocked"/></xpath>
+    <xpath expr="//sheet" position="inside"><group string="이상·재사용 근거"><field name="use_blocked"/><field name="blocked_record_id"/><field name="blocked_at"/><field name="release_candidate_id" invisible="not use_blocked"/><field name="released_record_id"/></group></xpath>
+  </field></record>
+  <record id="view_jig_record_evidence" model="ir.ui.view"><field name="name">iatf.jig.record.evidence</field><field name="model">iatf.jig.record</field><field name="inherit_id" ref="view_jig_record_form"/><field name="arch" type="xml">
+    <xpath expr="//header" position="inside"><button name="action_complete_evidence" type="object" string="점검 검증 완료" invisible="evidence_state == 'done' or approval_state != 'approved'"/><button name="action_new_evidence_revision" type="object" string="정정 개정" invisible="evidence_state != 'done'"/><field name="evidence_state" widget="statusbar"/></xpath>
+    <xpath expr="//sheet/notebook" position="before">
+      <group string="원천·월간 5항목 점검"><group><field name="standard_document_id"/><field name="product_id"/><field name="lot_id" domain="[('product_id','=',product_id)]"/><field name="workcenter_id"/><field name="trace_exception"/></group>
+      <group><field name="cleanliness"/><field name="seating"/><field name="shape"/><field name="surface"/><field name="bolts"/></group></group>
+      <group string="기준에 명시된 경우 치수 검증"><field name="measured_1_mm"/><field name="measured_2_mm"/><field name="measured_3_mm"/><field name="measured_4_mm"/><field name="dimensions_confirmed"/><field name="attachment_ids" widget="many2many_binary"/></group>
+    </xpath>
+    <xpath expr="//notebook" position="inside"><page string="완료·개정 기록"><group><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completed_by_id"/><field name="completed_at"/></group><field name="completion_snapshot"/></page></xpath>
+  </field></record>
+  <record id="view_document_jig_criteria" model="ir.ui.view"><field name="name">iatf.document.jig.criteria</field><field name="model">iatf.document</field><field name="inherit_id" ref="iatf_document_control.view_document_quality_evidence"/><field name="arch" type="xml">
+    <field name="quality_cycle_note" position="after"><group string="지그 점검 기준" invisible="quality_evidence_kind != 'jig_standard'"><field name="quality_jig_method"/><field name="quality_jig_dimensions_required"/><field name="quality_jig_limit_mm" invisible="not quality_jig_dimensions_required"/></group></field>
+  </field></record>
+</odoo>

@@ -1,0 +1,322 @@
+<odoo>
+<!-- 11 §5: menu-only changes. Existing actions and domain records are retained. -->
+<record id="iatf_apqp.menu_iatf_apqp_deliverables" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_apqp.menu_iatf_apqp_projects" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_apqp.menu_iatf_apqp_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_audit.menu_iatf_audit_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_audit.menu_iatf_audits" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_calibration.menu_iatf_calibration_records" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_calibration.menu_iatf_calibration_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_calibration.menu_iatf_equipment" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_change_management.menu_iatf_change_requests" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_change_management.menu_iatf_change_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_contingency.menu_iatf_contingency_plans" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_contingency.menu_iatf_contingency_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_control_plan.menu_iatf_control_plan_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_control_plan.menu_iatf_control_plans" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_csr.menu_iatf_csr_list" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_csr.menu_iatf_csr_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_customer_complaint.menu_iatf_complaint_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_customer_complaint.menu_iatf_complaints" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_customer_property.menu_iatf_customer_property_list" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_customer_property.menu_iatf_customer_property_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_dashboard.menu_iatf_dashboard" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_dashboard.menu_iatf_import" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_document_control.menu_iatf_config" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+<field name="groups_id" eval="[(6,0,[ref('base.group_system')])]"/>
+</record>
+<record id="iatf_document_control.menu_iatf_document_categories" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_document_control.menu_iatf_document_control" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_document_control.menu_iatf_document_revisions" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_document_control.menu_iatf_documents" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_document_control.menu_iatf_misc" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_document_control.menu_iatf_settings" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_equipment.menu_iatf_breakdown" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_equipment.menu_iatf_daily_check" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_equipment.menu_iatf_equipment_list" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_equipment.menu_iatf_equipment_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_equipment.menu_iatf_equipment_spare" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_equipment.menu_iatf_pm_schedule" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_equipment.menu_iatf_spare_application" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_equipment.menu_iatf_spare_category" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_fmea.menu_iatf_fmea" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_fmea.menu_iatf_fmea_lines" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_fmea.menu_iatf_fmea_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_incoming_inspection.menu_iatf_incoming_inspections" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_incoming_inspection.menu_iatf_incoming_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_incoming_inspection.menu_iatf_inspection_criteria" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_incoming_inspection.menu_lot_hold_policy" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_incoming_inspection.menu_lot_hold_release" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_layout_inspection.menu_iatf_layout_inspections" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_layout_inspection.menu_iatf_layout_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_management_review.menu_iatf_mgmt_review_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_management_review.menu_iatf_mgmt_reviews" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_menu.menu_iatf_audit_overdue" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_menu.menu_iatf_contingency" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_menu.menu_iatf_excel_import" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_menu.menu_iatf_reports" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_menu.menu_iatf_risk" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_check" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_list" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_maintenance" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_temp_log" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_mold.menu_iatf_mold_tryout" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_msa.menu_iatf_msa_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_msa.menu_iatf_msa_studies" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_nonconformity.menu_iatf_corrective_actions" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+<record id="iatf_nonconformity.menu_iatf_nonconformities" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_nonconformity.menu_iatf_nonconformity_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_outsource.menu_iatf_outsource_order" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_outsource.menu_iatf_outsource_process" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_procurement"/>
+</record>
+<record id="iatf_outsource.menu_iatf_outsource_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_packaging.menu_iatf_packaging_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_packaging.menu_iatf_packaging_spec" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_ppap.menu_iatf_ppap" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_ppap.menu_iatf_ppap_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_process_inspection.menu_iatf_process_inspection_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_process_inspection.menu_iatf_process_inspections" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_quality_objective.menu_iatf_quality_objective_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_quality_objective.menu_iatf_quality_objectives" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_risk.menu_iatf_risk_register" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_safety"/>
+</record>
+<record id="iatf_risk.menu_iatf_risk_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_shipping_inspection.menu_iatf_shipping_inspections" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_shipping_inspection.menu_iatf_shipping_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_spc.menu_iatf_spc_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_spc.menu_iatf_spc_studies" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_supplier_quality.menu_iatf_scar" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_supplier_quality.menu_iatf_supplier_eval" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_supplier_quality.menu_iatf_supplier_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_traceability.menu_iatf_blend_log" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_traceability.menu_iatf_blend_log_ng" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_traceability.menu_iatf_blend_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_traceability.menu_iatf_blend_standard" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_traceability.menu_iatf_recall_simulations" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_safety"/>
+</record>
+<record id="iatf_traceability.menu_iatf_regrind_log" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_production"/>
+</record>
+<record id="iatf_traceability.menu_iatf_traceability_records" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_logistics"/>
+</record>
+<record id="iatf_training.menu_iatf_competence_matrix" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_training.menu_iatf_training_records" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_training.menu_iatf_training_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_training.menu_preassessment" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_hr"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_check_overdue" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_check_record" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_check_sheet" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_env_check" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_safety_assessment" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_safety"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_safety_check_sheet" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_safety"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_safety_incident" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_safety"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_work_area" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+</record>
+<record id="iatf_work_environment.menu_iatf_work_env_root" model="ir.ui.menu">
+<field name="active" eval="False"/>
+</record>
+<record id="iatf_menu.menu_iatf_dashboard" model="ir.ui.menu">
+<field name="parent_id" ref="iatf_menu.menu_iatf_quality_system"/>
+</record>
+</odoo>

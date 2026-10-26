@@ -1,0 +1,33 @@
+<odoo>
+<!-- An assigned SQ approver must retain access after done -> todo/approved so
+     mail.thread can save the transition log. Business methods still enforce
+     independent approval, source snapshots and immutable completed evidence. -->
+<record id="rule_sq_assigned_approver_task" model="ir.rule">
+ <field name="name">SQ 배정 승인자: 상태 전환 후 이력 유지</field><field name="model_id" ref="cams_ops_process.model_ops_task"/>
+ <field name="groups" eval="[(4,ref('cams_ops_process.group_ops_user'))]"/>
+ <field name="domain_force">[('sq_item_id','!=',False),('sq_company_id','in',company_ids),'|',('task_def_id.approver_role_id.user_ids','in',user.id),('task_def_id.approver_role_id.department_ids','in',user.employee_ids.department_id.ids)]</field>
+ <field name="perm_read" eval="True"/><field name="perm_write" eval="True"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+</record>
+<!-- SQ managers can read SQ work across roles, without gaining general Ops management.
+     Write/create/unlink still use the existing role-scoped rules and ACLs. -->
+<record id="rule_sq_manager_plan_read" model="ir.rule">
+ <field name="name">SQ 관리자: SQ 계획 읽기</field><field name="model_id" ref="cams_ops_process.model_ops_task_def"/>
+ <field name="groups" eval="[(4,ref('cams_sq.group_sq_manager'))]"/>
+ <field name="domain_force">[('sq_item_id','!=',False),('sq_company_id','in',company_ids)]</field>
+ <field name="perm_read" eval="True"/><field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+</record>
+<record id="rule_sq_manager_task_read" model="ir.rule">
+ <field name="name">SQ 관리자: SQ 수행 읽기</field><field name="model_id" ref="cams_ops_process.model_ops_task"/>
+ <field name="groups" eval="[(4,ref('cams_sq.group_sq_manager'))]"/>
+ <field name="domain_force">[('sq_item_id','!=',False),('sq_company_id','in',company_ids)]</field>
+ <field name="perm_read" eval="True"/><field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+</record>
+<record id="rule_sq_manager_role_read" model="ir.rule">
+ <field name="name">SQ 관리자: SQ 담당·승인 역할 읽기</field><field name="model_id" ref="cams_ops_process.model_ops_role"/>
+ <field name="groups" eval="[(4,ref('cams_sq.group_sq_manager'))]"/>
+ <field name="domain_force">['|',('task_def_ids.sq_company_id','in',company_ids),('sq_approver_definition_ids.sq_company_id','in',company_ids)]</field>
+ <field name="perm_read" eval="True"/><field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+</record>
+<record id="rule_sq_ops_company" model="ir.rule"><field name="name">SQ 운영 업무 회사 격리</field><field name="model_id" ref="cams_ops_process.model_ops_task"/><field name="domain_force">['|',('sq_item_id','=',False),('sq_company_id','in',company_ids)]</field></record>
+<record id="rule_sq_plan_company" model="ir.rule"><field name="name">SQ 운영 계획 회사 격리</field><field name="model_id" ref="cams_ops_process.model_ops_task_def"/><field name="domain_force">['|',('sq_item_id','=',False),('sq_company_id','in',company_ids)]</field></record>
+</odoo>

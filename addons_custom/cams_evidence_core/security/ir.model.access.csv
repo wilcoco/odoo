@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_evidence_document,evidence document reference,iatf_document_control.model_iatf_document,group_evidence_user,1,0,0,0
+access_evidence_category,evidence document category,iatf_document_control.model_iatf_document_category,group_evidence_user,1,0,0,0
+access_evidence_revision,evidence document history,iatf_document_control.model_iatf_document_revision,group_evidence_user,1,0,0,0
+access_evidence_lot,evidence lot reference,stock.model_stock_lot,group_evidence_user,1,0,0,0
+access_evidence_workcenter,evidence workcenter reference,mrp.model_mrp_workcenter,group_evidence_user,1,0,0,0

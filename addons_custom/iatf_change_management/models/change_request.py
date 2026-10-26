@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class IatfChangeRequest(models.Model):
     _name = "iatf.change.request"
     _description = "4M 변경 관리 (IATF 16949 §8.5.6)"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["iatf.approval.mixin", "mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
     name = fields.Char(

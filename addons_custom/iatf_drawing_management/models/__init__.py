@@ -1,4 +1,5 @@
 from . import drawing_config
+from . import agreement
 from . import drawing_spec_change
 from . import drawing_procedure
 from . import drawing_issue_register

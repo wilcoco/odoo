@@ -1,0 +1,42 @@
+<odoo>
+<record id="view_regrind_log_evidence" model="ir.ui.view"><field name="name">iatf.regrind.log.evidence</field><field name="model">iatf.regrind.log</field><field name="inherit_id" ref="iatf_traceability.view_regrind_log_form"/><field name="arch" type="xml">
+    <xpath expr="//header" position="replace"><header>
+      <button name="action_submit_approval" type="object" string="검토 상신" class="btn-primary" invisible="state != 'draft' or approval_state not in ('draft','rejected',False)"/>
+      <button name="action_approve_approval" type="object" string="승인" class="btn-success" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_reject_approval" type="object" string="반려" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_complete_evidence" type="object" string="검증 완료" invisible="approval_state != 'approved' or state == 'done'"/>
+      <button name="action_new_evidence_revision" type="object" string="정정 개정 작성" invisible="state != 'done'"/>
+      <field name="approval_is_current_user" invisible="1"/><field name="approval_state" widget="badge"/><field name="evidence_state" invisible="1"/><field name="state" widget="statusbar"/>
+    </header></xpath>
+    <xpath expr="//sheet" position="inside"><group string="원천·완료 근거"><field name="lot_id"/><field name="workcenter_id"/><field name="trace_exception"/><field name="output_move_id"/><field name="document_ids" widget="many2many_tags"/><field name="attachment_ids" widget="many2many_binary"/></group>
+      <group string="검토·승인"><field name="approval_line_ids" readonly="approval_state in ('in_progress','approved') or state == 'done'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="user_id"/><field name="state" readonly="1"/></list></field></group>
+      <group string="개정 이력"><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completed_by_id"/><field name="completed_at"/><field name="completion_snapshot"/></group>
+    </xpath></field></record>
+<record id="view_blend_log_evidence" model="ir.ui.view"><field name="name">iatf.blend.log.evidence</field><field name="model">iatf.blend.log</field><field name="inherit_id" ref="iatf_traceability.view_blend_log_form"/><field name="arch" type="xml">
+    <xpath expr="//header" position="replace"><header>
+      <button name="action_submit_approval" type="object" string="검토 상신" class="btn-primary" invisible="state != 'draft' or approval_state not in ('draft','rejected',False)"/>
+      <button name="action_approve_approval" type="object" string="승인" class="btn-success" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_reject_approval" type="object" string="반려" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_complete_evidence" type="object" string="검증 완료" invisible="approval_state != 'approved' or state == 'done'"/>
+      <button name="action_new_evidence_revision" type="object" string="정정 개정 작성" invisible="state != 'done'"/>
+      <field name="approval_is_current_user" invisible="1"/><field name="approval_state" widget="badge"/><field name="evidence_state" invisible="1"/><field name="state" widget="statusbar"/>
+    </header></xpath>
+    <xpath expr="//sheet" position="inside"><group string="원천·완료 근거"><field name="workcenter_id"/><field name="trace_exception"/><field name="document_ids" widget="many2many_tags"/><field name="attachment_ids" widget="many2many_binary"/></group>
+      <group string="검토·승인"><field name="approval_line_ids" readonly="approval_state in ('in_progress','approved') or state == 'done'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="user_id"/><field name="state" readonly="1"/></list></field></group>
+      <group string="개정 이력"><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completed_by_id"/><field name="completed_at"/><field name="completion_snapshot"/></group>
+    </xpath></field></record>
+<record id="view_blend_standard_evidence" model="ir.ui.view"><field name="name">iatf.blend.standard.evidence</field><field name="model">iatf.blend.standard</field><field name="inherit_id" ref="iatf_traceability.view_blend_standard_form"/><field name="arch" type="xml">
+    <xpath expr="//sheet" position="before"><header>
+      <button name="action_submit_approval" type="object" string="검토 상신" class="btn-primary" invisible="evidence_state == 'done' or approval_state not in ('draft','rejected',False)"/>
+      <button name="action_approve_approval" type="object" string="승인" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_reject_approval" type="object" string="반려" invisible="approval_state != 'in_progress' or not approval_is_current_user"/>
+      <button name="action_complete_evidence" type="object" string="기준 검증 완료" invisible="approval_state != 'approved' or evidence_state == 'done'"/>
+      <button name="action_new_evidence_revision" type="object" string="기준 개정 작성" invisible="evidence_state != 'done'"/>
+      <field name="approval_is_current_user" invisible="1"/><field name="approval_state" widget="badge"/><field name="evidence_state" widget="statusbar"/>
+    </header></xpath>
+    <xpath expr="//sheet" position="inside">
+      <group string="기준 적용 근거"><field name="company_id"/><field name="record_date"/><field name="responsible_id"/><field name="trace_exception"/><field name="document_ids" widget="many2many_tags"/><field name="attachment_ids" widget="many2many_binary"/></group>
+      <group string="검토·승인"><field name="approval_line_ids" readonly="approval_state in ('in_progress','approved') or evidence_state == 'done'"><list editable="bottom"><field name="sequence" widget="handle"/><field name="user_id"/><field name="state" readonly="1"/></list></field></group>
+      <group string="개정 이력"><field name="evidence_revision"/><field name="previous_evidence_id"/><field name="completion_snapshot"/></group>
+    </xpath></field></record>
+</odoo>

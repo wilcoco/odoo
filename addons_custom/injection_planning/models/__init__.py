@@ -13,3 +13,4 @@ from . import planning_unassigned
 from . import product_planning
 from . import mrp_production
 from . import planning_violation
+from . import quantity_change

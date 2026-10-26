@@ -51,6 +51,7 @@ class PlanningLine(models.Model):
     planned_qty = fields.Float(string="계획 수량", help="불량율 + 초기불량 반영")
     defect_rate = fields.Float(string="적용 불량율 (%)")
     initial_scrap = fields.Integer(string="적용 초기 불량")
+    calculation_policy_snapshot = fields.Json(string="계산 당시 정책", readonly=True, copy=False)
 
     # ── 금형 교체 ──
     changeover_needed = fields.Boolean(string="금형 교체 필요")
@@ -162,11 +163,18 @@ class PlanningLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su and (self.env.context.get('default_calculation_policy_snapshot') or
+                any('calculation_policy_snapshot' in vals for vals in vals_list)):
+            from odoo.exceptions import UserError
+            raise UserError('계산 근거는 생산계획 계산 절차에서만 기록합니다.')
         records = super().create(vals_list)
         records._mark_derived_stale()
         return records
 
     def write(self, vals):
+        if 'calculation_policy_snapshot' in vals:
+            from odoo.exceptions import UserError
+            raise UserError('계산 당시 근거는 변경할 수 없습니다. 계획을 다시 계산하십시오.')
         # [275 계획 리뷰 (1)] 부모를 옮기면 **떠난 계획과 도착한 계획 둘 다** 파생 결과가
         # 옛 값이 된다. 예전에는 어느 쪽에도 표시가 서지 않아, 라인을 옮기는 것만으로
         # 두 계획의 소요·발주 근거를 조용히 어긋나게 할 수 있었다.
