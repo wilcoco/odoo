@@ -20,7 +20,7 @@
 
 ## 정본·미러 대응
 
-- 정본 커밋 및 경로: (커밋 후 기입) — `addons_custom/escon_eapproval/{__manifest__.py,models/annual_leave.py,models/job_grade.py,tests/}`
+- 정본 커밋 및 경로: `b761a36dbd0a` + 이 문서 갱신 커밋 — `addons_custom/escon_eapproval/{__manifest__.py,models/annual_leave.py,models/job_grade.py,tests/}`
 - 미러 커밋 및 경로: `odoo_gh` main `1c4d6bc48` (`iatf_plugins/escon_eapproval`) — 이미 운영 배포됨(2026-10-21). 역반영 후 정본·미러 동일.
 - 의도적 차이 또는 역반영 판정: 역반영(미러 선행 수정). 미러 `scripts/e7_test/*` 와 작업 문서는 미러 전용이라 정본에 옮기지 않음.
 
@@ -28,7 +28,7 @@
 
 - DB/환경: 서버 격리 스택 DB `odoo18_auth_test`, 정본 `escon_eapproval` 오버레이
 - 실행 명령: `-u escon_eapproval --test-enable --test-tags /escon_eapproval` (`refresh-20261020/eap-backport-tests.log`)
-- 결과: 2026-10-26 02:00:59,839 1 ERROR odoo18_auth_test odoo.tests.result: 1 failed, 0 error(s) of 24 tests when loading database 'odoo18_auth_test' 
+- 결과: 운영 덤프를 새로 복원한 DB(`eap-backport-fresh.log`, `-u iatf_approval,escon_eapproval`) **21건 실패 0·오류 0**. (앞선 재사용 DB 1회 실행은 미리보기 잔여 데이터로 대시보드 KPI 시험 1건이 어긋났으나 새 DB에서 통과 — 코드 문제 아님)
 EXIT 1 SECONDS 21 PROD_UNCHANGED True
 - 미실행 검증과 이유: 운영 배포 — 이미 같은 코드가 운영 중(미러 경유).
 
