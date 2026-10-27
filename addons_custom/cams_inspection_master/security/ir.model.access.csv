@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_limit_user,limit sample user,model_cams_limit_sample_check,group_inspection_user,1,1,1,0
+access_limit_manager,limit sample manager,model_cams_limit_sample_check,group_inspection_manager,1,1,1,1
+access_periodic_user,periodic test user,model_cams_periodic_test,group_inspection_user,1,1,1,0
+access_periodic_manager,periodic test manager,model_cams_periodic_test,group_inspection_manager,1,1,1,1

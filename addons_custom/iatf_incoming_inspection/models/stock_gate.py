@@ -86,8 +86,13 @@ class StockQuant(models.Model):
         return super().write(vals)
 
     def unlink(self):
-        if not is_service(self.env) and self.filtered('location_id.iqc_pending'):
-            raise UserError(_('검사대기 quant는 직접 삭제할 수 없습니다.'))
+        if not is_service(self.env):
+            pending=self.filtered('location_id.iqc_pending')
+            # 수량·예약이 모두 0 인 빈 quant 는 표준 재고 스케줄러의 정리(_unlink_zero_quants) 대상이다.
+            # 이를 막으면 'Procurement: run scheduler' 크론이 매번 실패해 재주문 규칙 전체가 멈춘다(운영 2026-10-21~26 관측).
+            # 재고가 남은 검사대기 quant 는 여전히 직접 삭제할 수 없다.
+            if pending.filtered(lambda q: q.quantity or q.reserved_quantity):
+                raise UserError(_('검사대기 quant는 직접 삭제할 수 없습니다.'))
         return super().unlink()
 
 

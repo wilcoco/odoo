@@ -2,6 +2,7 @@ import psycopg2
 
 from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -48,7 +49,7 @@ class TestMoldTempLog(TransactionCase):
         무엇을 어디서 쟀는지 없는 온도값은 증빙이 되지 못한다.
         """
         for missing in ("point", "method"):
-            with self.assertRaises(Exception, msg="%s 는 필수" % missing):
+            with self.assertRaises(Exception, msg="%s 는 필수" % missing),mute_logger('odoo.sql_db'):
                 with self.env.cr.savepoint():
                     self._log(**{missing: False})
 
@@ -144,7 +145,7 @@ class TestMoldTempLog(TransactionCase):
 
     def test_mold_delete_blocked_while_log_exists(self):
         log = self._log()
-        with self.assertRaises(psycopg2.IntegrityError):  # ondelete=restrict → FK 위반
+        with self.assertRaises(psycopg2.IntegrityError),mute_logger('odoo.sql_db'):  # ondelete=restrict → FK 위반
             with self.env.cr.savepoint():
                 self.mold.unlink()
         log.unlink()

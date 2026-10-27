@@ -8,6 +8,7 @@ from datetime import datetime, time as datetime_time, timedelta
 
 from odoo import fields
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.injection_planning.models.quantity_change import _QUANTITY_CHANGE
 from odoo.tests.common import tagged
 
 from .test_pp03_pp06 import PlanningCase
@@ -971,9 +972,11 @@ class TestCrossPlanReservation(MaterialCase):
         config = first._get_config()
         self.assertEqual(config.get_shift_timezone(), "Asia/Seoul")
 
-        # KST 첫날 07:00 에 끝나는 예약 (= UTC 전날 22:00)
+        # KST 첫날 07:00 에 끝나는 예약 (= UTC 전날 22:00). 발행된 계획 행은 직접 수정이 막히므로
+        # (수량 감축 절차) 검색 경계 검증용 fixture 조작은 내부 토큰으로만 시각을 옮긴다.
         kst_early = datetime.combine(self.day, datetime_time(7, 0))
-        line.write({"end_time": config.shift_local_to_utc(kst_early)})
+        line.with_context(_planning_quantity_change=_QUANTITY_CHANGE).write({
+            "end_time": config.shift_local_to_utc(kst_early)})
 
         naive_bound = datetime.combine(self.day, datetime_time.min)
         utc_bound = config.shift_local_to_utc(naive_bound)
@@ -1147,7 +1150,8 @@ class TestEarlyMorningReservationReachesTheScheduler(MaterialCase):
         self.assertTrue(taken.line_ids)
         taken.generate_manufacturing_orders()
         line = taken.line_ids[0]
-        line.write({
+        # 발행된 계획 행은 직접 수정이 막히므로(수량 감축 절차) fixture 조작은 내부 토큰으로만 한다.
+        line.with_context(_planning_quantity_change=_QUANTITY_CHANGE).write({
             "start_time": config.shift_local_to_utc(
                 datetime.combine(self.day, datetime_time(6, 0))),
             "end_time": config.shift_local_to_utc(

@@ -1,0 +1,295 @@
+{
+  "canonical_sha": "e42c7c4ba6f4b8dd1dc2f2ef2014b5704738a46a",
+  "handoff_sha": "1f8f794c8e389fc96e5753471acce24eb9b0f678",
+  "counts": {
+    "보고서": 244,
+    "업로드": 207,
+    "외부·수동": 7,
+    "조회·내보내기": 9
+  },
+  "new_report_source_groups": {
+    "iatf.daily.check": 11,
+    "sq.drawing.agreement(신규)": 7,
+    "sq.safety.risk(신규)": 8,
+    "iatf.check.sheet / iatf.check.record": 30,
+    "mrp.production": 11,
+    "iatf.check.record": 26,
+    "sq.dryer.check(신규)": 5,
+    "iatf.process.inspection": 7,
+    "iatf.blend.log": 4,
+    "iatf.environment.check": 9,
+    "iatf.training.record": 8,
+    "iatf.incoming.inspection": 8,
+    "sq.periodic.test.plan(신규)": 5,
+    "sq.container.standard / .clean(신규)": 7,
+    "sq.limit.sample(신규)": 8,
+    "jig.inspect.record(신규)": 11,
+    "iatf.calibration.record": 19,
+    "iatf.mold.check": 10,
+    "iatf.shipping.inspection": 2,
+    "sq.grind.sample(신규)": 1,
+    "iatf.mold.maintenance": 4,
+    "iatf.mold.tryout": 1,
+    "iatf.mold.temp.log": 1,
+    "iatf.change.request": 6,
+    "iatf.audit": 3,
+    "iatf.competence.matrix": 3,
+    "sq.quality.spirit.check(신규)": 7,
+    "sq.5s.check(신규)": 2
+  },
+  "source_key_crosscheck": 467,
+  "new_report_actions": {},
+  "existing_report_actions_in_p1_modules": {},
+  "modules": {
+    "iatf_document_control": "18.0.1.2.0",
+    "iatf_approval": "18.0.1.3.1",
+    "iatf_traceability": "18.0.1.1.1",
+    "iatf_jig": "18.0.1.2.0",
+    "iatf_drawing_management": "18.0.1.2.0",
+    "cams_evidence_core": "18.0.1.0.0",
+    "cams_inspection_master": "18.0.1.0.0",
+    "cams_material_control": "18.0.1.0.0",
+    "cams_quality_activity": "18.0.1.0.0",
+    "iatf_incoming_inspection": "18.0.2.2.0",
+    "iatf_process_inspection": "18.0.1.1.0",
+    "iatf_mold": "18.0.2.1.0",
+    "iatf_work_environment": "18.0.1.4.0",
+    "iatf_training": "18.0.1.2.0",
+    "iatf_menu": "18.0.1.2.1"
+  },
+  "registered_xml_files": 97,
+  "models": {
+    "iatf.document": [
+      "addons_custom/iatf_document_control/models/document.py"
+    ],
+    "iatf.document.category": [
+      "addons_custom/iatf_document_control/models/document_category.py"
+    ],
+    "iatf.document.distribution": [
+      "addons_custom/iatf_document_control/models/document_distribution.py"
+    ],
+    "iatf.document.revision": [
+      "addons_custom/iatf_document_control/models/document_revision.py"
+    ],
+    "iatf.approval.policy": [
+      "addons_custom/iatf_approval/models/approval_policy.py"
+    ],
+    "iatf.approval.request": [
+      "addons_custom/iatf_approval/models/approval_request.py"
+    ],
+    "iatf.approval.line": [
+      "addons_custom/iatf_approval/models/approval_request.py"
+    ],
+    "iatf.approval.mixin": [
+      "addons_custom/iatf_approval/models/approval_request.py"
+    ],
+    "iatf.approval.template": [
+      "addons_custom/iatf_approval/models/approval_template.py"
+    ],
+    "iatf.approval.template.line": [
+      "addons_custom/iatf_approval/models/approval_template.py"
+    ],
+    "iatf.blend.standard": [
+      "addons_custom/iatf_traceability/models/blend.py",
+      "addons_custom/cams_material_control/models/traceability.py"
+    ],
+    "iatf.regrind.log": [
+      "addons_custom/iatf_traceability/models/blend.py",
+      "addons_custom/cams_material_control/models/traceability.py"
+    ],
+    "iatf.blend.log": [
+      "addons_custom/iatf_traceability/models/blend.py",
+      "addons_custom/cams_material_control/models/traceability.py"
+    ],
+    "iatf.blend.log.line": [
+      "addons_custom/iatf_traceability/models/blend.py"
+    ],
+    "iatf.recall.simulation": [
+      "addons_custom/iatf_traceability/models/recall_simulation.py"
+    ],
+    "iatf.traceability.record": [
+      "addons_custom/iatf_traceability/models/traceability_record.py"
+    ],
+    "iatf.traceability.parameter": [
+      "addons_custom/iatf_traceability/models/traceability_record.py"
+    ],
+    "iatf.jig.record": [
+      "addons_custom/iatf_jig/models/evidence.py",
+      "addons_custom/iatf_jig/models/jig.py"
+    ],
+    "iatf.jig": [
+      "addons_custom/iatf_jig/models/jig.py"
+    ],
+    "iatf.process": [
+      "addons_custom/iatf_jig/models/process.py"
+    ],
+    "iatf.drawing.agreement.line": [
+      "addons_custom/iatf_drawing_management/models/agreement.py"
+    ],
+    "iatf.drawing.conformity.check": [
+      "addons_custom/iatf_drawing_management/models/agreement.py"
+    ],
+    "iatf.drawing.change.register": [
+      "addons_custom/iatf_drawing_management/models/drawing_change_register.py"
+    ],
+    "iatf.drawing.config": [
+      "addons_custom/iatf_drawing_management/models/drawing_config.py"
+    ],
+    "iatf.drawing.issue.register": [
+      "addons_custom/iatf_drawing_management/models/drawing_issue_register.py"
+    ],
+    "iatf.drawing.procedure": [
+      "addons_custom/iatf_drawing_management/models/drawing_procedure.py"
+    ],
+    "iatf.drawing.spec.change": [
+      "addons_custom/iatf_drawing_management/models/drawing_spec_change.py"
+    ],
+    "cams.evidence.mixin": [
+      "addons_custom/cams_evidence_core/models/evidence.py"
+    ],
+    "cams.evidence.ledger.mixin": [
+      "addons_custom/cams_evidence_core/models/evidence.py"
+    ],
+    "cams.limit.sample.check": [
+      "addons_custom/cams_inspection_master/models/inspection.py"
+    ],
+    "cams.periodic.test": [
+      "addons_custom/cams_inspection_master/models/inspection.py"
+    ],
+    "cams.material.evidence.mixin": [
+      "addons_custom/cams_material_control/models/material.py"
+    ],
+    "cams.dryer.check": [
+      "addons_custom/cams_material_control/models/material.py"
+    ],
+    "cams.dryer.filter.log": [
+      "addons_custom/cams_material_control/models/material.py"
+    ],
+    "cams.grind.sample": [
+      "addons_custom/cams_material_control/models/material.py"
+    ],
+    "cams.grinder.check": [
+      "addons_custom/cams_material_control/models/material.py"
+    ],
+    "iatf.packaging.spec": [
+      "addons_custom/cams_material_control/models/packaging.py"
+    ],
+    "cams.container.clean": [
+      "addons_custom/cams_material_control/models/packaging.py"
+    ],
+    "cams.material.ledger.mixin": [
+      "addons_custom/cams_material_control/models/traceability.py"
+    ],
+    "cams.quality.activity": [
+      "addons_custom/cams_quality_activity/models/activity.py"
+    ],
+    "cams.manufacturing.source.comparison": [
+      "addons_custom/cams_quality_activity/models/source_comparison.py"
+    ],
+    "iatf.incoming.inspection": [
+      "addons_custom/iatf_incoming_inspection/models/incoming_inspection.py"
+    ],
+    "iatf.incoming.inspection.line": [
+      "addons_custom/iatf_incoming_inspection/models/incoming_inspection.py"
+    ],
+    "iatf.inspection.criteria": [
+      "addons_custom/iatf_incoming_inspection/models/inspection_criteria.py"
+    ],
+    "iatf.lot.hold.policy": [
+      "addons_custom/iatf_incoming_inspection/models/lot_hold_release.py"
+    ],
+    "iatf.lot.hold.release": [
+      "addons_custom/iatf_incoming_inspection/models/lot_hold_release.py"
+    ],
+    "iatf.outgoing.inspection.mixin": [
+      "addons_custom/iatf_process_inspection/models/outgoing_inspection.py"
+    ],
+    "iatf.process.inspection": [
+      "addons_custom/iatf_process_inspection/models/outgoing_inspection.py",
+      "addons_custom/iatf_process_inspection/models/process_inspection.py"
+    ],
+    "iatf.shipping.inspection": [
+      "addons_custom/iatf_process_inspection/models/outgoing_inspection.py"
+    ],
+    "iatf.process.inspection.line": [
+      "addons_custom/iatf_process_inspection/models/process_inspection.py"
+    ],
+    "injection.mold": [
+      "addons_custom/iatf_mold/models/mold.py"
+    ],
+    "iatf.mold.check": [
+      "addons_custom/iatf_mold/models/mold_check.py"
+    ],
+    "iatf.mold.check.line": [
+      "addons_custom/iatf_mold/models/mold_check.py"
+    ],
+    "iatf.mold.check.snapshot": [
+      "addons_custom/iatf_mold/models/mold_check.py"
+    ],
+    "iatf.mold.maintenance": [
+      "addons_custom/iatf_mold/models/mold_maintenance.py",
+      "addons_custom/iatf_mold/models/quality_evidence.py"
+    ],
+    "iatf.mold.temp.log": [
+      "addons_custom/iatf_mold/models/mold_temp_log.py",
+      "addons_custom/iatf_mold/models/quality_evidence.py"
+    ],
+    "iatf.mold.tryout": [
+      "addons_custom/iatf_mold/models/mold_tryout.py",
+      "addons_custom/iatf_mold/models/quality_evidence.py"
+    ],
+    "cams.mold.evidence.mixin": [
+      "addons_custom/iatf_mold/models/quality_evidence.py"
+    ],
+    "iatf.mold.temp.remeasure": [
+      "addons_custom/iatf_mold/models/quality_evidence.py"
+    ],
+    "iatf.check.sheet": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.check.sheet.item": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.check.sheet.revision": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.check.record": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.check.record.line": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.check.record.snapshot": [
+      "addons_custom/iatf_work_environment/models/check_sheet.py"
+    ],
+    "iatf.environment.check": [
+      "addons_custom/iatf_work_environment/models/environment_check.py"
+    ],
+    "iatf.environment.check.line": [
+      "addons_custom/iatf_work_environment/models/environment_check.py"
+    ],
+    "iatf.safety.assessment": [
+      "addons_custom/iatf_work_environment/models/safety.py"
+    ],
+    "iatf.safety.assessment.line": [
+      "addons_custom/iatf_work_environment/models/safety.py"
+    ],
+    "iatf.safety.incident": [
+      "addons_custom/iatf_work_environment/models/safety.py"
+    ],
+    "iatf.work.area": [
+      "addons_custom/iatf_work_environment/models/work_area.py"
+    ],
+    "iatf.competence.matrix": [
+      "addons_custom/iatf_training/models/competence_matrix.py"
+    ],
+    "iatf.qualification.preassessment": [
+      "addons_custom/iatf_training/models/preassessment.py"
+    ],
+    "iatf.training.record": [
+      "addons_custom/iatf_training/models/training_record.py"
+    ]
+  },
+  "mirror_mismatches": [],
+  "validation": "Local source/manifest inventory only; no DB or browser test"
+}

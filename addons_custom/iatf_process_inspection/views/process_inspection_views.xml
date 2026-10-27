@@ -43,6 +43,11 @@
                     <field name="run_unit_mo_ids" invisible="1"/>
                     <field name="run_scope_frozen" invisible="1"/>
                     <field name="inspection_input_locked" invisible="1"/>
+                    <group string="NG 종료 확인" invisible="result not in ('fail','hold','conditional') and quantity_rejected == 0">
+                        <field name="ng_closure_note" readonly="state == 'closed'"/>
+                        <field name="ng_closed_by_id"/><field name="ng_closed_at"/><field name="ng_closure_snapshot"/>
+                        <div class="alert alert-info">부적합 조치와 유효성 검증을 승인한 후 책임자가 종료합니다. 검사 종료는 LOT 보류 해제나 재고 이동을 실행하지 않습니다.</div>
+                    </group>
                     <div class="alert alert-info" role="status" invisible="not run_unit_mo_ids">생산 범위는 자동 집계됩니다. 검사 시작 또는 실제 검사값 입력 후의 생산분은 새 검사서로 분리됩니다. 검사 수량과 측정값은 실제 검사 후 입력하세요.</div>
                     <group string="재검사·정정" invisible="not correction_of_id">
                         <field name="correction_of_id"/>

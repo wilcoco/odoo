@@ -20,4 +20,5 @@
         <field name="model_id" ref="model_iatf_check_record_snapshot"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+<record id="rule_workenv_document_source_company" model="ir.rule"><field name="name">작업환경 근거 문서 회사 조회</field><field name="model_id" ref="iatf_document_control.model_iatf_document"/><field name="groups" eval="[(4,ref('group_work_environment_user'))]"/><field name="domain_force">['|',('company_id','=',False),('company_id','in',company_ids)]</field><field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/></record>
 </odoo>

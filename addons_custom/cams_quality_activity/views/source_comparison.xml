@@ -1,0 +1,9 @@
+<odoo>
+ <record id="source_comparison_form" model="ir.ui.view"><field name="name">manufacturing.source.comparison.form</field><field name="model">cams.manufacturing.source.comparison</field><field name="arch" type="xml"><form string="생산·품질 원천 대조">
+  <header><button name="action_refresh" type="object" string="원천 다시 조회" class="btn-primary"/></header><sheet>
+   <group><field name="company_id"/><field name="production_id" domain="[('company_id','=',company_id)]"/></group>
+   <notebook><page string="생산일보·점검표"><field name="daily_html" nolabel="1"/></page><page string="원료 LOT·성적서·장부"><field name="material_html" nolabel="1"/></page><page string="금형 변경·초중종물"><field name="mold_html" nolabel="1"/></page><page string="성형조건·실측"><field name="condition_html" nolabel="1"/></page><page string="출하 성적서·생산 LOT"><field name="shipping_html" nolabel="1"/></page></notebook>
+  </sheet></form></field></record>
+ <record id="action_source_comparison" model="ir.actions.act_window"><field name="name">생산·품질 원천 대조</field><field name="res_model">cams.manufacturing.source.comparison</field><field name="view_mode">form</field></record>
+ <menuitem id="menu_source_comparison" name="생산·품질 원천 대조" parent="iatf_menu.menu_iatf_inspection" action="action_source_comparison" groups="group_activity_user" sequence="80"/>
+</odoo>

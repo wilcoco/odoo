@@ -31,6 +31,11 @@ class TestApprovalAuthority(TransactionCase):
         cls.Policy = cls.env['iatf.approval.policy']
         cls.Policy._sync_documents()
         cls.policy = cls.Policy.search([('model', '=', 'iatf.shipping.inspection')])
+        # A restored user-test DB may already have matching global rules.
+        # Isolate this transaction's fixtures; TransactionCase rolls it back.
+        cls.env['iatf.approval.template'].search([
+            '|', ('model_id', '=', False), ('model_id.model', '=', 'iatf.shipping.inspection')
+        ]).write({'active': False})
 
     def _doc(self, user, lines=()):
         vals = {'product_id': self.product.id, 'company_id': self.env.company.id}

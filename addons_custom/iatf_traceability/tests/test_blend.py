@@ -64,6 +64,18 @@ class TestBlend(TransactionCase):
         return self.Blend.create(vals)
 
     # ── 1. 정상 기록 생성 ─────────────────────────────────────────────
+    def _finish_legacy_fixture(self, record):
+        if 'cams.material.ledger.mixin' in self.env:
+            # These original fixtures predate source LOTs and approvals. P1 must
+            # reject their public completion. Retain a legacy-completed fixture
+            # only to exercise preservation; P1's tests cover real approvals.
+            with self.assertRaises(UserError):
+                record.action_done()
+            from odoo.addons.cams_evidence_core.models.evidence import _CTX, _TOKEN
+            record.with_context(**{_CTX: _TOKEN}).write({'state':'done'})
+        else:
+            record.action_done()
+
     def test_standard_gets_number_and_survives(self):
         std = self._standard()
         self.assertTrue(std.name.startswith("BS-"), std.name)
@@ -75,7 +87,7 @@ class TestBlend(TransactionCase):
         self.assertEqual(rg.state, "draft")
         self.assertAlmostEqual(rg.loss_qty, 10.0, places=3)
         self.assertAlmostEqual(rg.yield_ratio, 90.0, places=2)
-        rg.action_done()
+        self._finish_legacy_fixture(rg)
         self.assertEqual(rg.state, "done")
 
     def test_blend_log_normal_flow(self):
@@ -87,7 +99,7 @@ class TestBlend(TransactionCase):
         self.assertAlmostEqual(b.resin_qty, 100.0, places=3)
         self.assertAlmostEqual(b.regrind_ratio, 20.0, places=2)
         self.assertEqual(b.result, "ok")
-        b.action_done()
+        self._finish_legacy_fixture(b)
         self.assertEqual(b.state, "done")
 
     def test_regrind_source_is_visible_from_the_regrind_log(self):
@@ -224,7 +236,7 @@ class TestBlend(TransactionCase):
         self._standard(max_regrind_ratio=10.0)
         b = self._blend()
         self.assertEqual(b.result, "ng")
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(UserError):
             b.write({"result": "ok"})
 
     def test_done_requires_lines(self):
@@ -249,7 +261,7 @@ class TestBlend(TransactionCase):
             b.action_done()
         b.line_ids.filtered(lambda l: l.material_type == "regrind").regrind_log_id = \
             self._regrind().id
-        b.action_done()
+        self._finish_legacy_fixture(b)
         self.assertEqual(b.state, "done")
 
     def test_ng_blend_needs_an_action_before_done(self):
@@ -259,7 +271,7 @@ class TestBlend(TransactionCase):
         with self.assertRaises(UserError):
             b.action_done()
         b.ng_action = "해당 LOT 격리 후 물성 재확인"
-        b.action_done()
+        self._finish_legacy_fixture(b)
         self.assertEqual(b.state, "done")
 
     def test_state_write_cannot_bypass_done_guard(self):
@@ -267,15 +279,15 @@ class TestBlend(TransactionCase):
         self._standard()
         b = self.Blend.create({"blend_date": self.today,
                                "product_id": self.part.id})
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(UserError):
             b.write({"state": "done"})
 
     def test_completed_blend_cannot_be_gutted(self):
         """완료 뒤 줄을 지워 내용만 비우는 경로."""
         self._standard()
         b = self._blend()
-        b.action_done()
-        with self.assertRaises(ValidationError):
+        self._finish_legacy_fixture(b)
+        with self.assertRaises(UserError):
             b.line_ids.unlink()
 
     def test_regrind_source_cannot_be_hung_on_virgin_line(self):
@@ -293,13 +305,13 @@ class TestBlend(TransactionCase):
         rg = self._regrind(foreign_check=False)
         with self.assertRaises(UserError):
             rg.action_done()
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(UserError):
             rg.write({"state": "done"})
         rg.foreign_check = "ng"
         with self.assertRaises(UserError):
             rg.action_done()
         rg.foreign_action = "해당 배치 폐기"
-        rg.action_done()
+        self._finish_legacy_fixture(rg)
         self.assertEqual(rg.state, "done")
 
     def test_used_regrind_log_cannot_be_deleted(self):

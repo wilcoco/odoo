@@ -1,0 +1,20 @@
+<templates xml:space="preserve">
+<t t-name="cams_sq_dashboard.Dashboard">
+<div class="o_action cams_sq_dashboard p-4">
+<h1>SQ 준비·운영 현황</h1>
+<p>현재 회사의 기록을 조회합니다. 증빙 후보 건수는 적합 판정이 아니며, 0건은 모름으로 표시합니다.</p>
+<div class="d-flex gap-2 align-items-center mb-4 flex-wrap"><label>시작일 <input type="date" t-model="state.start" class="form-control"/></label><label>종료일 <input type="date" t-model="state.end" class="form-control"/></label><button class="btn btn-primary" t-on-click="refresh" t-att-disabled="state.busy">조회</button></div>
+<t t-if="state.data"><h2 t-esc="state.data.company"/>
+<div t-if="!state.data.sectors.length" class="alert alert-info">기준 관리자에게 SQ 기준 적재를 요청하세요.</div>
+<div class="row g-3"><div t-foreach="state.data.sectors" t-as="s" t-key="s.id" class="col-lg-6"><section class="card p-3 h-100"><h2 t-esc="s.name"/><p><t t-esc="s.items"/>개 항목 · <t t-esc="s.points"/>점</p><p>서류 준비 확인: <strong t-esc="s.ready"/> / <t t-esc="s.requirements"/></p><p>증빙 후보가 있는 규칙: <t t-esc="s.candidate_rules"/> · 미확인/조회 제한: <t t-esc="s.unknown_rules"/></p><p>연결된 운영 업무: <t t-esc="s.ops_tasks"/> · 기한 경과 미승인: <t t-esc="s.ops_overdue"/></p></section></div></div>
+<h2 class="mt-4">기간별 검사 현황</h2><p>검사 진행률과 불합격 LOT 비율은 건수 기준입니다. 수입검사 불합격 수량 비율은 판정된 입고 수량 기준입니다.</p>
+<div class="row g-3"><div t-foreach="state.data.boards" t-as="b" t-key="b.name" class="col-lg-6"><section class="card p-3"><h3 t-esc="b.name"/><p t-if="b.restricted">원천 검사 기록 조회 권한이 없어요.</p><t t-else=""><p>전체 <t t-esc="b.records"/>건 · 판정 <t t-esc="b.decided"/>건 · 불합격 <t t-esc="b.failed"/>건</p><p>대상 수량 <t t-esc="b.quantity === null ? '단위 혼합 · 합산하지 않음' : b.quantity"/></p><p>검사 진행률: <t t-esc="b.inspection_rate === null ? '모름' : b.inspection_rate.toFixed(1) + '%'"/></p><p>불합격 LOT 비율: <t t-esc="b.failed_lot_rate === null ? '모름' : b.failed_lot_rate.toFixed(1) + '%'"/></p><p t-if="b.rejected_quantity !== undefined">불합격 수량 <t t-esc="b.rejected_quantity === null ? '단위 혼합 · 합산하지 않음' : b.rejected_quantity"/> · 비율 <t t-esc="b.rejected_rate === null ? '모름' : b.rejected_rate.toFixed(1) + '%'"/></p><button class="btn btn-outline-primary" t-on-click="() => this.openBoard(b)">원천 검사 기록 열기</button></t></section></div></div>
+<section class="card p-3 mt-4"><h2>입고 대비 검사 누락 대조</h2>
+<p>실제 입고 상세 기준입니다. 판정·승인 완료에는 불합격도 포함하며, 합격률이나 출고 허용률이 아닙니다. 혼합 단위의 수량을 합산하지 않습니다.</p>
+<t t-set="r" t-value="state.data.receipts"/>
+<p t-if="r.restricted">원천 조회 권한 부족으로 대조하지 못했습니다.</p>
+<t t-else=""><p>조회 가능한 입고 상세 <strong t-esc="r.total"/>건 · 판정·승인 완료 비율 <t t-esc="r.decision_rate === null ? '모름' : r.decision_rate.toFixed(1) + '%'"/></p>
+<ul><li t-foreach="Object.keys(r.counts)" t-as="key" t-key="key"><t t-esc="r.labels[key]"/>: <t t-esc="r.counts[key]"/></li></ul>
+<p>기존 입고는 상세 연결을 확인해야 합니다. 검사 연결 미확인은 누락 또는 기록 접근 제한일 수 있습니다. 입고 기간에 속한 검사의 현재 상태를 표시합니다.</p>
+<button class="btn btn-outline-primary" t-on-click="openReceipts">입고 상세와 검사 열기</button></t></section>
+</t></div></t></templates>

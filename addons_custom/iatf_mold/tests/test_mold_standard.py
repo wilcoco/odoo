@@ -2,6 +2,8 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import fields
 from odoo.tests import TransactionCase, tagged
+from odoo.exceptions import UserError
+from odoo.addons.cams_evidence_core.models.evidence import _CTX,_TOKEN
 
 
 @tagged("post_install", "-at_install")
@@ -17,6 +19,14 @@ class TestMoldStandard(TransactionCase):
         base = {"name": "T-금형", "mold_type": "injection"}
         base.update(vals)
         return self.env["injection.mold"].create(base)
+
+    def _historical_maintenance(self,values):
+        # These cases test pre-P1 due-date data, not the new completion workflow.
+        model=self.env['iatf.mold.maintenance']
+        if values.get('state')=='done':
+            with self.assertRaises(UserError):model.create(values)
+            return model.with_context(**{_CTX:_TOKEN}).create(values)
+        return model.create(values)
 
     # ───────── ① 정상 기록 생성 ─────────
 
@@ -62,7 +72,7 @@ class TestMoldStandard(TransactionCase):
         self.assertFalse(mold.is_clean_overdue, "실적이 없으면 '경과' 로 단정하지 않는다")
 
         # 40일 전에 세척 완료 → 예정일(30일 주기)은 10일 전 → 경과
-        self.env["iatf.mold.maintenance"].create({
+        self._historical_maintenance({
             "mold_id": mold.id, "maintenance_type": "clean",
             "date": today - relativedelta(days=40), "state": "done",
         })
@@ -76,7 +86,7 @@ class TestMoldStandard(TransactionCase):
         self.assertIn(mold, found)
 
         # 오늘 세척하면 해소된다
-        self.env["iatf.mold.maintenance"].create({
+        self._historical_maintenance({
             "mold_id": mold.id, "maintenance_type": "clean",
             "date": today, "state": "done",
         })
@@ -91,7 +101,7 @@ class TestMoldStandard(TransactionCase):
         """'!=' 검색도 정확해야 한다. 예정일이 없는 금형은 '경과 아님' 쪽에 든다."""
         today = fields.Date.context_today(self.env["injection.mold"])
         overdue = self._mold(clean_cycle_days=30)
-        self.env["iatf.mold.maintenance"].create({
+        self._historical_maintenance({
             "mold_id": overdue.id, "maintenance_type": "clean",
             "date": today - relativedelta(days=40), "state": "done",
         })
@@ -106,7 +116,7 @@ class TestMoldStandard(TransactionCase):
         """계획(planned) 상태의 세척은 실적이 아니다 — 없는 이행을 만들지 않는다."""
         today = fields.Date.context_today(self.env["injection.mold"])
         mold = self._mold(clean_cycle_days=30)
-        self.env["iatf.mold.maintenance"].create({
+        self._historical_maintenance({
             "mold_id": mold.id, "maintenance_type": "clean",
             "date": today, "state": "planned",
         })
@@ -117,7 +127,7 @@ class TestMoldStandard(TransactionCase):
         """주기 미설정(0)이면 기한 판정을 하지 않는다 — 매일 경과로 잡히면 안 된다."""
         today = fields.Date.context_today(self.env["injection.mold"])
         mold = self._mold(clean_cycle_days=0)
-        self.env["iatf.mold.maintenance"].create({
+        self._historical_maintenance({
             "mold_id": mold.id, "maintenance_type": "clean",
             "date": today - relativedelta(days=999), "state": "done",
         })

@@ -55,6 +55,9 @@ class SupplierPortalController(http.Controller):
                 return self._activate_portal_scope(partner)
             # 로그인은 됐으나 협력사 계정이 아니면(내부/타 포탈) 토큰으로 재시도
         # 2) 토큰 방식 (기존) — 빈 값·데모·짧은 토큰 거부
+        if ('cams.ops.policy' in request.env and request.env['cams.ops.policy']._value(
+                request.env.company, 'portal_token_mode') == 'login'):
+            raise AccessDenied(_('회사 정책에 따라 협력사 계정으로 로그인하십시오.'))
         if not token or token.startswith("demo_token_") or len(token) < 20:
             raise AccessDenied(_("접근 토큰이 필요하거나, 협력사 계정으로 로그인해 주세요."))
 
@@ -126,10 +129,15 @@ class SupplierPortalController(http.Controller):
             ("date_planned", "<=", week_later),
         ] + [("company_id", "=", request.env.company.id)], order="date_planned asc", limit=5)
 
+        inventory_alerts = request.env["supplier.inventory"].sudo().search([
+            ("partner_id.commercial_partner_id", "=", partner.commercial_partner_id.id),
+            ("company_id", "=", request.env.company.id)]).filtered("needs_update")
+
         return request.render("supplier_portal_purchase.portal_dashboard", {
             "partner": partner,
             "token": token,
             "po_stats": po_stats,
+            "inventory_alerts": inventory_alerts,
             "notifications": notifications,
             "unread_count": unread_count,
             "upcoming_pos": upcoming_pos,
@@ -911,6 +919,7 @@ class SupplierPortalController(http.Controller):
             "partner": partner,
             "token": token,
             "inventory_items": inventory_items,
+            "inventory_alerts": inventory_items.filtered("needs_update"),
         })
 
     @http.route("/supplier/my-inventory/update", type="http", auth="public",

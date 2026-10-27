@@ -41,7 +41,7 @@ class MrpBom(models.Model):
         if trigger_fields and "change_locked" not in vals:
             CR = self.env.get("iatf.change.request")
             if CR is not None:
-                for rec in self:
+                for rec in self.filtered(lambda b: not b._change_has_bom_workflow()):
                     pending_crs = CR.search([
                         ("affected_product_ids", "in", rec.product_tmpl_id.product_variant_ids.ids),
                         ("state", "not in", ("approved", "closed", "cancelled")),
@@ -58,7 +58,7 @@ class MrpBom(models.Model):
                          "routing_id", "operation_ids", "type"}
         trigger_fields = set(vals.keys()) & change_fields
         if trigger_fields:
-            for rec in self:
+            for rec in self.filtered(lambda b: not b._change_has_bom_workflow()):
                 old = old_values.get(rec.id, {})
                 changed_desc = ", ".join(trigger_fields)
                 self.env["iatf.change.request"].create({
@@ -74,3 +74,9 @@ class MrpBom(models.Model):
                     "risk_level": "medium",
                 })
                 _logger.info("Change Request auto-created for BOM %s change", rec.display_name)
+
+    def _change_has_bom_workflow(self):
+        """Protected managed BOMs own their approval/log; keep legacy BOM behavior."""
+        self.ensure_one()
+        return bool(getattr(self, 'is_escon_managed', False)
+                    and callable(getattr(self, '_bom_require_approval', None)))

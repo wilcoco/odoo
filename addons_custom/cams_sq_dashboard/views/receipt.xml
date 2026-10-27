@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_sq_receipt_list" model="ir.ui.view">
+        <field name="name">stock.move.line.sq.receipt.list</field>
+        <field name="model">stock.move.line</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false" decoration-warning="sq_iqc_status != 'decided'">
+                <field name="date"/><field name="picking_id"/><field name="product_id"/>
+                <field name="lot_id"/><field name="quantity"/><field name="product_uom_id"/>
+                <field name="sq_iqc_status"/><field name="sq_iqc_inspection_id"/>
+                <button name="action_sq_open_inspection" type="object" string="검사 근거 열기" invisible="not sq_iqc_inspection_id"/>
+            </list>
+        </field>
+    </record>
+</odoo>

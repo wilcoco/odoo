@@ -1,0 +1,57 @@
+<odoo>
+    <record id="action_sq_dashboard" model="ir.actions.client">
+        <field name="name">SQ 준비·운영 현황</field>
+        <field name="tag">cams_sq_dashboard.Dashboard</field>
+    </record>
+    <menuitem id="menu_sq_dashboard" name="준비·운영 현황판" parent="cams_sq.menu_sq_readiness"
+              action="action_sq_dashboard" sequence="1" groups="cams_sq.group_sq_user"/>
+    <record id="view_sq_ops_definition" model="ir.ui.view">
+        <field name="name">ops.task.def.sq</field><field name="model">ops.task.def</field>
+        <field name="inherit_id" ref="cams_ops_process.view_ops_task_def_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='requires_approval']" position="before">
+                <field name="sq_item_id" options="{'no_create': True}"/>
+                <field name="sq_start_date" invisible="not sq_item_id"/>
+                <field name="sq_end_date" invisible="not sq_item_id"/>
+                <field name="sq_company_id" invisible="not sq_item_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_sq_ops_task" model="ir.ui.view">
+        <field name="name">ops.task.sq</field><field name="model">ops.task</field>
+        <field name="inherit_id" ref="cams_ops_process.view_ops_task_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="SQ 실제 수행 증빙" invisible="not sq_item_id">
+                    <group>
+                        <field name="sq_item_id" readonly="1"/>
+                        <field name="sq_company_id" readonly="1"/>
+                        <field name="sq_performed_date" readonly="state != 'todo'"/>
+                        <field name="sq_result" readonly="state != 'todo'"/>
+                        <field name="sq_document_ids" widget="many2many_tags" readonly="state != 'todo'"
+                               options="{'no_create': True}" domain="[('company_id', '=', sq_company_id)]"/>
+                        <field name="sq_finding_id" readonly="state != 'todo'"/>
+                    </group>
+                    <p class="text-muted">실제 수행 기록을 승인 문서로 연결하고 수행 메모를 작성하십시오. 이상 발견 시 지적·시정조치를 연결합니다. 완료 보고 후 다른 승인자가 증빙을 확인합니다.</p>
+                    <field name="sq_execution_snapshot" readonly="1" groups="iatf_audit.group_audit_manager"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_sq_finding_list" model="ir.ui.view">
+        <field name="name">iatf.audit.finding.sq.list</field>
+        <field name="model">iatf.audit.finding</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="audit_id"/>
+                <field name="finding_type"/>
+                <field name="clause_reference"/>
+                <field name="description" widget="html"/>
+                <field name="responsible_id"/>
+                <field name="due_date"/>
+                <field name="nonconformity_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+</odoo>

@@ -224,6 +224,19 @@ class TestIqcGate(TransactionCase):
         with self.assertRaises(UserError),self.env.cr.savepoint():
             self.env['stock.quant'].with_context(default_location_id=pending.id).create({'product_id':self.product.id,'quantity':10})
 
+    def test_zero_pending_quant_cleanup_does_not_break_scheduler(self):
+        """검사대기 위치의 0수량 quant 는 표준 스케줄러 정리로 지워져야 한다(운영 크론 실패 재현)."""
+        iqc=self._receipt()
+        pending=iqc.receipt_move_line_id.location_dest_id
+        quant=self.env['stock.quant'].search([('location_id','=',pending.id)])
+        self.assertEqual(len(quant),1)
+        with self.assertRaises(UserError),self.env.cr.savepoint():
+            quant.unlink()  # 재고가 남은 검사대기 quant 는 여전히 삭제 불가
+        self.env.cr.execute('update stock_quant set quantity=0, reserved_quantity=0 where id=%s',(quant.id,))
+        quant.invalidate_recordset()
+        self.env['stock.quant']._unlink_zero_quants()
+        self.assertFalse(quant.exists(),'0수량 검사대기 quant 는 스케줄러 정리로 삭제된다')
+
     def test_pending_api_and_legacy_stock(self):
         self.env['stock.quant']._update_available_quantity(self.product,self.wh.lot_stock_id,3)
         iqc=self._receipt()

@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_plan_quantity_change" model="ir.ui.view">
+        <field name="name">injection.plan.quantity.change.form</field>
+        <field name="model">injection.plan.quantity.change</field>
+        <field name="arch" type="xml">
+            <form string="발행 계획 수량 감축">
+                <p>생산 시작 전 수량 감축만 가능합니다. 증량 또는 시작한 지시는 잔량 취소 후 재계획하십시오.</p>
+                <group><field name="line_id" readonly="1"/><field name="expected_qty"/><field name="quantity"/><field name="reason"/></group>
+                <footer><button name="action_apply" type="object" string="감축 확정" class="btn-primary"/><button special="cancel" string="취소"/></footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_plan_line_quantity_detail" model="ir.ui.view">
+        <field name="name">injection.planning.line.quantity.detail</field>
+        <field name="model">injection.planning.line</field>
+        <field name="inherit_id" ref="view_planning_line_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="calculation_detail" optional="hide"/>
+                <button name="action_quantity_change" type="object" string="수량 감축" invisible="not mo_id" groups="injection_planning.group_planning_manager"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

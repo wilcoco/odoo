@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import mute_logger
 
 
 @tagged("post_install", "-at_install")
@@ -244,7 +245,7 @@ class TestMoldCheck(TransactionCase):
     def test_mold_delete_blocked_while_check_exists(self):
         """점검 기록이 달린 금형은 지워지지 않는다 — 증빙이 조용히 사라지면 안 된다."""
         chk = self._check(lines=[{"item_name": "형면 이물", "result": "ok"}])
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception),mute_logger('odoo.sql_db'):
             with self.env.cr.savepoint():
                 self.mold.unlink()
         chk.unlink()

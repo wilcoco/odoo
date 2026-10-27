@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 사내 화면: 협력사 재고 vs 미입고 요구량 비교 -->
+    <record id="supplier_inventory_list_sync" model="ir.ui.view">
+        <field name="name">supplier.inventory.list.sync</field>
+        <field name="model">supplier.inventory</field>
+        <field name="inherit_id" ref="supplier_portal_purchase.supplier_inventory_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-danger">needs_update</attribute>
+            </xpath>
+            <field name="last_updated" position="after">
+                <field name="outstanding_qty"/>
+                <field name="shortage_qty"/>
+                <field name="needs_update" widget="boolean"/>
+                <field name="last_deduction_date" optional="show"/>
+                <field name="last_deduction_qty" optional="show"/>
+                <field name="update_requested_at" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="supplier_inventory_search" model="ir.ui.view">
+        <field name="name">supplier.inventory.search</field>
+        <field name="model">supplier.inventory</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <filter name="needs_update" string="갱신 필요(부족)" domain="[('needs_update', '=', True)]"/>
+                <group expand="0" string="묶기">
+                    <filter name="by_partner" string="협력사" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_supplier_inventory" model="ir.actions.act_window">
+        <field name="search_view_id" ref="supplier_inventory_search"/>
+    </record>
+
+    <!-- 포털 첫 화면: 갱신 필요 배너 -->
+    <template id="portal_dashboard_inventory_alert" inherit_id="supplier_portal_purchase.portal_dashboard" name="Portal Dashboard - Inventory alert">
+        <xpath expr="//t[@t-if='unread_count > 0']" position="before">
+            <t t-if="inventory_alerts">
+                <div class="alert alert-danger mb-4">
+                    <i class="fa fa-cubes me-2"/>
+                    <strong>재고 갱신 필요 <t t-esc="len(inventory_alerts)"/>품목</strong> —
+                    납품 입고로 차감된 신고 재고가 당사 미입고 요구량보다 적습니다. 생산 후
+                    <a t-attf-href="/supplier/my-inventory?token=#{token}" class="alert-link">내 재고 관리</a>에서 재고를 다시 입력해 주세요.
+                    <ul class="mb-0 mt-2">
+                        <t t-foreach="inventory_alerts" t-as="item">
+                            <li><t t-esc="item.product_id.default_code or ''"/> <t t-esc="item.product_id.name"/>:
+                                신고 <t t-esc="int(item.quantity)"/> / 요구 <t t-esc="int(item.outstanding_qty)"/> (부족 <t t-esc="int(item.shortage_qty)"/>)</li>
+                        </t>
+                    </ul>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- 포털 내 재고 관리: 요구량·부족 열과 배너 -->
+    <template id="portal_my_inventory_sync" inherit_id="supplier_portal_purchase.portal_my_inventory" name="Portal My Inventory - Sync columns">
+        <xpath expr="//div[hasclass('alert-warning')]" position="after">
+            <t t-if="inventory_alerts">
+                <div class="alert alert-danger">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <strong><t t-esc="len(inventory_alerts)"/>품목</strong>의 신고 재고가 당사 미입고 요구량보다 적습니다. 생산 후 수량을 다시 입력해 주세요.
+                    납품이 입고될 때마다 신고 재고에서 자동 차감됩니다.
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//table/thead/tr/th[last()]" position="after">
+            <th class="text-end">당사 미입고 요구량</th>
+            <th>상태</th>
+        </xpath>
+        <xpath expr="//table/tbody//tr/td[last()]" position="after">
+            <td class="text-end"><t t-esc="int(item.outstanding_qty)"/></td>
+            <td>
+                <span t-if="item.needs_update" class="badge bg-danger">갱신 필요 (부족 <t t-esc="int(item.shortage_qty)"/>)</span>
+                <span t-else="" class="badge bg-success">충분</span>
+            </td>
+        </xpath>
+    </template>
+
+</odoo>

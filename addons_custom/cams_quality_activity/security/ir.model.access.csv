@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_activity_user,quality activity user,model_cams_quality_activity,group_activity_user,1,1,1,0
+access_activity_manager,quality activity manager,model_cams_quality_activity,group_activity_manager,1,1,1,1
+access_training_reference,quality activity training reference,iatf_training.model_iatf_training_record,group_activity_user,1,0,0,0
+access_source_comparison,manufacturing source comparison,model_cams_manufacturing_source_comparison,group_activity_user,1,1,1,1
