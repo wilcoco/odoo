@@ -34,7 +34,7 @@
                             class="btn-danger" invisible="state != 'review'"/>
                     <button name="action_implement" string="실행" type="object"
                             class="btn-primary" invisible="state != 'approved'"/>
-                    <button name="action_verify" string="검증" type="object"
+                    <button name="action_verify" string="검증 시작" type="object"
                             class="btn-primary" invisible="state != 'implementing'"/>
                     <button name="action_close" string="종료" type="object"
                             class="btn-success" invisible="state != 'verification'"/>

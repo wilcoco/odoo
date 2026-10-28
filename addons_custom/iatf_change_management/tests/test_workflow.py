@@ -37,7 +37,11 @@ class TestChangeWorkflow(TransactionCase):
         snapshot = evidence.snapshot
         self.assertEqual(record.approved_by, self.manager)
         record.with_user(self.manager).action_implement()
-        record.action_verify()
+        with self.assertRaises(UserError):
+            record.action_verify()
+        with self.assertRaises(UserError):
+            record.with_user(self.manager).action_verify()
+        record.with_user(self.verifier).action_verify()
         record.with_user(self.verifier).write({'verification_result': '<p>독립 검증</p>', 'effective': 'yes'})
         record.with_user(self.verifier).action_close()
         self.assertEqual(record.state, 'closed')
@@ -104,7 +108,7 @@ class TestChangeWorkflow(TransactionCase):
         other = self.request()
         self.approve(other)
         other.with_user(self.manager).action_implement()
-        other.action_verify()
+        other.with_user(self.verifier).action_verify()
         other.write({'verification_result': '확인', 'effective': 'yes'})
         with self.assertRaises(UserError):
             other.with_user(self.manager).action_close()

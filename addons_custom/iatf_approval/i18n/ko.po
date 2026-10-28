@@ -1,0 +1,38 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: iatf_approval
+#. odoo-python
+#: code:addons/iatf_approval/models/approval_request.py:0
+msgid "Please set at least one approver."
+msgstr "결재자를 한 명 이상 지정해 주세요. 적용할 결재선이 없다면 템플릿의 상신 부서·조건을 확인해 주세요."
+
+#. module: iatf_approval
+#. odoo-python
+#: code:addons/iatf_approval/models/approval_request.py:0
+msgid "Approval is not in progress."
+msgstr "현재 진행 중인 결재가 아닙니다. 결재 상태를 확인해 주세요."
+
+#. module: iatf_approval
+#. odoo-python
+#: code:addons/iatf_approval/models/approval_request.py:0
+msgid "Only the current approver can approve."
+msgstr "현재 차례의 결재자만 승인할 수 있습니다."
+
+#. module: iatf_approval
+#. odoo-python
+#: code:addons/iatf_approval/models/approval_request.py:0
+msgid "Only the current approver can reject."
+msgstr "현재 차례의 결재자만 반려할 수 있습니다."
+
+#. module: iatf_approval
+#. odoo-python
+#: code:addons/iatf_approval/models/approval_request.py:0
+msgid "No pending approver found."
+msgstr "대기 중인 결재자가 없습니다. 결재선을 확인해 주세요."
