@@ -56,6 +56,11 @@ class ChangeWorkflow(models.Model):
         if self.env.user != self.reviewer_id or self.env.user in (self.requested_by | self.create_uid):
             raise UserError(_('기안자와 다른 지정 검토자만 검토할 수 있습니다.'))
 
+    def _change_check_verifier(self):
+        self.ensure_one()
+        if self.env.user != self.verification_owner_id or self.env.user == self.implemented_by:
+            raise UserError(_('실행자와 다른 지정 검증자만 검증을 시작하거나 종료할 수 있습니다.'))
+
     def _change_content(self):
         self.ensure_one()
         values = {}
@@ -150,7 +155,7 @@ class ChangeWorkflow(models.Model):
         self._change_lock(('draft',))
         for record in self:
             if not record.reviewer_id or not record.verification_owner_id or record.reviewer_id == record.requested_by:
-                raise UserError(_('기안자와 다른 검토자와 담당 검증자를 지정하십시오.'))
+                raise UserError(_('기안자와 다른 검토자를 지정하고, 담당 검증자도 지정하십시오.'))
             record.with_user(record.reviewer_id).check_access('write')
             if is_html_empty(record.description) or is_html_empty(record.reason):
                 raise UserError(_('변경 내용과 사유를 입력하십시오.'))
@@ -186,13 +191,14 @@ class ChangeWorkflow(models.Model):
 
     def action_verify(self):
         self._change_lock(('implementing',))
+        for record in self:
+            record._change_check_verifier()
         return self._change_write({'state': 'verification'})
 
     def action_close(self):
         self._change_lock(('verification',))
         for record in self:
-            if self.env.user != record.verification_owner_id or self.env.user == record.implemented_by:
-                raise UserError(_('실행자와 다른 지정 검증자가 검증을 종료해야 합니다.'))
+            record._change_check_verifier()
             if is_html_empty(record.verification_result) or record.effective != 'yes':
                 raise UserError(_('검증 결과와 유효성 확인을 입력하십시오.'))
         return self._change_write({'state': 'closed', 'verified_by': self.env.uid,

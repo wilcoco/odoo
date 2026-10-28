@@ -1,7 +1,7 @@
 {
     "name": "IATF Approval Workflow",
     "summary": "Reusable sequential approval workflow with notifications",
-    "version": "18.0.1.3.1",
+    "version": "18.0.1.3.2",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
