@@ -1,15 +1,16 @@
 {
     "name": "IATF 공정검사 / 최종검사",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.3",
     "summary": "공정검사 및 최종검사 관리 (IATF 16949 §8.6)",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "mrp", "stock", "iatf_document_control", "iatf_control_plan", "iatf_nonconformity", "iatf_approval", "iatf_shipping_inspection", "iatf_packaging", "iatf_incoming_inspection"],
+    "depends": ["cams_ops_process", "base", "mail", "mrp", "stock", "iatf_document_control", "iatf_control_plan", "iatf_nonconformity", "iatf_approval", "iatf_shipping_inspection", "iatf_packaging", "iatf_incoming_inspection"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
         "data/sequence.xml",
+        "data/close_policy.xml",
         "views/process_inspection_views.xml",
         "views/mrp_workorder_views.xml",
         "views/mrp_production_views.xml",

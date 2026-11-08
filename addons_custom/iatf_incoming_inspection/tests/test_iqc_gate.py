@@ -22,6 +22,7 @@ class TestIqcGate(TransactionCase):
         cls.quality=new_test_user(cls.env['res.users'].with_context(**opts).env,login='iqc_quality',groups='iatf_incoming_inspection.group_incoming_inspection_user',company_id=cls.company.id,company_ids=[Command.set(cls.company.ids)])
         # 자기결재 금지: 검사자와 승인자는 다른 사람. 승인자는 연결 관리문서를 읽을 수 있어야 근거 대조가 된다.
         cls.quality_approver=new_test_user(cls.env['res.users'].with_context(**opts).env,login='iqc_quality_approver',groups='iatf_incoming_inspection.group_incoming_inspection_user,iatf_document_control.group_document_user',company_id=cls.company.id,company_ids=[Command.set(cls.company.ids)])
+        cls.quality_second=new_test_user(cls.env['res.users'].with_context(**opts).env,login='iqc_quality_second',groups='iatf_incoming_inspection.group_incoming_inspection_user,iatf_document_control.group_document_user',company_id=cls.company.id,company_ids=[Command.set(cls.company.ids)])
 
     def _receipt(self,quantity=10,product=None,lot=None,owner=None,package=None,uom=None,purchase_line=None):
         product=product or self.product
@@ -57,9 +58,11 @@ class TestIqcGate(TransactionCase):
                 'characteristic_name':'외관','specification':'균열 없음','measured_value':'수량별 외관 확인',
                 'result':'pass' if not rejected else 'fail'})]})
         rec.action_decide()
-        rec.approval_request_id.write({'line_ids':[Command.create({'sequence':10,'user_id':self.quality_approver.id})]})
+        rec.approval_request_id.write({'line_ids':[Command.create({'sequence':10,'user_id':self.quality_approver.id}),Command.create({'sequence':20,'user_id':self.quality_second.id})]})
         rec.action_submit_approval()
         rec.with_user(self.quality_approver).action_approve_approval()
+        self.assertEqual(rec.approval_state, 'in_progress')
+        rec.with_user(self.quality_second).action_approve_approval()
         self.assertEqual(rec.approval_state,'approved')
         return rec
 
@@ -468,6 +471,8 @@ class TestIqcGate(TransactionCase):
         iqc.action_decide()
         iqc.action_submit_approval()
         iqc.with_user(self.quality_approver).action_approve_approval()
+        self.assertEqual(iqc.approval_state, 'in_progress')
+        iqc.with_user(self.quality_second).action_approve_approval()
         self._finish(iqc)
         self.assertEqual(iqc.quantity_released,6)
         self.assertEqual(iqc.quantity_pending,4)
@@ -486,6 +491,8 @@ class TestIqcGate(TransactionCase):
         iqc.action_decide()
         iqc.action_submit_approval()
         iqc.with_user(self.quality_approver).action_approve_approval()
+        self.assertEqual(iqc.approval_state, 'in_progress')
+        iqc.with_user(self.quality_second).action_approve_approval()
         self._finish(iqc)
         self._finish(iqc,'return')
         iqc.action_close()

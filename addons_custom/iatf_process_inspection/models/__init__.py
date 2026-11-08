@@ -5,3 +5,4 @@ from . import stock_picking
 from . import outgoing_inspection
 from . import outgoing_stock
 from . import ng_closure
+from . import close_policy

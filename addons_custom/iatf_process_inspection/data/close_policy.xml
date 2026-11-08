@@ -1,0 +1,19 @@
+<odoo>
+    <data noupdate="1">
+        <record id="policy_pqc_close_approval" model="ops.policy.definition">
+            <field name="key">pqc.close_approval</field>
+            <field name="name">PQC 합격 종료 결재</field>
+            <field name="description">합격 검사를 종료할 때 결재를 요구할지 선택합니다. NG 조치·LOT 보류와 확정된 원검사 잠금은 모든 선택에서 유지합니다. 기존 공통 결재 엔진의 문서 수정 후 초기화도 유지하며, 수정 후 재승인은 상신 당시 첨부 내용까지 추가로 대조합니다.</field>
+            <field name="default_value">none</field>
+            <field name="default_reason">대표 D-84의 현행 유지 결정: PQC 합격 종료의 별도 결재 없음. 최초 등록 행만 이 전달 결정을 기록하고 이후 회사별 선택은 덮어쓰지 않습니다.</field>
+            <field name="impact">QA D07 / R2-34 / 총괄137·139. 합격 종료 가드이며 출하 승인이나 LOT 보류 해제 정책이 아닙니다.</field>
+            <field name="option_ids" eval="[(0,0,{'value':'none','label':'없음','description':'합격 종료에 추가 결재를 요구하지 않습니다. 기존 검사·NG 보호는 유지합니다.','sequence':10}),(0,0,{'value':'required','label':'필수','description':'현재 검사의 검증된 승인이 필요합니다. 문서 수정 시 공통 결재 초기화는 계속 적용합니다.','sequence':20}),(0,0,{'value':'reapprove','label':'필수 + 수정 후 재승인','description':'현재 승인과 상신 당시 검사·첨부 내용의 일치가 필요합니다. 첨부 원본의 변경도 새 결재를 요구합니다.','sequence':30})]"/>
+        </record>
+    </data>
+    <!-- Function runs on upgrade even when the existing definition is noupdate. -->
+    <function model="ops.policy.definition" name="_register_initial_decision">
+        <value eval="ref('policy_pqc_close_approval')"/>
+        <value eval="{'value': 'none', 'reason': '대표 D-84 / 총괄137·139: PQC 종료 결재 없음. 최초 등록 시 전달된 결정이며 기록자는 설치 실행자입니다.'}"/>
+    </function>
+    <function model="ops.policy" name="_seed_registered"/>
+</odoo>

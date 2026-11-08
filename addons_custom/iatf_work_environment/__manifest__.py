@@ -1,11 +1,11 @@
 {
     "name": "IATF 작업환경 관리",
-    "version": "18.0.1.4.0",
+    "version": "18.0.1.5.2",
     "summary": "작업환경·5S 점검 + 범용 점검 일지 + 안전관리(위험성평가·아차사고)",
     "category": "Quality",
     "license": "LGPL-3",
     "author": "DevSanx",
-    "depends": ["base", "mail", "hr", "mrp", "iatf_document_control", "iatf_equipment"],
+    "depends": ["base", "web", "mail", "hr", "mrp", "iatf_document_control", "iatf_equipment"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
@@ -19,6 +19,9 @@
         "views/menu.xml",
         "views/source_evidence.xml",
     ],
+    "assets": {
+        "web.assets_tests": ["iatf_work_environment/static/tests/tours/sheet_defaults_r226.js"],
+    },
     "installable": True,
     "application": False,
 }

@@ -1,5 +1,7 @@
+import math
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.addons.iatf_document_control.models.quality_guards import is_blank
 
 
 _RISK_ACTIVITY_TOKEN = object()
@@ -308,19 +310,58 @@ class IatfNonconformity(models.Model):
 
     # ── Workflow actions ──
 
+    @api.constrains("quantity_affected", "quantity_rejected")
+    def _check_quantities(self):
+        # 478 #62: 불합격은 영향 범위의 부분집합이다.
+        for rec in self:
+            affected = rec.quantity_affected or 0.0
+            rejected = rec.quantity_rejected or 0.0
+            if affected < 0 or rejected < 0:
+                raise ValidationError(_("영향·불합격 수량은 0 이상이어야 합니다. (%s)", rec.name))
+            if not (math.isfinite(affected) and math.isfinite(rejected)):
+                raise ValidationError(_("영향·불합격 수량은 유한한 값이어야 합니다. (%s)", rec.name))
+            if rejected > affected:
+                raise ValidationError(_(
+                    "불합격 수량(%(rejected)s)이 영향 수량(%(affected)s)보다 클 수 없습니다. (%(name)s)",
+                    rejected=rejected, affected=affected, name=rec.name))
+
+    def _assert_quantity_relation(self, step_label):
+        """단계 전환 때 수량 관계를 **다시** 본다 (573 §3).
+
+        아스트라 A-62-S01: `_check_quantities` 는 `@api.constrains` 라서
+        **수량 필드를 쓸 때만** 불립니다. 제약을 넣기 전에 저장된 모순 건
+        (영향 1 / 불합격 2 같은 값)은 수량을 건드리지 않는 단계 전환 버튼으로
+        그대로 원인분석·시정조치·종결까지 갑니다. 과거 값을 소급해 고치거나
+        임의로 덮지 않고, 사람이 바로잡도록 두 값을 보여 주며 거부한다.
+        """
+        for rec in self:
+            affected = rec.quantity_affected or 0.0
+            rejected = rec.quantity_rejected or 0.0
+            finite = math.isfinite(affected) and math.isfinite(rejected)
+            if not finite or affected < 0 or rejected < 0 or rejected > affected:
+                raise UserError(_(
+                    "%(step)s 전에 수량을 바로잡으십시오. 영향 %(affected)s / "
+                    "불합격 %(rejected)s 는 서로 맞지 않습니다. 값은 자동으로 "
+                    "고치지 않습니다. (%(name)s)",
+                    step=step_label, affected=affected, rejected=rejected,
+                    name=rec.name))
+        return True
+
     def action_start_containment(self):
         self.write({"state": "containment"})
 
     def action_start_analysis(self):
+        self._assert_quantity_relation(_("원인분석"))
         for rec in self:
-            if not rec.containment_action:
-                raise UserError(_("Please document the containment action (D3) before proceeding."))
+            if is_blank(rec.containment_action):
+                raise UserError(_("격리 조치(D3) 내용을 입력한 뒤 원인분석으로 넘기십시오. 빈 서식은 근거가 아닙니다."))
         self.write({"state": "analysis"})
 
     def action_start_corrective(self):
+        self._assert_quantity_relation(_("시정조치"))
         for rec in self:
-            if not rec.root_cause:
-                raise UserError(_("Please document the root cause (D4) before proceeding."))
+            if is_blank(rec.root_cause):
+                raise UserError(_("근본 원인(D4) 내용을 입력한 뒤 시정조치로 넘기십시오. 빈 서식은 근거가 아닙니다."))
         self.write({"state": "corrective"})
 
     def action_start_verification(self):
@@ -330,6 +371,7 @@ class IatfNonconformity(models.Model):
         self.write({"state": "verification"})
 
     def action_close(self):
+        self._assert_quantity_relation(_("종결"))
         for rec in self:
             open_cas = rec.corrective_action_ids.filtered(lambda ca: ca.state != "verified")
             if open_cas:
