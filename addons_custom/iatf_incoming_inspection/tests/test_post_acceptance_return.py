@@ -32,6 +32,10 @@ class TestPostAcceptanceReturn(TransactionCase):
         cls.quality_approver = new_test_user(users, login='par_quality_approver',
                                              groups='iatf_incoming_inspection.group_incoming_inspection_user,iatf_document_control.group_document_user',
                                              company_id=cls.company.id, company_ids=[Command.set(cls.company.ids)])
+        # 공통 _approve는 수입검사 정책의 두 단계 승인을 실제로 수행한다.
+        cls.quality_second = new_test_user(users, login='par_quality_second',
+                                          groups='iatf_incoming_inspection.group_incoming_inspection_user,iatf_document_control.group_document_user',
+                                          company_id=cls.company.id, company_ids=[Command.set(cls.company.ids)])
 
     def _qty(self, location, lot=None):
         domain = [('product_id', '=', self.tracked.id), ('location_id', '=', location.id)]

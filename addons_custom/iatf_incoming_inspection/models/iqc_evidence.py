@@ -3,6 +3,7 @@ import math
 from markupsafe import escape
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.iatf_document_control.models.quality_guards import is_blank, policy_enabled
 from odoo.tools.float_utils import float_compare
 from odoo.addons.iatf_document_control.models.inspection_evidence import (
     inspection_documents_snapshot, validate_inspection_links)
@@ -168,12 +169,29 @@ class IncomingInspection(models.Model):
                 self.sample_size != inspected or self.accept_number<0 or self.reject_number<=self.accept_number):
             raise UserError(_('샘플 검사에는 검토된 샘플링 기준·샘플 수량·Ac/Re가 필요합니다.'))
         for line in self.line_ids:
-            if not line.characteristic_name or not line.specification or not line.measured_value or line.result not in ('pass','fail','na'):
-                raise UserError(_('모든 검사 항목에 규격·실측/관찰 근거·판정을 입력하세요.'))
-            if line.result=='na' and not line.notes:
+            if (is_blank(line.characteristic_name) or is_blank(line.specification)
+                    or is_blank(line.measured_value) or line.result not in ('pass','fail','na')):
+                raise UserError(_('모든 검사 항목에 규격·실측/관찰 근거·판정을 입력하세요. 공백만 입력한 것은 근거가 아닙니다.'))
+            if line.result=='na' and is_blank(line.notes):
                 raise UserError(_('검사 항목 해당 없음은 사유가 필요합니다.'))
         if self.result=='pass' and (rejected or any(l.result=='fail' for l in self.line_ids)):
             raise UserError(_('불합격 근거가 있는 범위를 전체 합격으로 판정할 수 없습니다.'))
+        summaries = {'visual_result': _('외관'), 'dimension_result': _('치수'), 'material_result': _('재질')}
+        failed = [label for name, label in summaries.items()
+                  if name in self._fields and self[name] == 'fail']
+        if self.result == 'pass' and failed:
+            raise UserError(_(
+                '%s 요약 판정이 불합격인 상태로 전체 합격을 확정할 수 없습니다.', ', '.join(failed)))
+        # 보고된 결함은 "**요약 불합격을 무시한 합격**" 과 "빈 요약을 합격
+        # 근거로 씀" 이다. 그 통제는 바로 위에 있고 **항상** 동작한다.
+        #
+        # "요약을 적어도 하나 입력하라" 는 그보다 넓은 정책이다. 항목별 실측이
+        # 이미 완비된 검사에는 요약이 중복이고, 실제로 기존 수입검사 흐름 47건이
+        # 이 요구 때문에 멈췄다(CI). 그래서 **설정으로 두고 권고 기본값은 끔**이다.
+        # 회사가 요약 기재를 업무로 정하면 켜면 된다. (D-84)
+        if policy_enabled(self.env, 'quality.iqc_summary_required', False) and not any(
+                self[name] for name in summaries if name in self._fields):
+            raise UserError(_('외관·치수·재질 요약 판정 중 하나 이상을 입력하세요.'))
         if self.result=='fail' and (accepted or not rejected):
             raise UserError(_('불합격 판정은 불합격 처분 수량만 지정하세요.'))
         if self.result not in ('pass','partial','fail'):

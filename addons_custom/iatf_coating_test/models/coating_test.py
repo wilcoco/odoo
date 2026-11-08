@@ -1,4 +1,6 @@
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+from odoo.addons.iatf_document_control.models.quality_guards import is_blank
 
 RESULT_SELECTION = [
     ("pass", "합격"),
@@ -47,13 +49,40 @@ class IatfReliabilityTest(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.reliability.test") or _("New")
         return super().create(vals_list)
 
+
+    # ── 478 #51: 판정·근거 없이 종료하지 않는다 ──
+    _RESULT_FIELD = "result"
+    _EVIDENCE_FIELDS = ("measured_values", "test_standard")
+
+    def _check_testable(self):
+        for rec in self:
+            if not rec[rec._RESULT_FIELD]:
+                raise UserError(_("판정을 입력한 뒤 시험 완료로 넘기십시오. (%s)", rec.name))
+            missing = [rec._fields[name].string for name in rec._EVIDENCE_FIELDS
+                       if is_blank(rec[name])]
+            if missing:
+                raise UserError(_(
+                    "시험 근거가 비어 있습니다: %(fields)s (%(name)s)",
+                    fields=", ".join(missing), name=rec.name))
+
     def action_test_done(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise UserError(_("초안 상태에서만 시험 완료로 넘길 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "tested"})
 
     def action_close(self):
+        for rec in self:
+            if rec.state != "tested":
+                raise UserError(_("시험 완료 상태에서만 종료할 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "closed"})
 
     def action_cancel(self):
+        for rec in self:
+            if rec.state == "closed":
+                raise UserError(_("종료된 시험은 취소할 수 없습니다. 정정은 새 시험으로 남기십시오. (%s)", rec.name))
         self.write({"state": "cancelled"})
 
 
@@ -87,13 +116,46 @@ class IatfAdhesionTest(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.adhesion.test") or _("New")
         return super().create(vals_list)
 
+
+    # ── 478 #51: 판정·근거 없이 종료하지 않는다 ──
+    _RESULT_FIELD = "overall_result"
+    _EVIDENCE_FIELDS = ("test_standard",)
+
+    def _check_testable(self):
+        for rec in self:
+            if not rec[rec._RESULT_FIELD]:
+                raise UserError(_("판정을 입력한 뒤 시험 완료로 넘기십시오. (%s)", rec.name))
+            missing = [rec._fields[name].string for name in rec._EVIDENCE_FIELDS
+                       if is_blank(rec[name])]
+            if missing:
+                raise UserError(_(
+                    "시험 근거가 비어 있습니다: %(fields)s (%(name)s)",
+                    fields=", ".join(missing), name=rec.name))
+            positions = (rec.position1_result, rec.position2_result)
+            if not all(positions):
+                raise UserError(_("위치1·위치2 판정을 모두 입력하십시오. (%s)", rec.name))
+            if rec.overall_result == "pass" and "fail" in positions:
+                raise UserError(_(
+                    "위치 판정에 불합격이 있어 종합 합격으로 둘 수 없습니다. (%s)", rec.name))
+
     def action_test_done(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise UserError(_("초안 상태에서만 시험 완료로 넘길 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "tested"})
 
     def action_close(self):
+        for rec in self:
+            if rec.state != "tested":
+                raise UserError(_("시험 완료 상태에서만 종료할 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "closed"})
 
     def action_cancel(self):
+        for rec in self:
+            if rec.state == "closed":
+                raise UserError(_("종료된 시험은 취소할 수 없습니다. 정정은 새 시험으로 남기십시오. (%s)", rec.name))
         self.write({"state": "cancelled"})
 
 
@@ -128,13 +190,40 @@ class IatfColorMeasurement(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.color.measurement") or _("New")
         return super().create(vals_list)
 
+
+    # ── 478 #51: 판정·근거 없이 종료하지 않는다 ──
+    _RESULT_FIELD = "result"
+    _EVIDENCE_FIELDS = ("standard_plate_no",)
+
+    def _check_testable(self):
+        for rec in self:
+            if not rec[rec._RESULT_FIELD]:
+                raise UserError(_("판정을 입력한 뒤 시험 완료로 넘기십시오. (%s)", rec.name))
+            missing = [rec._fields[name].string for name in rec._EVIDENCE_FIELDS
+                       if is_blank(rec[name])]
+            if missing:
+                raise UserError(_(
+                    "시험 근거가 비어 있습니다: %(fields)s (%(name)s)",
+                    fields=", ".join(missing), name=rec.name))
+
     def action_test_done(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise UserError(_("초안 상태에서만 시험 완료로 넘길 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "tested"})
 
     def action_close(self):
+        for rec in self:
+            if rec.state != "tested":
+                raise UserError(_("시험 완료 상태에서만 종료할 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "closed"})
 
     def action_cancel(self):
+        for rec in self:
+            if rec.state == "closed":
+                raise UserError(_("종료된 시험은 취소할 수 없습니다. 정정은 새 시험으로 남기십시오. (%s)", rec.name))
         self.write({"state": "cancelled"})
 
 
@@ -178,11 +267,44 @@ class IatfCoatingThickness(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("iatf.coating.thickness") or _("New")
         return super().create(vals_list)
 
+
+    # ── 478 #51: 판정·근거 없이 종료하지 않는다 ──
+    _RESULT_FIELD = "result"
+    _EVIDENCE_FIELDS = ()
+
+    def _check_testable(self):
+        for rec in self:
+            if not rec[rec._RESULT_FIELD]:
+                raise UserError(_("판정을 입력한 뒤 시험 완료로 넘기십시오. (%s)", rec.name))
+            missing = [rec._fields[name].string for name in rec._EVIDENCE_FIELDS
+                       if is_blank(rec[name])]
+            if missing:
+                raise UserError(_(
+                    "시험 근거가 비어 있습니다: %(fields)s (%(name)s)",
+                    fields=", ".join(missing), name=rec.name))
+            if not any((rec.position1, rec.position2, rec.position3, rec.position4, rec.position5)):
+                raise UserError(_("측정 위치 값을 입력한 뒤 판정하십시오. (%s)", rec.name))
+            if rec.result == "pass" and rec.spec_min and rec.average_thickness < rec.spec_min:
+                raise UserError(_("평균 도막두께가 규격 하한 미만입니다. (%s)", rec.name))
+            if rec.result == "pass" and rec.spec_max and rec.average_thickness > rec.spec_max:
+                raise UserError(_("평균 도막두께가 규격 상한 초과입니다. (%s)", rec.name))
+
     def action_test_done(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise UserError(_("초안 상태에서만 시험 완료로 넘길 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "tested"})
 
     def action_close(self):
+        for rec in self:
+            if rec.state != "tested":
+                raise UserError(_("시험 완료 상태에서만 종료할 수 있습니다. (%s)", rec.name))
+        self._check_testable()
         self.write({"state": "closed"})
 
     def action_cancel(self):
+        for rec in self:
+            if rec.state == "closed":
+                raise UserError(_("종료된 시험은 취소할 수 없습니다. 정정은 새 시험으로 남기십시오. (%s)", rec.name))
         self.write({"state": "cancelled"})

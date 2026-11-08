@@ -1,6 +1,6 @@
 {
     "name": "IATF 레이아웃 검사",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "summary": "레이아웃 검사 / 기능 시험 (IATF 16949 §8.6.2)",
     "category": "Quality",
     "license": "LGPL-3",

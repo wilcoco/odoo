@@ -5,3 +5,6 @@ from . import test_auto_evidence
 from . import test_r144_control_plan_autoload
 from . import test_legacy_inspection
 from . import test_ng_closure
+from . import test_close_policy
+from . import test_judgement_guards
+from . import test_astra_041_043_guards

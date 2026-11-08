@@ -22,9 +22,16 @@ class SheetSource(models.Model):
             raise AccessError(_('점검 용도와 배치도 연결은 작업환경 책임자가 관리합니다.'))
     @api.model_create_multi
     def create(self,vals_list):
-        if any(key in values or 'default_'+key in self.env.context for values in vals_list for key in ('quality_purpose','layout_document_id')):
+        # Web forms send neutral defaults explicitly. Check the effective values,
+        # including context/ir.default defaults, rather than the presence of keys.
+        policy_fields = ('quality_purpose', 'layout_document_id')
+        missing = [key for key in policy_fields if any(key not in values for values in vals_list)]
+        defaults = self.default_get(missing) if missing else {}
+        prepared = [dict(defaults, **values) for values in vals_list]
+        if any(values.get('quality_purpose') != 'general' or values.get('layout_document_id')
+               for values in prepared):
             self._source_policy_actor()
-        return super().create(vals_list)
+        return super().create(prepared)
     def write(self,values):
         touched={'quality_purpose','layout_document_id'} & values.keys()
         if touched:self._source_policy_actor()

@@ -3,6 +3,7 @@ import math
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.addons.iatf_document_control.models.quality_guards import is_blank, policy_enabled
 from odoo.addons.iatf_document_control.models.inspection_evidence import (
     inspection_documents_snapshot, validate_inspection_links)
 
@@ -53,14 +54,51 @@ class OutgoingInspectionMixin(models.AbstractModel):
             data.update(shipping_date=str(self.shipping_date), destination=self.destination)
         return data
 
+    def _requires_decision_snapshot(self):
+        """판정 근거를 남기고 **그 뒤 내용 변경을 묶는** 대상인지.
+
+        557 §2 의 대상은 **포장검사**(`iatf.shipping.inspection`)이고, 전표가
+        없어도 근거를 남기라는 요구였습니다. 1차에는 "근거 필드가 있는 모든
+        레코드" 로 넓혔는데, 그러면 **일반 공정검사에도 근거가 생기고**
+        그 근거의 payload 동결이 `notes` 같은 정상 후속 입력을 전부 거부합니다
+        (CI 4건: close_policy 1 · pqc_aggregation 3). "판정 뒤 아무것도 못
+        바꾼다" 는 계약은 출고 전표가 걸린 출하 흐름의 것입니다.
+        사양 범위로 되돌립니다(아스트라 041 이 557 원문 범위를 지적).
+
+        이 대상은 `_check_shipping_completeness` 가 **판정 시점에** 본인 명의를
+        요구하므로, 근거의 `by` = 기록된 검사자 도 함께 성립합니다.
+        """
+        self.ensure_one()
+        return self._name == 'iatf.shipping.inspection' or self._is_outgoing_inspection()
+
     def _assert_outgoing_decided(self):
+        """판정 근거가 지금의 레코드와 일치하는지 본다.
+
+        아스트라 A-53-S02: 557 §2 로 **근거 기록**을 전표 없는 검사까지 넓혔는데
+        **검증**은 출하검사 전용 계약(검사자 본인 일치·OQC 자동연동 근거)을 그대로
+        모든 근거 보유 레코드에 적용했습니다. 그래서 일반 공정검사는
+        판정이 수락된 직후, 그 판정이 만든 근거를 다음 쓰기에서 "일치하는 판정
+        근거가 없다" 며 거부했습니다(검사원 ≠ 로그인 사용자이거나 비어 있을 때).
+        종료가 state 쓰기라서 종료 자체가 막혔습니다.
+
+        근거의 무결성(무엇을·누가·언제)은 모든 레코드에, **출하 전용 계약은
+        출하·포장검사에만** 적용한다. 판정을 수락해 놓고 그 근거를 거부하는
+        모순을 없애되, 근거 자체의 위조·사후 변경 검출은 그대로 둔다.
+        """
         for record in self:
             basis = record.outgoing_decision_snapshot
+            # 근거 자체가 성립하는지 — 어느 모델이든 본다(위조·엉뚱한 레코드).
             if (not isinstance(basis, dict) or basis.get('version') != 1 or
                     basis.get('model') != record._name or basis.get('id') != record.id or
-                    not basis.get('by') or basis.get('by') != record.inspector_id.id or
-                    not basis.get('at') or basis.get('payload') != record._outgoing_decision_payload()):
-                raise UserError(_('현재 출하검사와 일치하는 실제 판정 근거가 없습니다. 검사자가 판정 절차를 수행해야 합니다. 이미 판정한 내용의 정정은 새 검사로 남기세요.'))
+                    not basis.get('by') or not basis.get('at')):
+                raise UserError(_('판정 근거가 이 검사의 것이 아닙니다. 판정 절차로 다시 남기세요. (%s)', record.name))
+            # 아래부터는 **판정 뒤 동결**과 본인 명의 — 출하·포장검사의 계약이다.
+            if not record._requires_decision_snapshot():
+                continue
+            if basis.get('payload') != record._outgoing_decision_payload():
+                raise UserError(_('현재 검사와 일치하는 실제 판정 근거가 없습니다. 검사자가 판정 절차를 수행해야 합니다. 이미 판정한 내용의 정정은 새 검사로 남기세요. (%s)', record.name))
+            if basis.get('by') != record.inspector_id.id:
+                raise UserError(_('출하·포장검사의 판정 근거는 기록된 검사자 본인의 것이어야 합니다. (%s)', record.name))
             if record._name == 'iatf.process.inspection' and (
                     not record.auto_evidence_snapshot or not record._auto_source_matches(
                         record.auto_evidence_snapshot.get('source'))):
@@ -91,21 +129,72 @@ class OutgoingInspectionMixin(models.AbstractModel):
                 if record.state != 'inspecting' or not record.result:
                     raise UserError(_('검사 시작 후 실제 결과를 입력하고 판정하십시오.'))
                 if record._name == 'iatf.shipping.inspection':
-                    results = [record[name] for name in ('visual_result', 'dimension_result', 'packaging_result', 'label_result')]
-                    if not math.isfinite(record.quantity) or record.quantity <= 0 or any(not value for value in results):
-                        raise UserError(_('양의 유한 출하 수량과 포장·라벨 등 실제 항목 판정이 필요합니다.'))
-                    if record.result == 'pass' and 'fail' in results:
-                        raise UserError(_('불합격 항목이 있는 포장·라벨 검사를 합격으로 판정할 수 없습니다.'))
+                    record._check_shipping_completeness()
             remaining = self - previous
+            # 478 #53: 전표가 없는 포장·라벨 검사도 같은 완결성 검사를 받는다.
+            # 전표 전용 가드(전표 상태·잠금·출고 gate)만 outgoing 분기에 남긴다.
+            for record in remaining.filtered(lambda r: r._name == 'iatf.shipping.inspection'):
+                record._check_shipping_completeness()
+            # 아스트라 A-53-S02: 일반 공정검사에 "판정자 = 기록된 검사자" 를
+            # 요구할지는 업무 정책이다(D-84 정책은 설정으로). 금지하는 정책이면
+            # **판정할 때** 이유를 알려 거부해야 하고, 허용하는 정책이면 나중에
+            # 그 판정이 만든 근거를 거부하지 않아야 한다. 권고 기본값은 허용 —
+            # 일반 공정검사의 검사자 필드는 required 가 아니고, 대리 판정을
+            # 금지한 지시가 없다. 회사가 금지하려면 설정을 켠다.
+            if policy_enabled(self.env, 'quality.pqc_decider_must_be_inspector', False):
+                for record in remaining.filtered(
+                        lambda r: not r._requires_decision_snapshot()):
+                    if record.inspector_id != self.env.user:
+                        raise UserError(_(
+                            '기록된 검사자 본인만 판정할 수 있습니다'
+                            '(설정 quality.pqc_decider_must_be_inspector). '
+                            '검사자를 바로잡거나 본인이 판정하십시오. (%s)', record.name))
             if remaining:
                 super(OutgoingInspectionMixin, remaining).action_decide()
             for record in pending:
-                record.with_context(_outgoing_snapshot_token=_SNAPSHOT_TOKEN).write({
-                    'outgoing_decision_snapshot': {'version': 1, 'model': record._name, 'id': record.id,
-                        'by': self.env.uid, 'at': fields.Datetime.to_string(fields.Datetime.now()),
-                        'payload': record._outgoing_decision_payload()}})
+                record._write_decision_snapshot()
+            # 557 §2: **전표 없는 검사도 판정 근거를 남긴다.**
+            #
+            # 완결성 검사는 전표 유무와 무관하게 받도록 고쳤지만(#53),
+            # **판정 근거 기록은 전표가 있는 경우에만** 남겼습니다
+            # (아스트라 A-53-S01). 그러면 단독 포장·라벨 검사는 판정값·판정자·
+            # 시각이 보존되지 않아, 누가 언제 무엇으로 판정했는지 알 수 없습니다.
+            for record in remaining.filtered(
+                    lambda r: r._requires_decision_snapshot()
+                    and 'outgoing_decision_snapshot' in r._fields
+                    and not r.outgoing_decision_snapshot):
+                record._write_decision_snapshot()
             pending._assert_outgoing_decided()
         return True
+
+    def _write_decision_snapshot(self):
+        """판정 당시 근거를 남긴다 — 전표 유무와 무관(557 §2)."""
+        self.ensure_one()
+        self.with_context(_outgoing_snapshot_token=_SNAPSHOT_TOKEN).write({
+            'outgoing_decision_snapshot': {
+                'version': 1, 'model': self._name, 'id': self.id,
+                'by': self.env.uid,
+                'at': fields.Datetime.to_string(fields.Datetime.now()),
+                'standalone': not self._is_outgoing_inspection(),
+                'payload': self._outgoing_decision_payload(),
+            }})
+
+    def _check_shipping_completeness(self):
+        """포장·라벨 검사의 기본 완결성 — 출고 전표 유무와 무관(478 #53)."""
+        self.ensure_one()
+        if not policy_enabled(self.env, 'quality.oqc_allow_standalone_inspection', True) \
+                and not self.picking_id:
+            raise UserError(_('출고 전표에 연결된 포장검사만 판정할 수 있습니다. (%s)', self.name))
+        if self.inspector_id != self.env.user:
+            raise UserError(_('실제 로그인한 검사자가 본인 명의로 판정하십시오. (%s)', self.name))
+        if self.state != 'inspecting' or not self.result:
+            raise UserError(_('검사 시작 후 실제 결과를 입력하고 판정하십시오. (%s)', self.name))
+        names = ('visual_result', 'dimension_result', 'packaging_result', 'label_result')
+        results = [self[name] for name in names if name in self._fields]
+        if not math.isfinite(self.quantity) or self.quantity <= 0 or any(not value for value in results):
+            raise UserError(_('양의 유한 출하 수량과 포장·라벨 등 실제 항목 판정이 필요합니다. (%s)', self.name))
+        if self.result == 'pass' and 'fail' in results:
+            raise UserError(_('불합격 항목이 있는 포장·라벨 검사를 합격으로 판정할 수 없습니다. (%s)', self.name))
 
     def _is_outgoing_inspection(self):
         self.ensure_one()
