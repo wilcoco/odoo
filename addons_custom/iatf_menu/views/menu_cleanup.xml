@@ -92,7 +92,8 @@
 <field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
 </record>
 <record id="iatf_equipment.menu_iatf_daily_check" model="ir.ui.menu">
-<field name="active" eval="False"/>
+<field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
+<field name="active" eval="True"/>
 </record>
 <record id="iatf_equipment.menu_iatf_equipment_list" model="ir.ui.menu">
 <field name="parent_id" ref="iatf_menu.menu_iatf_equipment"/>
@@ -241,9 +242,21 @@
 <record id="iatf_shipping_inspection.menu_iatf_shipping_root" model="ir.ui.menu">
 <field name="active" eval="False"/>
 </record>
-<record id="iatf_spc.menu_iatf_spc_root" model="ir.ui.menu">
-<field name="active" eval="False"/>
-</record>
+<!-- SPC **루트만** 이 통합에서 빼 둔다. `studies` 는 그대로 끈 상태로 남긴다.
+     2026-10-23 통합이 구 모듈별 루트를 끄도록 넣었는데, 이 파일에는 `noupdate`
+     가 없어 `iatf_menu` 갱신마다 다시 적용된다. 운영에서는 루트가 켜져 있었고,
+     다른 모듈 갱신이 `iatf_menu` 로 번지면서 그 상태를 되돌렸다(서버 294).
+
+     **`studies` 레코드를 함께 빼면 안 된다.** `iatf_spc/views/menu.xml` 은
+     루트·연구를 `active` 속성 없이 `menuitem` 으로 선언하고, 공식 Odoo 18 의
+     `odoo/tools/convert.py` `_tag_menuitem` 은
+         'active': nodeattr2bool(rec, 'active', default=True)
+     로 **속성이 없으면 항상 True 를 쓴다.** 그래서 이 레코드를 빼면
+     `iatf_spc` 갱신이 연구 메뉴를 **켜 버린다** — 운영의 현재 상태(꺼짐)를
+     바꾸는 것이고 이 수정의 목적이 아니다(아스트라 116).
+
+     루트는 반대다. 운영에서 이미 켜져 있으므로, 이 레코드를 빼면 `iatf_spc`
+     가 True 로 쓰고 아무도 되돌리지 않아 **현재 상태가 유지된다.** -->
 <record id="iatf_spc.menu_iatf_spc_studies" model="ir.ui.menu">
 <field name="active" eval="False"/>
 </record>
